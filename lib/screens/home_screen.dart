@@ -11,6 +11,15 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final todayMeals = ref.watch(todayMealsProvider);
     final totalKcal = todayMeals.fold<int>(0, (sum, m) => sum + m.kcal);
+    final target = ref.watch(calorieTargetProvider);
+    final remaining = target - totalKcal;
+    final progress = target > 0 ? (totalKcal / target).clamp(0.0, 1.0) : 0.0;
+    final statusText = remaining > 0
+        ? 'Noch $remaining kcal'
+        : remaining == 0
+            ? 'Ziel erreicht'
+            : '${-remaining} kcal über Ziel';
+    final overTarget = remaining < 0;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Heute')),
@@ -27,8 +36,24 @@ class HomeScreen extends ConsumerWidget {
                     Text('Kalorien heute',
                         style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
-                    Text('$totalKcal kcal',
+                    Text('$totalKcal / $target kcal',
                         style: Theme.of(context).textTheme.headlineMedium),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 8,
+                        color: overTarget ? Colors.orange : null,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      statusText,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: overTarget ? Colors.orange.shade800 : null,
+                          ),
+                    ),
                   ],
                 ),
               ),

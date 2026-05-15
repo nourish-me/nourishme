@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/meal_entry.dart';
+import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
 import '../services/meal_repository.dart';
 
@@ -21,3 +22,5 @@ final todayMealsProvider = Provider<List<MealEntry>>((ref) {
   final startOfDay = DateTime(now.year, now.month, now.day);
   return all.where((m) => m.createdAt.isAfter(startOfDay)).toList();
 });
+
+final calorieTargetProvider = Provider<int>((ref) => calculateDailyCalorieTarget());
