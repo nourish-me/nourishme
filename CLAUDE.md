@@ -82,9 +82,9 @@ Vorgängerversion ging verloren (kein Git-Backup). Dies ist Rebuild mit absichtl
 
 - Done: Flutter-Projekt initialisiert (Stand: 14. Mai 2026)
 - Done: Git-Repo mit privatem GitHub verbunden
-- Todo: Hive Dependencies in pubspec.yaml
-- Todo: Claude API Client + .env Setup
-- Todo: Erste Feature-Implementierung (Food-Tracking)
+- Done: Hive, flutter_riverpod, http, flutter_dotenv in pubspec.yaml (Stand: 15. Mai 2026)
+- Done: Claude API Client (haiku-4-5) plus .env Setup
+- Done: MVP komplett, alle 4 Features implementiert und auf iPhone 16e Simulator getestet (Stand: 15. Mai 2026)
 
 ## Sprache
 
