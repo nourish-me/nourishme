@@ -202,23 +202,29 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _discard,
-                  child: const Text('Verwerfen'),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _discard,
+                      child: const Text('Verwerfen'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _editText,
+                      child: const Text('Text anpassen'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _editText,
-                  child: const Text('Text anpassen'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
                 child: FilledButton(
                   onPressed: _save,
                   child: const Text('Speichern'),

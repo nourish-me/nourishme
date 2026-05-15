@@ -40,6 +40,14 @@ class _InputScreenState extends ConsumerState<InputScreen> {
       final client = ref.read(claudeClientProvider);
       final result = await client.parseMeal(text);
       if (!mounted) return;
+      if (!result.isMeal) {
+        setState(() {
+          _error = result.rejectionReason ??
+              'Bitte beschreibe eine konkrete Mahlzeit.';
+          _loading = false;
+        });
+        return;
+      }
       await Navigator.pushReplacement(
         context,
         MaterialPageRoute(

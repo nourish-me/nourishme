@@ -4,6 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class MealParseResult {
+  final bool isMeal;
+  final String? rejectionReason;
   final String summary;
   final int kcal;
   final double proteinG;
@@ -12,6 +14,8 @@ class MealParseResult {
   final List<String> safetyWarnings;
 
   const MealParseResult({
+    required this.isMeal,
+    required this.rejectionReason,
     required this.summary,
     required this.kcal,
     required this.proteinG,
@@ -39,8 +43,12 @@ Relevante Risiken:
 
 Wenn Mengen nicht angegeben sind, schätze konservativ auf Basis einer normalen Portion.
 
+Wenn die Eingabe keine Mahlzeit beschreibt (z.B. Zufallszeichen, leere Wörter, nicht-essbare Dinge, eine Frage), setze "is_meal" auf false und gib in "rejection_reason" einen kurzen deutschen Hinweis zurück, z.B. "Bitte beschreibe eine konkrete Mahlzeit." In dem Fall dürfen kcal und Makros 0 sein und safety_warnings leer bleiben.
+
 Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohne Text davor oder danach:
 {
+  "is_meal": bool,
+  "rejection_reason": string oder null,
   "summary": string,
   "kcal": int,
   "protein_g": number,
@@ -50,7 +58,7 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 }
 
 "summary" ist eine kurze deutsche Beschreibung, maximal 80 Zeichen.
-"safety_warnings" ist eine Liste deutscher Hinweise, leer wenn nichts kritisch ist.
+"safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
   Future<MealParseResult> parseMeal(String userText) async {
@@ -94,12 +102,14 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
         jsonDecode(text.substring(jsonStart, jsonEnd + 1)) as Map<String, dynamic>;
 
     return MealParseResult(
-      summary: parsed['summary'] as String,
-      kcal: (parsed['kcal'] as num).toInt(),
-      proteinG: (parsed['protein_g'] as num).toDouble(),
-      carbsG: (parsed['carbs_g'] as num).toDouble(),
-      fatG: (parsed['fat_g'] as num).toDouble(),
-      safetyWarnings: List<String>.from(parsed['safety_warnings'] as List),
+      isMeal: parsed['is_meal'] as bool? ?? true,
+      rejectionReason: parsed['rejection_reason'] as String?,
+      summary: parsed['summary'] as String? ?? '',
+      kcal: (parsed['kcal'] as num?)?.toInt() ?? 0,
+      proteinG: (parsed['protein_g'] as num?)?.toDouble() ?? 0,
+      carbsG: (parsed['carbs_g'] as num?)?.toDouble() ?? 0,
+      fatG: (parsed['fat_g'] as num?)?.toDouble() ?? 0,
+      safetyWarnings: List<String>.from(parsed['safety_warnings'] as List? ?? const []),
     );
   }
 }
