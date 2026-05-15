@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/meal_providers.dart';
+import 'history_screen.dart';
 import 'input_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -22,7 +23,21 @@ class HomeScreen extends ConsumerWidget {
     final overTarget = remaining < 0;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Heute')),
+      appBar: AppBar(
+        title: const Text('Heute'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Verlauf',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HistoryScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
