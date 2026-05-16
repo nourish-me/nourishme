@@ -72,7 +72,28 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     );
     await ref.read(mealRepositoryProvider).save(meal);
     if (!mounted) return;
+    _triggerCoachingTip(meal);
     Navigator.popUntil(context, (r) => r.isFirst);
+  }
+
+  void _triggerCoachingTip(MealEntry meal) {
+    final client = ref.read(claudeClientProvider);
+    final target = ref.read(calorieTargetProvider);
+    final today = ref.read(todayMealsProvider);
+    final totalKcalToday =
+        today.fold<int>(0, (sum, m) => sum + m.kcal) + meal.kcal;
+    client
+        .generateCoachingTip(
+      justEatenSummary: meal.summary,
+      justEatenKcal: meal.kcal,
+      totalKcalToday: totalKcalToday,
+      targetKcal: target,
+      safetyWarnings: meal.safetyWarnings,
+    )
+        .then((tip) {
+      if (!mounted) return;
+      ref.read(latestTipProvider.notifier).state = tip.trim();
+    }).catchError((_) {});
   }
 
   void _editText() {

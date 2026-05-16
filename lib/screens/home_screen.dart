@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/meal_providers.dart';
+import 'coaching_screen.dart';
 import 'history_screen.dart';
 import 'input_screen.dart';
 
@@ -13,6 +14,7 @@ class HomeScreen extends ConsumerWidget {
     final todayMeals = ref.watch(todayMealsProvider);
     final totalKcal = todayMeals.fold<int>(0, (sum, m) => sum + m.kcal);
     final target = ref.watch(calorieTargetProvider);
+    final latestTip = ref.watch(latestTipProvider);
     final remaining = target - totalKcal;
     final progress = target > 0 ? (totalKcal / target).clamp(0.0, 1.0) : 0.0;
     final statusText = remaining > 0
@@ -26,6 +28,16 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Heute'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.tips_and_updates_outlined),
+            tooltip: 'Coaching',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CoachingScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.history),
             tooltip: 'Verlauf',
@@ -74,6 +86,38 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
+          if (latestTip != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Card(
+                color: Theme.of(context).colorScheme.tertiaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(top: 4, right: 8),
+                        child: Icon(Icons.tips_and_updates_outlined, size: 20),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(latestTip),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        tooltip: 'Tipp ausblenden',
+                        onPressed: () => ref
+                            .read(latestTipProvider.notifier)
+                            .state = null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: todayMeals.isEmpty
                 ? const Center(child: Text('Noch keine Einträge heute.'))

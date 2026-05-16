@@ -25,6 +25,8 @@ final todayMealsProvider = Provider<List<MealEntry>>((ref) {
 
 final calorieTargetProvider = Provider<int>((ref) => calculateDailyCalorieTarget());
 
+final latestTipProvider = StateProvider<String?>((ref) => null);
+
 final mealsByDayProvider = Provider<Map<DateTime, List<MealEntry>>>((ref) {
   final all = ref.watch(mealsProvider).valueOrNull ?? const [];
   final grouped = <DateTime, List<MealEntry>>{};

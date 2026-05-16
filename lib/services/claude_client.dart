@@ -26,12 +26,18 @@ class MealParseResult {
   });
 }
 
+class ChatTurn {
+  final bool isUser;
+  final String text;
+  const ChatTurn({required this.isUser, required this.text});
+}
+
 class ClaudeClient {
   static const _endpoint = 'https://api.anthropic.com/v1/messages';
   static const _model = 'claude-haiku-4-5-20251001';
   static const _apiVersion = '2023-06-01';
 
-  static const _systemPrompt = '''
+  static const _parsePrompt = '''
 Du bist ein Ernährungs-Assistent für eine stillende Mutter von Zwillingen.
 Parse den beschriebenen Eintrag in strukturierte Nährwerte und prüfe auf Food-Safety-Risiken beim Stillen.
 
@@ -66,15 +72,56 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
-  Future<MealParseResult> parseMeal(
-    String userText, {
-    Uint8List? imageBytes,
+  static const _tipPrompt = '''
+Du bist eine freundliche Ernährungs-Assistentin für eine stillende Mutter von Zwillingen (exklusiv stillend).
+Gib einen kurzen, konkreten Coaching-Tipp basierend auf dem heutigen Stand.
+Maximal 2 Sätze auf Deutsch. Sei warm aber knapp. Keine Anrede, direkt zum Tipp.
+Wenn die Mutter heute deutlich unter dem Kalorienziel ist, weise darauf hin (Stillen braucht Energie). Wenn sie schon nah am Ziel ist, lobe und mache ggf. einen Vorschlag fürs Nährstoffprofil (z.B. mehr Protein, Wasser).
+''';
+
+  static const _chatPromptBase = '''
+Du bist eine freundliche Ernährungs-Assistentin für eine stillende Mutter von Zwillingen (exklusiv stillend).
+Antworte auf Deutsch, präzise und einfühlsam. Halte dich kurz, maximal 4-5 Sätze pro Antwort, außer eine Liste oder Aufzählung ist sinnvoll.
+Beziehe dich auf Stillen-Sicherheit (Quecksilber, Koffein, Alkohol, Kräuter) wo relevant.
+Wenn die Frage offen ist (z.B. nach Mahlzeitenideen), gib 2-3 konkrete Vorschläge.
+''';
+
+  Future<String> _post({
+    required String systemPrompt,
+    required List<Map<String, dynamic>> messages,
+    int maxTokens = 600,
   }) async {
     final apiKey = dotenv.env['ANTHROPIC_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('ANTHROPIC_API_KEY fehlt in .env');
     }
+    final response = await http.post(
+      Uri.parse(_endpoint),
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': _apiVersion,
+      },
+      body: jsonEncode({
+        'model': _model,
+        'max_tokens': maxTokens,
+        'system': systemPrompt,
+        'messages': messages,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Claude API Fehler ${response.statusCode}: ${utf8.decode(response.bodyBytes)}');
+    }
+    final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    final responseContent = body['content'] as List;
+    return (responseContent.first as Map)['text'] as String;
+  }
 
+  Future<MealParseResult> parseMeal(
+    String userText, {
+    Uint8List? imageBytes,
+  }) async {
     final List<Map<String, dynamic>> content = [];
     if (imageBytes != null) {
       content.add({
@@ -93,31 +140,12 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
           : userText,
     });
 
-    final response = await http.post(
-      Uri.parse(_endpoint),
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': _apiVersion,
-      },
-      body: jsonEncode({
-        'model': _model,
-        'max_tokens': 600,
-        'system': _systemPrompt,
-        'messages': [
-          {'role': 'user', 'content': content},
-        ],
-      }),
+    final text = await _post(
+      systemPrompt: _parsePrompt,
+      messages: [
+        {'role': 'user', 'content': content},
+      ],
     );
-
-    if (response.statusCode != 200) {
-      throw Exception(
-          'Claude API Fehler ${response.statusCode}: ${utf8.decode(response.bodyBytes)}');
-    }
-
-    final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-    final responseContent = body['content'] as List;
-    final text = (responseContent.first as Map)['text'] as String;
 
     final jsonStart = text.indexOf('{');
     final jsonEnd = text.lastIndexOf('}');
@@ -136,6 +164,49 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
       carbsG: (parsed['carbs_g'] as num?)?.toDouble() ?? 0,
       fatG: (parsed['fat_g'] as num?)?.toDouble() ?? 0,
       safetyWarnings: List<String>.from(parsed['safety_warnings'] as List? ?? const []),
+    );
+  }
+
+  Future<String> generateCoachingTip({
+    required String justEatenSummary,
+    required int justEatenKcal,
+    required int totalKcalToday,
+    required int targetKcal,
+    required List<String> safetyWarnings,
+  }) async {
+    final remaining = targetKcal - totalKcalToday;
+    final hour = DateTime.now().hour;
+    final warningLine = safetyWarnings.isEmpty
+        ? ''
+        : '\nSafety-Hinweise zur Mahlzeit: ${safetyWarnings.join(", ")}.';
+    final userMessage = '''
+Gerade eingetragen: $justEatenSummary ($justEatenKcal kcal).
+Heutiger Stand inkl. Eintrag: $totalKcalToday von $targetKcal kcal (verbleibend: $remaining kcal).
+Uhrzeit: $hour Uhr.$warningLine
+''';
+    return _post(
+      systemPrompt: _tipPrompt,
+      messages: [
+        {'role': 'user', 'content': userMessage},
+      ],
+      maxTokens: 200,
+    );
+  }
+
+  Future<String> chat({
+    required List<ChatTurn> history,
+    required String todayContext,
+  }) async {
+    final messages = history
+        .map((turn) => {
+              'role': turn.isUser ? 'user' : 'assistant',
+              'content': turn.text,
+            })
+        .toList();
+    return _post(
+      systemPrompt: '$_chatPromptBase\n\nKontext heute:\n$todayContext',
+      messages: messages,
+      maxTokens: 600,
     );
   }
 }
