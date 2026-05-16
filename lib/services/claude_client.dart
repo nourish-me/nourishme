@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -45,6 +46,8 @@ Relevante Risiken:
 
 Wenn Mengen nicht angegeben sind, schätze konservativ auf Basis einer normalen Portion oder Tasse.
 
+Wenn ein Bild beigefügt ist, analysiere zusätzlich das Foto. Nutze sichtbare Referenzobjekte (Besteck, Hand, bekannte Verpackungen, Teller, Tasse) für die Portionsschätzung. Wenn Text und Bild vorhanden sind und der Text eine konkrete Menge nennt, vertraue dem Text bei der Menge und nutze das Bild zur Identifikation der Speise.
+
 Wenn die Eingabe keine Nahrungsaufnahme beschreibt (z.B. Zufallszeichen, leere Wörter, nicht-essbare Dinge, eine Frage), setze "is_meal" auf false und gib in "rejection_reason" einen kurzen deutschen Hinweis zurück, z.B. "Bitte beschreibe ein Essen oder Getränk." In dem Fall dürfen kcal und Makros 0 sein und safety_warnings leer bleiben.
 
 Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohne Text davor oder danach:
@@ -63,11 +66,32 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
-  Future<MealParseResult> parseMeal(String userText) async {
+  Future<MealParseResult> parseMeal(
+    String userText, {
+    Uint8List? imageBytes,
+  }) async {
     final apiKey = dotenv.env['ANTHROPIC_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('ANTHROPIC_API_KEY fehlt in .env');
     }
+
+    final List<Map<String, dynamic>> content = [];
+    if (imageBytes != null) {
+      content.add({
+        'type': 'image',
+        'source': {
+          'type': 'base64',
+          'media_type': 'image/jpeg',
+          'data': base64Encode(imageBytes),
+        },
+      });
+    }
+    content.add({
+      'type': 'text',
+      'text': userText.isEmpty
+          ? 'Schätze diesen Eintrag basierend auf dem Bild.'
+          : userText,
+    });
 
     final response = await http.post(
       Uri.parse(_endpoint),
@@ -81,7 +105,7 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
         'max_tokens': 600,
         'system': _systemPrompt,
         'messages': [
-          {'role': 'user', 'content': userText},
+          {'role': 'user', 'content': content},
         ],
       }),
     );
@@ -92,8 +116,8 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
     }
 
     final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-    final content = body['content'] as List;
-    final text = (content.first as Map)['text'] as String;
+    final responseContent = body['content'] as List;
+    final text = (responseContent.first as Map)['text'] as String;
 
     final jsonStart = text.indexOf('{');
     final jsonEnd = text.lastIndexOf('}');

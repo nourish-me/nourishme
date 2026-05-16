@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../providers/meal_providers.dart';
 import 'confirm_screen.dart';
@@ -14,6 +17,8 @@ class InputScreen extends ConsumerStatefulWidget {
 
 class _InputScreenState extends ConsumerState<InputScreen> {
   late final TextEditingController _controller;
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _imageBytes;
   bool _loading = false;
   String? _error;
 
@@ -21,6 +26,9 @@ class _InputScreenState extends ConsumerState<InputScreen> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.prefill ?? '');
+    _controller.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -29,21 +37,41 @@ class _InputScreenState extends ConsumerState<InputScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 1280,
+      );
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _imageBytes = bytes;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = 'Foto konnte nicht geladen werden: $e');
+    }
+  }
+
   Future<void> _analyze() async {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && _imageBytes == null) return;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       final client = ref.read(claudeClientProvider);
-      final result = await client.parseMeal(text);
+      final result = await client.parseMeal(text, imageBytes: _imageBytes);
       if (!mounted) return;
       if (!result.isMeal) {
         setState(() {
           _error = result.rejectionReason ??
-              'Bitte beschreibe eine konkrete Mahlzeit.';
+              'Bitte beschreibe ein Essen oder Getränk.';
           _loading = false;
         });
         return;
@@ -51,7 +79,11 @@ class _InputScreenState extends ConsumerState<InputScreen> {
       await Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => ConfirmScreen(rawText: text, parsed: result),
+          builder: (_) => ConfirmScreen(
+            rawText: text,
+            parsed: result,
+            imageBytes: _imageBytes,
+          ),
         ),
       );
     } catch (e) {
@@ -65,6 +97,9 @@ class _InputScreenState extends ConsumerState<InputScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canAnalyze = !_loading &&
+        (_controller.text.trim().isNotEmpty || _imageBytes != null);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Neuer Eintrag')),
       body: Padding(
@@ -75,7 +110,7 @@ class _InputScreenState extends ConsumerState<InputScreen> {
             TextField(
               controller: _controller,
               maxLines: 5,
-              autofocus: true,
+              autofocus: _imageBytes == null,
               textInputAction: TextInputAction.newline,
               decoration: const InputDecoration(
                 hintText:
@@ -83,6 +118,57 @@ class _InputScreenState extends ConsumerState<InputScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _loading ? null : () => _pickImage(ImageSource.camera),
+                  icon: const Icon(Icons.photo_camera),
+                  label: const Text('Kamera'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: _loading ? null : () => _pickImage(ImageSource.gallery),
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('Galerie'),
+                ),
+              ],
+            ),
+            if (_imageBytes != null) ...[
+              const SizedBox(height: 12),
+              Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      _imageBytes!,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Material(
+                      color: Colors.black54,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: _loading
+                            ? null
+                            : () => setState(() => _imageBytes = null),
+                        child: const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Icon(Icons.close,
+                              size: 18, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             if (_error != null)
               Padding(
@@ -91,7 +177,7 @@ class _InputScreenState extends ConsumerState<InputScreen> {
                     style: const TextStyle(color: Colors.red)),
               ),
             FilledButton.icon(
-              onPressed: _loading ? null : _analyze,
+              onPressed: canAnalyze ? _analyze : null,
               icon: _loading
                   ? const SizedBox(
                       width: 16,

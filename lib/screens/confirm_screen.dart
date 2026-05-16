@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,11 +11,13 @@ import 'input_screen.dart';
 class ConfirmScreen extends ConsumerStatefulWidget {
   final String rawText;
   final MealParseResult parsed;
+  final Uint8List? imageBytes;
 
   const ConfirmScreen({
     super.key,
     required this.rawText,
     required this.parsed,
+    this.imageBytes,
   });
 
   @override
@@ -92,21 +96,35 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Originaltext',
-                      style: Theme.of(context).textTheme.labelSmall),
-                  const SizedBox(height: 4),
-                  Text(widget.rawText),
-                ],
+          if (widget.imageBytes != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.memory(
+                widget.imageBytes!,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
+          ],
+          if (widget.rawText.isNotEmpty) ...[
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Originaltext',
+                        style: Theme.of(context).textTheme.labelSmall),
+                    const SizedBox(height: 4),
+                    Text(widget.rawText),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           if (warnings.isNotEmpty) ...[
             Card(
               color: Colors.orange.shade50,

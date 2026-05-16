@@ -4,6 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Wird benötigt, um Mahlzeiten oder Getränke per Foto zu erfassen.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Wird benötigt, um Fotos aus deiner Galerie für die Mahlzeitenanalyse auszuwählen.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
