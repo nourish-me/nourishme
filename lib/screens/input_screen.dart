@@ -66,7 +66,7 @@ class _InputScreenState extends ConsumerState<InputScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Neue Mahlzeit')),
+      appBar: AppBar(title: const Text('Neuer Eintrag')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -79,7 +79,7 @@ class _InputScreenState extends ConsumerState<InputScreen> {
               textInputAction: TextInputAction.newline,
               decoration: const InputDecoration(
                 hintText:
-                    'z.B. Müsli mit Joghurt und Beeren, ca. 1 Schüssel',
+                    'z.B. Müsli mit Joghurt, oder großer Latte Macchiato',
                 border: OutlineInputBorder(),
               ),
             ),

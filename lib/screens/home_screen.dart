@@ -131,7 +131,7 @@ class HomeScreen extends ConsumerWidget {
           );
         },
         icon: const Icon(Icons.add),
-        label: const Text('Mahlzeit'),
+        label: const Text('Eintrag'),
       ),
     );
   }
