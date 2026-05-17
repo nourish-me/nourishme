@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
+import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
 
@@ -132,46 +133,64 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
 
     if (!mounted) return;
-    _triggerInsightRefresh(meal);
-    if (widget.asSheet) {
-      Navigator.of(context).pop(meal);
+    final navigator = Navigator.of(context);
+    final asSheet = widget.asSheet;
+    await _appendToThread(meal);
+    if (!mounted) return;
+    if (asSheet) {
+      navigator.pop(meal);
     } else {
-      Navigator.popUntil(context, (r) => r.isFirst);
+      navigator.popUntil((r) => r.isFirst);
     }
   }
 
-  void _triggerInsightRefresh(MealEntry meal) {
-    // Capture notifiers before the widget gets disposed by the Navigator pop
-    // that follows immediately. Without this, the .then callback runs after
-    // dispose and the mounted check used to swallow the state update entirely.
+  Future<void> _appendToThread(MealEntry meal) async {
+    final threadRepo = ref.read(threadRepositoryProvider);
     final client = ref.read(claudeClientProvider);
-    final insightNotifier = ref.read(dailyInsightProvider.notifier);
-    final loadingNotifier = ref.read(insightLoadingProvider.notifier);
     final target = ref.read(calorieTargetProvider);
     final today = ref.read(todayMealsProvider);
     final profile = ref.read(userProfileProvider).valueOrNull;
+    final loadingNotifier = ref.read(insightLoadingProvider.notifier);
 
-    final mealsForBlock = [...today, meal];
+    // Add the meal as a thread item right away so the user sees it on Home.
+    await threadRepo.add(ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
+
+    // Compose the running total including the just-saved meal. The
+    // todayMealsProvider stream may not have ticked yet.
+    final hadAlready = today.any((m) => m.id == meal.id);
+    final mealsForTotal = hadAlready ? today : [...today, meal];
     final totalKcalToday =
-        mealsForBlock.fold<int>(0, (sum, m) => sum + m.kcal);
-    final block = mealsForBlock.isEmpty
-        ? 'Keine Einträge.'
-        : mealsForBlock
-            .map((m) =>
-                '- ${m.summary} (${m.kcal} kcal${m.safetyWarnings.isEmpty ? '' : ', Warnung: ${m.safetyWarnings.join("; ")}'})')
-            .join('\n');
+        mealsForTotal.fold<int>(0, (sum, m) => sum + m.kcal);
+    final totalProteinToday =
+        mealsForTotal.fold<double>(0, (sum, m) => sum + m.proteinG);
+
+    // Rough lactation/pregnancy protein target: 1.8 g per kg body weight.
+    final proteinTargetG = profile != null
+        ? (profile.weightKg * 1.8).round()
+        : 100;
 
     loadingNotifier.state = true;
     client
-        .generateDailyInsight(
-      targetKcal: target,
+        .generatePerMealResponse(
+      mealRawText: widget.rawText,
+      mealSummary: meal.summary,
+      mealKcal: meal.kcal,
+      mealProteinG: meal.proteinG,
+      mealCarbsG: meal.carbsG,
+      mealFatG: meal.fatG,
+      safetyWarnings: meal.safetyWarnings,
       totalKcalToday: totalKcalToday,
-      todayMealsBlock: block,
+      targetKcal: target,
+      totalProteinToday: totalProteinToday,
+      proteinTargetG: proteinTargetG,
       numChildrenNursing: profile?.numChildrenNursing ?? 0,
       milkSharePercent: profile?.milkSharePercent ?? 0,
     )
-        .then((insight) {
-      insightNotifier.state = insight.trim();
+        .then((response) async {
+      await threadRepo.add(ThreadItem.coachResponse(
+        text: response.trim(),
+        at: DateTime.now(),
+      ));
       loadingNotifier.state = false;
     }).catchError((_) {
       loadingNotifier.state = false;

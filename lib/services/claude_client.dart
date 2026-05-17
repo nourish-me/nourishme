@@ -83,6 +83,35 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
+  static const _perMealPrompt = '''
+Du bist eine Ernährungs-Coach für eine Frau, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
+Antworte auf Deutsch, sachlich, ohne Smalltalk, ohne Anrede.
+
+Antworte strikt in folgendem Markdown-Format. Keine zusätzlichen Sätze davor oder danach.
+
+| Komponente | Menge | kcal | P | KH | F |
+| --- | --- | --- | --- | --- | --- |
+| <Bestandteil> | <Menge> | <kcal> | <g> | <g> | <g> |
+| ... | ... | ... | ... | ... | ... |
+| **Gesamt** | | **<gesamt>** | **<g>** | **<g>** | **<g>** |
+
+**🟢 Stark:** ein bis zwei Stärken in einem Satz
+**🟡 Knapp:** ein bis zwei Schwachpunkte, falls relevant
+
+**Tagesstand:** <kcal_heute> / <ziel> kcal · noch <verbleibend> kcal
+**Protein heute:** <heute_g> g (Ziel ~<ziel_g> g)
+
+**Was heute noch fehlt:** kurz, mit kcal-Split auf die nächsten Mahlzeiten
+**Nächste Mahlzeit:** Empfehlung mit Timing und konkretem Lebensmittel-Vorschlag
+
+Regeln:
+- Komponenten aus dem Originaltext oder der Beschreibung schätzen, Mengen in g, ml oder Stück
+- Die Gesamtzeile MUSS exakt den mitgelieferten Gesamtwerten entsprechen
+- Mikronährstoffe (Eisen, Calcium, Folat, Omega-3) nur nennen wenn sie zur Mahlzeit oder Tagesphase passen
+- Maximal 180 Wörter ohne Tabelle
+- Vermeide das Wort "Stillen" und seine Varianten. Nutze "während du Muttermilch produzierst" oder "in dieser Phase", weil viele Mütter ausschließlich pumpen
+''';
+
   static const _chatPromptBase = '''
 Du bist eine freundliche Ernährungs-Assistentin für eine Mutter, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
 Antworte auf Deutsch, präzise und einfühlsam. Halte dich kurz, maximal 4-5 Sätze pro Antwort, außer eine Liste oder Aufzählung ist sinnvoll.
@@ -248,6 +277,51 @@ Strukturiere deine Antwort in drei kurzen Abschnitten mit Markdown-Überschrifte
         },
       ],
       maxTokens: 500,
+    );
+  }
+
+  Future<String> generatePerMealResponse({
+    required String mealRawText,
+    required String mealSummary,
+    required int mealKcal,
+    required double mealProteinG,
+    required double mealCarbsG,
+    required double mealFatG,
+    required List<String> safetyWarnings,
+    required int totalKcalToday,
+    required int targetKcal,
+    required double totalProteinToday,
+    required int proteinTargetG,
+    required int numChildrenNursing,
+    required int milkSharePercent,
+  }) async {
+    final hour = DateTime.now().hour;
+    final remaining = targetKcal - totalKcalToday;
+    final warningLine = safetyWarnings.isEmpty
+        ? ''
+        : '\nSafety-Hinweise zur Mahlzeit: ${safetyWarnings.join("; ")}.';
+
+    final userMessage = '''
+${describeProfile(numChildrenNursing, milkSharePercent)}
+Aktuelle Uhrzeit: $hour Uhr.
+Tagesziel: $targetKcal kcal. Protein-Ziel: ca. $proteinTargetG g.
+
+Gerade eingetragen:
+${mealRawText.isNotEmpty ? 'Originaltext: $mealRawText\n' : ''}Beschreibung: $mealSummary
+Gesamtwerte dieser Mahlzeit: $mealKcal kcal, Protein ${mealProteinG.toStringAsFixed(0)} g, KH ${mealCarbsG.toStringAsFixed(0)} g, Fett ${mealFatG.toStringAsFixed(0)} g.$warningLine
+
+Tagesstand inkl. dieser Mahlzeit: $totalKcalToday / $targetKcal kcal (verbleibend $remaining kcal).
+Protein heute: ${totalProteinToday.toStringAsFixed(0)} g.
+
+Gib die strukturierte Coach-Antwort wie im System-Prompt definiert.
+''';
+
+    return _post(
+      systemPrompt: _perMealPrompt,
+      messages: [
+        {'role': 'user', 'content': userMessage},
+      ],
+      maxTokens: 800,
     );
   }
 
