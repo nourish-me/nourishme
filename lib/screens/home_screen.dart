@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../models/meal_entry.dart';
+import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
 import '../utils/date_format.dart';
@@ -12,82 +13,11 @@ import 'confirm_screen.dart';
 import 'input_screen.dart';
 import 'settings_screen.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  bool _insightKickedOff = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeLoadInsight());
-  }
-
-  Future<void> _maybeLoadInsight() async {
-    if (_insightKickedOff) return;
-    final existing = ref.read(dailyInsightProvider);
-    if (existing != null && existing.isNotEmpty) return;
-
-    final settingsRepo = ref.read(settingsRepositoryProvider);
-    final lastDate = settingsRepo.getLastInsightDate();
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final firstToday = lastDate == null || lastDate.isBefore(today);
-
-    final todayMeals = ref.read(todayMealsProvider);
-    final yesterdayMeals = ref.read(yesterdayMealsProvider);
-
-    // Only generate if we have something to talk about, or it's first open of the day
-    if (!firstToday && todayMeals.isEmpty) return;
-    _insightKickedOff = true;
-    ref.read(insightLoadingProvider.notifier).state = true;
-
-    final target = ref.read(calorieTargetProvider);
-    final profile = ref.read(userProfileProvider).valueOrNull;
-    final total = todayMeals.fold<int>(0, (s, m) => s + m.kcal);
-
-    final todayBlock = todayMeals.isEmpty
-        ? 'Heute noch keine Einträge.'
-        : todayMeals
-            .map((m) =>
-                '- ${m.summary} (${m.kcal} kcal${m.safetyWarnings.isEmpty ? '' : ', Warnung: ${m.safetyWarnings.join("; ")}'})')
-            .join('\n');
-
-    String? yesterdayBlock;
-    if (firstToday && yesterdayMeals.isNotEmpty) {
-      yesterdayBlock = yesterdayMeals
-          .map((m) => '- ${m.summary} (${m.kcal} kcal)')
-          .join('\n');
-    }
-
-    try {
-      final insight = await ref.read(claudeClientProvider).generateDailyInsight(
-            targetKcal: target,
-            totalKcalToday: total,
-            todayMealsBlock: todayBlock,
-            yesterdayMealsBlock: yesterdayBlock,
-            numChildrenNursing: profile?.numChildrenNursing ?? 0,
-            milkSharePercent: profile?.milkSharePercent ?? 0,
-          );
-      if (!mounted) return;
-      ref.read(dailyInsightProvider.notifier).state = insight.trim();
-      await settingsRepo.setLastInsightDate(today);
-    } catch (_) {
-      // silent: card just stays empty
-    } finally {
-      if (mounted) {
-        ref.read(insightLoadingProvider.notifier).state = false;
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final todayMeals = ref.watch(todayMealsProvider);
     final totalKcal = todayMeals.fold<int>(0, (sum, m) => sum + m.kcal);
     final totalProtein =
@@ -95,8 +25,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final totalCarbs = todayMeals.fold<double>(0, (sum, m) => sum + m.carbsG);
     final totalFat = todayMeals.fold<double>(0, (sum, m) => sum + m.fatG);
     final target = ref.watch(calorieTargetProvider);
-    final insight = ref.watch(dailyInsightProvider);
-    final insightLoading = ref.watch(insightLoadingProvider);
+    final thread = ref.watch(todayThreadProvider).valueOrNull ?? const [];
+    final coachLoading = ref.watch(insightLoadingProvider);
     final remaining = target - totalKcal;
     final progress = target > 0 ? (totalKcal / target).clamp(0.0, 1.0) : 0.0;
     final overTarget = remaining < 0;
@@ -155,33 +85,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             carbs: totalCarbs,
             fat: totalFat,
           ),
-          if (insight != null || insightLoading) ...[
-            const SizedBox(height: 12),
-            _InsightCard(
-              text: insight,
-              loading: insightLoading,
-            ),
-          ],
           const SizedBox(height: 24),
-          Text('Einträge', style: textTheme.titleSmall),
-          const SizedBox(height: 8),
-          if (todayMeals.isEmpty)
-            _EmptyState(scheme: scheme, textTheme: textTheme)
-          else
-            ...todayMeals.map(
-              (meal) => _SlidableMealRow(
-                meal: meal,
-                onEdit: () => _editMeal(context, meal),
-                onDuplicate: () => _duplicateMeal(ref, meal),
-                onDelete: () => _confirmDelete(context, ref, meal),
-                child: _MealTile(
-                  summary: meal.summary,
-                  kcal: meal.kcal,
-                  createdAt: meal.createdAt,
-                  hasWarning: meal.safetyWarnings.isNotEmpty,
-                ),
+          Row(
+            children: [
+              Icon(Icons.forum_outlined, size: 18, color: scheme.outline),
+              const SizedBox(width: 6),
+              Text(
+                'Heute',
+                style: textTheme.titleSmall?.copyWith(color: scheme.outline),
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (thread.isEmpty && !coachLoading)
+            _EmptyThread(scheme: scheme, textTheme: textTheme)
+          else
+            ..._buildThreadItems(
+              context: context,
+              ref: ref,
+              thread: thread,
+              meals: todayMeals,
             ),
+          if (coachLoading) _CoachLoading(scheme: scheme),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -195,6 +120,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  List<Widget> _buildThreadItems({
+    required BuildContext context,
+    required WidgetRef ref,
+    required List<ThreadItem> thread,
+    required List<MealEntry> meals,
+  }) {
+    final mealsById = {for (final m in meals) m.id: m};
+    final widgets = <Widget>[];
+    for (final item in thread) {
+      switch (item.type) {
+        case ThreadItemType.meal:
+          final meal = mealsById[item.mealId];
+          if (meal == null) continue;
+          widgets.add(_ThreadMealCard(
+            meal: meal,
+            onEdit: () => _editMeal(context, meal),
+            onDuplicate: () => _duplicateMeal(ref, meal),
+            onDelete: () => _confirmDelete(context, ref, meal),
+          ));
+        case ThreadItemType.coachResponse:
+          widgets.add(_CoachBubble(text: item.text ?? '', isAnswer: false));
+        case ThreadItemType.userQuestion:
+          widgets.add(_UserBubble(text: item.text ?? ''));
+        case ThreadItemType.coachAnswer:
+          widgets.add(_CoachBubble(text: item.text ?? '', isAnswer: true));
+      }
+      widgets.add(const SizedBox(height: 8));
+    }
+    return widgets;
   }
 }
 
@@ -269,7 +225,9 @@ class _HeroKcalCard extends StatelessWidget {
             Text(
               statusText,
               style: textTheme.titleMedium?.copyWith(
-                color: overTarget ? Colors.orange.shade900 : scheme.onPrimaryContainer,
+                color: overTarget
+                    ? Colors.orange.shade900
+                    : scheme.onPrimaryContainer,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -339,122 +297,10 @@ class _MacroTile extends StatelessWidget {
   }
 }
 
-class _InsightCard extends StatelessWidget {
-  final String? text;
-  final bool loading;
-
-  const _InsightCard({
-    required this.text,
-    required this.loading,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final fg = scheme.onTertiaryContainer;
-    return Card(
-      elevation: 0,
-      color: scheme.tertiaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.tips_and_updates_outlined, size: 20, color: fg),
-                const SizedBox(width: 8),
-                Text(
-                  'Tagesüberblick',
-                  style: textTheme.titleSmall?.copyWith(
-                    color: fg,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            if (loading && text == null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: fg,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Überblick wird erstellt...',
-                      style: TextStyle(color: fg.withValues(alpha: 0.8)),
-                    ),
-                  ],
-                ),
-              )
-            else if (text != null) ...[
-              if (loading)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 12,
-                        height: 12,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.6,
-                          color: fg.withValues(alpha: 0.7),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'wird aktualisiert...',
-                        style: TextStyle(
-                          color: fg.withValues(alpha: 0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-            if (text != null && !(loading && text == null))
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: MarkdownBody(
-                  data: text!,
-                  styleSheet:
-                      MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                    p: TextStyle(color: fg, height: 1.35),
-                    strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
-                    em: TextStyle(color: fg, fontStyle: FontStyle.italic),
-                    listBullet: TextStyle(color: fg),
-                    h1: TextStyle(
-                        color: fg, fontSize: 17, fontWeight: FontWeight.w700),
-                    h2: TextStyle(
-                        color: fg, fontSize: 16, fontWeight: FontWeight.w700),
-                    h3: TextStyle(
-                        color: fg, fontSize: 15, fontWeight: FontWeight.w600),
-                    blockSpacing: 6,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
+class _EmptyThread extends StatelessWidget {
   final ColorScheme scheme;
   final TextTheme textTheme;
-
-  const _EmptyState({required this.scheme, required this.textTheme});
+  const _EmptyThread({required this.scheme, required this.textTheme});
 
   @override
   Widget build(BuildContext context) {
@@ -469,6 +315,7 @@ class _EmptyState extends StatelessWidget {
           Text(
             'Tippe unten auf das Plus um zu starten.',
             style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -476,69 +323,55 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-class _MealTile extends StatelessWidget {
-  final String summary;
-  final int kcal;
-  final DateTime createdAt;
-  final bool hasWarning;
-
-  const _MealTile({
-    required this.summary,
-    required this.kcal,
-    required this.createdAt,
-    required this.hasWarning,
-  });
+class _CoachLoading extends StatelessWidget {
+  final ColorScheme scheme;
+  const _CoachLoading({required this.scheme});
 
   @override
   Widget build(BuildContext context) {
-    final time = TimeOfDay.fromDateTime(createdAt);
-    final timeLabel =
-        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: ListTile(
-        title: Text(summary),
-        subtitle: Text(timeLabel),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (hasWarning) ...[
-              const Icon(Icons.warning_amber, color: Colors.orange, size: 20),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              '${formatKcal(kcal)} kcal',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: scheme.outline,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'Coach denkt nach...',
+            style: TextStyle(color: scheme.outline),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _SlidableMealRow extends StatelessWidget {
+class _ThreadMealCard extends StatelessWidget {
   final MealEntry meal;
   final VoidCallback onEdit;
   final VoidCallback onDuplicate;
   final VoidCallback onDelete;
-  final Widget child;
 
-  const _SlidableMealRow({
+  const _ThreadMealCard({
     required this.meal,
     required this.onEdit,
     required this.onDuplicate,
     required this.onDelete,
-    required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final time = TimeOfDay.fromDateTime(meal.createdAt);
+    final timeLabel =
+        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     return Slidable(
       key: ValueKey('home-${meal.id}'),
       endActionPane: ActionPane(
@@ -568,7 +401,121 @@ class _SlidableMealRow extends StatelessWidget {
           ),
         ],
       ),
-      child: child,
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        color: scheme.surfaceContainerLow,
+        child: ListTile(
+          title: Text(meal.summary),
+          subtitle: Text(timeLabel),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (meal.safetyWarnings.isNotEmpty) ...[
+                const Icon(Icons.warning_amber, color: Colors.orange, size: 20),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                '${formatKcal(meal.kcal)} kcal',
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoachBubble extends StatelessWidget {
+  final String text;
+  final bool isAnswer;
+  const _CoachBubble({required this.text, required this.isAnswer});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final fg = scheme.onTertiaryContainer;
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: scheme.tertiaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.tips_and_updates_outlined, size: 16, color: fg),
+                const SizedBox(width: 6),
+                Text(
+                  isAnswer ? 'Coach' : 'Coach-Antwort',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: fg,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            MarkdownBody(
+              data: text,
+              styleSheet:
+                  MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                p: TextStyle(color: fg, height: 1.35),
+                strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
+                em: TextStyle(color: fg, fontStyle: FontStyle.italic),
+                listBullet: TextStyle(color: fg),
+                tableHead: TextStyle(color: fg, fontWeight: FontWeight.w700),
+                tableBody: TextStyle(color: fg),
+                tableBorder: TableBorder.all(
+                  color: fg.withValues(alpha: 0.2),
+                  width: 0.5,
+                ),
+                tableCellsPadding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 4,
+                ),
+                blockSpacing: 6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UserBubble extends StatelessWidget {
+  final String text;
+  const _UserBubble({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Align(
+      alignment: Alignment.centerRight,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.78,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: scheme.primaryContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(color: scheme.onPrimaryContainer),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -613,6 +560,9 @@ Future<void> _duplicateMeal(WidgetRef ref, MealEntry meal) async {
     safetyWarnings: meal.safetyWarnings,
   );
   await ref.read(mealRepositoryProvider).save(clone);
+  await ref
+      .read(threadRepositoryProvider)
+      .add(ThreadItem.meal(mealId: clone.id, at: clone.createdAt));
 }
 
 Future<void> _confirmDelete(
@@ -635,5 +585,8 @@ Future<void> _confirmDelete(
   );
   if (confirmed == true) {
     await ref.read(mealRepositoryProvider).delete(meal.id);
+    await ref
+        .read(threadRepositoryProvider)
+        .removeMeal(meal.id, meal.createdAt);
   }
 }
