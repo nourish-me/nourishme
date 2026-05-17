@@ -3,14 +3,16 @@ class UserProfileSettings {
   final double heightCm;
   final double weightKg;
   final double activityFactor;
-  final int breastfeedingSupplementKcal;
+  final int numChildrenNursing;
+  final int milkSharePercent;
 
   const UserProfileSettings({
     required this.ageYears,
     required this.heightCm,
     required this.weightKg,
     required this.activityFactor,
-    required this.breastfeedingSupplementKcal,
+    required this.numChildrenNursing,
+    required this.milkSharePercent,
   });
 
   factory UserProfileSettings.defaults() => const UserProfileSettings(
@@ -18,23 +20,29 @@ class UserProfileSettings {
         heightCm: 167.0,
         weightKg: 56.0,
         activityFactor: 1.375,
-        breastfeedingSupplementKcal: 1000,
+        numChildrenNursing: 2,
+        milkSharePercent: 100,
       );
+
+  /// ~500 kcal per child per day for full milk supply, scaled by share.
+  int get milkSupplementKcal =>
+      (numChildrenNursing * milkSharePercent * 5);
 
   UserProfileSettings copyWith({
     int? ageYears,
     double? heightCm,
     double? weightKg,
     double? activityFactor,
-    int? breastfeedingSupplementKcal,
+    int? numChildrenNursing,
+    int? milkSharePercent,
   }) =>
       UserProfileSettings(
         ageYears: ageYears ?? this.ageYears,
         heightCm: heightCm ?? this.heightCm,
         weightKg: weightKg ?? this.weightKg,
         activityFactor: activityFactor ?? this.activityFactor,
-        breastfeedingSupplementKcal:
-            breastfeedingSupplementKcal ?? this.breastfeedingSupplementKcal,
+        numChildrenNursing: numChildrenNursing ?? this.numChildrenNursing,
+        milkSharePercent: milkSharePercent ?? this.milkSharePercent,
       );
 
   Map<String, dynamic> toJson() => {
@@ -42,7 +50,8 @@ class UserProfileSettings {
         'heightCm': heightCm,
         'weightKg': weightKg,
         'activityFactor': activityFactor,
-        'breastfeedingSupplementKcal': breastfeedingSupplementKcal,
+        'numChildrenNursing': numChildrenNursing,
+        'milkSharePercent': milkSharePercent,
       };
 
   factory UserProfileSettings.fromJson(Map<String, dynamic> json) =>
@@ -51,8 +60,8 @@ class UserProfileSettings {
         heightCm: (json['heightCm'] as num).toDouble(),
         weightKg: (json['weightKg'] as num).toDouble(),
         activityFactor: (json['activityFactor'] as num).toDouble(),
-        breastfeedingSupplementKcal:
-            json['breastfeedingSupplementKcal'] as int,
+        numChildrenNursing: json['numChildrenNursing'] as int? ?? 2,
+        milkSharePercent: json['milkSharePercent'] as int? ?? 100,
       );
 }
 

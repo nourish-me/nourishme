@@ -15,8 +15,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late final TextEditingController _age;
   late final TextEditingController _height;
   late final TextEditingController _weight;
-  late final TextEditingController _supplement;
   late double _activityFactor;
+  late int _numChildren;
+  late int _milkSharePercent;
   bool _initialized = false;
 
   @override
@@ -25,7 +26,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _age.dispose();
       _height.dispose();
       _weight.dispose();
-      _supplement.dispose();
     }
     super.dispose();
   }
@@ -34,9 +34,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _age = TextEditingController(text: p.ageYears.toString());
     _height = TextEditingController(text: p.heightCm.toStringAsFixed(0));
     _weight = TextEditingController(text: p.weightKg.toStringAsFixed(1));
-    _supplement =
-        TextEditingController(text: p.breastfeedingSupplementKcal.toString());
     _activityFactor = p.activityFactor;
+    _numChildren = p.numChildrenNursing;
+    _milkSharePercent = p.milkSharePercent;
     _initialized = true;
   }
 
@@ -51,8 +51,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       heightCm: _parseDouble(_height.text, current.heightCm),
       weightKg: _parseDouble(_weight.text, current.weightKg),
       activityFactor: _activityFactor,
-      breastfeedingSupplementKcal:
-          int.tryParse(_supplement.text) ?? current.breastfeedingSupplementKcal,
+      numChildrenNursing: _numChildren,
+      milkSharePercent: _milkSharePercent,
     );
     await ref.read(settingsRepositoryProvider).saveProfile(updated);
     if (!mounted) return;
@@ -75,114 +75,210 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       error: (e, _) => Scaffold(body: Center(child: Text('Fehler: $e'))),
       data: (profile) {
         if (!_initialized) _hydrate(profile);
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Einstellungen'),
-            centerTitle: false,
-          ),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                'Dein Profil',
-                style: textTheme.titleSmall?.copyWith(color: scheme.outline),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _age,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Alter',
-                  border: OutlineInputBorder(),
-                  suffixText: 'Jahre',
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _height,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
-                      decoration: const InputDecoration(
-                        labelText: 'Größe',
-                        border: OutlineInputBorder(),
-                        suffixText: 'cm',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _weight,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
-                      decoration: const InputDecoration(
-                        labelText: 'Gewicht',
-                        border: OutlineInputBorder(),
-                        suffixText: 'kg',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Aktivitätslevel',
-                style: textTheme.titleSmall?.copyWith(color: scheme.outline),
-              ),
-              const SizedBox(height: 8),
-              RadioGroup<double>(
-                groupValue: ActivityLevel.closestTo(_activityFactor).factor,
-                onChanged: (v) {
-                  if (v != null) setState(() => _activityFactor = v);
-                },
-                child: Column(
-                  children: ActivityLevel.all
-                      .map(
-                        (level) => RadioListTile<double>(
-                          value: level.factor,
-                          title: Text(level.label),
-                          subtitle: Text(level.hint),
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Stillen',
-                style: textTheme.titleSmall?.copyWith(color: scheme.outline),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _supplement,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Kalorien-Zuschlag pro Tag',
-                  helperText:
-                      'Zwillinge exklusiv stillen: ca. 1000 kcal. Ein Kind: ca. 500 kcal. Beikost: weniger.',
-                  border: OutlineInputBorder(),
-                  suffixText: 'kcal',
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
-          ),
-          bottomNavigationBar: SafeArea(
-            child: Padding(
+        final supplement = _numChildren * _milkSharePercent * 5;
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Einstellungen'),
+              centerTitle: false,
+            ),
+            body: ListView(
               padding: const EdgeInsets.all(16),
-              child: FilledButton(
-                onPressed: _save,
-                child: const Text('Speichern'),
+              children: [
+                Text(
+                  'Dein Profil',
+                  style: textTheme.titleSmall?.copyWith(color: scheme.outline),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _age,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                  decoration: const InputDecoration(
+                    labelText: 'Alter',
+                    border: OutlineInputBorder(),
+                    suffixText: 'Jahre',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _height,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                        decoration: const InputDecoration(
+                          labelText: 'Größe',
+                          border: OutlineInputBorder(),
+                          suffixText: 'cm',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _weight,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                        decoration: const InputDecoration(
+                          labelText: 'Gewicht',
+                          border: OutlineInputBorder(),
+                          suffixText: 'kg',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Aktivitätslevel',
+                  style: textTheme.titleSmall?.copyWith(color: scheme.outline),
+                ),
+                const SizedBox(height: 8),
+                RadioGroup<double>(
+                  groupValue: ActivityLevel.closestTo(_activityFactor).factor,
+                  onChanged: (v) {
+                    if (v != null) setState(() => _activityFactor = v);
+                  },
+                  child: Column(
+                    children: ActivityLevel.all
+                        .map(
+                          (level) => RadioListTile<double>(
+                            value: level.factor,
+                            title: Text(level.label),
+                            subtitle: Text(level.hint),
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Muttermilch',
+                  style: textTheme.titleSmall?.copyWith(color: scheme.outline),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Wie viele Kinder versorgst du gerade mit deiner Milch?',
+                  style: textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+                _NumberStepper(
+                  value: _numChildren,
+                  min: 0,
+                  max: 4,
+                  onChanged: (v) => setState(() => _numChildren = v),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Anteil deiner Milch pro Kind: $_milkSharePercent%',
+                  style: textTheme.bodyMedium,
+                ),
+                Text(
+                  '0% = du gibst keine Milch ab, 100% = ein Kind wird ausschließlich von dir versorgt',
+                  style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+                ),
+                Slider(
+                  value: _milkSharePercent.toDouble(),
+                  min: 0,
+                  max: 100,
+                  divisions: 20,
+                  label: '$_milkSharePercent%',
+                  onChanged: _numChildren == 0
+                      ? null
+                      : (v) => setState(() => _milkSharePercent = v.round()),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  color: scheme.surfaceContainerLow,
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Icon(Icons.calculate_outlined,
+                            size: 18, color: scheme.outline),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Daraus berechneter Kalorien-Aufschlag: $supplement kcal pro Tag',
+                            style: textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+            bottomNavigationBar: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: FilledButton(
+                  onPressed: _save,
+                  child: const Text('Speichern'),
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _NumberStepper extends StatelessWidget {
+  final int value;
+  final int min;
+  final int max;
+  final ValueChanged<int> onChanged;
+  const _NumberStepper({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerLow,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.remove_circle_outline),
+              onPressed: value > min ? () => onChanged(value - 1) : null,
+            ),
+            Text(
+              value.toString(),
+              style: textTheme.headlineSmall,
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline),
+              onPressed: value < max ? () => onChanged(value + 1) : null,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

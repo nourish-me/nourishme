@@ -144,7 +144,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final portionUnit = widget.parsed.portionUnit;
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Prüfen und speichern'),
         centerTitle: false,
@@ -335,6 +338,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

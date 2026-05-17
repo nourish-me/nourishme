@@ -100,9 +100,12 @@ class _InputScreenState extends ConsumerState<InputScreen> {
     final canAnalyze = !_loading &&
         (_controller.text.trim().isNotEmpty || _imageBytes != null);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Neuer Eintrag'), centerTitle: false),
-      body: Padding(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Neuer Eintrag'), centerTitle: false),
+        body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -193,6 +196,7 @@ class _InputScreenState extends ConsumerState<InputScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
