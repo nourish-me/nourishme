@@ -78,7 +78,7 @@ class _InputScreenState extends ConsumerState<InputScreen> {
         });
         return;
       }
-      await Navigator.pushReplacement(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ConfirmScreen(
@@ -88,6 +88,7 @@ class _InputScreenState extends ConsumerState<InputScreen> {
           ),
         ),
       );
+      if (mounted) setState(() => _loading = false);
     } catch (e) {
       if (!mounted) return;
       setState(() {

@@ -92,13 +92,12 @@ class HomeScreen extends ConsumerWidget {
             _EmptyState(scheme: scheme, textTheme: textTheme)
           else
             ...todayMeals.map(
-              (meal) => _MealTile(
-                summary: meal.summary,
-                kcal: meal.kcal,
-                createdAt: meal.createdAt,
-                hasWarning: meal.safetyWarnings.isNotEmpty,
-                onDelete: () async {
-                  final confirmed = await showDialog<bool>(
+              (meal) => Dismissible(
+                key: ValueKey('home-${meal.id}'),
+                direction: DismissDirection.endToStart,
+                background: _DismissBackground(scheme: scheme),
+                confirmDismiss: (_) async {
+                  return await showDialog<bool>(
                     context: context,
                     builder: (dialogContext) => AlertDialog(
                       title: const Text('Eintrag löschen?'),
@@ -115,11 +114,17 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                  );
-                  if (confirmed == true) {
-                    await ref.read(mealRepositoryProvider).delete(meal.id);
-                  }
+                  ) ??
+                      false;
                 },
+                onDismissed: (_) =>
+                    ref.read(mealRepositoryProvider).delete(meal.id),
+                child: _MealTile(
+                  summary: meal.summary,
+                  kcal: meal.kcal,
+                  createdAt: meal.createdAt,
+                  hasWarning: meal.safetyWarnings.isNotEmpty,
+                ),
               ),
             ),
         ],
@@ -352,14 +357,12 @@ class _MealTile extends StatelessWidget {
   final int kcal;
   final DateTime createdAt;
   final bool hasWarning;
-  final VoidCallback onDelete;
 
   const _MealTile({
     required this.summary,
     required this.kcal,
     required this.createdAt,
     required this.hasWarning,
-    required this.onDelete,
   });
 
   @override
@@ -377,8 +380,26 @@ class _MealTile extends StatelessWidget {
         trailing: hasWarning
             ? const Icon(Icons.warning_amber, color: Colors.orange)
             : null,
-        onLongPress: onDelete,
       ),
+    );
+  }
+}
+
+class _DismissBackground extends StatelessWidget {
+  final ColorScheme scheme;
+  const _DismissBackground({required this.scheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: 24),
+      child: Icon(Icons.delete_outline, color: scheme.onErrorContainer),
     );
   }
 }

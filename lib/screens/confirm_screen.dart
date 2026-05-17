@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/meal_entry.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
-import 'input_screen.dart';
 
 class ConfirmScreen extends ConsumerStatefulWidget {
   final String rawText;
@@ -126,15 +125,6 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       if (!mounted) return;
       ref.read(latestTipProvider.notifier).state = tip.trim();
     }).catchError((_) {});
-  }
-
-  void _editText() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => InputScreen(prefill: widget.rawText),
-      ),
-    );
   }
 
   void _discard() {
@@ -308,29 +298,17 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _discard,
-                      child: const Text('Verwerfen'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _editText,
-                      child: const Text('Text anpassen'),
-                    ),
-                  ),
-                ],
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _discard,
+                  child: const Text('Verwerfen'),
+                ),
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
                 child: FilledButton(
                   onPressed: _save,
                   child: const Text('Speichern'),

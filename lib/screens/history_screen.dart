@@ -157,18 +157,18 @@ class _DaySection extends StatelessWidget {
             ),
             Divider(height: 1, color: scheme.outlineVariant),
             ...meals.map(
-              (meal) => ListTile(
-                dense: true,
-                title: Text(meal.summary),
-                subtitle: Text(
-                  '${formatTime(meal.createdAt)}  •  ${meal.kcal} kcal',
+              (meal) => Dismissible(
+                key: ValueKey('history-${meal.id}'),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  color: scheme.errorContainer,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 24),
+                  child: Icon(Icons.delete_outline,
+                      color: scheme.onErrorContainer),
                 ),
-                trailing: meal.safetyWarnings.isEmpty
-                    ? null
-                    : Icon(Icons.warning_amber,
-                        color: Colors.orange.shade700, size: 20),
-                onLongPress: () async {
-                  final confirmed = await showDialog<bool>(
+                confirmDismiss: (_) async {
+                  return await showDialog<bool>(
                     context: context,
                     builder: (dialogContext) => AlertDialog(
                       title: const Text('Eintrag löschen?'),
@@ -185,11 +185,21 @@ class _DaySection extends StatelessWidget {
                         ),
                       ],
                     ),
-                  );
-                  if (confirmed == true) {
-                    await onDelete(meal.id);
-                  }
+                  ) ??
+                      false;
                 },
+                onDismissed: (_) => onDelete(meal.id),
+                child: ListTile(
+                  dense: true,
+                  title: Text(meal.summary),
+                  subtitle: Text(
+                    '${formatTime(meal.createdAt)}  •  ${meal.kcal} kcal',
+                  ),
+                  trailing: meal.safetyWarnings.isEmpty
+                      ? null
+                      : Icon(Icons.warning_amber,
+                          color: Colors.orange.shade700, size: 20),
+                ),
               ),
             ),
             const SizedBox(height: 4),
