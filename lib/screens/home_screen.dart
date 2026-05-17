@@ -89,15 +89,15 @@ class HomeScreen extends ConsumerWidget {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const InputScreen()),
           );
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Eintrag'),
+        tooltip: 'Neuer Eintrag',
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -244,7 +244,7 @@ class _EmptyState extends StatelessWidget {
           Text('Noch keine Einträge heute', style: textTheme.titleMedium),
           const SizedBox(height: 4),
           Text(
-            'Tippe unten auf „Eintrag" um zu starten.',
+            'Tippe unten auf das Plus um zu starten.',
             style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
           ),
         ],
