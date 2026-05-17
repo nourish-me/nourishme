@@ -142,8 +142,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   Widget build(BuildContext context) {
     final warnings = widget.parsed.safetyWarnings;
     final portionUnit = widget.parsed.portionUnit;
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Prüfen und speichern')),
+      appBar: AppBar(
+        title: const Text('Prüfen und speichern'),
+        centerTitle: false,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -161,49 +166,65 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ],
           if (widget.rawText.isNotEmpty) ...[
             Card(
+              elevation: 0,
+              color: scheme.surfaceContainerLow,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Originaltext',
-                        style: Theme.of(context).textTheme.labelSmall),
+                    Text(
+                      'Originaltext',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.outline,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(widget.rawText),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
           if (warnings.isNotEmpty) ...[
             Card(
-              color: Colors.orange.shade50,
+              elevation: 0,
+              color: scheme.tertiaryContainer,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.warning_amber, color: Colors.orange),
+                        Icon(Icons.warning_amber, color: scheme.onTertiaryContainer),
                         const SizedBox(width: 8),
-                        Text('Hinweise beim Stillen',
-                            style: Theme.of(context).textTheme.titleSmall),
+                        Text(
+                          'Hinweise beim Stillen',
+                          style: textTheme.titleSmall?.copyWith(
+                            color: scheme.onTertiaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     ...warnings.map(
                       (w) => Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: Text('• $w'),
+                        child: Text(
+                          '• $w',
+                          style: TextStyle(color: scheme.onTertiaryContainer),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
           TextField(
             controller: _summary,

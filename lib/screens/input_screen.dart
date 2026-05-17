@@ -101,7 +101,7 @@ class _InputScreenState extends ConsumerState<InputScreen> {
         (_controller.text.trim().isNotEmpty || _imageBytes != null);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Neuer Eintrag')),
+      appBar: AppBar(title: const Text('Neuer Eintrag'), centerTitle: false),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -121,16 +121,20 @@ class _InputScreenState extends ConsumerState<InputScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                OutlinedButton.icon(
-                  onPressed: _loading ? null : () => _pickImage(ImageSource.camera),
-                  icon: const Icon(Icons.photo_camera),
-                  label: const Text('Kamera'),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: _loading ? null : () => _pickImage(ImageSource.camera),
+                    icon: const Icon(Icons.photo_camera_outlined),
+                    label: const Text('Kamera'),
+                  ),
                 ),
                 const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: _loading ? null : () => _pickImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library),
-                  label: const Text('Galerie'),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: _loading ? null : () => _pickImage(ImageSource.gallery),
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: const Text('Galerie'),
+                  ),
                 ),
               ],
             ),

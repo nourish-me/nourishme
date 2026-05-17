@@ -15,12 +15,15 @@ class HistoryScreen extends ConsumerWidget {
     final sortedDays = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
     final recentDays = sortedDays.take(14).toList();
 
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Verlauf'), centerTitle: false),
       body: recentDays.isEmpty
-          ? const Center(child: Text('Noch keine Einträge.'))
+          ? _EmptyHistory(scheme: scheme, textTheme: textTheme)
           : ListView.builder(
-              padding: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               itemCount: recentDays.length,
               itemBuilder: (context, i) {
                 final day = recentDays[i];
@@ -37,6 +40,31 @@ class HistoryScreen extends ConsumerWidget {
                 );
               },
             ),
+    );
+  }
+}
+
+class _EmptyHistory extends StatelessWidget {
+  final ColorScheme scheme;
+  final TextTheme textTheme;
+  const _EmptyHistory({required this.scheme, required this.textTheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.event_note_outlined, size: 48, color: scheme.outline),
+          const SizedBox(height: 12),
+          Text('Noch keine Einträge', style: textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Text(
+            'Verlauf füllt sich, sobald du Einträge speicherst.',
+            style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -58,8 +86,11 @@ class _DaySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final remaining = target - totalKcal;
     final overTarget = remaining < 0;
+    final progress = target > 0 ? (totalKcal / target).clamp(0.0, 1.0) : 0.0;
     final statusText = remaining > 0
         ? 'Noch $remaining kcal'
         : remaining == 0
@@ -67,31 +98,50 @@ class _DaySection extends StatelessWidget {
             : '${-remaining} kcal über Ziel';
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Card(
+        elevation: 0,
+        color: scheme.surfaceContainerLow,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     formatDayHeader(day),
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    '$totalKcal / $target kcal  •  $statusText',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: overTarget ? Colors.orange.shade800 : null,
-                        ),
+                    '$totalKcal / $target kcal',
+                    style: textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      color: overTarget ? Colors.orange.shade700 : scheme.primary,
+                      backgroundColor: scheme.surfaceContainerHighest,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    statusText,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: overTarget ? Colors.orange.shade800 : scheme.outline,
+                    ),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
+            Divider(height: 1, color: scheme.outlineVariant),
             ...meals.map(
               (meal) => ListTile(
                 dense: true,
@@ -101,8 +151,8 @@ class _DaySection extends StatelessWidget {
                 ),
                 trailing: meal.safetyWarnings.isEmpty
                     ? null
-                    : const Icon(Icons.warning_amber,
-                        color: Colors.orange, size: 20),
+                    : Icon(Icons.warning_amber,
+                        color: Colors.orange.shade700, size: 20),
                 onLongPress: () async {
                   final confirmed = await showDialog<bool>(
                     context: context,
@@ -114,7 +164,7 @@ class _DaySection extends StatelessWidget {
                               Navigator.pop(dialogContext, false),
                           child: const Text('Abbrechen'),
                         ),
-                        TextButton(
+                        FilledButton(
                           onPressed: () =>
                               Navigator.pop(dialogContext, true),
                           child: const Text('Löschen'),
@@ -128,6 +178,7 @@ class _DaySection extends StatelessWidget {
                 },
               ),
             ),
+            const SizedBox(height: 4),
           ],
         ),
       ),
