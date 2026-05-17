@@ -160,8 +160,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             _InsightCard(
               text: insight,
               loading: insightLoading,
-              onDismiss: () =>
-                  ref.read(dailyInsightProvider.notifier).state = null,
             ),
           ],
           const SizedBox(height: 24),
@@ -344,12 +342,10 @@ class _MacroTile extends StatelessWidget {
 class _InsightCard extends StatelessWidget {
   final String? text;
   final bool loading;
-  final VoidCallback onDismiss;
 
   const _InsightCard({
     required this.text,
     required this.loading,
-    required this.onDismiss,
   });
 
   @override
@@ -376,14 +372,6 @@ class _InsightCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const Spacer(),
-                if (text != null)
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    tooltip: 'Ausblenden',
-                    onPressed: onDismiss,
-                    visualDensity: VisualDensity.compact,
-                  ),
               ],
             ),
             const SizedBox(height: 4),
