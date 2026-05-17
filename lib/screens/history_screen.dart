@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/meal_entry.dart';
 import '../providers/meal_providers.dart';
 import '../utils/date_format.dart';
+import '../utils/number_format.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -106,10 +107,10 @@ class _DaySection extends StatelessWidget {
     final overTarget = remaining < 0;
     final progress = target > 0 ? (totalKcal / target).clamp(0.0, 1.0) : 0.0;
     final statusText = remaining > 0
-        ? 'Noch $remaining kcal'
+        ? 'Noch ${formatKcal(remaining)} kcal'
         : remaining == 0
             ? 'Ziel erreicht'
-            : '${-remaining} kcal über Ziel';
+            : '${formatKcal(-remaining)} kcal über Ziel';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -132,7 +133,7 @@ class _DaySection extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '$totalKcal / $target kcal',
+                    '${formatKcal(totalKcal)} / ${formatKcal(target)} kcal',
                     style: textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 6),
@@ -202,7 +203,7 @@ class _DaySection extends StatelessWidget {
                         const SizedBox(width: 6),
                       ],
                       Text(
-                        '${meal.kcal} kcal',
+                        '${formatKcal(meal.kcal)} kcal',
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
+import '../utils/number_format.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -434,7 +435,7 @@ class _OutcomeCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '$total kcal',
+              '${formatKcal(total)} kcal',
               style: textTheme.displaySmall?.copyWith(
                 color: scheme.onPrimaryContainer,
                 fontWeight: FontWeight.w600,
@@ -442,13 +443,13 @@ class _OutcomeCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Grundbedarf inkl. Aktivität: $bmrTdee kcal',
+              'Grundbedarf inkl. Aktivität: ${formatKcal(bmrTdee)} kcal',
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
               ),
             ),
             Text(
-              'Muttermilch-Aufschlag: $supplement kcal',
+              'Muttermilch-Aufschlag: ${formatKcal(supplement)} kcal',
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
               ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/meal_providers.dart';
 import '../utils/date_format.dart';
+import '../utils/number_format.dart';
 import 'input_screen.dart';
 import 'settings_screen.dart';
 
@@ -23,10 +25,10 @@ class HomeScreen extends ConsumerWidget {
     final progress = target > 0 ? (totalKcal / target).clamp(0.0, 1.0) : 0.0;
     final overTarget = remaining < 0;
     final statusText = remaining > 0
-        ? 'Noch $remaining kcal heute'
+        ? 'Noch ${formatKcal(remaining)} kcal heute'
         : remaining == 0
             ? 'Tagesziel erreicht'
-            : '${-remaining} kcal über Ziel';
+            : '${formatKcal(-remaining)} kcal über Ziel';
 
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -193,14 +195,14 @@ class _HeroKcalCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '$totalKcal',
+                        formatKcal(totalKcal),
                         style: textTheme.displaySmall?.copyWith(
                           color: scheme.onPrimaryContainer,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
-                        'von $target kcal',
+                        'von ${formatKcal(target)} kcal',
                         style: textTheme.labelLarge?.copyWith(
                           color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
                         ),
@@ -293,6 +295,7 @@ class _TipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final fg = scheme.onTertiaryContainer;
     return Card(
       elevation: 0,
       color: scheme.tertiaryContainer,
@@ -301,15 +304,21 @@ class _TipCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.tips_and_updates_outlined,
-                size: 20, color: scheme.onTertiaryContainer),
+            Icon(Icons.tips_and_updates_outlined, size: 20, color: fg),
             const SizedBox(width: 12),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(
-                  tip,
-                  style: TextStyle(color: scheme.onTertiaryContainer),
+                child: MarkdownBody(
+                  data: tip,
+                  styleSheet:
+                      MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                    p: TextStyle(color: fg, height: 1.3),
+                    strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
+                    em: TextStyle(color: fg, fontStyle: FontStyle.italic),
+                    listBullet: TextStyle(color: fg),
+                    blockSpacing: 4,
+                  ),
                 ),
               ),
             ),
@@ -385,7 +394,7 @@ class _MealTile extends StatelessWidget {
               const SizedBox(width: 8),
             ],
             Text(
-              '$kcal kcal',
+              '${formatKcal(kcal)} kcal',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/meal_providers.dart';
@@ -260,6 +261,7 @@ class _ChatBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isUser = message.isUser;
+    final fg = isUser ? scheme.onPrimaryContainer : scheme.onSurface;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Align(
@@ -271,15 +273,38 @@ class _ChatBubble extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isUser ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+              color: isUser
+                  ? scheme.primaryContainer
+                  : scheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Text(
-              message.text,
-              style: TextStyle(
-                color: isUser ? scheme.onPrimaryContainer : scheme.onSurface,
-              ),
-            ),
+            child: isUser
+                ? Text(message.text, style: TextStyle(color: fg))
+                : MarkdownBody(
+                    data: message.text,
+                    styleSheet: MarkdownStyleSheet.fromTheme(
+                            Theme.of(context))
+                        .copyWith(
+                      p: TextStyle(color: fg, height: 1.35),
+                      strong: TextStyle(
+                          color: fg, fontWeight: FontWeight.w700),
+                      em: TextStyle(color: fg, fontStyle: FontStyle.italic),
+                      listBullet: TextStyle(color: fg),
+                      h1: TextStyle(
+                          color: fg,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700),
+                      h2: TextStyle(
+                          color: fg,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700),
+                      h3: TextStyle(
+                          color: fg,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600),
+                      blockSpacing: 6,
+                    ),
+                  ),
           ),
         ),
       ),
