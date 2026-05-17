@@ -198,7 +198,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                         Icon(Icons.warning_amber, color: scheme.onTertiaryContainer),
                         const SizedBox(width: 8),
                         Text(
-                          'Sicherheitshinweise',
+                          'Bitte beachte',
                           style: textTheme.titleSmall?.copyWith(
                             color: scheme.onTertiaryContainer,
                             fontWeight: FontWeight.w600,
@@ -308,7 +308,6 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                flex: 2,
                 child: FilledButton(
                   onPressed: _save,
                   child: const Text('Speichern'),

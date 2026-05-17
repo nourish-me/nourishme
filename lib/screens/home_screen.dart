@@ -376,10 +376,22 @@ class _MealTile extends StatelessWidget {
       color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: ListTile(
         title: Text(summary),
-        subtitle: Text('$timeLabel  •  $kcal kcal'),
-        trailing: hasWarning
-            ? const Icon(Icons.warning_amber, color: Colors.orange)
-            : null,
+        subtitle: Text(timeLabel),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasWarning) ...[
+              const Icon(Icons.warning_amber, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              '$kcal kcal',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }

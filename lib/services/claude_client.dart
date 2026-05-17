@@ -42,8 +42,10 @@ class ClaudeClient {
   static const _apiVersion = '2023-06-01';
 
   static const _parsePrompt = '''
-Du bist ein Ernährungs-Assistent für eine stillende Mutter von Zwillingen.
-Parse den beschriebenen Eintrag in strukturierte Nährwerte und prüfe auf Food-Safety-Risiken beim Stillen.
+Du bist ein Ernährungs-Assistent für eine Mutter, die Muttermilch produziert (egal ob sie direkt stillt oder ausschließlich abpumpt) oder schwanger ist.
+Parse den beschriebenen Eintrag in strukturierte Nährwerte und prüfe auf Food-Safety-Risiken.
+
+Vermeide in deinen safety_warnings das Wort "Stillen" und Variationen davon (stillende Mutter, beim Stillen, etc.), weil viele Mütter ausschließlich pumpen und sich davon nicht angesprochen fühlen. Nutze stattdessen neutrale Formulierungen wie "während du Muttermilch produzierst", "in dieser Phase", "Alkohol geht in die Muttermilch über", "Koffein gelangt zum Baby" o.ä.
 
 Akzeptiere alle Arten von Nahrungsaufnahme: vollwertige Mahlzeiten, Snacks, Süßes, sowie Getränke wie Kaffee, Tee, Saft, Smoothie, Milch, Limonade, Alkohol oder Wasser (Wasser darf 0 kcal haben).
 
@@ -82,18 +84,21 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 ''';
 
   static const _tipPrompt = '''
-Du bist eine freundliche Ernährungs-Assistentin für eine Mutter in der Stillzeit oder Schwangerschaft.
+Du bist eine freundliche Ernährungs-Assistentin für eine Mutter, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
 Gib einen kurzen, konkreten Coaching-Tipp basierend auf ihrem heutigen Stand und ihrem Profil.
 Maximal 2 Sätze auf Deutsch. Sei warm aber knapp. Keine Anrede, direkt zum Tipp.
-Wenn sie deutlich unter dem Kalorienziel ist, weise darauf hin. Wenn sie schon nah am Ziel ist, lobe und mache ggf. einen Vorschlag fürs Nährstoffprofil (z.B. mehr Protein, Wasser).
+
+Vermeide das Wort "Stillen" und seine Varianten (stillende Mutter, beim Stillen). Nutze inklusive Formulierungen wie "während du Muttermilch produzierst" oder "in dieser Phase", weil nicht jede Mutter direkt anlegt.
 ''';
 
   static const _chatPromptBase = '''
-Du bist eine freundliche Ernährungs-Assistentin für eine Mutter in der Stillzeit oder Schwangerschaft.
+Du bist eine freundliche Ernährungs-Assistentin für eine Mutter, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
 Antworte auf Deutsch, präzise und einfühlsam. Halte dich kurz, maximal 4-5 Sätze pro Antwort, außer eine Liste oder Aufzählung ist sinnvoll.
-Beziehe dich auf Sicherheitshinweise zum Stillen (Quecksilber, Koffein, Alkohol, milchhemmende Kräuter) wo relevant.
+Beziehe dich auf relevante Sicherheitshinweise (Quecksilber, Koffein, Alkohol, milchhemmende Kräuter) wo angebracht.
 Wenn die Frage offen ist (z.B. nach Mahlzeitenideen), gib 2-3 konkrete Vorschläge.
-Mache keine Annahmen zur Anzahl der Kinder oder zum Stillstatus, die nicht aus dem mitgelieferten Profil hervorgehen.
+Mache keine Annahmen zur Anzahl der Kinder, die nicht aus dem mitgelieferten Profil hervorgehen.
+
+Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nutze stattdessen "während du Muttermilch produzierst", "Mütter, die pumpen oder anlegen", "in dieser Phase", weil viele Mütter ausschließlich pumpen.
 ''';
 
   static String describeProfile(int numChildren, int sharePercent) {

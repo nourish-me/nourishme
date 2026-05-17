@@ -80,6 +80,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _save() async {
     await ref.read(settingsRepositoryProvider).saveProfile(_currentProfile());
     if (!mounted) return;
+    // Hive box.watch can lag for same-instance writes; force the
+    // dependent providers to re-read so Home reflects the new target
+    // immediately on return.
+    ref.invalidate(userProfileProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Gespeichert')),
     );

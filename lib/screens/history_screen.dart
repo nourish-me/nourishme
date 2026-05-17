@@ -192,13 +192,23 @@ class _DaySection extends StatelessWidget {
                 child: ListTile(
                   dense: true,
                   title: Text(meal.summary),
-                  subtitle: Text(
-                    '${formatTime(meal.createdAt)}  •  ${meal.kcal} kcal',
+                  subtitle: Text(formatTime(meal.createdAt)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (meal.safetyWarnings.isNotEmpty) ...[
+                        Icon(Icons.warning_amber,
+                            color: Colors.orange.shade700, size: 18),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        '${meal.kcal} kcal',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  trailing: meal.safetyWarnings.isEmpty
-                      ? null
-                      : Icon(Icons.warning_amber,
-                          color: Colors.orange.shade700, size: 20),
                 ),
               ),
             ),
