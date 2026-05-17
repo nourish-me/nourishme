@@ -19,7 +19,21 @@ class HistoryScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Verlauf'), centerTitle: false),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Verlauf'),
+            Text(
+              'Letzte 14 Tage',
+              style: textTheme.labelSmall?.copyWith(color: scheme.outline),
+            ),
+          ],
+        ),
+        centerTitle: false,
+        toolbarHeight: 72,
+      ),
       body: recentDays.isEmpty
           ? _EmptyHistory(scheme: scheme, textTheme: textTheme)
           : ListView.builder(

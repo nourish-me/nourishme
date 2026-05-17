@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/meal_providers.dart';
+import '../utils/date_format.dart';
 import 'input_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -27,8 +28,19 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Heute'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Heute'),
+            Text(
+              formatFullDate(DateTime.now()),
+              style: textTheme.labelSmall?.copyWith(color: scheme.outline),
+            ),
+          ],
+        ),
         centerTitle: false,
+        toolbarHeight: 72,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -51,7 +63,7 @@ class HomeScreen extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: 24),
-          Text('Mahlzeiten heute', style: textTheme.titleSmall),
+          Text('Einträge', style: textTheme.titleSmall),
           const SizedBox(height: 8),
           if (todayMeals.isEmpty)
             _EmptyState(scheme: scheme, textTheme: textTheme)

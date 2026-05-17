@@ -35,3 +35,6 @@ String formatDayHeader(DateTime day) {
 
 String formatTime(DateTime t) =>
     '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+String formatFullDate(DateTime day) =>
+    '${_weekdays[day.weekday - 1]}, ${day.day}. ${_months[day.month - 1]}';

@@ -127,7 +127,23 @@ Strukturiere deine Antwort in drei kurzen Abschnitten:
     final visible = _messages.where((m) => !(m.isUser && _messages.indexOf(m) == 0)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Coaching'), centerTitle: false),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Coaching'),
+            Text(
+              'Fragen und Tipps',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+            ),
+          ],
+        ),
+        centerTitle: false,
+        toolbarHeight: 72,
+      ),
       body: Column(
         children: [
           Expanded(
