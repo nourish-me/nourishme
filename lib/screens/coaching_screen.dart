@@ -31,7 +31,7 @@ class _CoachingScreenState extends ConsumerState<CoachingScreen> {
     super.dispose();
   }
 
-  String _buildTodayContext() {
+  String _buildContext({bool includeYesterday = false}) {
     final today = ref.read(todayMealsProvider);
     final target = ref.read(calorieTargetProvider);
     final total = today.fold<int>(0, (s, m) => s + m.kcal);
@@ -43,27 +43,62 @@ class _CoachingScreenState extends ConsumerState<CoachingScreen> {
             .map((m) =>
                 '- ${m.summary} (${m.kcal} kcal${m.safetyWarnings.isEmpty ? '' : ', Warnung: ${m.safetyWarnings.join("; ")}'})')
             .join('\n');
-    return '''
-Aktuelle Uhrzeit: $hour Uhr.
-Tagesziel: $target kcal. Bisher gegessen: $total kcal. Verbleibend: $remaining kcal.
-Mahlzeiten heute:
-$mealsLine
-''';
+
+    final buffer = StringBuffer()
+      ..writeln('Aktuelle Uhrzeit: $hour Uhr.')
+      ..writeln(
+          'Tagesziel: $target kcal. Bisher heute gegessen: $total kcal. Verbleibend: $remaining kcal.')
+      ..writeln('Mahlzeiten heute:')
+      ..writeln(mealsLine);
+
+    if (includeYesterday) {
+      final yesterday = ref.read(yesterdayMealsProvider);
+      final yTotal = yesterday.fold<int>(0, (s, m) => s + m.kcal);
+      final yLine = yesterday.isEmpty
+          ? 'Gestern keine Einträge erfasst.'
+          : yesterday
+              .map((m) => '- ${m.summary} (${m.kcal} kcal)')
+              .join('\n');
+      buffer
+        ..writeln()
+        ..writeln('Mahlzeiten gestern (Gesamt: $yTotal kcal von $target kcal):')
+        ..writeln(yLine);
+    }
+
+    return buffer.toString();
   }
 
   Future<void> _loadInsights() async {
     setState(() => _loading = true);
-    final initialPrompt = '''
+
+    final repo = ref.read(settingsRepositoryProvider);
+    final lastOpen = repo.getLastCoachingOpenDate();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final firstOpenToday = lastOpen == null || lastOpen.isBefore(today);
+    final yesterday = ref.read(yesterdayMealsProvider);
+    final showYesterday = firstOpenToday && yesterday.isNotEmpty;
+
+    final initialPrompt = showYesterday
+        ? '''
+Strukturiere deine Antwort in vier kurzen Abschnitten:
+1. Tagesabschluss von gestern: kurzer Rückblick auf gestrige Kalorien gegen Ziel und Auffälligkeiten.
+2. Spiegle mir, was ich heute schon gegessen habe.
+3. Sag mir, was jetzt für den Rest des Tages noch fehlt.
+4. Schließe mit 1-2 konkreten Empfehlungen ab.
+'''
+        : '''
 Strukturiere deine Antwort in drei kurzen Abschnitten:
 1. Spiegle mir kurz, was ich heute schon gegessen habe.
 2. Sag mir, was jetzt für den Rest des Tages noch fehlt (Kalorien, Protein, Wasser, etc.).
 3. Schließe mit 1-2 konkreten Empfehlungen ab.
 ''';
+
     _messages.add(ChatTurn(isUser: true, text: initialPrompt));
     try {
       final reply = await ref.read(claudeClientProvider).chat(
             history: _messages,
-            todayContext: _buildTodayContext(),
+            todayContext: _buildContext(includeYesterday: showYesterday),
           );
       if (!mounted) return;
       setState(() {
@@ -71,6 +106,7 @@ Strukturiere deine Antwort in drei kurzen Abschnitten:
         _loading = false;
       });
       _scrollToBottom();
+      await repo.setLastCoachingOpenDate(today);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -93,7 +129,7 @@ Strukturiere deine Antwort in drei kurzen Abschnitten:
     try {
       final reply = await ref.read(claudeClientProvider).chat(
             history: _messages,
-            todayContext: _buildTodayContext(),
+            todayContext: _buildContext(),
           );
       if (!mounted) return;
       setState(() {
