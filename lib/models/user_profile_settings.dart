@@ -5,6 +5,8 @@ class UserProfileSettings {
   final double activityFactor;
   final int numChildrenNursing;
   final int milkSharePercent;
+  final int childrenAgeGroup; // 0 = 0-6mo, 1 = 6-12mo, 2 = 12+mo
+  final int milkSupplementKcal;
 
   const UserProfileSettings({
     required this.ageYears,
@@ -13,6 +15,8 @@ class UserProfileSettings {
     required this.activityFactor,
     required this.numChildrenNursing,
     required this.milkSharePercent,
+    required this.childrenAgeGroup,
+    required this.milkSupplementKcal,
   });
 
   factory UserProfileSettings.defaults() => const UserProfileSettings(
@@ -22,11 +26,22 @@ class UserProfileSettings {
         activityFactor: 1.375,
         numChildrenNursing: 2,
         milkSharePercent: 100,
+        childrenAgeGroup: 0,
+        milkSupplementKcal: 1000,
       );
 
-  /// ~500 kcal per child per day for full milk supply, scaled by share.
-  int get milkSupplementKcal =>
-      (numChildrenNursing * milkSharePercent * 5);
+  /// Suggestion based on number of children, age, and share percentage.
+  /// Per-child kcal: 0-6mo ~500, 6-12mo ~400, 12+mo ~300 for full supply.
+  static int suggestedSupplement({
+    required int numChildren,
+    required int ageGroup,
+    required int sharePercent,
+  }) {
+    if (numChildren <= 0) return 0;
+    const perChild = [500, 400, 300];
+    final idx = ageGroup.clamp(0, 2);
+    return (numChildren * perChild[idx] * sharePercent / 100).round();
+  }
 
   UserProfileSettings copyWith({
     int? ageYears,
@@ -35,6 +50,8 @@ class UserProfileSettings {
     double? activityFactor,
     int? numChildrenNursing,
     int? milkSharePercent,
+    int? childrenAgeGroup,
+    int? milkSupplementKcal,
   }) =>
       UserProfileSettings(
         ageYears: ageYears ?? this.ageYears,
@@ -43,6 +60,8 @@ class UserProfileSettings {
         activityFactor: activityFactor ?? this.activityFactor,
         numChildrenNursing: numChildrenNursing ?? this.numChildrenNursing,
         milkSharePercent: milkSharePercent ?? this.milkSharePercent,
+        childrenAgeGroup: childrenAgeGroup ?? this.childrenAgeGroup,
+        milkSupplementKcal: milkSupplementKcal ?? this.milkSupplementKcal,
       );
 
   Map<String, dynamic> toJson() => {
@@ -52,17 +71,30 @@ class UserProfileSettings {
         'activityFactor': activityFactor,
         'numChildrenNursing': numChildrenNursing,
         'milkSharePercent': milkSharePercent,
+        'childrenAgeGroup': childrenAgeGroup,
+        'milkSupplementKcal': milkSupplementKcal,
       };
 
-  factory UserProfileSettings.fromJson(Map<String, dynamic> json) =>
-      UserProfileSettings(
-        ageYears: json['ageYears'] as int,
-        heightCm: (json['heightCm'] as num).toDouble(),
-        weightKg: (json['weightKg'] as num).toDouble(),
-        activityFactor: (json['activityFactor'] as num).toDouble(),
-        numChildrenNursing: json['numChildrenNursing'] as int? ?? 2,
-        milkSharePercent: json['milkSharePercent'] as int? ?? 100,
-      );
+  factory UserProfileSettings.fromJson(Map<String, dynamic> json) {
+    final numChildren = json['numChildrenNursing'] as int? ?? 2;
+    final share = json['milkSharePercent'] as int? ?? 100;
+    final ageGroup = json['childrenAgeGroup'] as int? ?? 0;
+    return UserProfileSettings(
+      ageYears: json['ageYears'] as int,
+      heightCm: (json['heightCm'] as num).toDouble(),
+      weightKg: (json['weightKg'] as num).toDouble(),
+      activityFactor: (json['activityFactor'] as num).toDouble(),
+      numChildrenNursing: numChildren,
+      milkSharePercent: share,
+      childrenAgeGroup: ageGroup,
+      milkSupplementKcal: json['milkSupplementKcal'] as int? ??
+          suggestedSupplement(
+            numChildren: numChildren,
+            ageGroup: ageGroup,
+            sharePercent: share,
+          ),
+    );
+  }
 }
 
 class ActivityLevel {
@@ -80,4 +112,17 @@ class ActivityLevel {
 
   static ActivityLevel closestTo(double f) =>
       all.reduce((a, b) => (a.factor - f).abs() < (b.factor - f).abs() ? a : b);
+}
+
+class ChildAgeGroup {
+  final String label;
+  final String hint;
+  final int kcalPerChild;
+  const ChildAgeGroup(this.label, this.hint, this.kcalPerChild);
+
+  static const all = [
+    ChildAgeGroup('0–6 Mon.', 'voller Milchbedarf', 500),
+    ChildAgeGroup('6–12 Mon.', 'mit Beikost', 400),
+    ChildAgeGroup('12+ Mon.', 'erweiterte Stillzeit', 300),
+  ];
 }
