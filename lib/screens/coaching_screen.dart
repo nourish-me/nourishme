@@ -34,6 +34,7 @@ class _CoachingScreenState extends ConsumerState<CoachingScreen> {
   String _buildContext({bool includeYesterday = false}) {
     final today = ref.read(todayMealsProvider);
     final target = ref.read(calorieTargetProvider);
+    final profile = ref.read(userProfileProvider).valueOrNull;
     final total = today.fold<int>(0, (s, m) => s + m.kcal);
     final remaining = target - total;
     final hour = DateTime.now().hour;
@@ -44,7 +45,12 @@ class _CoachingScreenState extends ConsumerState<CoachingScreen> {
                 '- ${m.summary} (${m.kcal} kcal${m.safetyWarnings.isEmpty ? '' : ', Warnung: ${m.safetyWarnings.join("; ")}'})')
             .join('\n');
 
-    final buffer = StringBuffer()
+    final buffer = StringBuffer();
+    if (profile != null) {
+      buffer.writeln(ClaudeClient.describeProfile(
+          profile.numChildrenNursing, profile.milkSharePercent));
+    }
+    buffer
       ..writeln('Aktuelle Uhrzeit: $hour Uhr.')
       ..writeln(
           'Tagesziel: $target kcal. Bisher heute gegessen: $total kcal. Verbleibend: $remaining kcal.')

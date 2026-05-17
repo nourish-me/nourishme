@@ -82,18 +82,34 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 ''';
 
   static const _tipPrompt = '''
-Du bist eine freundliche Ernährungs-Assistentin für eine stillende Mutter von Zwillingen (exklusiv stillend).
-Gib einen kurzen, konkreten Coaching-Tipp basierend auf dem heutigen Stand.
+Du bist eine freundliche Ernährungs-Assistentin für eine Mutter in der Stillzeit oder Schwangerschaft.
+Gib einen kurzen, konkreten Coaching-Tipp basierend auf ihrem heutigen Stand und ihrem Profil.
 Maximal 2 Sätze auf Deutsch. Sei warm aber knapp. Keine Anrede, direkt zum Tipp.
-Wenn die Mutter heute deutlich unter dem Kalorienziel ist, weise darauf hin (Stillen braucht Energie). Wenn sie schon nah am Ziel ist, lobe und mache ggf. einen Vorschlag fürs Nährstoffprofil (z.B. mehr Protein, Wasser).
+Wenn sie deutlich unter dem Kalorienziel ist, weise darauf hin. Wenn sie schon nah am Ziel ist, lobe und mache ggf. einen Vorschlag fürs Nährstoffprofil (z.B. mehr Protein, Wasser).
 ''';
 
   static const _chatPromptBase = '''
-Du bist eine freundliche Ernährungs-Assistentin für eine stillende Mutter von Zwillingen (exklusiv stillend).
+Du bist eine freundliche Ernährungs-Assistentin für eine Mutter in der Stillzeit oder Schwangerschaft.
 Antworte auf Deutsch, präzise und einfühlsam. Halte dich kurz, maximal 4-5 Sätze pro Antwort, außer eine Liste oder Aufzählung ist sinnvoll.
-Beziehe dich auf Stillen-Sicherheit (Quecksilber, Koffein, Alkohol, Kräuter) wo relevant.
+Beziehe dich auf Sicherheitshinweise zum Stillen (Quecksilber, Koffein, Alkohol, milchhemmende Kräuter) wo relevant.
 Wenn die Frage offen ist (z.B. nach Mahlzeitenideen), gib 2-3 konkrete Vorschläge.
+Mache keine Annahmen zur Anzahl der Kinder oder zum Stillstatus, die nicht aus dem mitgelieferten Profil hervorgehen.
 ''';
+
+  static String describeProfile(int numChildren, int sharePercent) {
+    if (numChildren <= 0) return 'Profil: aktuell keine Milchabgabe (z.B. Schwangerschaft oder bereits abgestillt).';
+    final share = sharePercent == 100
+        ? 'ausschließlich (100%)'
+        : sharePercent >= 75
+            ? 'hauptsächlich ($sharePercent%)'
+            : sharePercent >= 50
+                ? 'etwa zur Hälfte ($sharePercent%)'
+                : sharePercent >= 25
+                    ? 'teilweise ($sharePercent%)'
+                    : 'wenig ($sharePercent%)';
+    final kinder = numChildren == 1 ? 'ein Kind' : '$numChildren Kinder';
+    return 'Profil: versorgt $kinder mit eigener Milch, jeweils $share.';
+  }
 
   Future<String> _post({
     required String systemPrompt,
@@ -184,6 +200,8 @@ Wenn die Frage offen ist (z.B. nach Mahlzeitenideen), gib 2-3 konkrete Vorschlä
     required int totalKcalToday,
     required int targetKcal,
     required List<String> safetyWarnings,
+    required int numChildrenNursing,
+    required int milkSharePercent,
   }) async {
     final remaining = targetKcal - totalKcalToday;
     final hour = DateTime.now().hour;
@@ -191,6 +209,8 @@ Wenn die Frage offen ist (z.B. nach Mahlzeitenideen), gib 2-3 konkrete Vorschlä
         ? ''
         : '\nSafety-Hinweise zur Mahlzeit: ${safetyWarnings.join(", ")}.';
     final userMessage = '''
+${describeProfile(numChildrenNursing, milkSharePercent)}
+
 Gerade eingetragen: $justEatenSummary ($justEatenKcal kcal).
 Heutiger Stand inkl. Eintrag: $totalKcalToday von $targetKcal kcal (verbleibend: $remaining kcal).
 Uhrzeit: $hour Uhr.$warningLine

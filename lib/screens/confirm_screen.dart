@@ -111,6 +111,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final today = ref.read(todayMealsProvider);
     final totalKcalToday =
         today.fold<int>(0, (sum, m) => sum + m.kcal) + meal.kcal;
+    final profile = ref.read(userProfileProvider).valueOrNull;
     client
         .generateCoachingTip(
       justEatenSummary: meal.summary,
@@ -118,6 +119,8 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       totalKcalToday: totalKcalToday,
       targetKcal: target,
       safetyWarnings: meal.safetyWarnings,
+      numChildrenNursing: profile?.numChildrenNursing ?? 0,
+      milkSharePercent: profile?.milkSharePercent ?? 0,
     )
         .then((tip) {
       if (!mounted) return;
