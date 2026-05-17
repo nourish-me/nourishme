@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../models/meal_entry.dart';
 import '../providers/meal_providers.dart';
+import '../services/claude_client.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
+import 'confirm_screen.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -84,7 +87,76 @@ class _EmptyHistory extends StatelessWidget {
   }
 }
 
-class _DaySection extends StatelessWidget {
+MealParseResult _toParseResult(MealEntry meal) => MealParseResult(
+      isMeal: true,
+      rejectionReason: null,
+      summary: meal.summary,
+      kcal: meal.kcal,
+      proteinG: meal.proteinG,
+      carbsG: meal.carbsG,
+      fatG: meal.fatG,
+      portionAmount: 0,
+      portionUnit: 'g',
+      safetyWarnings: meal.safetyWarnings,
+    );
+
+void _editMealEntry(BuildContext context, MealEntry meal) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ConfirmScreen(
+        rawText: meal.rawText,
+        parsed: _toParseResult(meal),
+        existingMealId: meal.id,
+        existingCreatedAt: meal.createdAt,
+      ),
+    ),
+  );
+}
+
+Future<void> _duplicateMealEntry(WidgetRef ref, MealEntry meal) async {
+  final clone = MealEntry(
+    id: DateTime.now().microsecondsSinceEpoch.toString(),
+    createdAt: DateTime.now(),
+    rawText: meal.rawText,
+    summary: meal.summary,
+    kcal: meal.kcal,
+    proteinG: meal.proteinG,
+    carbsG: meal.carbsG,
+    fatG: meal.fatG,
+    safetyWarnings: meal.safetyWarnings,
+  );
+  await ref.read(mealRepositoryProvider).save(clone);
+}
+
+Future<void> _confirmDeleteEntry(
+  BuildContext context,
+  WidgetRef ref,
+  MealEntry meal,
+  Future<void> Function(String id) onDelete,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text('„${meal.summary}" löschen?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Abbrechen'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Löschen'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) {
+    await onDelete(meal.id);
+  }
+}
+
+class _DaySection extends ConsumerWidget {
   final DateTime day;
   final List<MealEntry> meals;
   final int totalKcal;
@@ -100,7 +172,7 @@ class _DaySection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final remaining = target - totalKcal;
@@ -158,38 +230,36 @@ class _DaySection extends StatelessWidget {
             ),
             Divider(height: 1, color: scheme.outlineVariant),
             ...meals.map(
-              (meal) => Dismissible(
+              (meal) => Slidable(
                 key: ValueKey('history-${meal.id}'),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  color: scheme.errorContainer,
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 24),
-                  child: Icon(Icons.delete_outline,
-                      color: scheme.onErrorContainer),
-                ),
-                confirmDismiss: (_) async {
-                  return await showDialog<bool>(
-                    context: context,
-                    builder: (dialogContext) => AlertDialog(
-                      title: const Text('Eintrag löschen?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pop(dialogContext, false),
-                          child: const Text('Abbrechen'),
-                        ),
-                        FilledButton(
-                          onPressed: () =>
-                              Navigator.pop(dialogContext, true),
-                          child: const Text('Löschen'),
-                        ),
-                      ],
+                endActionPane: ActionPane(
+                  motion: const ScrollMotion(),
+                  extentRatio: 0.78,
+                  children: [
+                    SlidableAction(
+                      onPressed: (_) => _editMealEntry(context, meal),
+                      icon: Icons.edit_outlined,
+                      label: 'Bearbeiten',
+                      backgroundColor: scheme.secondaryContainer,
+                      foregroundColor: scheme.onSecondaryContainer,
                     ),
-                  ) ??
-                      false;
-                },
-                onDismissed: (_) => onDelete(meal.id),
+                    SlidableAction(
+                      onPressed: (_) => _duplicateMealEntry(ref, meal),
+                      icon: Icons.copy_outlined,
+                      label: 'Kopieren',
+                      backgroundColor: scheme.tertiaryContainer,
+                      foregroundColor: scheme.onTertiaryContainer,
+                    ),
+                    SlidableAction(
+                      onPressed: (_) =>
+                          _confirmDeleteEntry(context, ref, meal, onDelete),
+                      icon: Icons.delete_outline,
+                      label: 'Löschen',
+                      backgroundColor: scheme.errorContainer,
+                      foregroundColor: scheme.onErrorContainer,
+                    ),
+                  ],
+                ),
                 child: ListTile(
                   dense: true,
                   title: Text(meal.summary),

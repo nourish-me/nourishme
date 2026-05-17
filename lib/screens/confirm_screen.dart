@@ -12,12 +12,16 @@ class ConfirmScreen extends ConsumerStatefulWidget {
   final String rawText;
   final MealParseResult parsed;
   final Uint8List? imageBytes;
+  final String? existingMealId;
+  final DateTime? existingCreatedAt;
 
   const ConfirmScreen({
     super.key,
     required this.rawText,
     required this.parsed,
     this.imageBytes,
+    this.existingMealId,
+    this.existingCreatedAt,
   });
 
   @override
@@ -97,8 +101,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final portion = _parseDouble(_portion.text, widget.parsed.portionAmount);
 
     final meal = MealEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      createdAt: DateTime.now(),
+      id: widget.existingMealId ??
+          DateTime.now().microsecondsSinceEpoch.toString(),
+      createdAt: widget.existingCreatedAt ?? DateTime.now(),
       rawText: widget.rawText,
       summary: summary,
       kcal: kcal,
@@ -167,7 +172,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
       appBar: AppBar(
-        title: const Text('Prüfen und speichern'),
+        title: Text(
+          widget.existingMealId != null ? 'Bearbeiten' : 'Prüfen und speichern',
+        ),
         centerTitle: false,
         actions: [
           IconButton(

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
+import '../models/meal_entry.dart';
 import '../providers/meal_providers.dart';
+import '../services/claude_client.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
+import 'confirm_screen.dart';
 import 'input_screen.dart';
 import 'settings_screen.dart';
 
@@ -94,33 +98,11 @@ class HomeScreen extends ConsumerWidget {
             _EmptyState(scheme: scheme, textTheme: textTheme)
           else
             ...todayMeals.map(
-              (meal) => Dismissible(
-                key: ValueKey('home-${meal.id}'),
-                direction: DismissDirection.endToStart,
-                background: _DismissBackground(scheme: scheme),
-                confirmDismiss: (_) async {
-                  return await showDialog<bool>(
-                    context: context,
-                    builder: (dialogContext) => AlertDialog(
-                      title: const Text('Eintrag löschen?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pop(dialogContext, false),
-                          child: const Text('Abbrechen'),
-                        ),
-                        FilledButton(
-                          onPressed: () =>
-                              Navigator.pop(dialogContext, true),
-                          child: const Text('Löschen'),
-                        ),
-                      ],
-                    ),
-                  ) ??
-                      false;
-                },
-                onDismissed: (_) =>
-                    ref.read(mealRepositoryProvider).delete(meal.id),
+              (meal) => _SlidableMealRow(
+                meal: meal,
+                onEdit: () => _editMeal(context, meal),
+                onDuplicate: () => _duplicateMeal(ref, meal),
+                onDelete: () => _confirmDelete(context, ref, meal),
                 child: _MealTile(
                   summary: meal.summary,
                   kcal: meal.kcal,
@@ -406,21 +388,119 @@ class _MealTile extends StatelessWidget {
   }
 }
 
-class _DismissBackground extends StatelessWidget {
-  final ColorScheme scheme;
-  const _DismissBackground({required this.scheme});
+class _SlidableMealRow extends StatelessWidget {
+  final MealEntry meal;
+  final VoidCallback onEdit;
+  final VoidCallback onDuplicate;
+  final VoidCallback onDelete;
+  final Widget child;
+
+  const _SlidableMealRow({
+    required this.meal,
+    required this.onEdit,
+    required this.onDuplicate,
+    required this.onDelete,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
+    final scheme = Theme.of(context).colorScheme;
+    return Slidable(
+      key: ValueKey('home-${meal.id}'),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        extentRatio: 0.78,
+        children: [
+          SlidableAction(
+            onPressed: (_) => onEdit(),
+            icon: Icons.edit_outlined,
+            label: 'Bearbeiten',
+            backgroundColor: scheme.secondaryContainer,
+            foregroundColor: scheme.onSecondaryContainer,
+          ),
+          SlidableAction(
+            onPressed: (_) => onDuplicate(),
+            icon: Icons.copy_outlined,
+            label: 'Kopieren',
+            backgroundColor: scheme.tertiaryContainer,
+            foregroundColor: scheme.onTertiaryContainer,
+          ),
+          SlidableAction(
+            onPressed: (_) => onDelete(),
+            icon: Icons.delete_outline,
+            label: 'Löschen',
+            backgroundColor: scheme.errorContainer,
+            foregroundColor: scheme.onErrorContainer,
+          ),
+        ],
       ),
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.only(right: 24),
-      child: Icon(Icons.delete_outline, color: scheme.onErrorContainer),
+      child: child,
     );
+  }
+}
+
+MealParseResult _toParseResult(MealEntry meal) => MealParseResult(
+      isMeal: true,
+      rejectionReason: null,
+      summary: meal.summary,
+      kcal: meal.kcal,
+      proteinG: meal.proteinG,
+      carbsG: meal.carbsG,
+      fatG: meal.fatG,
+      portionAmount: 0,
+      portionUnit: 'g',
+      safetyWarnings: meal.safetyWarnings,
+    );
+
+void _editMeal(BuildContext context, MealEntry meal) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ConfirmScreen(
+        rawText: meal.rawText,
+        parsed: _toParseResult(meal),
+        existingMealId: meal.id,
+        existingCreatedAt: meal.createdAt,
+      ),
+    ),
+  );
+}
+
+Future<void> _duplicateMeal(WidgetRef ref, MealEntry meal) async {
+  final clone = MealEntry(
+    id: DateTime.now().microsecondsSinceEpoch.toString(),
+    createdAt: DateTime.now(),
+    rawText: meal.rawText,
+    summary: meal.summary,
+    kcal: meal.kcal,
+    proteinG: meal.proteinG,
+    carbsG: meal.carbsG,
+    fatG: meal.fatG,
+    safetyWarnings: meal.safetyWarnings,
+  );
+  await ref.read(mealRepositoryProvider).save(clone);
+}
+
+Future<void> _confirmDelete(
+    BuildContext context, WidgetRef ref, MealEntry meal) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text('„${meal.summary}" löschen?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Abbrechen'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Löschen'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) {
+    await ref.read(mealRepositoryProvider).delete(meal.id);
   }
 }
