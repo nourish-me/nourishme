@@ -143,24 +143,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: textTheme.titleSmall?.copyWith(color: scheme.outline),
                 ),
                 const SizedBox(height: 8),
-                RadioGroup<double>(
-                  groupValue: ActivityLevel.closestTo(_activityFactor).factor,
-                  onChanged: (v) {
-                    if (v != null) setState(() => _activityFactor = v);
-                  },
-                  child: Column(
-                    children: ActivityLevel.all
-                        .map(
-                          (level) => RadioListTile<double>(
-                            value: level.factor,
-                            title: Text(level.label),
-                            subtitle: Text(level.hint),
-                            contentPadding: EdgeInsets.zero,
-                            dense: true,
-                          ),
-                        )
-                        .toList(),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<double>(
+                    segments: const [
+                      ButtonSegment(value: 1.2, label: Text('Wenig')),
+                      ButtonSegment(value: 1.375, label: Text('Leicht')),
+                      ButtonSegment(value: 1.55, label: Text('Mäßig')),
+                      ButtonSegment(value: 1.725, label: Text('Sehr')),
+                    ],
+                    selected: {
+                      ActivityLevel.closestTo(_activityFactor).factor,
+                    },
+                    showSelectedIcon: false,
+                    onSelectionChanged: (s) {
+                      setState(() => _activityFactor = s.first);
+                    },
                   ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  ActivityLevel.closestTo(_activityFactor).hint,
+                  style: textTheme.bodySmall?.copyWith(color: scheme.outline),
                 ),
                 const SizedBox(height: 24),
                 Text(
