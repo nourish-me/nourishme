@@ -104,10 +104,10 @@ class ActivityLevel {
   const ActivityLevel(this.label, this.hint, this.factor);
 
   static const all = [
-    ActivityLevel('Niedrig', 'kaum Bewegung', 1.2),
+    ActivityLevel('Gering', 'kaum Bewegung', 1.2),
     ActivityLevel('Mäßig', 'Spaziergänge, leichte Hausarbeit', 1.375),
     ActivityLevel('Aktiv', 'regelmäßiges Training', 1.55),
-    ActivityLevel('Intensiv', 'intensives Training, körperliche Arbeit', 1.725),
+    ActivityLevel('Hoch', 'intensives Training, körperliche Arbeit', 1.725),
   ];
 
   static ActivityLevel closestTo(double f) =>

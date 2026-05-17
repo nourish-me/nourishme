@@ -377,24 +377,16 @@ class _MilkSection extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 16),
-        Text(
-          'Resultierender Aufschlag',
-          style: textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 6),
         TextField(
           controller: supplementController,
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => FocusScope.of(context).unfocus(),
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           decoration: const InputDecoration(
-            labelText: 'Pro Tag',
-            helperText:
-                'Wird aus deinen Angaben oben berechnet. Du kannst den Wert direkt überschreiben.',
-            helperMaxLines: 2,
+            labelText: 'Kalorienaufschlag pro Tag',
             border: OutlineInputBorder(),
+            suffixIcon: Icon(Icons.edit_outlined, size: 20),
             suffixText: 'kcal',
           ),
         ),
