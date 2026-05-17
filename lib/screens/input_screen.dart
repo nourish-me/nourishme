@@ -47,10 +47,12 @@ class _InputScreenState extends ConsumerState<InputScreen> {
       if (picked == null) return;
       final bytes = await picked.readAsBytes();
       if (!mounted) return;
+      FocusScope.of(context).unfocus();
       setState(() {
         _imageBytes = bytes;
         _error = null;
       });
+      _analyze();
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = 'Foto konnte nicht geladen werden: $e');
@@ -113,7 +115,6 @@ class _InputScreenState extends ConsumerState<InputScreen> {
             TextField(
               controller: _controller,
               maxLines: 5,
-              autofocus: _imageBytes == null,
               textInputAction: TextInputAction.newline,
               decoration: const InputDecoration(
                 hintText:
