@@ -16,7 +16,7 @@ class HistoryScreen extends ConsumerWidget {
     final recentDays = sortedDays.take(14).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Verlauf')),
+      appBar: AppBar(title: const Text('Verlauf'), centerTitle: false),
       body: recentDays.isEmpty
           ? const Center(child: Text('Noch keine Einträge.'))
           : ListView.builder(

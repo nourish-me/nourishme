@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'providers/meal_providers.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_scaffold.dart';
 import 'services/meal_repository.dart';
 
 Future<void> main() async {
@@ -31,10 +31,13 @@ class NurtureTrackApp extends StatelessWidget {
     return MaterialApp(
       title: 'NurtureTrack',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4F8A8B),
+          brightness: Brightness.light,
+        ),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: const MainScaffold(),
     );
   }
 }

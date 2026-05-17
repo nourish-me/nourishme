@@ -127,7 +127,7 @@ Strukturiere deine Antwort in drei kurzen Abschnitten:
     final visible = _messages.where((m) => !(m.isUser && _messages.indexOf(m) == 0)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Coaching')),
+      appBar: AppBar(title: const Text('Coaching'), centerTitle: false),
       body: Column(
         children: [
           Expanded(
