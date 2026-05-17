@@ -104,10 +104,10 @@ class ActivityLevel {
   const ActivityLevel(this.label, this.hint, this.factor);
 
   static const all = [
-    ActivityLevel('Wenig aktiv', 'kaum Bewegung', 1.2),
-    ActivityLevel('Leicht aktiv', 'Spaziergänge, leichte Hausarbeit', 1.375),
-    ActivityLevel('Mäßig aktiv', 'regelmäßiges Training', 1.55),
-    ActivityLevel('Sehr aktiv', 'intensives Training, körperliche Arbeit', 1.725),
+    ActivityLevel('Niedrig', 'kaum Bewegung', 1.2),
+    ActivityLevel('Mäßig', 'Spaziergänge, leichte Hausarbeit', 1.375),
+    ActivityLevel('Aktiv', 'regelmäßiges Training', 1.55),
+    ActivityLevel('Intensiv', 'intensives Training, körperliche Arbeit', 1.725),
   ];
 
   static ActivityLevel closestTo(double f) =>
@@ -121,8 +121,8 @@ class ChildAgeGroup {
   const ChildAgeGroup(this.label, this.hint, this.kcalPerChild);
 
   static const all = [
-    ChildAgeGroup('0–6 Mon.', 'voller Milchbedarf', 500),
-    ChildAgeGroup('6–12 Mon.', 'mit Beikost', 400),
-    ChildAgeGroup('12+ Mon.', 'erweiterte Stillzeit', 300),
+    ChildAgeGroup('0–6', 'voller Milchbedarf', 500),
+    ChildAgeGroup('6–12', 'mit Beikost', 400),
+    ChildAgeGroup('12+', 'erweiterte Stillzeit', 300),
   ];
 }

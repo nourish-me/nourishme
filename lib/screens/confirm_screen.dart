@@ -208,7 +208,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                         Icon(Icons.warning_amber, color: scheme.onTertiaryContainer),
                         const SizedBox(width: 8),
                         Text(
-                          'Hinweise beim Stillen',
+                          'Sicherheitshinweise',
                           style: textTheme.titleSmall?.copyWith(
                             color: scheme.onTertiaryContainer,
                             fontWeight: FontWeight.w600,
@@ -245,8 +245,6 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: 'Geschätzte Portion',
-              helperText:
-                  'Ändern skaliert Kalorien und Makros entsprechend.',
               border: const OutlineInputBorder(),
               suffixText: portionUnit,
             ),

@@ -282,12 +282,9 @@ class _ActivityPicker extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<double>(
-            segments: const [
-              ButtonSegment(value: 1.2, label: Text('Wenig')),
-              ButtonSegment(value: 1.375, label: Text('Leicht')),
-              ButtonSegment(value: 1.55, label: Text('Mäßig')),
-              ButtonSegment(value: 1.725, label: Text('Sehr')),
-            ],
+            segments: ActivityLevel.all
+                .map((l) => ButtonSegment(value: l.factor, label: Text(l.label)))
+                .toList(),
             selected: {ActivityLevel.closestTo(activityFactor).factor},
             showSelectedIcon: false,
             onSelectionChanged: (s) => onChanged(s.first),
@@ -328,7 +325,6 @@ class _MilkSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final currentValue = int.tryParse(supplementController.text) ?? 0;
     final showSuggestion = currentValue != suggested;
@@ -347,7 +343,7 @@ class _MilkSection extends StatelessWidget {
         ),
         if (numChildren > 0) ...[
           const SizedBox(height: 16),
-          Text('Alter der Kinder', style: textTheme.bodyMedium),
+          Text('Alter der Kinder (in Monaten)', style: textTheme.bodyMedium),
           const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
@@ -364,11 +360,6 @@ class _MilkSection extends StatelessWidget {
               onSelectionChanged: (s) => onAgeChanged(s.first),
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            ChildAgeGroup.all[ageGroup].hint,
-            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-          ),
           const SizedBox(height: 16),
           Text('Anteil deiner Milch pro Kind: $sharePercent%',
               style: textTheme.bodyMedium),
@@ -381,14 +372,24 @@ class _MilkSection extends StatelessWidget {
             onChanged: (v) => onShareChanged(v.round()),
           ),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
+        Text(
+          'Resultierender Aufschlag',
+          style: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 6),
         TextField(
           controller: supplementController,
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => FocusScope.of(context).unfocus(),
           decoration: const InputDecoration(
-            labelText: 'Kalorien-Aufschlag pro Tag',
+            labelText: 'Pro Tag',
+            helperText:
+                'Wird aus deinen Angaben oben berechnet. Du kannst den Wert direkt überschreiben.',
+            helperMaxLines: 2,
             border: OutlineInputBorder(),
             suffixText: 'kcal',
           ),
@@ -397,7 +398,7 @@ class _MilkSection extends StatelessWidget {
           const SizedBox(height: 8),
           ActionChip(
             avatar: const Icon(Icons.auto_awesome, size: 18),
-            label: Text('Vorschlag aus Slidern: $suggested kcal'),
+            label: Text('Vorschlag übernehmen: $suggested kcal'),
             onPressed: onApplySuggestion,
           ),
         ],
@@ -445,7 +446,7 @@ class _OutcomeCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'BMR plus Aktivität: $bmrTdee kcal',
+              'Grundbedarf inkl. Aktivität: $bmrTdee kcal',
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
               ),
