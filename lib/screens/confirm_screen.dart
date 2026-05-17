@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
@@ -37,6 +38,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   late final double _origFat;
   late final double _origPortion;
   bool _scaling = false;
+  bool _saveAsFavorite = false;
 
   @override
   void initState() {
@@ -85,20 +87,43 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   }
 
   Future<void> _save() async {
+    final summary = _summary.text.trim().isEmpty
+        ? widget.parsed.summary
+        : _summary.text.trim();
+    final kcal = int.tryParse(_kcal.text) ?? widget.parsed.kcal;
+    final proteinG = _parseDouble(_protein.text, widget.parsed.proteinG);
+    final carbsG = _parseDouble(_carbs.text, widget.parsed.carbsG);
+    final fatG = _parseDouble(_fat.text, widget.parsed.fatG);
+    final portion = _parseDouble(_portion.text, widget.parsed.portionAmount);
+
     final meal = MealEntry(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       createdAt: DateTime.now(),
       rawText: widget.rawText,
-      summary: _summary.text.trim().isEmpty
-          ? widget.parsed.summary
-          : _summary.text.trim(),
-      kcal: int.tryParse(_kcal.text) ?? widget.parsed.kcal,
-      proteinG: _parseDouble(_protein.text, widget.parsed.proteinG),
-      carbsG: _parseDouble(_carbs.text, widget.parsed.carbsG),
-      fatG: _parseDouble(_fat.text, widget.parsed.fatG),
+      summary: summary,
+      kcal: kcal,
+      proteinG: proteinG,
+      carbsG: carbsG,
+      fatG: fatG,
       safetyWarnings: widget.parsed.safetyWarnings,
     );
     await ref.read(mealRepositoryProvider).save(meal);
+
+    if (_saveAsFavorite) {
+      final favorite = FavoriteMeal(
+        id: 'fav-${DateTime.now().microsecondsSinceEpoch}',
+        summary: summary,
+        kcal: kcal,
+        proteinG: proteinG,
+        carbsG: carbsG,
+        fatG: fatG,
+        portionAmount: portion,
+        portionUnit: widget.parsed.portionUnit,
+        safetyWarnings: widget.parsed.safetyWarnings,
+      );
+      await ref.read(favoriteRepositoryProvider).save(favorite);
+    }
+
     if (!mounted) return;
     _triggerCoachingTip(meal);
     Navigator.popUntil(context, (r) => r.isFirst);
@@ -144,6 +169,19 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       appBar: AppBar(
         title: const Text('Prüfen und speichern'),
         centerTitle: false,
+        actions: [
+          IconButton(
+            tooltip: _saveAsFavorite
+                ? 'Favorit entfernen'
+                : 'Als Favorit speichern',
+            icon: Icon(
+              _saveAsFavorite ? Icons.star : Icons.star_border,
+              color: _saveAsFavorite ? Colors.amber.shade700 : null,
+            ),
+            onPressed: () =>
+                setState(() => _saveAsFavorite = !_saveAsFavorite),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

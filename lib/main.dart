@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'providers/meal_providers.dart';
 import 'screens/main_scaffold.dart';
+import 'services/favorite_repository.dart';
 import 'services/meal_repository.dart';
 import 'services/settings_repository.dart';
 
@@ -14,12 +15,14 @@ Future<void> main() async {
   await Hive.initFlutter();
   final mealRepo = await MealRepository.open();
   final settingsRepo = await SettingsRepository.open();
+  final favoriteRepo = await FavoriteRepository.open();
 
   runApp(
     ProviderScope(
       overrides: [
         mealRepositoryProvider.overrideWithValue(mealRepo),
         settingsRepositoryProvider.overrideWithValue(settingsRepo),
+        favoriteRepositoryProvider.overrideWithValue(favoriteRepo),
       ],
       child: const NourishMeApp(),
     ),

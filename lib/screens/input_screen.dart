@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../models/favorite_meal.dart';
 import '../providers/meal_providers.dart';
+import '../services/claude_client.dart';
 import 'confirm_screen.dart';
 
 class InputScreen extends ConsumerStatefulWidget {
@@ -98,28 +100,113 @@ class _InputScreenState extends ConsumerState<InputScreen> {
     }
   }
 
+  void _useFavorite(FavoriteMeal favorite) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ConfirmScreen(
+          rawText: '',
+          parsed: MealParseResult(
+            isMeal: true,
+            rejectionReason: null,
+            summary: favorite.summary,
+            kcal: favorite.kcal,
+            proteinG: favorite.proteinG,
+            carbsG: favorite.carbsG,
+            fatG: favorite.fatG,
+            portionAmount: favorite.portionAmount,
+            portionUnit: favorite.portionUnit,
+            safetyWarnings: favorite.safetyWarnings,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteFavorite(FavoriteMeal favorite) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('„${favorite.summary}" entfernen?'),
+        content: const Text('Der Favorit wird aus deiner Liste gelöscht.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Entfernen'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(favoriteRepositoryProvider).delete(favorite.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final canAnalyze = !_loading &&
         (_controller.text.trim().isNotEmpty || _imageBytes != null);
+    final favorites =
+        ref.watch(favoritesProvider).valueOrNull ?? const <FavoriteMeal>[];
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
         appBar: AppBar(title: const Text('Neuer Eintrag'), centerTitle: false),
-        body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        body: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
+            if (favorites.isNotEmpty) ...[
+              Row(
+                children: [
+                  Icon(Icons.star_rounded,
+                      size: 18, color: Colors.amber.shade700),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Favoriten',
+                    style: textTheme.titleSmall?.copyWith(
+                      color: scheme.outline,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: favorites
+                    .map(
+                      (f) => GestureDetector(
+                        onLongPress: () => _confirmDeleteFavorite(f),
+                        child: ActionChip(
+                          label: Text(f.summary),
+                          onPressed: () => _useFavorite(f),
+                          tooltip:
+                              'Tippen zum Hinzufügen, lange drücken zum Entfernen',
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 20),
+              Divider(color: scheme.outlineVariant),
+              const SizedBox(height: 16),
+            ],
             TextField(
               controller: _controller,
               maxLines: 5,
               textInputAction: TextInputAction.newline,
               decoration: const InputDecoration(
-                hintText:
-                    'z.B. Müsli mit Joghurt, oder großer Latte Macchiato',
+                hintText: 'z.B. Müsli mit Joghurt, oder großer Latte Macchiato',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -128,7 +215,8 @@ class _InputScreenState extends ConsumerState<InputScreen> {
               children: [
                 Expanded(
                   child: FilledButton.tonalIcon(
-                    onPressed: _loading ? null : () => _pickImage(ImageSource.camera),
+                    onPressed:
+                        _loading ? null : () => _pickImage(ImageSource.camera),
                     icon: const Icon(Icons.photo_camera_outlined),
                     label: const Text('Kamera'),
                   ),
@@ -136,7 +224,9 @@ class _InputScreenState extends ConsumerState<InputScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: FilledButton.tonalIcon(
-                    onPressed: _loading ? null : () => _pickImage(ImageSource.gallery),
+                    onPressed: _loading
+                        ? null
+                        : () => _pickImage(ImageSource.gallery),
                     icon: const Icon(Icons.photo_library_outlined),
                     label: const Text('Galerie'),
                   ),
@@ -198,7 +288,6 @@ class _InputScreenState extends ConsumerState<InputScreen> {
             ),
           ],
         ),
-      ),
       ),
     );
   }

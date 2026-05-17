@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
 import '../models/user_profile_settings.dart';
 import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
+import '../services/favorite_repository.dart';
 import '../services/meal_repository.dart';
 import '../services/settings_repository.dart';
 
@@ -13,6 +15,14 @@ final mealRepositoryProvider = Provider<MealRepository>((ref) {
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   throw UnimplementedError('Override in main() with the opened box');
+});
+
+final favoriteRepositoryProvider = Provider<FavoriteRepository>((ref) {
+  throw UnimplementedError('Override in main() with the opened box');
+});
+
+final favoritesProvider = StreamProvider<List<FavoriteMeal>>((ref) {
+  return ref.watch(favoriteRepositoryProvider).watch();
 });
 
 final claudeClientProvider = Provider<ClaudeClient>((ref) => ClaudeClient());
