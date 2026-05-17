@@ -135,12 +135,16 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   }
 
   void _triggerInsightRefresh(MealEntry meal) {
+    // Capture notifiers before the widget gets disposed by the Navigator pop
+    // that follows immediately. Without this, the .then callback runs after
+    // dispose and the mounted check used to swallow the state update entirely.
     final client = ref.read(claudeClientProvider);
+    final insightNotifier = ref.read(dailyInsightProvider.notifier);
+    final loadingNotifier = ref.read(insightLoadingProvider.notifier);
     final target = ref.read(calorieTargetProvider);
     final today = ref.read(todayMealsProvider);
     final profile = ref.read(userProfileProvider).valueOrNull;
 
-    // Compose today's meals block including the just-saved one
     final mealsForBlock = [...today, meal];
     final totalKcalToday =
         mealsForBlock.fold<int>(0, (sum, m) => sum + m.kcal);
@@ -151,7 +155,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                 '- ${m.summary} (${m.kcal} kcal${m.safetyWarnings.isEmpty ? '' : ', Warnung: ${m.safetyWarnings.join("; ")}'})')
             .join('\n');
 
-    ref.read(insightLoadingProvider.notifier).state = true;
+    loadingNotifier.state = true;
     client
         .generateDailyInsight(
       targetKcal: target,
@@ -161,12 +165,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       milkSharePercent: profile?.milkSharePercent ?? 0,
     )
         .then((insight) {
-      if (!mounted) return;
-      ref.read(dailyInsightProvider.notifier).state = insight.trim();
-      ref.read(insightLoadingProvider.notifier).state = false;
+      insightNotifier.state = insight.trim();
+      loadingNotifier.state = false;
     }).catchError((_) {
-      if (!mounted) return;
-      ref.read(insightLoadingProvider.notifier).state = false;
+      loadingNotifier.state = false;
     });
   }
 

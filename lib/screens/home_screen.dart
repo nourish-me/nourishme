@@ -408,7 +408,33 @@ class _InsightCard extends StatelessWidget {
                   ],
                 ),
               )
-            else if (text != null)
+            else if (text != null) ...[
+              if (loading)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.6,
+                          color: fg.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'wird aktualisiert...',
+                        style: TextStyle(
+                          color: fg.withValues(alpha: 0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+            if (text != null && !(loading && text == null))
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: MarkdownBody(

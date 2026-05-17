@@ -203,8 +203,9 @@ class _InputScreenState extends ConsumerState<InputScreen> {
             ],
             TextField(
               controller: _controller,
-              maxLines: 5,
-              textInputAction: TextInputAction.newline,
+              maxLines: 1,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => _analyze(),
               decoration: const InputDecoration(
                 hintText: 'z.B. Müsli mit Joghurt, oder großer Latte Macchiato',
                 border: OutlineInputBorder(),
