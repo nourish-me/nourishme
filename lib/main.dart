@@ -8,6 +8,7 @@ import 'screens/main_scaffold.dart';
 import 'services/favorite_repository.dart';
 import 'services/meal_repository.dart';
 import 'services/settings_repository.dart';
+import 'services/thread_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ Future<void> main() async {
   final mealRepo = await MealRepository.open();
   final settingsRepo = await SettingsRepository.open();
   final favoriteRepo = await FavoriteRepository.open();
+  final threadRepo = await ThreadRepository.open();
 
   runApp(
     ProviderScope(
@@ -23,6 +25,7 @@ Future<void> main() async {
         mealRepositoryProvider.overrideWithValue(mealRepo),
         settingsRepositoryProvider.overrideWithValue(settingsRepo),
         favoriteRepositoryProvider.overrideWithValue(favoriteRepo),
+        threadRepositoryProvider.overrideWithValue(threadRepo),
       ],
       child: const NourishMeApp(),
     ),
