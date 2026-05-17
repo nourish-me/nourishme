@@ -220,66 +220,6 @@ Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nu
     );
   }
 
-  /// Generates the daily insight shown on the Home screen.
-  /// Structured: optional yesterday recap, today mirror, what's missing, recommendations.
-  /// [todayMealsBlock] / [yesterdayMealsBlock] are pre-formatted strings,
-  /// caller decides whether to include yesterday (only on first call of the day).
-  Future<String> generateDailyInsight({
-    required int targetKcal,
-    required int totalKcalToday,
-    required String todayMealsBlock,
-    String? yesterdayMealsBlock,
-    required int numChildrenNursing,
-    required int milkSharePercent,
-  }) async {
-    final remaining = targetKcal - totalKcalToday;
-    final hour = DateTime.now().hour;
-    final includeYesterday =
-        yesterdayMealsBlock != null && yesterdayMealsBlock.trim().isNotEmpty;
-
-    final structurePrompt = includeYesterday
-        ? '''
-Strukturiere deine Antwort in vier kurzen Abschnitten mit Markdown-Überschriften:
-**Gestern:** Tagesabschluss von gestern (kcal gegen Ziel, Auffälligkeiten).
-**Heute:** kurzer Spiegel was schon gegessen wurde.
-**Fehlt:** was für den Rest des Tages noch ansteht (Kalorien, Makros, Wasser).
-**Tipp:** 1-2 konkrete Vorschläge.
-'''
-        : '''
-Strukturiere deine Antwort in drei kurzen Abschnitten mit Markdown-Überschriften:
-**Heute:** kurzer Spiegel was schon gegessen wurde.
-**Fehlt:** was für den Rest des Tages noch ansteht (Kalorien, Makros, Wasser).
-**Tipp:** 1-2 konkrete Vorschläge.
-''';
-
-    final context = StringBuffer()
-      ..writeln(describeProfile(numChildrenNursing, milkSharePercent))
-      ..writeln('Aktuelle Uhrzeit: $hour Uhr.')
-      ..writeln(
-          'Tagesziel: $targetKcal kcal. Bisher heute: $totalKcalToday kcal. Verbleibend: $remaining kcal.')
-      ..writeln('Mahlzeiten heute:')
-      ..writeln(todayMealsBlock);
-    if (includeYesterday) {
-      context
-        ..writeln()
-        ..writeln('Mahlzeiten gestern:')
-        ..writeln(yesterdayMealsBlock);
-    }
-
-    return _post(
-      systemPrompt:
-          '$_chatPromptBase\n\nKontext heute:\n${context.toString()}\n\n$structurePrompt',
-      messages: [
-        {
-          'role': 'user',
-          'content':
-              'Gib mir den Überblick gemäß der Struktur. Halte dich kurz, jeder Abschnitt maximal 2-3 Sätze.'
-        },
-      ],
-      maxTokens: 500,
-    );
-  }
-
   Future<String> generatePerMealResponse({
     required String mealRawText,
     required String mealSummary,

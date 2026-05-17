@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'coaching_screen.dart';
 import 'history_screen.dart';
 import 'home_screen.dart';
 
@@ -23,7 +22,6 @@ class _MainScaffoldState extends State<MainScaffold> {
         children: [
           _visited.contains(0) ? const HomeScreen() : const SizedBox.shrink(),
           _visited.contains(1) ? const HistoryScreen() : const SizedBox.shrink(),
-          _visited.contains(2) ? const CoachingScreen() : const SizedBox.shrink(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -44,11 +42,6 @@ class _MainScaffoldState extends State<MainScaffold> {
             icon: Icon(Icons.calendar_today_outlined),
             selectedIcon: Icon(Icons.calendar_today),
             label: 'Verlauf',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tips_and_updates_outlined),
-            selectedIcon: Icon(Icons.tips_and_updates),
-            label: 'Coaching',
           ),
         ],
       ),

@@ -71,7 +71,6 @@ final calorieTargetProvider = Provider<int>((ref) {
   return calculateDailyCalorieTarget(profile);
 });
 
-final dailyInsightProvider = StateProvider<String?>((ref) => null);
 final insightLoadingProvider = StateProvider<bool>((ref) => false);
 
 final mealsByDayProvider = Provider<Map<DateTime, List<MealEntry>>>((ref) {
