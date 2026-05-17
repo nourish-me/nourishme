@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/meal_providers.dart';
 import '../utils/date_format.dart';
 import 'input_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -12,6 +13,10 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final todayMeals = ref.watch(todayMealsProvider);
     final totalKcal = todayMeals.fold<int>(0, (sum, m) => sum + m.kcal);
+    final totalProtein =
+        todayMeals.fold<double>(0, (sum, m) => sum + m.proteinG);
+    final totalCarbs = todayMeals.fold<double>(0, (sum, m) => sum + m.carbsG);
+    final totalFat = todayMeals.fold<double>(0, (sum, m) => sum + m.fatG);
     final target = ref.watch(calorieTargetProvider);
     final latestTip = ref.watch(latestTipProvider);
     final remaining = target - totalKcal;
@@ -41,6 +46,18 @@ class HomeScreen extends ConsumerWidget {
         ),
         centerTitle: false,
         toolbarHeight: 72,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Einstellungen',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -53,6 +70,12 @@ class HomeScreen extends ConsumerWidget {
             statusText: statusText,
             scheme: scheme,
             textTheme: textTheme,
+          ),
+          const SizedBox(height: 12),
+          _MacrosRow(
+            protein: totalProtein,
+            carbs: totalCarbs,
+            fat: totalFat,
           ),
           if (latestTip != null) ...[
             const SizedBox(height: 12),
@@ -188,6 +211,65 @@ class _HeroKcalCard extends StatelessWidget {
               style: textTheme.titleMedium?.copyWith(
                 color: overTarget ? Colors.orange.shade900 : scheme.onPrimaryContainer,
                 fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MacrosRow extends StatelessWidget {
+  final double protein;
+  final double carbs;
+  final double fat;
+  const _MacrosRow({
+    required this.protein,
+    required this.carbs,
+    required this.fat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: _MacroTile(label: 'Protein', grams: protein)),
+        const SizedBox(width: 8),
+        Expanded(child: _MacroTile(label: 'KH', grams: carbs)),
+        const SizedBox(width: 8),
+        Expanded(child: _MacroTile(label: 'Fett', grams: fat)),
+      ],
+    );
+  }
+}
+
+class _MacroTile extends StatelessWidget {
+  final String label;
+  final double grams;
+  const _MacroTile({required this.label, required this.grams});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerLow,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: textTheme.labelMedium?.copyWith(color: scheme.outline),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${grams.toStringAsFixed(grams >= 100 ? 0 : 1)} g',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

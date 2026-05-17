@@ -1,12 +1,12 @@
-import '../config/user_profile.dart';
+import '../models/user_profile_settings.dart';
 
 /// Mifflin-St Jeor BMR for women plus activity factor plus breastfeeding supplement.
-int calculateDailyCalorieTarget() {
-  final bmr = 10 * UserProfile.weightKg +
-      6.25 * UserProfile.heightCm -
-      5 * UserProfile.ageYears -
+int calculateDailyCalorieTarget(UserProfileSettings profile) {
+  final bmr = 10 * profile.weightKg +
+      6.25 * profile.heightCm -
+      5 * profile.ageYears -
       161;
-  final tdee = bmr * UserProfile.activityFactor;
-  final target = tdee + UserProfile.breastfeedingSupplementKcal;
+  final tdee = bmr * profile.activityFactor;
+  final target = tdee + profile.breastfeedingSupplementKcal;
   return target.round();
 }

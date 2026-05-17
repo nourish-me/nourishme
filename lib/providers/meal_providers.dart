@@ -1,11 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/meal_entry.dart';
+import '../models/user_profile_settings.dart';
 import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
 import '../services/meal_repository.dart';
+import '../services/settings_repository.dart';
 
 final mealRepositoryProvider = Provider<MealRepository>((ref) {
+  throw UnimplementedError('Override in main() with the opened box');
+});
+
+final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   throw UnimplementedError('Override in main() with the opened box');
 });
 
@@ -23,7 +29,27 @@ final todayMealsProvider = Provider<List<MealEntry>>((ref) {
   return all.where((m) => m.createdAt.isAfter(startOfDay)).toList();
 });
 
-final calorieTargetProvider = Provider<int>((ref) => calculateDailyCalorieTarget());
+final yesterdayMealsProvider = Provider<List<MealEntry>>((ref) {
+  final all = ref.watch(mealsProvider).valueOrNull ?? const [];
+  final now = DateTime.now();
+  final startOfYesterday = DateTime(now.year, now.month, now.day - 1);
+  final startOfToday = DateTime(now.year, now.month, now.day);
+  return all
+      .where((m) =>
+          m.createdAt.isAfter(startOfYesterday) &&
+          m.createdAt.isBefore(startOfToday))
+      .toList();
+});
+
+final userProfileProvider = StreamProvider<UserProfileSettings>((ref) {
+  return ref.watch(settingsRepositoryProvider).watchProfile();
+});
+
+final calorieTargetProvider = Provider<int>((ref) {
+  final profile = ref.watch(userProfileProvider).valueOrNull ??
+      UserProfileSettings.defaults();
+  return calculateDailyCalorieTarget(profile);
+});
 
 final latestTipProvider = StateProvider<String?>((ref) => null);
 
