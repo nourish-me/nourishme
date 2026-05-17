@@ -130,31 +130,44 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
 
     if (!mounted) return;
-    _triggerCoachingTip(meal);
+    _triggerInsightRefresh(meal);
     Navigator.popUntil(context, (r) => r.isFirst);
   }
 
-  void _triggerCoachingTip(MealEntry meal) {
+  void _triggerInsightRefresh(MealEntry meal) {
     final client = ref.read(claudeClientProvider);
     final target = ref.read(calorieTargetProvider);
     final today = ref.read(todayMealsProvider);
-    final totalKcalToday =
-        today.fold<int>(0, (sum, m) => sum + m.kcal) + meal.kcal;
     final profile = ref.read(userProfileProvider).valueOrNull;
+
+    // Compose today's meals block including the just-saved one
+    final mealsForBlock = [...today, meal];
+    final totalKcalToday =
+        mealsForBlock.fold<int>(0, (sum, m) => sum + m.kcal);
+    final block = mealsForBlock.isEmpty
+        ? 'Keine Einträge.'
+        : mealsForBlock
+            .map((m) =>
+                '- ${m.summary} (${m.kcal} kcal${m.safetyWarnings.isEmpty ? '' : ', Warnung: ${m.safetyWarnings.join("; ")}'})')
+            .join('\n');
+
+    ref.read(insightLoadingProvider.notifier).state = true;
     client
-        .generateCoachingTip(
-      justEatenSummary: meal.summary,
-      justEatenKcal: meal.kcal,
-      totalKcalToday: totalKcalToday,
+        .generateDailyInsight(
       targetKcal: target,
-      safetyWarnings: meal.safetyWarnings,
+      totalKcalToday: totalKcalToday,
+      todayMealsBlock: block,
       numChildrenNursing: profile?.numChildrenNursing ?? 0,
       milkSharePercent: profile?.milkSharePercent ?? 0,
     )
-        .then((tip) {
+        .then((insight) {
       if (!mounted) return;
-      ref.read(latestTipProvider.notifier).state = tip.trim();
-    }).catchError((_) {});
+      ref.read(dailyInsightProvider.notifier).state = insight.trim();
+      ref.read(insightLoadingProvider.notifier).state = false;
+    }).catchError((_) {
+      if (!mounted) return;
+      ref.read(insightLoadingProvider.notifier).state = false;
+    });
   }
 
   void _discard() {

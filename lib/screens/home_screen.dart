@@ -12,11 +12,82 @@ import 'confirm_screen.dart';
 import 'input_screen.dart';
 import 'settings_screen.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _insightKickedOff = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeLoadInsight());
+  }
+
+  Future<void> _maybeLoadInsight() async {
+    if (_insightKickedOff) return;
+    final existing = ref.read(dailyInsightProvider);
+    if (existing != null && existing.isNotEmpty) return;
+
+    final settingsRepo = ref.read(settingsRepositoryProvider);
+    final lastDate = settingsRepo.getLastInsightDate();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final firstToday = lastDate == null || lastDate.isBefore(today);
+
+    final todayMeals = ref.read(todayMealsProvider);
+    final yesterdayMeals = ref.read(yesterdayMealsProvider);
+
+    // Only generate if we have something to talk about, or it's first open of the day
+    if (!firstToday && todayMeals.isEmpty) return;
+    _insightKickedOff = true;
+    ref.read(insightLoadingProvider.notifier).state = true;
+
+    final target = ref.read(calorieTargetProvider);
+    final profile = ref.read(userProfileProvider).valueOrNull;
+    final total = todayMeals.fold<int>(0, (s, m) => s + m.kcal);
+
+    final todayBlock = todayMeals.isEmpty
+        ? 'Heute noch keine Einträge.'
+        : todayMeals
+            .map((m) =>
+                '- ${m.summary} (${m.kcal} kcal${m.safetyWarnings.isEmpty ? '' : ', Warnung: ${m.safetyWarnings.join("; ")}'})')
+            .join('\n');
+
+    String? yesterdayBlock;
+    if (firstToday && yesterdayMeals.isNotEmpty) {
+      yesterdayBlock = yesterdayMeals
+          .map((m) => '- ${m.summary} (${m.kcal} kcal)')
+          .join('\n');
+    }
+
+    try {
+      final insight = await ref.read(claudeClientProvider).generateDailyInsight(
+            targetKcal: target,
+            totalKcalToday: total,
+            todayMealsBlock: todayBlock,
+            yesterdayMealsBlock: yesterdayBlock,
+            numChildrenNursing: profile?.numChildrenNursing ?? 0,
+            milkSharePercent: profile?.milkSharePercent ?? 0,
+          );
+      if (!mounted) return;
+      ref.read(dailyInsightProvider.notifier).state = insight.trim();
+      await settingsRepo.setLastInsightDate(today);
+    } catch (_) {
+      // silent: card just stays empty
+    } finally {
+      if (mounted) {
+        ref.read(insightLoadingProvider.notifier).state = false;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final todayMeals = ref.watch(todayMealsProvider);
     final totalKcal = todayMeals.fold<int>(0, (sum, m) => sum + m.kcal);
     final totalProtein =
@@ -24,7 +95,8 @@ class HomeScreen extends ConsumerWidget {
     final totalCarbs = todayMeals.fold<double>(0, (sum, m) => sum + m.carbsG);
     final totalFat = todayMeals.fold<double>(0, (sum, m) => sum + m.fatG);
     final target = ref.watch(calorieTargetProvider);
-    final latestTip = ref.watch(latestTipProvider);
+    final insight = ref.watch(dailyInsightProvider);
+    final insightLoading = ref.watch(insightLoadingProvider);
     final remaining = target - totalKcal;
     final progress = target > 0 ? (totalKcal / target).clamp(0.0, 1.0) : 0.0;
     final overTarget = remaining < 0;
@@ -83,12 +155,13 @@ class HomeScreen extends ConsumerWidget {
             carbs: totalCarbs,
             fat: totalFat,
           ),
-          if (latestTip != null) ...[
+          if (insight != null || insightLoading) ...[
             const SizedBox(height: 12),
-            _TipCard(
-              tip: latestTip,
+            _InsightCard(
+              text: insight,
+              loading: insightLoading,
               onDismiss: () =>
-                  ref.read(latestTipProvider.notifier).state = null,
+                  ref.read(dailyInsightProvider.notifier).state = null,
             ),
           ],
           const SizedBox(height: 24),
@@ -268,48 +341,94 @@ class _MacroTile extends StatelessWidget {
   }
 }
 
-class _TipCard extends StatelessWidget {
-  final String tip;
+class _InsightCard extends StatelessWidget {
+  final String? text;
+  final bool loading;
   final VoidCallback onDismiss;
 
-  const _TipCard({required this.tip, required this.onDismiss});
+  const _InsightCard({
+    required this.text,
+    required this.loading,
+    required this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final fg = scheme.onTertiaryContainer;
     return Card(
       elevation: 0,
       color: scheme.tertiaryContainer,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.tips_and_updates_outlined, size: 20, color: fg),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
+            Row(
+              children: [
+                Icon(Icons.tips_and_updates_outlined, size: 20, color: fg),
+                const SizedBox(width: 8),
+                Text(
+                  'Tagesüberblick',
+                  style: textTheme.titleSmall?.copyWith(
+                    color: fg,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                if (text != null)
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    tooltip: 'Ausblenden',
+                    onPressed: onDismiss,
+                    visualDensity: VisualDensity.compact,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            if (loading && text == null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: fg,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Überblick wird erstellt...',
+                      style: TextStyle(color: fg.withValues(alpha: 0.8)),
+                    ),
+                  ],
+                ),
+              )
+            else if (text != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
                 child: MarkdownBody(
-                  data: tip,
+                  data: text!,
                   styleSheet:
                       MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                    p: TextStyle(color: fg, height: 1.3),
+                    p: TextStyle(color: fg, height: 1.35),
                     strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
                     em: TextStyle(color: fg, fontStyle: FontStyle.italic),
                     listBullet: TextStyle(color: fg),
-                    blockSpacing: 4,
+                    h1: TextStyle(
+                        color: fg, fontSize: 17, fontWeight: FontWeight.w700),
+                    h2: TextStyle(
+                        color: fg, fontSize: 16, fontWeight: FontWeight.w700),
+                    h3: TextStyle(
+                        color: fg, fontSize: 15, fontWeight: FontWeight.w600),
+                    blockSpacing: 6,
                   ),
                 ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, size: 18),
-              tooltip: 'Tipp ausblenden',
-              onPressed: onDismiss,
-              visualDensity: VisualDensity.compact,
-            ),
           ],
         ),
       ),

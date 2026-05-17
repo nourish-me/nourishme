@@ -83,14 +83,6 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
-  static const _tipPrompt = '''
-Du bist eine freundliche Ernährungs-Assistentin für eine Mutter, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
-Gib einen kurzen, konkreten Coaching-Tipp basierend auf ihrem heutigen Stand und ihrem Profil.
-Maximal 2 Sätze auf Deutsch. Sei warm aber knapp. Keine Anrede, direkt zum Tipp.
-
-Vermeide das Wort "Stillen" und seine Varianten (stillende Mutter, beim Stillen). Nutze inklusive Formulierungen wie "während du Muttermilch produzierst" oder "in dieser Phase", weil nicht jede Mutter direkt anlegt.
-''';
-
   static const _chatPromptBase = '''
 Du bist eine freundliche Ernährungs-Assistentin für eine Mutter, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
 Antworte auf Deutsch, präzise und einfühlsam. Halte dich kurz, maximal 4-5 Sätze pro Antwort, außer eine Liste oder Aufzählung ist sinnvoll.
@@ -199,33 +191,63 @@ Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nu
     );
   }
 
-  Future<String> generateCoachingTip({
-    required String justEatenSummary,
-    required int justEatenKcal,
-    required int totalKcalToday,
+  /// Generates the daily insight shown on the Home screen.
+  /// Structured: optional yesterday recap, today mirror, what's missing, recommendations.
+  /// [todayMealsBlock] / [yesterdayMealsBlock] are pre-formatted strings,
+  /// caller decides whether to include yesterday (only on first call of the day).
+  Future<String> generateDailyInsight({
     required int targetKcal,
-    required List<String> safetyWarnings,
+    required int totalKcalToday,
+    required String todayMealsBlock,
+    String? yesterdayMealsBlock,
     required int numChildrenNursing,
     required int milkSharePercent,
   }) async {
     final remaining = targetKcal - totalKcalToday;
     final hour = DateTime.now().hour;
-    final warningLine = safetyWarnings.isEmpty
-        ? ''
-        : '\nSafety-Hinweise zur Mahlzeit: ${safetyWarnings.join(", ")}.';
-    final userMessage = '''
-${describeProfile(numChildrenNursing, milkSharePercent)}
+    final includeYesterday =
+        yesterdayMealsBlock != null && yesterdayMealsBlock.trim().isNotEmpty;
 
-Gerade eingetragen: $justEatenSummary ($justEatenKcal kcal).
-Heutiger Stand inkl. Eintrag: $totalKcalToday von $targetKcal kcal (verbleibend: $remaining kcal).
-Uhrzeit: $hour Uhr.$warningLine
+    final structurePrompt = includeYesterday
+        ? '''
+Strukturiere deine Antwort in vier kurzen Abschnitten mit Markdown-Überschriften:
+**Gestern:** Tagesabschluss von gestern (kcal gegen Ziel, Auffälligkeiten).
+**Heute:** kurzer Spiegel was schon gegessen wurde.
+**Fehlt:** was für den Rest des Tages noch ansteht (Kalorien, Makros, Wasser).
+**Tipp:** 1-2 konkrete Vorschläge.
+'''
+        : '''
+Strukturiere deine Antwort in drei kurzen Abschnitten mit Markdown-Überschriften:
+**Heute:** kurzer Spiegel was schon gegessen wurde.
+**Fehlt:** was für den Rest des Tages noch ansteht (Kalorien, Makros, Wasser).
+**Tipp:** 1-2 konkrete Vorschläge.
 ''';
+
+    final context = StringBuffer()
+      ..writeln(describeProfile(numChildrenNursing, milkSharePercent))
+      ..writeln('Aktuelle Uhrzeit: $hour Uhr.')
+      ..writeln(
+          'Tagesziel: $targetKcal kcal. Bisher heute: $totalKcalToday kcal. Verbleibend: $remaining kcal.')
+      ..writeln('Mahlzeiten heute:')
+      ..writeln(todayMealsBlock);
+    if (includeYesterday) {
+      context
+        ..writeln()
+        ..writeln('Mahlzeiten gestern:')
+        ..writeln(yesterdayMealsBlock);
+    }
+
     return _post(
-      systemPrompt: _tipPrompt,
+      systemPrompt:
+          '$_chatPromptBase\n\nKontext heute:\n${context.toString()}\n\n$structurePrompt',
       messages: [
-        {'role': 'user', 'content': userMessage},
+        {
+          'role': 'user',
+          'content':
+              'Gib mir den Überblick gemäß der Struktur. Halte dich kurz, jeder Abschnitt maximal 2-3 Sätze.'
+        },
       ],
-      maxTokens: 200,
+      maxTokens: 500,
     );
   }
 

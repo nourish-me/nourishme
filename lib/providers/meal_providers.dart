@@ -61,7 +61,8 @@ final calorieTargetProvider = Provider<int>((ref) {
   return calculateDailyCalorieTarget(profile);
 });
 
-final latestTipProvider = StateProvider<String?>((ref) => null);
+final dailyInsightProvider = StateProvider<String?>((ref) => null);
+final insightLoadingProvider = StateProvider<bool>((ref) => false);
 
 final mealsByDayProvider = Provider<Map<DateTime, List<MealEntry>>>((ref) {
   final all = ref.watch(mealsProvider).valueOrNull ?? const [];

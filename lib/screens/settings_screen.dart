@@ -113,6 +113,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             body: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               children: [
+                _OutcomeCard(profile: _currentProfile()),
+                const SizedBox(height: 16),
                 _Section(
                   title: 'Dein Profil',
                   child: _ProfileFields(
@@ -149,8 +151,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     }),
                   ),
                 ),
-                const SizedBox(height: 16),
-                _OutcomeCard(profile: _currentProfile()),
                 const SizedBox(height: 24),
               ],
             ),
@@ -348,7 +348,12 @@ class _MilkSection extends StatelessWidget {
         ),
         if (numChildren > 0) ...[
           const SizedBox(height: 16),
-          Text('Alter der Kinder (in Monaten)', style: textTheme.bodyMedium),
+          Text(
+            numChildren == 1
+                ? 'Alter des Kindes (in Monaten)'
+                : 'Alter der Kinder (in Monaten)',
+            style: textTheme.bodyMedium,
+          ),
           const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
@@ -366,8 +371,12 @@ class _MilkSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Anteil deiner Milch pro Kind: $sharePercent%',
-              style: textTheme.bodyMedium),
+          Text(
+            numChildren == 1
+                ? 'Anteil deiner Milch: $sharePercent%'
+                : 'Anteil deiner Milch pro Kind: $sharePercent%',
+            style: textTheme.bodyMedium,
+          ),
           Slider(
             value: sharePercent.toDouble(),
             min: 0,
@@ -442,20 +451,57 @@ class _OutcomeCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Grundbedarf inkl. Aktivität: ${formatKcal(bmrTdee)} kcal',
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
-              ),
+            _OutcomeRow(
+              label: 'Grundbedarf + Aktivität',
+              value: '${formatKcal(bmrTdee)} kcal',
+              color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
+              textTheme: textTheme,
             ),
-            Text(
-              'Muttermilch-Aufschlag: ${formatKcal(supplement)} kcal',
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
-              ),
+            _OutcomeRow(
+              label: 'Muttermilch-Aufschlag',
+              value: '${formatKcal(supplement)} kcal',
+              color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
+              textTheme: textTheme,
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _OutcomeRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final TextTheme textTheme;
+  const _OutcomeRow({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.textTheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: textTheme.bodyMedium?.copyWith(color: color),
+            ),
+          ),
+          Text(
+            value,
+            style: textTheme.bodyMedium?.copyWith(
+              color: color,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
       ),
     );
   }

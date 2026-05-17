@@ -8,6 +8,7 @@ class SettingsRepository {
   static const _boxName = 'settings';
   static const _profileKey = 'profile';
   static const _coachingDateKey = 'coaching_last_opened_day';
+  static const _insightDateKey = 'insight_last_generated_day';
 
   final Box<String> _box;
 
@@ -45,5 +46,17 @@ class SettingsRepository {
     final iso =
         '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
     return _box.put(_coachingDateKey, iso);
+  }
+
+  DateTime? getLastInsightDate() {
+    final raw = _box.get(_insightDateKey);
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<void> setLastInsightDate(DateTime d) {
+    final iso =
+        '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    return _box.put(_insightDateKey, iso);
   }
 }
