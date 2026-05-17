@@ -30,17 +30,32 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   late final TextEditingController _protein;
   late final TextEditingController _carbs;
   late final TextEditingController _fat;
+  late final TextEditingController _portion;
+
+  late final int _origKcal;
+  late final double _origProtein;
+  late final double _origCarbs;
+  late final double _origFat;
+  late final double _origPortion;
+  bool _scaling = false;
 
   @override
   void initState() {
     super.initState();
+    _origKcal = widget.parsed.kcal;
+    _origProtein = widget.parsed.proteinG;
+    _origCarbs = widget.parsed.carbsG;
+    _origFat = widget.parsed.fatG;
+    _origPortion = widget.parsed.portionAmount;
+
     _summary = TextEditingController(text: widget.parsed.summary);
-    _kcal = TextEditingController(text: widget.parsed.kcal.toString());
-    _protein = TextEditingController(
-        text: widget.parsed.proteinG.toStringAsFixed(1));
-    _carbs = TextEditingController(
-        text: widget.parsed.carbsG.toStringAsFixed(1));
-    _fat = TextEditingController(text: widget.parsed.fatG.toStringAsFixed(1));
+    _kcal = TextEditingController(text: _origKcal.toString());
+    _protein = TextEditingController(text: _origProtein.toStringAsFixed(1));
+    _carbs = TextEditingController(text: _origCarbs.toStringAsFixed(1));
+    _fat = TextEditingController(text: _origFat.toStringAsFixed(1));
+    _portion = TextEditingController(
+        text: _origPortion > 0 ? _origPortion.toStringAsFixed(0) : '');
+    _portion.addListener(_onPortionChanged);
   }
 
   @override
@@ -50,11 +65,25 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _protein.dispose();
     _carbs.dispose();
     _fat.dispose();
+    _portion.dispose();
     super.dispose();
   }
 
   double _parseDouble(String s, double fallback) =>
       double.tryParse(s.replaceAll(',', '.')) ?? fallback;
+
+  void _onPortionChanged() {
+    if (_scaling || _origPortion <= 0) return;
+    final newPortion = _parseDouble(_portion.text, 0);
+    if (newPortion <= 0) return;
+    final scale = newPortion / _origPortion;
+    _scaling = true;
+    _kcal.text = (_origKcal * scale).round().toString();
+    _protein.text = (_origProtein * scale).toStringAsFixed(1);
+    _carbs.text = (_origCarbs * scale).toStringAsFixed(1);
+    _fat.text = (_origFat * scale).toStringAsFixed(1);
+    _scaling = false;
+  }
 
   Future<void> _save() async {
     final meal = MealEntry(
@@ -112,6 +141,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   @override
   Widget build(BuildContext context) {
     final warnings = widget.parsed.safetyWarnings;
+    final portionUnit = widget.parsed.portionUnit;
     return Scaffold(
       appBar: AppBar(title: const Text('Prüfen und speichern')),
       body: ListView(
@@ -180,6 +210,18 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             decoration: const InputDecoration(
               labelText: 'Beschreibung',
               border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _portion,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: 'Geschätzte Portion',
+              helperText:
+                  'Ändern skaliert Kalorien und Makros entsprechend.',
+              border: const OutlineInputBorder(),
+              suffixText: portionUnit,
             ),
           ),
           const SizedBox(height: 12),

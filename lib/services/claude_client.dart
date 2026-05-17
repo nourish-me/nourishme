@@ -12,6 +12,8 @@ class MealParseResult {
   final double proteinG;
   final double carbsG;
   final double fatG;
+  final double portionAmount;
+  final String portionUnit;
   final List<String> safetyWarnings;
 
   const MealParseResult({
@@ -22,6 +24,8 @@ class MealParseResult {
     required this.proteinG,
     required this.carbsG,
     required this.fatG,
+    required this.portionAmount,
+    required this.portionUnit,
     required this.safetyWarnings,
   });
 }
@@ -56,6 +60,8 @@ Wenn ein Bild beigefügt ist, analysiere zusätzlich das Foto. Nutze sichtbare R
 
 Wenn die Eingabe keine Nahrungsaufnahme beschreibt (z.B. Zufallszeichen, leere Wörter, nicht-essbare Dinge, eine Frage), setze "is_meal" auf false und gib in "rejection_reason" einen kurzen deutschen Hinweis zurück, z.B. "Bitte beschreibe ein Essen oder Getränk." In dem Fall dürfen kcal und Makros 0 sein und safety_warnings leer bleiben.
 
+Schätze für jeden Eintrag auch die Portionsgröße als einzelne Zahl mit Einheit ("g" für feste/breiige Speisen, "ml" für Getränke). Für Mischmahlzeiten gib die Gesamtmenge an.
+
 Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohne Text davor oder danach:
 {
   "is_meal": bool,
@@ -65,10 +71,13 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
   "protein_g": number,
   "carbs_g": number,
   "fat_g": number,
+  "portion_amount": number,
+  "portion_unit": string ("g" oder "ml"),
   "safety_warnings": [string]
 }
 
 "summary" ist eine kurze deutsche Beschreibung, maximal 80 Zeichen.
+"portion_amount" und "portion_unit" zusammen müssen plausibel zur summary passen. Bei is_meal=false dürfen sie 0 bzw. "g" sein.
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
@@ -163,6 +172,8 @@ Wenn die Frage offen ist (z.B. nach Mahlzeitenideen), gib 2-3 konkrete Vorschlä
       proteinG: (parsed['protein_g'] as num?)?.toDouble() ?? 0,
       carbsG: (parsed['carbs_g'] as num?)?.toDouble() ?? 0,
       fatG: (parsed['fat_g'] as num?)?.toDouble() ?? 0,
+      portionAmount: (parsed['portion_amount'] as num?)?.toDouble() ?? 0,
+      portionUnit: parsed['portion_unit'] as String? ?? 'g',
       safetyWarnings: List<String>.from(parsed['safety_warnings'] as List? ?? const []),
     );
   }

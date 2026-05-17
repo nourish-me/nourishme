@@ -53,8 +53,12 @@ $mealsLine
 
   Future<void> _loadInsights() async {
     setState(() => _loading = true);
-    final initialPrompt =
-        'Gib mir basierend auf meinem heutigen Stand einen kurzen Überblick und 1-2 konkrete Empfehlungen für den Rest des Tages.';
+    final initialPrompt = '''
+Strukturiere deine Antwort in drei kurzen Abschnitten:
+1. Spiegle mir kurz, was ich heute schon gegessen habe.
+2. Sag mir, was jetzt für den Rest des Tages noch fehlt (Kalorien, Protein, Wasser, etc.).
+3. Schließe mit 1-2 konkreten Empfehlungen ab.
+''';
     _messages.add(ChatTurn(isUser: true, text: initialPrompt));
     try {
       final reply = await ref.read(claudeClientProvider).chat(
