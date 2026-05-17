@@ -29,12 +29,15 @@ Future<void> main() async {
   );
 }
 
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class NourishMeApp extends StatelessWidget {
   const NourishMeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       title: 'NourishMe',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

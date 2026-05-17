@@ -14,6 +14,7 @@ class ConfirmScreen extends ConsumerStatefulWidget {
   final Uint8List? imageBytes;
   final String? existingMealId;
   final DateTime? existingCreatedAt;
+  final bool asSheet;
 
   const ConfirmScreen({
     super.key,
@@ -22,6 +23,7 @@ class ConfirmScreen extends ConsumerStatefulWidget {
     this.imageBytes,
     this.existingMealId,
     this.existingCreatedAt,
+    this.asSheet = false,
   });
 
   @override
@@ -131,7 +133,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
 
     if (!mounted) return;
     _triggerInsightRefresh(meal);
-    Navigator.popUntil(context, (r) => r.isFirst);
+    if (widget.asSheet) {
+      Navigator.of(context).pop(meal);
+    } else {
+      Navigator.popUntil(context, (r) => r.isFirst);
+    }
   }
 
   void _triggerInsightRefresh(MealEntry meal) {
@@ -173,25 +179,208 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   }
 
   void _discard() {
-    Navigator.popUntil(context, (r) => r.isFirst);
+    if (widget.asSheet) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.popUntil(context, (r) => r.isFirst);
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
     final warnings = widget.parsed.safetyWarnings;
     final portionUnit = widget.parsed.portionUnit;
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.opaque,
-      child: Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.existingMealId != null ? 'Bearbeiten' : 'Prüfen und speichern',
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      shrinkWrap: widget.asSheet,
+      children: [
+        if (widget.imageBytes != null) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.memory(
+              widget.imageBytes!,
+              height: 180,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (widget.rawText.isNotEmpty) ...[
+          Card(
+            elevation: 0,
+            color: scheme.surfaceContainerLow,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Originaltext',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: scheme.outline,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(widget.rawText),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (warnings.isNotEmpty) ...[
+          Card(
+            elevation: 0,
+            color: scheme.tertiaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.warning_amber,
+                          color: scheme.onTertiaryContainer),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Bitte beachte',
+                        style: textTheme.titleSmall?.copyWith(
+                          color: scheme.onTertiaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...warnings.map(
+                    (w) => Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '• $w',
+                        style: TextStyle(color: scheme.onTertiaryContainer),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        TextField(
+          controller: _summary,
+          decoration: const InputDecoration(
+            labelText: 'Beschreibung',
+            border: OutlineInputBorder(),
+          ),
         ),
-        centerTitle: false,
-        actions: [
+        const SizedBox(height: 12),
+        TextField(
+          controller: _portion,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: 'Geschätzte Portion',
+            border: const OutlineInputBorder(),
+            suffixText: portionUnit,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _kcal,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Kalorien',
+            border: OutlineInputBorder(),
+            suffixText: 'kcal',
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _protein,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Protein',
+                  border: OutlineInputBorder(),
+                  suffixText: 'g',
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _carbs,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'KH',
+                  border: OutlineInputBorder(),
+                  suffixText: 'g',
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _fat,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Fett',
+                  border: OutlineInputBorder(),
+                  suffixText: 'g',
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildActionRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _discard,
+            child: const Text('Verwerfen'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: FilledButton(
+            onPressed: _save,
+            child: const Text('Speichern'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSheetHeader() {
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 8, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              widget.existingMealId != null
+                  ? 'Bearbeiten'
+                  : 'Prüfen und speichern',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
           IconButton(
             tooltip: _saveAsFavorite
                 ? 'Favorit entfernen'
@@ -205,178 +394,64 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (widget.imageBytes != null) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.memory(
-                widget.imageBytes!,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if (widget.rawText.isNotEmpty) ...[
-            Card(
-              elevation: 0,
-              color: scheme.surfaceContainerLow,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.asSheet) {
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildSheetHeader(),
+            Flexible(child: _buildBody(context)),
+            SafeArea(
+              top: false,
               child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Originaltext',
-                      style: textTheme.labelSmall?.copyWith(
-                        color: scheme.outline,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(widget.rawText),
-                  ],
-                ),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: _buildActionRow(),
               ),
             ),
-            const SizedBox(height: 12),
           ],
-          if (warnings.isNotEmpty) ...[
-            Card(
-              elevation: 0,
-              color: scheme.tertiaryContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.warning_amber, color: scheme.onTertiaryContainer),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Bitte beachte',
-                          style: textTheme.titleSmall?.copyWith(
-                            color: scheme.onTertiaryContainer,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ...warnings.map(
-                      (w) => Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          '• $w',
-                          style: TextStyle(color: scheme.onTertiaryContainer),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+        ),
+      );
+    }
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.existingMealId != null
+                ? 'Bearbeiten'
+                : 'Prüfen und speichern',
+          ),
+          centerTitle: false,
+          actions: [
+            IconButton(
+              tooltip: _saveAsFavorite
+                  ? 'Favorit entfernen'
+                  : 'Als Favorit speichern',
+              icon: Icon(
+                _saveAsFavorite ? Icons.star : Icons.star_border,
+                color: _saveAsFavorite ? Colors.amber.shade700 : null,
               ),
+              onPressed: () =>
+                  setState(() => _saveAsFavorite = !_saveAsFavorite),
             ),
-            const SizedBox(height: 12),
           ],
-          TextField(
-            controller: _summary,
-            decoration: const InputDecoration(
-              labelText: 'Beschreibung',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _portion,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: 'Geschätzte Portion',
-              border: const OutlineInputBorder(),
-              suffixText: portionUnit,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _kcal,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Kalorien',
-              border: OutlineInputBorder(),
-              suffixText: 'kcal',
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _protein,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'Protein',
-                    border: OutlineInputBorder(),
-                    suffixText: 'g',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _carbs,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'KH',
-                    border: OutlineInputBorder(),
-                    suffixText: 'g',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _fat,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'Fett',
-                    border: OutlineInputBorder(),
-                    suffixText: 'g',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _discard,
-                  child: const Text('Verwerfen'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: FilledButton(
-                  onPressed: _save,
-                  child: const Text('Speichern'),
-                ),
-              ),
-            ],
+        ),
+        body: _buildBody(context),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: _buildActionRow(),
           ),
         ),
-      ),
       ),
     );
   }

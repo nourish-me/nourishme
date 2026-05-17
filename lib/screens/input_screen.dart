@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../main.dart';
 import '../models/favorite_meal.dart';
+import '../models/meal_entry.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
+import '../utils/number_format.dart';
 import 'confirm_screen.dart';
 
 class InputScreen extends ConsumerStatefulWidget {
@@ -80,17 +83,25 @@ class _InputScreenState extends ConsumerState<InputScreen> {
         });
         return;
       }
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ConfirmScreen(
-            rawText: text,
-            parsed: result,
-            imageBytes: _imageBytes,
-          ),
+      final savedMeal = await showModalBottomSheet<MealEntry>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (_) => ConfirmScreen(
+          rawText: text,
+          parsed: result,
+          imageBytes: _imageBytes,
+          asSheet: true,
         ),
       );
-      if (mounted) setState(() => _loading = false);
+      if (!mounted) return;
+      if (savedMeal != null) {
+        _showSavedSnackBar(savedMeal);
+        Navigator.of(context).pop();
+      } else {
+        setState(() => _loading = false);
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -100,27 +111,89 @@ class _InputScreenState extends ConsumerState<InputScreen> {
     }
   }
 
-  void _useFavorite(FavoriteMeal favorite) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ConfirmScreen(
-          rawText: '',
-          parsed: MealParseResult(
-            isMeal: true,
-            rejectionReason: null,
-            summary: favorite.summary,
-            kcal: favorite.kcal,
-            proteinG: favorite.proteinG,
-            carbsG: favorite.carbsG,
-            fatG: favorite.fatG,
-            portionAmount: favorite.portionAmount,
-            portionUnit: favorite.portionUnit,
-            safetyWarnings: favorite.safetyWarnings,
-          ),
+  Future<void> _useFavorite(FavoriteMeal favorite) async {
+    final savedMeal = await showModalBottomSheet<MealEntry>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => ConfirmScreen(
+        rawText: '',
+        parsed: MealParseResult(
+          isMeal: true,
+          rejectionReason: null,
+          summary: favorite.summary,
+          kcal: favorite.kcal,
+          proteinG: favorite.proteinG,
+          carbsG: favorite.carbsG,
+          fatG: favorite.fatG,
+          portionAmount: favorite.portionAmount,
+          portionUnit: favorite.portionUnit,
+          safetyWarnings: favorite.safetyWarnings,
         ),
+        asSheet: true,
       ),
     );
+    if (!mounted) return;
+    if (savedMeal != null) {
+      _showSavedSnackBar(savedMeal);
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _showSavedSnackBar(MealEntry meal) {
+    final target = ref.read(calorieTargetProvider);
+    final today = ref.read(todayMealsProvider);
+    // includes the just-saved meal because the stream may not have ticked yet,
+    // so compute the post-save total from today + freshly saved meal.
+    final hadAlready = today.any((m) => m.id == meal.id);
+    final total = today.fold<int>(0, (s, m) => s + m.kcal) +
+        (hadAlready ? 0 : meal.kcal);
+    final remaining = target - total;
+
+    final msg = remaining > 0
+        ? '${meal.summary} • ${formatKcal(meal.kcal)} kcal. Noch ${formatKcal(remaining)} kcal heute.'
+        : remaining == 0
+            ? '${meal.summary} • Tagesziel erreicht.'
+            : '${meal.summary} • ${formatKcal(-remaining)} kcal über Ziel.';
+
+    rootScaffoldMessengerKey.currentState
+      ?..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Bearbeiten',
+            onPressed: () {
+              final navContext =
+                  rootScaffoldMessengerKey.currentContext ?? context;
+              Navigator.of(navContext, rootNavigator: true).push(
+                MaterialPageRoute(
+                  builder: (_) => ConfirmScreen(
+                    rawText: meal.rawText,
+                    parsed: MealParseResult(
+                      isMeal: true,
+                      rejectionReason: null,
+                      summary: meal.summary,
+                      kcal: meal.kcal,
+                      proteinG: meal.proteinG,
+                      carbsG: meal.carbsG,
+                      fatG: meal.fatG,
+                      portionAmount: 0,
+                      portionUnit: 'g',
+                      safetyWarnings: meal.safetyWarnings,
+                    ),
+                    existingMealId: meal.id,
+                    existingCreatedAt: meal.createdAt,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
   }
 
   Future<void> _confirmDeleteFavorite(FavoriteMeal favorite) async {
