@@ -68,7 +68,7 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           _HeroKcalCard(
             totalKcal: totalKcal,
@@ -109,15 +109,19 @@ class HomeScreen extends ConsumerWidget {
           if (coachLoading) _CoachLoading(scheme: scheme),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const InputScreen()),
-          );
-        },
-        tooltip: 'Neuer Eintrag',
-        child: const Icon(Icons.add),
+      bottomNavigationBar: const _HomeChatInput(),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 56),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const InputScreen()),
+            );
+          },
+          tooltip: 'Neuer Eintrag',
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
@@ -483,6 +487,170 @@ class _CoachBubble extends StatelessWidget {
                 ),
                 blockSpacing: 6,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeChatInput extends ConsumerStatefulWidget {
+  const _HomeChatInput();
+
+  @override
+  ConsumerState<_HomeChatInput> createState() => _HomeChatInputState();
+}
+
+class _HomeChatInputState extends ConsumerState<_HomeChatInput> {
+  final _controller = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _formatTime(DateTime t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  List<ChatTurn> _buildHistory(
+    List<ThreadItem> thread,
+    Map<String, MealEntry> mealsById,
+  ) {
+    final turns = <ChatTurn>[];
+    for (final item in thread) {
+      switch (item.type) {
+        case ThreadItemType.meal:
+          final m = mealsById[item.mealId];
+          if (m == null) continue;
+          turns.add(ChatTurn(
+            isUser: true,
+            text:
+                'Eintrag um ${_formatTime(m.createdAt)}: ${m.summary} (${m.kcal} kcal, Protein ${m.proteinG.toStringAsFixed(0)} g, KH ${m.carbsG.toStringAsFixed(0)} g, Fett ${m.fatG.toStringAsFixed(0)} g).',
+          ));
+        case ThreadItemType.coachResponse:
+        case ThreadItemType.coachAnswer:
+          if ((item.text ?? '').isEmpty) continue;
+          turns.add(ChatTurn(isUser: false, text: item.text!));
+        case ThreadItemType.userQuestion:
+          if ((item.text ?? '').isEmpty) continue;
+          turns.add(ChatTurn(isUser: true, text: item.text!));
+      }
+    }
+    return turns;
+  }
+
+  String _buildContext() {
+    final meals = ref.read(todayMealsProvider);
+    final target = ref.read(calorieTargetProvider);
+    final profile = ref.read(userProfileProvider).valueOrNull;
+    final total = meals.fold<int>(0, (s, m) => s + m.kcal);
+    final protein = meals.fold<double>(0, (s, m) => s + m.proteinG);
+    final remaining = target - total;
+    final hour = DateTime.now().hour;
+    final buffer = StringBuffer();
+    if (profile != null) {
+      buffer.writeln(ClaudeClient.describeProfile(
+          profile.numChildrenNursing, profile.milkSharePercent));
+    }
+    buffer
+      ..writeln('Aktuelle Uhrzeit: $hour Uhr.')
+      ..writeln(
+          'Tagesziel: $target kcal. Bisher heute: $total kcal. Verbleibend: $remaining kcal.')
+      ..writeln('Protein heute: ${protein.toStringAsFixed(0)} g.');
+    return buffer.toString();
+  }
+
+  Future<void> _send() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || _sending) return;
+
+    setState(() => _sending = true);
+    final threadRepo = ref.read(threadRepositoryProvider);
+    final loadingNotifier = ref.read(insightLoadingProvider.notifier);
+    final client = ref.read(claudeClientProvider);
+    final meals = ref.read(todayMealsProvider);
+    final mealsById = {for (final m in meals) m.id: m};
+    final priorThread = ref.read(todayThreadProvider).valueOrNull ?? [];
+
+    // Build history from the current state, then append the new question
+    // explicitly so we don't race with the Hive stream.
+    final history = _buildHistory(priorThread, mealsById)
+      ..add(ChatTurn(isUser: true, text: text));
+    final todayContext = _buildContext();
+
+    _controller.clear();
+    FocusScope.of(context).unfocus();
+
+    await threadRepo
+        .add(ThreadItem.userQuestion(text: text, at: DateTime.now()));
+    loadingNotifier.state = true;
+
+    try {
+      final reply = await client.chat(
+        history: history,
+        todayContext: todayContext,
+      );
+      await threadRepo.add(ThreadItem.coachAnswer(
+        text: reply.trim(),
+        at: DateTime.now(),
+      ));
+    } catch (e) {
+      await threadRepo.add(ThreadItem.coachAnswer(
+        text: 'Fehler bei der Anfrage: $e',
+        at: DateTime.now(),
+      ));
+    } finally {
+      loadingNotifier.state = false;
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                minLines: 1,
+                maxLines: 4,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => _send(),
+                decoration: InputDecoration(
+                  hintText: 'Frage an den Coach...',
+                  isDense: true,
+                  filled: true,
+                  fillColor: scheme.surfaceContainerLow,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              onPressed: _sending ? null : _send,
+              icon: _sending
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.send),
             ),
           ],
         ),
