@@ -21,18 +21,18 @@ Future<void> main() async {
         mealRepositoryProvider.overrideWithValue(mealRepo),
         settingsRepositoryProvider.overrideWithValue(settingsRepo),
       ],
-      child: const NurtureTrackApp(),
+      child: const NourishMeApp(),
     ),
   );
 }
 
-class NurtureTrackApp extends StatelessWidget {
-  const NurtureTrackApp({super.key});
+class NourishMeApp extends StatelessWidget {
+  const NourishMeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NurtureTrack',
+      title: 'NourishMe',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF4F8A8B),
