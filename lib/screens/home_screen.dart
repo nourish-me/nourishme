@@ -204,76 +204,67 @@ class _CompactHeroCard extends StatelessWidget {
       elevation: 0,
       color: scheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        child: Row(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: 100,
-              height: 100,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 9,
-                      backgroundColor: scheme.surface.withValues(alpha: 0.4),
-                      color: progressColor,
-                      strokeCap: StrokeCap.round,
-                    ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  formatKcal(totalKcal),
+                  style: textTheme.headlineSmall?.copyWith(
+                    color: fg,
+                    fontWeight: FontWeight.w700,
                   ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        formatKcal(totalKcal),
-                        style: textTheme.titleLarge?.copyWith(
-                          color: fg,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        '/ ${formatKcal(target)}',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: fg.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '/ ${formatKcal(target)} kcal',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: fg.withValues(alpha: 0.7),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
+                ),
+                const Spacer(),
+                Flexible(
+                  child: Text(
                     statusText,
-                    style: textTheme.titleSmall?.copyWith(
-                      color: overTarget ? Colors.orange.shade900 : fg,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: overTarget
+                          ? Colors.orange.shade900
+                          : fg.withValues(alpha: 0.85),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  _MacroLine(
-                      label: 'Protein',
-                      grams: protein,
-                      fg: fg,
-                      textTheme: textTheme),
-                  _MacroLine(
-                      label: 'KH',
-                      grams: carbs,
-                      fg: fg,
-                      textTheme: textTheme),
-                  _MacroLine(
-                      label: 'Fett',
-                      grams: fat,
-                      fg: fg,
-                      textTheme: textTheme),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                color: progressColor,
+                backgroundColor: scheme.surface.withValues(alpha: 0.4),
+              ),
+            ),
+            const SizedBox(height: 10),
+            DefaultTextStyle(
+              style: textTheme.bodySmall!.copyWith(
+                color: fg.withValues(alpha: 0.8),
+              ),
+              child: Row(
+                children: [
+                  _macroChunk('Protein', protein),
+                  const SizedBox(width: 14),
+                  _macroChunk('KH', carbs),
+                  const SizedBox(width: 14),
+                  _macroChunk('Fett', fat),
                 ],
               ),
             ),
@@ -282,39 +273,19 @@ class _CompactHeroCard extends StatelessWidget {
       ),
     );
   }
-}
 
-class _MacroLine extends StatelessWidget {
-  final String label;
-  final double grams;
-  final Color fg;
-  final TextTheme textTheme;
-  const _MacroLine({
-    required this.label,
-    required this.grams,
-    required this.fg,
-    required this.textTheme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1),
-      child: Row(
+  Widget _macroChunk(String label, double grams) {
+    return RichText(
+      text: TextSpan(
+        style: textTheme.bodySmall?.copyWith(
+          color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
+        ),
         children: [
-          SizedBox(
-            width: 52,
-            child: Text(
-              label,
-              style: textTheme.bodySmall?.copyWith(
-                color: fg.withValues(alpha: 0.75),
-              ),
-            ),
-          ),
-          Text(
-            '${grams.toStringAsFixed(grams >= 100 ? 0 : 1)} g',
+          TextSpan(text: '$label '),
+          TextSpan(
+            text: '${grams.toStringAsFixed(0)} g',
             style: textTheme.bodyMedium?.copyWith(
-              color: fg,
+              color: scheme.onPrimaryContainer,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -615,20 +586,29 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
 
   Future<void> _useFavorite(FavoriteMeal favorite) async {
     if (_sending) return;
-    setState(() => _sending = true);
-    final meal = MealEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      createdAt: DateTime.now(),
-      rawText: '',
+    final parsed = MealParseResult(
+      isMeal: true,
+      rejectionReason: null,
       summary: favorite.summary,
       kcal: favorite.kcal,
       proteinG: favorite.proteinG,
       carbsG: favorite.carbsG,
       fatG: favorite.fatG,
+      portionAmount: favorite.portionAmount,
+      portionUnit: favorite.portionUnit,
       safetyWarnings: favorite.safetyWarnings,
     );
-    await _saveAndCoach(meal, rawText: '');
-    if (mounted) setState(() => _sending = false);
+    await showModalBottomSheet<MealEntry>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => ConfirmScreen(
+        rawText: '',
+        parsed: parsed,
+        asSheet: true,
+      ),
+    );
   }
 
   Future<void> _confirmDeleteFavorite(FavoriteMeal favorite) async {
@@ -651,54 +631,6 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     if (confirmed == true && mounted) {
       await ref.read(favoriteRepositoryProvider).delete(favorite.id);
     }
-  }
-
-  Future<void> _saveAndCoach(MealEntry meal, {required String rawText}) async {
-    final mealRepo = ref.read(mealRepositoryProvider);
-    final threadRepo = ref.read(threadRepositoryProvider);
-    final client = ref.read(claudeClientProvider);
-    final loadingNotifier = ref.read(insightLoadingProvider.notifier);
-
-    await mealRepo.save(meal);
-    await threadRepo.add(ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
-
-    final target = ref.read(calorieTargetProvider);
-    final today = ref.read(todayMealsProvider);
-    final profile = ref.read(userProfileProvider).valueOrNull;
-    final mealsForTotal =
-        today.any((m) => m.id == meal.id) ? today : [...today, meal];
-    final totalKcal = mealsForTotal.fold<int>(0, (s, m) => s + m.kcal);
-    final totalProtein =
-        mealsForTotal.fold<double>(0, (s, m) => s + m.proteinG);
-    final proteinTargetG =
-        profile != null ? (profile.weightKg * 1.8).round() : 100;
-
-    loadingNotifier.state = true;
-    client
-        .generatePerMealResponse(
-      mealRawText: rawText,
-      mealSummary: meal.summary,
-      mealKcal: meal.kcal,
-      mealProteinG: meal.proteinG,
-      mealCarbsG: meal.carbsG,
-      mealFatG: meal.fatG,
-      safetyWarnings: meal.safetyWarnings,
-      totalKcalToday: totalKcal,
-      targetKcal: target,
-      totalProteinToday: totalProtein,
-      proteinTargetG: proteinTargetG,
-      numChildrenNursing: profile?.numChildrenNursing ?? 0,
-      milkSharePercent: profile?.milkSharePercent ?? 0,
-    )
-        .then((response) async {
-      await threadRepo.add(ThreadItem.coachResponse(
-        text: response.trim(),
-        at: DateTime.now(),
-      ));
-      loadingNotifier.state = false;
-    }).catchError((_) {
-      loadingNotifier.state = false;
-    });
   }
 
   List<ChatTurn> _buildHistory(
@@ -796,49 +728,26 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     try {
       final client = ref.read(claudeClientProvider);
 
-      if (hasImage) {
-        // Photo entry: always show confirm sheet for portion review.
-        final parsed = await client.parseMeal(text, imageBytes: _imageBytes);
-        if (!mounted) return;
-        if (!parsed.isMeal) {
-          // Photo doesn't classify as meal; rare. Treat as question with note.
-          await _askAsQuestion(text.isEmpty
-              ? 'Konnte das Foto nicht als Mahlzeit erkennen.'
-              : text);
-        } else {
-          await showModalBottomSheet<MealEntry>(
-            context: context,
-            isScrollControlled: true,
-            useSafeArea: true,
-            showDragHandle: true,
-            builder: (_) => ConfirmScreen(
-              rawText: text,
-              parsed: parsed,
-              imageBytes: _imageBytes,
-              asSheet: true,
-            ),
-          );
-        }
-      } else {
-        // Text only: route based on Claude classification.
-        final parsed = await client.parseMeal(text);
-        if (!mounted) return;
-        if (parsed.isMeal) {
-          final meal = MealEntry(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
-            createdAt: DateTime.now(),
+      final parsed =
+          await client.parseMeal(text, imageBytes: _imageBytes);
+      if (!mounted) return;
+      if (parsed.isMeal) {
+        // Always go through ConfirmScreen sheet so the user can verify
+        // portion and macros before the entry lands in the thread.
+        await showModalBottomSheet<MealEntry>(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          showDragHandle: true,
+          builder: (_) => ConfirmScreen(
             rawText: text,
-            summary: parsed.summary,
-            kcal: parsed.kcal,
-            proteinG: parsed.proteinG,
-            carbsG: parsed.carbsG,
-            fatG: parsed.fatG,
-            safetyWarnings: parsed.safetyWarnings,
-          );
-          await _saveAndCoach(meal, rawText: text);
-        } else {
-          await _askAsQuestion(text);
-        }
+            parsed: parsed,
+            imageBytes: _imageBytes,
+            asSheet: true,
+          ),
+        );
+      } else {
+        await _askAsQuestion(text);
       }
       _controller.clear();
       if (mounted) setState(() => _imageBytes = null);
