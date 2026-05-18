@@ -16,11 +16,43 @@ import '../utils/number_format.dart';
 import 'confirm_screen.dart';
 import 'settings_screen.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (!_scroll.hasClients) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) {
+        _scroll.animateTo(
+          _scroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Auto-scroll to bottom when thread grows.
+    ref.listen<AsyncValue<List<ThreadItem>>>(todayThreadProvider, (prev, next) {
+      final prevLen = prev?.valueOrNull?.length ?? 0;
+      final nextLen = next.valueOrNull?.length ?? 0;
+      if (nextLen > prevLen) _scrollToBottom();
+    });
     final todayMeals = ref.watch(todayMealsProvider);
     final totalKcal = todayMeals.fold<int>(0, (sum, m) => sum + m.kcal);
     final totalProtein =
@@ -74,35 +106,22 @@ class HomeScreen extends ConsumerWidget {
         onTap: () => FocusScope.of(context).unfocus(),
         behavior: HitTestBehavior.opaque,
         child: ListView(
+          controller: _scroll,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            _HeroKcalCard(
+            _CompactHeroCard(
               totalKcal: totalKcal,
               target: target,
               progress: progress,
               overTarget: overTarget,
               statusText: statusText,
-              scheme: scheme,
-              textTheme: textTheme,
-            ),
-            const SizedBox(height: 12),
-            _MacrosRow(
               protein: totalProtein,
               carbs: totalCarbs,
               fat: totalFat,
+              scheme: scheme,
+              textTheme: textTheme,
             ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Icon(Icons.forum_outlined, size: 18, color: scheme.outline),
-                const SizedBox(width: 6),
-                Text(
-                  'Heute',
-                  style: textTheme.titleSmall?.copyWith(color: scheme.outline),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
             if (thread.isEmpty && !coachLoading)
               _EmptyThread(scheme: scheme, textTheme: textTheme)
             else
@@ -152,21 +171,27 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _HeroKcalCard extends StatelessWidget {
+class _CompactHeroCard extends StatelessWidget {
   final int totalKcal;
   final int target;
   final double progress;
   final bool overTarget;
   final String statusText;
+  final double protein;
+  final double carbs;
+  final double fat;
   final ColorScheme scheme;
   final TextTheme textTheme;
 
-  const _HeroKcalCard({
+  const _CompactHeroCard({
     required this.totalKcal,
     required this.target,
     required this.progress,
     required this.overTarget,
     required this.statusText,
+    required this.protein,
+    required this.carbs,
+    required this.fat,
     required this.scheme,
     required this.textTheme,
   });
@@ -174,25 +199,26 @@ class _HeroKcalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progressColor = overTarget ? Colors.orange.shade700 : scheme.primary;
+    final fg = scheme.onPrimaryContainer;
     return Card(
       elevation: 0,
       color: scheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-        child: Column(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        child: Row(
           children: [
             SizedBox(
-              width: 180,
-              height: 180,
+              width: 100,
+              height: 100,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    width: 180,
-                    height: 180,
+                    width: 100,
+                    height: 100,
                     child: CircularProgressIndicator(
                       value: progress,
-                      strokeWidth: 14,
+                      strokeWidth: 9,
                       backgroundColor: scheme.surface.withValues(alpha: 0.4),
                       color: progressColor,
                       strokeCap: StrokeCap.round,
@@ -203,15 +229,15 @@ class _HeroKcalCard extends StatelessWidget {
                     children: [
                       Text(
                         formatKcal(totalKcal),
-                        style: textTheme.displaySmall?.copyWith(
-                          color: scheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w600,
+                        style: textTheme.titleLarge?.copyWith(
+                          color: fg,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
-                        'von ${formatKcal(target)} kcal',
-                        style: textTheme.labelLarge?.copyWith(
-                          color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
+                        '/ ${formatKcal(target)}',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: fg.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -219,14 +245,36 @@ class _HeroKcalCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              statusText,
-              style: textTheme.titleMedium?.copyWith(
-                color: overTarget
-                    ? Colors.orange.shade900
-                    : scheme.onPrimaryContainer,
-                fontWeight: FontWeight.w500,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    statusText,
+                    style: textTheme.titleSmall?.copyWith(
+                      color: overTarget ? Colors.orange.shade900 : fg,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _MacroLine(
+                      label: 'Protein',
+                      grams: protein,
+                      fg: fg,
+                      textTheme: textTheme),
+                  _MacroLine(
+                      label: 'KH',
+                      grams: carbs,
+                      fg: fg,
+                      textTheme: textTheme),
+                  _MacroLine(
+                      label: 'Fett',
+                      grams: fat,
+                      fg: fg,
+                      textTheme: textTheme),
+                ],
               ),
             ),
           ],
@@ -236,60 +284,41 @@ class _HeroKcalCard extends StatelessWidget {
   }
 }
 
-class _MacrosRow extends StatelessWidget {
-  final double protein;
-  final double carbs;
-  final double fat;
-  const _MacrosRow({
-    required this.protein,
-    required this.carbs,
-    required this.fat,
+class _MacroLine extends StatelessWidget {
+  final String label;
+  final double grams;
+  final Color fg;
+  final TextTheme textTheme;
+  const _MacroLine({
+    required this.label,
+    required this.grams,
+    required this.fg,
+    required this.textTheme,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: _MacroTile(label: 'Protein', grams: protein)),
-        const SizedBox(width: 8),
-        Expanded(child: _MacroTile(label: 'KH', grams: carbs)),
-        const SizedBox(width: 8),
-        Expanded(child: _MacroTile(label: 'Fett', grams: fat)),
-      ],
-    );
-  }
-}
-
-class _MacroTile extends StatelessWidget {
-  final String label;
-  final double grams;
-  const _MacroTile({required this.label, required this.grams});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Card(
-      elevation: 0,
-      color: scheme.surfaceContainerLow,
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        child: Column(
-          children: [
-            Text(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 52,
+            child: Text(
               label,
-              style: textTheme.labelMedium?.copyWith(color: scheme.outline),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${grams.toStringAsFixed(grams >= 100 ? 0 : 1)} g',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+              style: textTheme.bodySmall?.copyWith(
+                color: fg.withValues(alpha: 0.75),
               ),
             ),
-          ],
-        ),
+          ),
+          Text(
+            '${grams.toStringAsFixed(grams >= 100 ? 0 : 1)} g',
+            style: textTheme.bodyMedium?.copyWith(
+              color: fg,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -827,123 +856,167 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final favorites =
         ref.watch(favoritesProvider).valueOrNull ?? const <FavoriteMeal>[];
 
     return Material(
-      color: scheme.surface,
+      color: scheme.surfaceContainer,
       elevation: 0,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (favorites.isNotEmpty)
-                SizedBox(
-                  height: 36,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: favorites.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 6),
-                    itemBuilder: (_, i) {
-                      final f = favorites[i];
-                      return GestureDetector(
-                        onLongPress: () => _confirmDeleteFavorite(f),
-                        child: ActionChip(
-                          avatar: Icon(Icons.star_rounded,
-                              size: 16, color: Colors.amber.shade700),
-                          label: Text(f.summary),
-                          onPressed: _sending ? null : () => _useFavorite(f),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              if (_imageBytes != null) ...[
-                const SizedBox(height: 8),
-                Stack(
-                  alignment: Alignment.topRight,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.memory(
-                        _imageBytes!,
-                        height: 120,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: scheme.outlineVariant.withValues(alpha: 0.5),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (favorites.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 4),
+                    child: Text(
+                      'Favoriten',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.outline,
+                        letterSpacing: 0.4,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Material(
-                        color: Colors.black54,
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          customBorder: const CircleBorder(),
-                          onTap: _sending
-                              ? null
-                              : () => setState(() => _imageBytes = null),
-                          child: const Padding(
-                            padding: EdgeInsets.all(6),
-                            child: Icon(Icons.close,
-                                size: 18, color: Colors.white),
+                  ),
+                  SizedBox(
+                    height: 36,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: favorites.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 6),
+                      itemBuilder: (_, i) {
+                        final f = favorites[i];
+                        return GestureDetector(
+                          onLongPress: () => _confirmDeleteFavorite(f),
+                          child: ActionChip(
+                            avatar: Icon(Icons.star_rounded,
+                                size: 16, color: Colors.amber.shade700),
+                            label: Text(f.summary),
+                            onPressed:
+                                _sending ? null : () => _useFavorite(f),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (_imageBytes != null) ...[
+                  Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(
+                          _imageBytes!,
+                          height: 120,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Material(
+                          color: Colors.black54,
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: _sending
+                                ? null
+                                : () => setState(() => _imageBytes = null),
+                            child: const Padding(
+                              padding: EdgeInsets.all(6),
+                              child: Icon(Icons.close,
+                                  size: 18, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      onPressed: _sending ? null : _showPhotoPicker,
+                      icon: const Icon(Icons.add_a_photo_outlined),
+                      tooltip: 'Foto hinzufügen',
+                      style: IconButton.styleFrom(
+                        backgroundColor: scheme.surface,
+                      ),
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        minLines: 1,
+                        maxLines: 4,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _send(),
+                        decoration: InputDecoration(
+                          hintText: 'Mahlzeit, Trinken oder Frage...',
+                          hintStyle: TextStyle(color: scheme.outline),
+                          isDense: true,
+                          filled: true,
+                          fillColor: scheme.surface,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(
+                              color: scheme.outlineVariant,
+                              width: 0.5,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(
+                              color: scheme.outlineVariant,
+                              width: 0.5,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(
+                              color: scheme.primary,
+                              width: 1,
+                            ),
                           ),
                         ),
                       ),
                     ),
+                    const SizedBox(width: 6),
+                    IconButton.filled(
+                      onPressed: _sending ? null : _send,
+                      icon: _sending
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.send),
+                    ),
                   ],
                 ),
               ],
-              const SizedBox(height: 6),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  IconButton(
-                    onPressed: _sending ? null : _showPhotoPicker,
-                    icon: const Icon(Icons.add_a_photo_outlined),
-                    tooltip: 'Foto hinzufügen',
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      minLines: 1,
-                      maxLines: 4,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
-                      decoration: InputDecoration(
-                        hintText:
-                            'Eintrag oder Frage an den Coach...',
-                        isDense: true,
-                        filled: true,
-                        fillColor: scheme.surfaceContainerLow,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton.filled(
-                    onPressed: _sending ? null : _send,
-                    icon: _sending
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
       ),
