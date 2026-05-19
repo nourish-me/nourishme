@@ -38,3 +38,8 @@ String formatTime(DateTime t) =>
 
 String formatFullDate(DateTime day) =>
     '${_weekdays[day.weekday - 1]}, ${day.day}. ${_months[day.month - 1]}';
+
+bool isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
+bool isToday(DateTime d) => isSameDay(d, DateTime.now());

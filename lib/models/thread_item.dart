@@ -28,11 +28,16 @@ class ThreadItem {
         mealId: mealId,
       );
 
-  factory ThreadItem.coachResponse({required String text, required DateTime at}) =>
+  factory ThreadItem.coachResponse({
+    String? mealId,
+    required String text,
+    required DateTime at,
+  }) =>
       ThreadItem(
         id: 'cr-${at.microsecondsSinceEpoch}',
         timestamp: at,
         type: ThreadItemType.coachResponse,
+        mealId: mealId,
         text: text,
       );
 

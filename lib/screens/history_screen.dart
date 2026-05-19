@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../models/meal_entry.dart';
 import '../providers/meal_providers.dart';
-import '../services/claude_client.dart';
+import '../services/calorie_target.dart';
 import '../utils/date_format.dart';
-import '../utils/number_format.dart';
-import 'confirm_screen.dart';
+import '../widgets/kcal_summary.dart';
+import 'settings_screen.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -16,27 +14,46 @@ class HistoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final grouped = ref.watch(mealsByDayProvider);
     final target = ref.watch(calorieTargetProvider);
-    final sortedDays = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-    final recentDays = sortedDays.take(14).toList();
+    final macroTargets = ref.watch(macroTargetsProvider);
+    final recentDays = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    void openDay(DateTime day) {
+      final normalized = DateTime(day.year, day.month, day.day);
+      final loaded = ref.read(loadedDaysProvider);
+      if (!loaded.any((d) => isSameDay(d, normalized))) {
+        final today = DateTime.now();
+        final todayDate = DateTime(today.year, today.month, today.day);
+        final days = <DateTime>[];
+        var cursor = normalized;
+        while (!cursor.isAfter(todayDate)) {
+          days.add(cursor);
+          cursor = cursor.add(const Duration(days: 1));
+        }
+        ref.read(loadedDaysProvider.notifier).state = days;
+      }
+      ref.read(scrollToDayProvider.notifier).state = normalized;
+      ref.read(selectedTabProvider.notifier).state = 0;
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Verlauf'),
-            Text(
-              'Letzte 14 Tage',
-              style: textTheme.labelSmall?.copyWith(color: scheme.outline),
-            ),
-          ],
-        ),
+        title: const Text('Verlauf'),
         centerTitle: false,
-        toolbarHeight: 72,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Einstellungen',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: recentDays.isEmpty
           ? _EmptyHistory(scheme: scheme, textTheme: textTheme)
@@ -46,15 +63,22 @@ class HistoryScreen extends ConsumerWidget {
               itemBuilder: (context, i) {
                 final day = recentDays[i];
                 final meals = grouped[day]!;
-                meals.sort((a, b) => a.createdAt.compareTo(b.createdAt));
                 final total = meals.fold<int>(0, (sum, m) => sum + m.kcal);
-                return _DaySection(
+                final protein =
+                    meals.fold<double>(0, (sum, m) => sum + m.proteinG);
+                final carbs =
+                    meals.fold<double>(0, (sum, m) => sum + m.carbsG);
+                final fat = meals.fold<double>(0, (sum, m) => sum + m.fatG);
+                return _DayCard(
                   day: day,
-                  meals: meals,
+                  mealCount: meals.length,
                   totalKcal: total,
+                  totalProtein: protein,
+                  totalCarbs: carbs,
+                  totalFat: fat,
                   target: target,
-                  onDelete: (id) =>
-                      ref.read(mealRepositoryProvider).delete(id),
+                  macroTargets: macroTargets,
+                  onTap: () => openDay(day),
                 );
               },
             ),
@@ -87,204 +111,91 @@ class _EmptyHistory extends StatelessWidget {
   }
 }
 
-MealParseResult _toParseResult(MealEntry meal) => MealParseResult(
-      isMeal: true,
-      rejectionReason: null,
-      summary: meal.summary,
-      kcal: meal.kcal,
-      proteinG: meal.proteinG,
-      carbsG: meal.carbsG,
-      fatG: meal.fatG,
-      portionAmount: 0,
-      portionUnit: 'g',
-      safetyWarnings: meal.safetyWarnings,
-    );
-
-void _editMealEntry(BuildContext context, MealEntry meal) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ConfirmScreen(
-        rawText: meal.rawText,
-        parsed: _toParseResult(meal),
-        existingMealId: meal.id,
-        existingCreatedAt: meal.createdAt,
-      ),
-    ),
-  );
-}
-
-Future<void> _duplicateMealEntry(WidgetRef ref, MealEntry meal) async {
-  final clone = MealEntry(
-    id: DateTime.now().microsecondsSinceEpoch.toString(),
-    createdAt: DateTime.now(),
-    rawText: meal.rawText,
-    summary: meal.summary,
-    kcal: meal.kcal,
-    proteinG: meal.proteinG,
-    carbsG: meal.carbsG,
-    fatG: meal.fatG,
-    safetyWarnings: meal.safetyWarnings,
-  );
-  await ref.read(mealRepositoryProvider).save(clone);
-}
-
-Future<void> _confirmDeleteEntry(
-  BuildContext context,
-  WidgetRef ref,
-  MealEntry meal,
-  Future<void> Function(String id) onDelete,
-) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text('„${meal.summary}" löschen?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext, false),
-          child: const Text('Abbrechen'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(dialogContext, true),
-          child: const Text('Löschen'),
-        ),
-      ],
-    ),
-  );
-  if (confirmed == true) {
-    await onDelete(meal.id);
-  }
-}
-
-class _DaySection extends ConsumerWidget {
+// Each day shows a compact tap-target card: the day header + the same
+// KcalSummary used in the Tagebuch toolbar. Tapping it opens that day in
+// the Tagebuch where the actual meal entries live (Slide-Actions, Coach
+// bubbles etc. are handled there).
+class _DayCard extends StatelessWidget {
   final DateTime day;
-  final List<MealEntry> meals;
+  final int mealCount;
   final int totalKcal;
+  final double totalProtein;
+  final double totalCarbs;
+  final double totalFat;
   final int target;
-  final Future<void> Function(String id) onDelete;
+  final MacroTargets macroTargets;
+  final VoidCallback onTap;
 
-  const _DaySection({
+  const _DayCard({
     required this.day,
-    required this.meals,
+    required this.mealCount,
     required this.totalKcal,
+    required this.totalProtein,
+    required this.totalCarbs,
+    required this.totalFat,
     required this.target,
-    required this.onDelete,
+    required this.macroTargets,
+    required this.onTap,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final remaining = target - totalKcal;
-    final overTarget = remaining < 0;
-    final progress = target > 0 ? (totalKcal / target).clamp(0.0, 1.0) : 0.0;
-    final statusText = remaining > 0
-        ? 'Noch ${formatKcal(remaining)} kcal'
-        : remaining == 0
-            ? 'Ziel erreicht'
-            : '${formatKcal(-remaining)} kcal über Ziel';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Card(
         elevation: 0,
         color: scheme.surfaceContainerLow,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    formatDayHeader(day),
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${formatKcal(totalKcal)} / ${formatKcal(target)} kcal',
-                    style: textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 6,
-                      color: overTarget ? Colors.orange.shade700 : scheme.primary,
-                      backgroundColor: scheme.surfaceContainerHighest,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    statusText,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: overTarget ? Colors.orange.shade800 : scheme.outline,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Divider(height: 1, color: scheme.outlineVariant),
-            ...meals.map(
-              (meal) => Slidable(
-                key: ValueKey('history-${meal.id}'),
-                endActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  extentRatio: 0.78,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SlidableAction(
-                      onPressed: (_) => _editMealEntry(context, meal),
-                      icon: Icons.edit_outlined,
-                      label: 'Bearbeiten',
-                      backgroundColor: scheme.secondaryContainer,
-                      foregroundColor: scheme.onSecondaryContainer,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            formatDayHeader(day),
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            '$mealCount Eintr${mealCount == 1 ? 'ag' : 'äge'}',
+                            style: textTheme.bodySmall
+                                ?.copyWith(color: scheme.outline),
+                          ),
+                        ],
+                      ),
                     ),
-                    SlidableAction(
-                      onPressed: (_) => _duplicateMealEntry(ref, meal),
-                      icon: Icons.copy_outlined,
-                      label: 'Kopieren',
-                      backgroundColor: scheme.tertiaryContainer,
-                      foregroundColor: scheme.onTertiaryContainer,
-                    ),
-                    SlidableAction(
-                      onPressed: (_) =>
-                          _confirmDeleteEntry(context, ref, meal, onDelete),
-                      icon: Icons.delete_outline,
-                      label: 'Löschen',
-                      backgroundColor: scheme.errorContainer,
-                      foregroundColor: scheme.onErrorContainer,
+                    Icon(
+                      Icons.chevron_right,
+                      color: scheme.outline,
+                      size: 22,
                     ),
                   ],
                 ),
-                child: ListTile(
-                  dense: true,
-                  title: Text(meal.summary),
-                  subtitle: Text(formatTime(meal.createdAt)),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (meal.safetyWarnings.isNotEmpty) ...[
-                        Icon(Icons.warning_amber,
-                            color: Colors.orange.shade700, size: 18),
-                        const SizedBox(width: 6),
-                      ],
-                      Text(
-                        '${formatKcal(meal.kcal)} kcal',
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 10),
+                KcalSummary(
+                  totalKcal: totalKcal,
+                  targetKcal: target,
+                  protein: totalProtein,
+                  carbs: totalCarbs,
+                  fat: totalFat,
+                  macroTargets: macroTargets,
                 ),
-              ),
+              ],
             ),
-            const SizedBox(height: 4),
-          ],
+          ),
         ),
       ),
     );

@@ -9,6 +9,7 @@ class SettingsRepository {
   static const _profileKey = 'profile';
   static const _coachingDateKey = 'coaching_last_opened_day';
   static const _insightDateKey = 'insight_last_generated_day';
+  static const _themeModeKey = 'theme_mode';
 
   final Box<String> _box;
 
@@ -19,6 +20,8 @@ class SettingsRepository {
     return SettingsRepository(box);
   }
 
+  bool hasProfile() => _box.get(_profileKey) != null;
+
   UserProfileSettings getProfile() {
     final raw = _box.get(_profileKey);
     if (raw == null) return UserProfileSettings.defaults();
@@ -28,6 +31,14 @@ class SettingsRepository {
 
   Future<void> saveProfile(UserProfileSettings profile) =>
       _box.put(_profileKey, jsonEncode(profile.toJson()));
+
+  // Persisted theme mode: 'light', 'dark', or 'system' (default).
+  String getThemeMode() => _box.get(_themeModeKey) ?? 'system';
+
+  Future<void> setThemeMode(String mode) =>
+      _box.put(_themeModeKey, mode);
+
+  Future<void> clearAll() => _box.clear();
 
   Stream<UserProfileSettings> watchProfile() async* {
     yield getProfile();

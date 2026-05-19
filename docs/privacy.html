@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Datenschutzerklärung — NourishMe</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="crumb"><a href="index.html">Nourish<span style="color:var(--accent)">Me</span></a> · Datenschutz</nav>
+<header>
+  <h1>Datenschutzerklärung</h1>
+  <p>Stand: 19. Mai 2026</p>
+</header>
+<main>
+
+<h2>1. Verantwortliche Stelle</h2>
+<p>Vanessa Heizmann<br>
+E-Mail: <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></p>
+
+<h2>2. Was die App tut</h2>
+<p>NourishMe hilft Müttern in Schwangerschaft und Stillzeit, ihre Ernährung
+zu protokollieren und erhält wissenschaftlich fundiertes Coaching-Feedback
+zu jeder Mahlzeit. Die App ist als persönliches Werkzeug konzipiert, nicht
+als medizinisches Produkt.</p>
+
+<h2>3. Welche Daten verarbeitet werden</h2>
+
+<h3>3.1 Lokal auf deinem Gerät gespeichert</h3>
+<ul>
+  <li><strong>Profilangaben:</strong> Alter, Größe, Gewicht, Aktivitätslevel,
+    Schwangerschafts-/Stillzeit-Phase, Trimester, Anzahl der versorgten
+    Kinder, geschätztes Milchvolumen.</li>
+  <li><strong>Mahlzeit-Einträge:</strong> Beschreibung, Portionsgröße, Kalorien,
+    Makros, Zeitstempel, optionale Food-Safety-Hinweise.</li>
+  <li><strong>Foto-Einträge:</strong> Fotos werden einmalig zur Analyse an die
+    Coaching-API gesendet (siehe 3.2), in der App <strong>nicht gespeichert</strong>,
+    nur die strukturierten Ergebnisse.</li>
+  <li><strong>Coach-Verlauf:</strong> Mahlzeit-Antworten und Q&amp;A-Turns.</li>
+  <li><strong>Favoriten:</strong> häufig genutzte Mahlzeiten.</li>
+  <li><strong>Einstellungen:</strong> Theme, ggf. eigener Makro-Split.</li>
+</ul>
+
+<h3>3.2 Übertragung an Drittanbieter</h3>
+<p>Bei jedem Logging-Vorgang oder jeder Coach-Frage wird folgendes an unseren
+API-Proxy (Cloudflare Worker) gesendet, der es an die Anthropic Claude
+API weiterleitet:</p>
+<ul>
+  <li>Der Text deiner Eingabe</li>
+  <li>Optional: das Foto deiner Mahlzeit</li>
+  <li>Dein Profil (Alter, Gewicht, Größe, Aktivität, Phase, Kinder, Milchvolumen)</li>
+  <li>Tageskontext (heutige kcal- und Makro-Summen)</li>
+</ul>
+<p>Anthropic verwendet diese Daten ausschließlich zur Generierung der
+Coaching-Antwort und speichert API-Anfragen maximal 30 Tage zu
+Sicherheits- und Missbrauchsabwehrzwecken (<a href="https://www.anthropic.com/legal/privacy">Anthropic Privacy Policy</a>).</p>
+<p>Der Proxy leitet ohne Speicherung weiter. Cloudflare speichert lediglich
+Verbindungs-Metadaten (IP, Zeitstempel) zur Missbrauchsabwehr.</p>
+
+<h3>3.3 Keine Drittanbieter-Tracker</h3>
+<p>Keine Analytics-SDKs (Firebase, Google Analytics, Sentry, Mixpanel etc.).
+Keine Werbe-IDs. Keine Crash-Reporting-Dienste.</p>
+
+<h3>3.4 Keine Benutzerkonten</h3>
+<p>NourishMe hat kein Login. Keine E-Mail, kein Passwort. Alle Daten bleiben
+anonym auf deinem Gerät.</p>
+
+<h2>4. Rechtsgrundlage</h2>
+<p>Die Verarbeitung erfolgt auf Basis deiner Einwilligung (Art. 6 Abs. 1
+lit. a DSGVO) und zur Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO).</p>
+<p>Gesundheitsbezogene Daten werden zu deinen eigenen Wellness-Zwecken
+verarbeitet. NourishMe stellt <strong>keine Diagnose</strong> und ersetzt keine
+ärztliche Beratung.</p>
+
+<h2>5. Speicherdauer</h2>
+<ul>
+  <li><strong>Lokale Daten:</strong> bis zur Deinstallation oder bis du „App
+    zurücksetzen" in den Einstellungen wählst.</li>
+  <li><strong>Anthropic API:</strong> maximal 30 Tage.</li>
+  <li><strong>Cloudflare:</strong> Verbindungs-Metadaten typischerweise 24 h.</li>
+</ul>
+
+<h2>6. Deine Rechte</h2>
+<ul>
+  <li><strong>Auskunft</strong> (direkt sichtbar in der App).</li>
+  <li><strong>Berichtigung</strong> (Profil und Einträge editierbar).</li>
+  <li><strong>Löschung</strong> über „App zurücksetzen" oder Deinstallation.</li>
+  <li><strong>Datenübertragbarkeit:</strong> Export auf Anfrage per E-Mail.</li>
+  <li><strong>Widerspruch und Beschwerde</strong> bei einer Aufsichtsbehörde.</li>
+</ul>
+<p>Anfragen: <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></p>
+
+<h2>7. Datensicherheit</h2>
+<p>Alle Verbindungen erfolgen über HTTPS/TLS. Lokale Daten liegen im
+App-Sandbox des Betriebssystems, isoliert von anderen Apps.</p>
+
+<h2>8. Änderungen</h2>
+<p>Wir können diese Datenschutzerklärung anpassen, wenn sich die App
+weiterentwickelt. Wesentliche Änderungen werden bei einem App-Update
+angezeigt.</p>
+
+<h2>9. Kontakt</h2>
+<p>Vanessa Heizmann · <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></p>
+
+</main>
+<footer>
+  <p><a href="index.html">← Zurück</a> · © 2026 Vanessa Heizmann</p>
+</footer>
+</body>
+</html>

@@ -1,8 +1,26 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+
+import 'nutrition_facts.dart';
+
+// Exception with a human-readable message safe to surface in the UI. The
+// caller can show e.userMessage directly; the technical detail is kept for
+// logs only.
+class CoachApiException implements Exception {
+  final String userMessage;
+  final String? technical;
+  CoachApiException(this.userMessage, [this.technical]);
+
+  @override
+  String toString() => technical != null
+      ? '$userMessage ($technical)'
+      : userMessage;
+}
 
 class MealParseResult {
   final bool isMeal;
@@ -37,11 +55,23 @@ class ChatTurn {
 }
 
 class ClaudeClient {
-  static const _endpoint = 'https://api.anthropic.com/v1/messages';
+  // We always go through our Cloudflare Worker proxy so the Anthropic key
+  // never lives in the app bundle. The Worker injects the x-api-key header
+  // server-side; the app only carries APP_SECRET, which limits casual abuse
+  // and can be rotated without breaking the Anthropic credential.
+  // Fallback to the direct Anthropic endpoint exists only for legacy local
+  // development before the proxy was deployed.
+  static const _directEndpoint = 'https://api.anthropic.com/v1/messages';
   static const _model = 'claude-haiku-4-5-20251001';
   static const _apiVersion = '2023-06-01';
 
-  static const _parsePrompt = '''
+  static String get _proxyUrl => dotenv.env['NOURISHME_API_URL'] ?? '';
+  static String get _appSecret => dotenv.env['APP_SECRET'] ?? '';
+  static String get _legacyApiKey => dotenv.env['ANTHROPIC_API_KEY'] ?? '';
+  static bool get _usingProxy =>
+      _proxyUrl.isNotEmpty && _appSecret.isNotEmpty;
+
+  static final _parsePrompt = '''
 Du bist ein Ernährungs-Assistent für eine Mutter, die Muttermilch produziert (egal ob sie direkt stillt oder ausschließlich abpumpt) oder schwanger ist.
 Parse den beschriebenen Eintrag in strukturierte Nährwerte und prüfe auf Food-Safety-Risiken.
 
@@ -49,12 +79,15 @@ Vermeide in deinen safety_warnings das Wort "Stillen" und Variationen davon (sti
 
 Akzeptiere alle Arten von Nahrungsaufnahme: vollwertige Mahlzeiten, Snacks, Süßes, sowie Getränke wie Kaffee, Tee, Saft, Smoothie, Milch, Limonade, Alkohol oder Wasser (Wasser darf 0 kcal haben).
 
-Relevante Risiken:
-- Quecksilberhaltiger Fisch (Thunfisch, Schwertfisch, Hai, Königsmakrele, Marlin)
-- Koffein (Mengen ab ca. 200 mg/Tag relevant)
-- Alkohol jeglicher Art
-- Rohmilchprodukte, rohes Fleisch oder roher Fisch
-- Kräuter die Milchbildung hemmen können (Salbei, Pfefferminze in größeren Mengen)
+${NutritionFacts.coachContextBlock}
+
+Nutze diese Schwellen für safety_warnings. Konkret bei jedem Eintrag prüfen:
+- Koffeinmenge des Eintrags schätzen. Bei einer Tagesüberschreitung von 200 mg warnen.
+- Alkohol: jegliche Menge in SS warnen. In Stillzeit Wartezeit nennen (ca. 2-2,5 h pro Standarddrink).
+- Fisch: bei Quecksilber-Großraubfisch warnen, alternativ benennen.
+- Rohmilch/Rohfleisch/Sushi: in SS auf Listeria-Risiko hinweisen.
+- Leber: in T1 SS warnen (Vitamin A teratogen, UL 3.000 µg).
+- Salbei-Tee / Pfefferminzöl: bei größeren Mengen auf milchhemmende Wirkung hinweisen.
 
 Wenn Mengen nicht angegeben sind, schätze konservativ auf Basis einer normalen Portion oder Tasse.
 
@@ -83,43 +116,50 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
-  static const _perMealPrompt = '''
+  static final _perMealPrompt = '''
 Du bist eine Ernährungs-Coach für eine Frau, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
-Antworte auf Deutsch, sachlich, ohne Smalltalk, ohne Anrede.
+Antworte auf Deutsch, sachlich, ohne Smalltalk, ohne Anrede. Sei wissenschaftlich fundiert: nenne konkrete Zahlen aus DGE/EFSA/BfR wenn relevant.
 
-Antworte strikt in folgendem Markdown-Format. Keine zusätzlichen Sätze davor oder danach.
+${NutritionFacts.coachContextBlock}
 
-| Komponente | Menge | kcal | P | KH | F |
-| --- | --- | --- | --- | --- | --- |
-| <Bestandteil> | <Menge> | <kcal> | <g> | <g> | <g> |
-| ... | ... | ... | ... | ... | ... |
-| **Gesamt** | | **<gesamt>** | **<g>** | **<g>** | **<g>** |
+Antworte strikt in folgendem Markdown-Format. Keine Tabellen, sie passen auf Handy-Bildschirmen nicht. Keine zusätzlichen Sätze davor oder danach.
+
+**Bestandteile:** (NUR wenn die Mahlzeit aus mehreren Komponenten besteht. Bei einer Komponente diesen Block komplett weglassen.)
+- <Bestandteil>, <Menge> — <kcal> kcal · P <g> · KH <g> · F <g>
+- ... weitere Bestandteile in derselben Form
 
 **🟢 Stark:** ein bis zwei Stärken in einem Satz
 **🟡 Knapp:** ein bis zwei Schwachpunkte, falls relevant
-
-**Tagesstand:** <kcal_heute> / <ziel> kcal · noch <verbleibend> kcal
-**Protein heute:** <heute_g> g (Ziel ~<ziel_g> g)
 
 **Was heute noch fehlt:** kurz, mit kcal-Split auf die nächsten Mahlzeiten
 **Nächste Mahlzeit:** Empfehlung mit Timing und konkretem Lebensmittel-Vorschlag
 
 Regeln:
-- Komponenten aus dem Originaltext oder der Beschreibung schätzen, Mengen in g, ml oder Stück
-- Die Gesamtzeile MUSS exakt den mitgelieferten Gesamtwerten entsprechen
+- Bestandteile aus dem Originaltext oder der Beschreibung schätzen, Mengen in g, ml oder Stück
+- Jeder Bestandteil auf einer eigenen Zeile, kompakt mit Trennzeichen ·
+- KEINE Gesamt-Zeile, kcal stehen schon auf der Mahlzeit-Karte und Makros werden in der Toolbar gezählt
+- Wiederhole NICHT den Tagesstand in kcal oder Protein, der ist in der Toolbar oben sichtbar
 - Mikronährstoffe (Eisen, Calcium, Folat, Omega-3) nur nennen wenn sie zur Mahlzeit oder Tagesphase passen
-- Maximal 180 Wörter ohne Tabelle
+- Maximal 120 Wörter
 - Vermeide das Wort "Stillen" und seine Varianten. Nutze "während du Muttermilch produzierst" oder "in dieser Phase", weil viele Mütter ausschließlich pumpen
+- Die Nutzerdaten (Gewicht, Aktivität, Anzahl Kinder, Milchvolumen, etc.) sind im Profil mitgeliefert. Nutze sie SOFORT und FRAG NIEMALS danach.
 ''';
 
-  static const _chatPromptBase = '''
-Du bist eine freundliche Ernährungs-Assistentin für eine Mutter, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
+  static final _chatPromptBase = '''
+Du bist ein wissenschaftlich fundierter Ernährungs-Coach für eine Mutter, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
 Antworte auf Deutsch, präzise und einfühlsam. Halte dich kurz, maximal 4-5 Sätze pro Antwort, außer eine Liste oder Aufzählung ist sinnvoll.
-Beziehe dich auf relevante Sicherheitshinweise (Quecksilber, Koffein, Alkohol, milchhemmende Kräuter) wo angebracht.
+Zitiere konkrete Zahlen und Quellen (DGE, BfR, EFSA, LactMed, FDA/EPA) wo relevant statt vager Aussagen.
 Wenn die Frage offen ist (z.B. nach Mahlzeitenideen), gib 2-3 konkrete Vorschläge.
-Mache keine Annahmen zur Anzahl der Kinder, die nicht aus dem mitgelieferten Profil hervorgehen.
+
+KRITISCH: Die Nutzerdaten (Gewicht, Größe, Alter, Aktivität, Phase, Anzahl Kinder, Kinder-Alter, Milchvolumen, Trimester) und die heutigen Tageswerte (kcal, Protein, etc.) sind dir im Profil und Tageskontext mitgeliefert. Nutze sie SOFORT in deinen Antworten.
+- Frage NIEMALS nach Daten die schon im Profil oder Tageskontext stehen.
+- Wenn jemand nach Protein-Bedarf fragt, rechne ihn direkt mit dem mitgelieferten Gewicht und nenne die konkrete Zahl.
+- Wenn jemand nach Wasser-Bedarf fragt, rechne mit dem mitgelieferten Milchvolumen.
+- Sätze wie "wenn du mir dein Gewicht sagst" sind verboten, das Gewicht ist schon da.
 
 Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nutze stattdessen "während du Muttermilch produzierst", "Mütter, die pumpen oder anlegen", "in dieser Phase", weil viele Mütter ausschließlich pumpen.
+
+${NutritionFacts.coachContextBlock}
 ''';
 
   static String describeProfile(int numChildren, int sharePercent) {
@@ -142,29 +182,80 @@ Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nu
     required List<Map<String, dynamic>> messages,
     int maxTokens = 600,
   }) async {
-    final apiKey = dotenv.env['ANTHROPIC_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('ANTHROPIC_API_KEY fehlt in .env');
+    final url = _usingProxy
+        ? Uri.parse('$_proxyUrl/messages')
+        : Uri.parse(_directEndpoint);
+    final headers = <String, String>{
+      'content-type': 'application/json',
+    };
+    if (_usingProxy) {
+      headers['x-app-secret'] = _appSecret;
+    } else {
+      if (_legacyApiKey.isEmpty) {
+        throw CoachApiException(
+          'App ist nicht konfiguriert. Bitte sag Vanessa Bescheid.',
+          '.env hat weder NOURISHME_API_URL+APP_SECRET noch ANTHROPIC_API_KEY',
+        );
+      }
+      headers['x-api-key'] = _legacyApiKey;
+      headers['anthropic-version'] = _apiVersion;
     }
-    final response = await http.post(
-      Uri.parse(_endpoint),
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': _apiVersion,
-      },
-      body: jsonEncode({
-        'model': _model,
-        'max_tokens': maxTokens,
-        'system': systemPrompt,
-        'messages': messages,
-      }),
-    );
+    http.Response response;
+    try {
+      response = await http
+          .post(
+            url,
+            headers: headers,
+            body: jsonEncode({
+              'model': _model,
+              'max_tokens': maxTokens,
+              'system': systemPrompt,
+              'messages': messages,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+    } on TimeoutException {
+      throw CoachApiException(
+        'Der Coach braucht gerade lange. Probier es gleich nochmal.',
+        'timeout after 30s',
+      );
+    } on SocketException catch (e) {
+      throw CoachApiException(
+        'Keine Internetverbindung. Probier es gleich nochmal.',
+        e.message,
+      );
+    } on http.ClientException catch (e) {
+      throw CoachApiException(
+        'Verbindungsproblem. Probier es gleich nochmal.',
+        e.message,
+      );
+    }
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      throw CoachApiException(
+        'Auth-Problem. Bitte sag Vanessa Bescheid.',
+        'HTTP ${response.statusCode}: ${utf8.decode(response.bodyBytes)}',
+      );
+    }
+    if (response.statusCode == 429) {
+      throw CoachApiException(
+        'Coach gerade überlastet. Versuch es in einer Minute.',
+        'HTTP 429',
+      );
+    }
+    if (response.statusCode >= 500) {
+      throw CoachApiException(
+        'Coach gerade nicht erreichbar. Versuch es bald nochmal.',
+        'HTTP ${response.statusCode}',
+      );
+    }
     if (response.statusCode != 200) {
-      throw Exception(
-          'Claude API Fehler ${response.statusCode}: ${utf8.decode(response.bodyBytes)}');
+      throw CoachApiException(
+        'Etwas ist schiefgelaufen. Probier es nochmal.',
+        'HTTP ${response.statusCode}: ${utf8.decode(response.bodyBytes)}',
+      );
     }
-    final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    final body =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     final responseContent = body['content'] as List;
     return (responseContent.first as Map)['text'] as String;
   }
@@ -234,6 +325,13 @@ Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nu
     required int proteinTargetG,
     required int numChildrenNursing,
     required int milkSharePercent,
+    required double weightKg,
+    required double heightCm,
+    required int ageYears,
+    required double activityFactor,
+    required bool isPregnant,
+    required int? trimester,
+    required int dailyMilkVolumeMl,
   }) async {
     final hour = DateTime.now().hour;
     final remaining = targetKcal - totalKcalToday;
@@ -241,19 +339,30 @@ Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nu
         ? ''
         : '\nSafety-Hinweise zur Mahlzeit: ${safetyWarnings.join("; ")}.';
 
+    final phaseLine = isPregnant
+        ? 'Phase: schwanger, ${trimester ?? 1}. Trimester'
+        : numChildrenNursing > 0
+            ? 'Phase: Stillzeit, $numChildrenNursing Kind(er), Milchvolumen ca. $dailyMilkVolumeMl ml/Tag, Anteil $milkSharePercent%'
+            : 'Phase: nicht schwanger, nicht milchproduzierend';
+
     final userMessage = '''
+=== Profil der Nutzerin ===
+Alter: $ageYears Jahre · Größe: ${heightCm.toStringAsFixed(0)} cm · Gewicht: ${weightKg.toStringAsFixed(1)} kg
+Aktivitätsfaktor (PAL): $activityFactor
+$phaseLine
 ${describeProfile(numChildrenNursing, milkSharePercent)}
+
+=== Tageskontext ===
 Aktuelle Uhrzeit: $hour Uhr.
 Tagesziel: $targetKcal kcal. Protein-Ziel: ca. $proteinTargetG g.
-
-Gerade eingetragen:
-${mealRawText.isNotEmpty ? 'Originaltext: $mealRawText\n' : ''}Beschreibung: $mealSummary
-Gesamtwerte dieser Mahlzeit: $mealKcal kcal, Protein ${mealProteinG.toStringAsFixed(0)} g, KH ${mealCarbsG.toStringAsFixed(0)} g, Fett ${mealFatG.toStringAsFixed(0)} g.$warningLine
-
 Tagesstand inkl. dieser Mahlzeit: $totalKcalToday / $targetKcal kcal (verbleibend $remaining kcal).
 Protein heute: ${totalProteinToday.toStringAsFixed(0)} g.
 
-Gib die strukturierte Coach-Antwort wie im System-Prompt definiert.
+=== Gerade eingetragen ===
+${mealRawText.isNotEmpty ? 'Originaltext: $mealRawText\n' : ''}Beschreibung: $mealSummary
+Gesamtwerte dieser Mahlzeit: $mealKcal kcal, Protein ${mealProteinG.toStringAsFixed(0)} g, KH ${mealCarbsG.toStringAsFixed(0)} g, Fett ${mealFatG.toStringAsFixed(0)} g.$warningLine
+
+Gib die strukturierte Coach-Antwort wie im System-Prompt definiert. Nutze die Profildaten oben.
 ''';
 
     return _post(

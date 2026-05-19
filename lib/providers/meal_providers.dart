@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/favorite_meal.dart';
@@ -35,6 +36,40 @@ final todayThreadProvider = StreamProvider<List<ThreadItem>>((ref) {
   return ref.watch(threadRepositoryProvider).watchToday();
 });
 
+// Days currently loaded into the Tagebuch endless-scroll thread. Always
+// contains today; older days get prepended as the user scrolls up or jumps
+// to a specific date.
+final loadedDaysProvider = StateProvider<List<DateTime>>((ref) {
+  final now = DateTime.now();
+  return [DateTime(now.year, now.month, now.day)];
+});
+
+// Bottom-nav tab index, exposed so other screens can switch tabs programmatically.
+final selectedTabProvider = StateProvider<int>((ref) => 0);
+
+// App-wide theme mode (light/dark/system). Read once from settings on app
+// start; updated via the settings screen.
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+
+// One-shot scroll request: set to a day to make the Tagebuch scroll to that
+// day's header. Consumers must reset to null after handling.
+final scrollToDayProvider = StateProvider<DateTime?>((ref) => null);
+
+// Emits a map of day -> thread items for every loaded day, refreshed whenever
+// the underlying box changes (any thread add/remove anywhere).
+final loadedThreadProvider =
+    StreamProvider<Map<DateTime, List<ThreadItem>>>((ref) async* {
+  final repo = ref.watch(threadRepositoryProvider);
+  final days = ref.watch(loadedDaysProvider);
+  await for (final _ in repo.watchAllChanges()) {
+    final map = <DateTime, List<ThreadItem>>{};
+    for (final day in days) {
+      map[day] = repo.getForDate(day);
+    }
+    yield map;
+  }
+});
+
 final claudeClientProvider = Provider<ClaudeClient>((ref) => ClaudeClient());
 
 final mealsProvider = StreamProvider<List<MealEntry>>((ref) {
@@ -69,6 +104,13 @@ final calorieTargetProvider = Provider<int>((ref) {
   final profile = ref.watch(userProfileProvider).valueOrNull ??
       UserProfileSettings.defaults();
   return calculateDailyCalorieTarget(profile);
+});
+
+final macroTargetsProvider = Provider<MacroTargets>((ref) {
+  final profile = ref.watch(userProfileProvider).valueOrNull ??
+      UserProfileSettings.defaults();
+  final kcal = ref.watch(calorieTargetProvider);
+  return calculateMacroTargets(profile, kcal);
 });
 
 final insightLoadingProvider = StateProvider<bool>((ref) => false);

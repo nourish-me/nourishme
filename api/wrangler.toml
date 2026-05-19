@@ -1,0 +1,7 @@
+name = "nourishme-api"
+main = "worker.js"
+compatibility_date = "2025-05-01"
+
+# Secrets (set via `wrangler secret put`, never commit values):
+#   ANTHROPIC_API_KEY - sk-ant-... from console.anthropic.com
+#   APP_SECRET        - random string the app sends in x-app-secret header

@@ -23,6 +23,8 @@ class MealRepository {
     await _box.delete(id);
   }
 
+  Future<void> clearAll() => _box.clear();
+
   List<MealEntry> all() {
     final entries = _box.values
         .map((raw) => MealEntry.fromJson(jsonDecode(raw) as Map<String, dynamic>))

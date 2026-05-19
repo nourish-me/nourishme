@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'providers/meal_providers.dart';
 import 'screens/main_scaffold.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/favorite_repository.dart';
 import 'services/meal_repository.dart';
 import 'services/settings_repository.dart';
@@ -18,6 +19,8 @@ Future<void> main() async {
   final settingsRepo = await SettingsRepository.open();
   final favoriteRepo = await FavoriteRepository.open();
   final threadRepo = await ThreadRepository.open();
+  final hasProfile = settingsRepo.hasProfile();
+  final themeMode = _parseThemeMode(settingsRepo.getThemeMode());
 
   runApp(
     ProviderScope(
@@ -26,30 +29,53 @@ Future<void> main() async {
         settingsRepositoryProvider.overrideWithValue(settingsRepo),
         favoriteRepositoryProvider.overrideWithValue(favoriteRepo),
         threadRepositoryProvider.overrideWithValue(threadRepo),
+        themeModeProvider.overrideWith((ref) => themeMode),
       ],
-      child: const NourishMeApp(),
+      child: NourishMeApp(showOnboarding: !hasProfile),
     ),
   );
 }
 
+ThemeMode _parseThemeMode(String s) {
+  switch (s) {
+    case 'light':
+      return ThemeMode.light;
+    case 'dark':
+      return ThemeMode.dark;
+    default:
+      return ThemeMode.system;
+  }
+}
+
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-class NourishMeApp extends StatelessWidget {
-  const NourishMeApp({super.key});
+class NourishMeApp extends ConsumerWidget {
+  final bool showOnboarding;
+  const NourishMeApp({super.key, required this.showOnboarding});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    const seed = Color(0xFF4F8A8B);
     return MaterialApp(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       title: 'NourishMe',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4F8A8B),
+          seedColor: seed,
           brightness: Brightness.light,
         ),
         useMaterial3: true,
       ),
-      home: const MainScaffold(),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: seed,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      themeMode: themeMode,
+      home: showOnboarding ? const OnboardingScreen() : const MainScaffold(),
     );
   }
 }

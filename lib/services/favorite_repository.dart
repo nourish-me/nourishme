@@ -23,6 +23,8 @@ class FavoriteRepository {
     await _box.delete(id);
   }
 
+  Future<void> clearAll() => _box.clear();
+
   List<FavoriteMeal> all() {
     final entries = _box.values
         .map((raw) =>

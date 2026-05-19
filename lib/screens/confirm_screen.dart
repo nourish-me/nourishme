@@ -46,6 +46,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   late final double _origPortion;
   bool _scaling = false;
   bool _saveAsFavorite = false;
+  // Makros (P/KH/F) are hidden by default; user taps Details to reveal them.
+  bool _showDetails = false;
+  bool _userTouched = false; // set when the user edits any field
 
   @override
   void initState() {
@@ -64,6 +67,39 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _portion = TextEditingController(
         text: _origPortion > 0 ? _origPortion.toStringAsFixed(0) : '');
     _portion.addListener(_onPortionChanged);
+    // Track any change so back-navigation can warn about unsaved edits.
+    for (final c in [_summary, _kcal, _protein, _carbs, _fat, _portion]) {
+      c.addListener(() {
+        if (!_userTouched) _userTouched = true;
+      });
+    }
+  }
+
+  Future<bool> _confirmDiscardChanges() async {
+    if (!_userTouched) return true;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Änderungen verwerfen?'),
+        content: const Text(
+            'Du hast deine Eingaben noch nicht gespeichert.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Weiter bearbeiten'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor:
+                  Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Verwerfen'),
+          ),
+        ],
+      ),
+    );
+    return result == true;
   }
 
   @override
@@ -118,8 +154,19 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     await ref.read(mealRepositoryProvider).save(meal);
 
     if (_saveAsFavorite) {
+      // Dedupe by trimmed lowercase summary: if a favorite with the same
+      // description already exists, update it in place (same ID) instead of
+      // creating a duplicate chip.
+      final existing = ref.read(favoritesProvider).valueOrNull ?? const [];
+      final normalized = summary.trim().toLowerCase();
+      final match = existing
+          .where((f) => f.summary.trim().toLowerCase() == normalized)
+          .toList();
+      final favoriteId = match.isNotEmpty
+          ? match.first.id
+          : 'fav-${DateTime.now().microsecondsSinceEpoch}';
       final favorite = FavoriteMeal(
-        id: 'fav-${DateTime.now().microsecondsSinceEpoch}',
+        id: favoriteId,
         summary: summary,
         kcal: kcal,
         proteinG: proteinG,
@@ -133,6 +180,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
 
     if (!mounted) return;
+    // Dismiss keyboard before popping so the next screen doesn't render with
+    // half its height eaten by the keyboard.
+    FocusScope.of(context).unfocus();
     final navigator = Navigator.of(context);
     final asSheet = widget.asSheet;
     await _appendToThread(meal);
@@ -144,7 +194,26 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
   }
 
+  // True if the edited meal differs from the original values (i.e. user
+  // actually changed something). Used to skip the Coach regeneration on a
+  // no-op edit.
+  bool _mealValuesChanged(MealEntry meal) {
+    if (widget.existingMealId == null) return true; // new meal, always
+    final orig = widget.parsed;
+    return meal.summary != orig.summary ||
+        meal.kcal != orig.kcal ||
+        (meal.proteinG - orig.proteinG).abs() > 0.05 ||
+        (meal.carbsG - orig.carbsG).abs() > 0.05 ||
+        (meal.fatG - orig.fatG).abs() > 0.05;
+  }
+
   Future<void> _appendToThread(MealEntry meal) async {
+    final isEdit = widget.existingMealId != null;
+    if (isEdit && !_mealValuesChanged(meal)) {
+      // No actual changes — keep the existing coach response, don't spend a
+      // Claude call on a no-op.
+      return;
+    }
     final threadRepo = ref.read(threadRepositoryProvider);
     final client = ref.read(claudeClientProvider);
     final target = ref.read(calorieTargetProvider);
@@ -152,8 +221,15 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final profile = ref.read(userProfileProvider).valueOrNull;
     final loadingNotifier = ref.read(insightLoadingProvider.notifier);
 
-    // Add the meal as a thread item right away so the user sees it on Home.
-    await threadRepo.add(ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
+    if (isEdit) {
+      // The meal item is already in the thread. Remove the old coach
+      // response so we can replace it with a fresh one based on the edited
+      // values.
+      await threadRepo.removeCoachResponseForMeal(meal.id, meal.createdAt);
+    } else {
+      await threadRepo.add(
+          ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
+    }
 
     // Compose the running total including the just-saved meal. The
     // todayMealsProvider stream may not have ticked yet.
@@ -164,10 +240,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final totalProteinToday =
         mealsForTotal.fold<double>(0, (sum, m) => sum + m.proteinG);
 
-    // Rough lactation/pregnancy protein target: 1.8 g per kg body weight.
+    // DGE 2025: lactation protein 1.2 g/kg, not 1.8 (was wrong before).
     final proteinTargetG = profile != null
-        ? (profile.weightKg * 1.8).round()
-        : 100;
+        ? (profile.weightKg * 1.2).round()
+        : 80;
 
     loadingNotifier.state = true;
     client
@@ -185,19 +261,44 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       proteinTargetG: proteinTargetG,
       numChildrenNursing: profile?.numChildrenNursing ?? 0,
       milkSharePercent: profile?.milkSharePercent ?? 0,
+      weightKg: profile?.weightKg ?? 0,
+      heightCm: profile?.heightCm ?? 0,
+      ageYears: profile?.ageYears ?? 0,
+      activityFactor: profile?.activityFactor ?? 1.375,
+      isPregnant: profile?.isPregnant ?? false,
+      trimester: profile?.trimester,
+      dailyMilkVolumeMl: profile?.dailyMilkVolumeMl ?? 0,
     )
         .then((response) async {
+      // Link the coach response to the meal so deleting the meal also
+      // removes the response (no orphaned advice). Anchor the timestamp to
+      // the MEAL's day so a past-day entry's coach reply ends up in the same
+      // day bucket as the meal (not in today's bucket).
+      final coachAt = meal.createdAt.add(const Duration(minutes: 1));
       await threadRepo.add(ThreadItem.coachResponse(
+        mealId: meal.id,
         text: response.trim(),
-        at: DateTime.now(),
+        at: coachAt,
       ));
       loadingNotifier.state = false;
-    }).catchError((_) {
+    }).catchError((error) async {
+      // Surface a human-readable hint instead of silently swallowing the
+      // failure. Linked to the meal so deleting the meal cleans it up too.
+      final message = error is CoachApiException
+          ? error.userMessage
+          : 'Coach-Antwort konnte nicht erstellt werden. Probier es später nochmal.';
+      final coachAt = meal.createdAt.add(const Duration(minutes: 1));
+      await threadRepo.add(ThreadItem.coachResponse(
+        mealId: meal.id,
+        text: message,
+        at: coachAt,
+      ));
       loadingNotifier.state = false;
     });
   }
 
   void _discard() {
+    FocusScope.of(context).unfocus();
     if (widget.asSheet) {
       Navigator.of(context).pop();
     } else {
@@ -211,7 +312,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
       shrinkWrap: widget.asSheet,
       children: [
         if (widget.imageBytes != null) ...[
@@ -219,237 +320,226 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             borderRadius: BorderRadius.circular(12),
             child: Image.memory(
               widget.imageBytes!,
-              height: 180,
+              height: 160,
               width: double.infinity,
               fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-        if (widget.rawText.isNotEmpty) ...[
-          Card(
-            elevation: 0,
-            color: scheme.surfaceContainerLow,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Originaltext',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.outline,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(widget.rawText),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (warnings.isNotEmpty) ...[
-          Card(
-            elevation: 0,
-            color: scheme.tertiaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.warning_amber,
-                          color: scheme.onTertiaryContainer),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Bitte beachte',
-                        style: textTheme.titleSmall?.copyWith(
-                          color: scheme.onTertiaryContainer,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ...warnings.map(
-                    (w) => Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '• $w',
-                        style: TextStyle(color: scheme.onTertiaryContainer),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
           const SizedBox(height: 12),
         ],
         TextField(
           controller: _summary,
-          decoration: const InputDecoration(
-            labelText: 'Beschreibung',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _portion,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          // Wrap long titles (e.g. multi-component meals from a photo).
+          minLines: 1,
+          maxLines: 3,
           decoration: InputDecoration(
-            labelText: 'Geschätzte Portion',
-            border: const OutlineInputBorder(),
-            suffixText: portionUnit,
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _kcal,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Kalorien',
-            border: OutlineInputBorder(),
-            suffixText: 'kcal',
+            border: InputBorder.none,
+            hintText: 'Beschreibung',
+            hintStyle: TextStyle(color: scheme.outline),
+            contentPadding: EdgeInsets.zero,
+            isDense: true,
           ),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: _protein,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Protein',
-                  border: OutlineInputBorder(),
-                  suffixText: 'g',
-                ),
+              child: _SmallField(
+                controller: _portion,
+                label: 'Portion',
+                suffix: portionUnit,
+                decimal: true,
+                onSubmit: _save,
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: TextField(
-                controller: _carbs,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'KH',
-                  border: OutlineInputBorder(),
-                  suffixText: 'g',
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextField(
-                controller: _fat,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Fett',
-                  border: OutlineInputBorder(),
-                  suffixText: 'g',
-                ),
+              child: _SmallField(
+                controller: _kcal,
+                label: 'Kalorien',
+                suffix: 'kcal',
+                decimal: false,
+                onSubmit: _save,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => setState(() => _showDetails = !_showDetails),
+            icon: Icon(
+              _showDetails ? Icons.expand_less : Icons.expand_more,
+              size: 18,
+            ),
+            label: Text(_showDetails ? 'Weniger' : 'Makros bearbeiten'),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ),
+        if (_showDetails) ...[
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: _SmallField(
+                  controller: _protein,
+                  label: 'Protein',
+                  suffix: 'g',
+                  decimal: true,
+                  onSubmit: _save,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _SmallField(
+                  controller: _carbs,
+                  label: 'KH',
+                  suffix: 'g',
+                  decimal: true,
+                  onSubmit: _save,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _SmallField(
+                  controller: _fat,
+                  label: 'Fett',
+                  suffix: 'g',
+                  decimal: true,
+                  onSubmit: _save,
+                ),
+              ),
+            ],
+          ),
+        ],
+        if (warnings.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: scheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.warning_amber,
+                        size: 18, color: scheme.onTertiaryContainer),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Bitte beachte',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: scheme.onTertiaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                ...warnings.map(
+                  (w) => Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      '• $w',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onTertiaryContainer,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
       ],
     );
   }
 
   Widget _buildActionRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _discard,
-            child: const Text('Verwerfen'),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: FilledButton(
-            onPressed: _save,
-            child: const Text('Speichern'),
-          ),
-        ),
-      ],
-    );
+    return _ActionRow(onDiscard: _discard, onSave: _save);
   }
 
   Widget _buildSheetHeader() {
-    final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 8, 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              widget.existingMealId != null
-                  ? 'Bearbeiten'
-                  : 'Prüfen und speichern',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: _saveAsFavorite
-                ? 'Favorit entfernen'
-                : 'Als Favorit speichern',
-            icon: Icon(
-              _saveAsFavorite ? Icons.star : Icons.star_border,
-              color: _saveAsFavorite ? Colors.amber.shade700 : null,
-            ),
-            onPressed: () =>
-                setState(() => _saveAsFavorite = !_saveAsFavorite),
-          ),
-        ],
-      ),
+    return _SheetHeaderContent(
+      isEditing: widget.existingMealId != null,
+      saveAsFavorite: _saveAsFavorite,
+      onToggleFavorite: () =>
+          setState(() => _saveAsFavorite = !_saveAsFavorite),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.asSheet) {
-      return Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildSheetHeader(),
-            Flexible(child: _buildBody(context)),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: _buildActionRow(),
-              ),
+      final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+      return PopScope(
+        canPop: !_userTouched,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) return;
+          final navigator = Navigator.of(context);
+          final discard = await _confirmDiscardChanges();
+          if (discard && mounted) navigator.pop();
+        },
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSheetHeader(),
+                Flexible(child: _buildBody(context)),
+                // When the keyboard is up, replace the full action row with a
+                // compact accessory bar so the user has a "Speichern" button
+                // immediately above the keys (iOS-Numpad has no Done key).
+                if (keyboardOpen)
+                  _KeyboardAccessoryBar(onSave: _save)
+                else
+                  SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: _buildActionRow(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       );
     }
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.opaque,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            widget.existingMealId != null
-                ? 'Bearbeiten'
-                : 'Prüfen und speichern',
-          ),
-          centerTitle: false,
+    return PopScope(
+      canPop: !_userTouched,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final navigator = Navigator.of(context);
+        final discard = await _confirmDiscardChanges();
+        if (discard && mounted) {
+          navigator.pop();
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(
+              widget.existingMealId != null
+                  ? 'Bearbeiten'
+                  : 'Prüfen und speichern',
+            ),
+            centerTitle: false,
           actions: [
             IconButton(
               tooltip: _saveAsFavorite
@@ -464,14 +554,170 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             ),
           ],
         ),
-        body: _buildBody(context),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: _buildActionRow(),
+          body: _buildBody(context),
+          bottomNavigationBar: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildActionRow(),
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SmallField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String suffix;
+  final bool decimal;
+  final VoidCallback? onSubmit;
+  const _SmallField({
+    required this.controller,
+    required this.label,
+    required this.suffix,
+    required this.decimal,
+    this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      keyboardType: decimal
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : TextInputType.number,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) {
+        if (onSubmit != null) {
+          onSubmit!();
+        } else {
+          FocusScope.of(context).unfocus();
+        }
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        suffixText: suffix,
+        isDense: true,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      ),
+    );
+  }
+}
+
+class _SheetHeaderContent extends StatelessWidget {
+  final bool isEditing;
+  final bool saveAsFavorite;
+  final VoidCallback onToggleFavorite;
+  const _SheetHeaderContent({
+    required this.isEditing,
+    required this.saveAsFavorite,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 8, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              isEditing ? 'Bearbeiten' : 'Prüfen und speichern',
+              style: textTheme.titleSmall?.copyWith(
+                color: scheme.outline,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: saveAsFavorite
+                ? 'Favorit entfernen'
+                : 'Als Favorit speichern',
+            icon: Icon(
+              saveAsFavorite ? Icons.star : Icons.star_border,
+              color: saveAsFavorite ? Colors.amber.shade700 : null,
+            ),
+            onPressed: onToggleFavorite,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KeyboardAccessoryBar extends StatelessWidget {
+  final VoidCallback onSave;
+  const _KeyboardAccessoryBar({required this.onSave});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainer,
+        border: Border(
+          top: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.5),
+            width: 0.5,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: () => FocusScope.of(context).unfocus(),
+            child: Text(
+              'Fertig',
+              style: TextStyle(color: scheme.outline),
+            ),
+          ),
+          const SizedBox(width: 4),
+          FilledButton.tonal(
+            onPressed: onSave,
+            style: FilledButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            child: const Text('Speichern'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  final VoidCallback onDiscard;
+  final VoidCallback onSave;
+  const _ActionRow({required this.onDiscard, required this.onSave});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: onDiscard,
+            child: const Text('Verwerfen'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: FilledButton(
+            onPressed: onSave,
+            child: const Text('Speichern'),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy Policy — NourishMe</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="crumb"><a href="index.html">Nourish<span style="color:var(--accent)">Me</span></a> · Privacy</nav>
+<header>
+  <h1>Privacy Policy</h1>
+  <p>Effective: 19 May 2026</p>
+</header>
+<main>
+
+<h2>1. Data Controller</h2>
+<p>Vanessa Heizmann<br>
+Email: <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></p>
+
+<h2>2. What the app does</h2>
+<p>NourishMe helps mothers during pregnancy and breastfeeding track their
+nutrition and receive evidence-based coaching feedback on each meal. The
+app is a personal wellness tool, not a medical device.</p>
+
+<h2>3. What data is processed</h2>
+
+<h3>3.1 Stored locally on your device</h3>
+<ul>
+  <li><strong>Profile information:</strong> Age, height, weight, activity level,
+    pregnancy / breastfeeding status, trimester, number of children being
+    nursed, estimated daily milk volume.</li>
+  <li><strong>Meal entries:</strong> Description, portion, calories, macros,
+    timestamps, optional food-safety flags.</li>
+  <li><strong>Photo entries:</strong> Photos are sent once to the coaching API for
+    analysis (see 3.2); the photo itself is <strong>not retained in the app</strong>,
+    only the structured results.</li>
+  <li><strong>Coach history:</strong> Per-meal coach responses and Q&amp;A turns.</li>
+  <li><strong>Favorites:</strong> frequently used meals.</li>
+  <li><strong>Settings:</strong> theme choice, optional custom macro split.</li>
+</ul>
+
+<h3>3.2 Transmission to third parties</h3>
+<p>When you log a meal or ask the coach a question, the following is sent
+to our API proxy (Cloudflare Worker), which forwards it to the Anthropic
+Claude API:</p>
+<ul>
+  <li>The text of your input</li>
+  <li>Optional: the photo of your meal</li>
+  <li>Your profile (age, weight, height, activity, phase, children, milk volume)</li>
+  <li>Today's context (running kcal and macro totals)</li>
+</ul>
+<p>Anthropic uses these data only to generate the coaching response and
+stores API requests for up to 30 days for safety review
+(<a href="https://www.anthropic.com/legal/privacy">Anthropic Privacy Policy</a>).</p>
+<p>The proxy forwards without storing payloads. Cloudflare retains
+connection metadata (IP, timestamp) for abuse prevention only.</p>
+
+<h3>3.3 No third-party trackers</h3>
+<p>No analytics SDKs (Firebase, Google Analytics, Sentry, Mixpanel etc.).
+No advertising IDs. No crash-reporting services.</p>
+
+<h3>3.4 No user accounts</h3>
+<p>NourishMe has no login. No email, no password. All data is anonymous
+and stays on your device.</p>
+
+<h2>4. Legal basis (GDPR)</h2>
+<p>Processing is based on your consent (Art. 6(1)(a) GDPR) and contract
+performance (Art. 6(1)(b) GDPR).</p>
+<p>Health-related data is processed for your personal wellness purposes.
+NourishMe does <strong>not</strong> provide medical diagnosis or treatment.</p>
+
+<h2>5. Data retention</h2>
+<ul>
+  <li><strong>Local data:</strong> until uninstall or "Reset App" in Settings.</li>
+  <li><strong>Anthropic API:</strong> up to 30 days.</li>
+  <li><strong>Cloudflare:</strong> connection metadata typically 24 h.</li>
+</ul>
+
+<h2>6. Your rights</h2>
+<ul>
+  <li><strong>Access</strong> (visible directly in the UI).</li>
+  <li><strong>Rectification</strong> (profile and entries editable).</li>
+  <li><strong>Erasure</strong> via "Reset App" or uninstall.</li>
+  <li><strong>Portability:</strong> data is local-only; export available on
+    request via email.</li>
+  <li><strong>Object</strong> to processing and <strong>lodge a complaint</strong>.</li>
+</ul>
+<p>Requests: <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></p>
+
+<h2>7. Data security</h2>
+<p>All API connections use HTTPS / TLS. Local data is stored in the
+OS-standard app sandbox.</p>
+
+<h2>8. Changes</h2>
+<p>We may update this policy as the app evolves. Material changes will be
+surfaced on app update.</p>
+
+<h2>9. Contact</h2>
+<p>Vanessa Heizmann · <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></p>
+
+</main>
+<footer>
+  <p><a href="index.html">← Back</a> · © 2026 Vanessa Heizmann</p>
+</footer>
+</body>
+</html>
