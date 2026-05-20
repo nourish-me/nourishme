@@ -279,6 +279,7 @@ body:not(.landing) {
   margin: 0 auto;
   padding: 3rem 1.5rem;
 }
+.story > h2 { text-align: center; margin-bottom: 1.5rem; }
 .story p { font-size: 1.1rem; line-height: 1.65; }
 .story p.lead-line {
   font-family: 'Newsreader', Georgia, serif;
@@ -286,12 +287,14 @@ body:not(.landing) {
   line-height: 1.35;
   font-weight: 500;
   margin-bottom: 1.5rem;
+  text-align: center;
 }
 .story p.lead-line em { font-style: italic; color: var(--accent-dark); }
 .story .signature {
   margin-top: 1.5rem;
   font-style: italic;
   color: var(--muted);
+  text-align: center;
 }
 
 /* Audience */
@@ -303,8 +306,9 @@ body:not(.landing) {
 }
 .audience > h2 { margin-bottom: 0.5rem; }
 .audience-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1rem 1.25rem;
   margin: 2rem 0 1.25rem 0;
   text-align: left;
@@ -316,6 +320,8 @@ body:not(.landing) {
   padding: 1rem;
   background: var(--bg-soft);
   border-radius: 12px;
+  flex: 0 1 calc(33.333% - 0.85rem);
+  min-width: 240px;
 }
 .audience-icon {
   font-size: 1.75rem;
@@ -344,7 +350,7 @@ body:not(.landing) {
 }
 
 @media (max-width: 800px) {
-  .audience-grid { grid-template-columns: 1fr; }
+  .audience-item { flex: 0 1 100%; }
 }
 
 /* USPs */
@@ -383,6 +389,7 @@ body:not(.landing) {
   margin: 0 auto;
   padding: 4rem 1.5rem;
 }
+.how > h2 { text-align: center; margin-bottom: 2rem; }
 .steps {
   list-style: none;
   padding: 0;
@@ -437,6 +444,8 @@ body:not(.landing) {
   margin: 0 auto;
   padding: 3rem 1.5rem;
 }
+.trust > h2 { text-align: center; margin-bottom: 1.5rem; }
+.trust > p { text-align: center; }
 .trust-list {
   list-style: none;
   padding: 0;
