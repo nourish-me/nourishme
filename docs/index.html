@@ -3,32 +3,108 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NourishMe</title>
+<title>NourishMe — Ernährungs-Coach für Schwangerschaft und Stillzeit</title>
+<meta name="description" content="Wissenschaftlich fundierter Live-Coach für Ernährung in Schwangerschaft und Stillzeit. Persönlich, datenschutzfreundlich, basiert auf DGE, BfR, EFSA, LactMed.">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<header>
-  <h1>Nourish<span class="accent">Me</span></h1>
-  <p>Wissenschaftlich fundierter Ernährungs-Coach für Schwangerschaft und Stillzeit.</p>
+<body class="landing">
+
+<header class="hero">
+  <div class="hero-text">
+    <h1>Nourish<span class="accent">Me</span></h1>
+    <p class="kicker">Ernährungs-Coach für Schwangerschaft und Stillzeit</p>
+    <p class="lede">Logge Mahlzeiten in Sekunden, erhalte sofort einen wissenschaftlich fundierten Hinweis, was du als Nächstes essen kannst — angepasst auf deine genaue Situation.</p>
+    <p class="cta-row">
+      <a class="btn btn-primary" href="#beta">Beta-Tester werden</a>
+      <a class="btn btn-ghost" href="#how">Wie es funktioniert</a>
+    </p>
+  </div>
+  <div class="hero-photo">
+    <img src="hero.jpg" alt="Vanessa mit ihren Zwillingen">
+  </div>
 </header>
-<main>
-  <section>
-    <h2>Rechtliches</h2>
-    <ul>
-      <li><a href="privacy.html">Datenschutzerklärung (Deutsch)</a></li>
-      <li><a href="privacy-en.html">Privacy Policy (English)</a></li>
-      <li><a href="impressum.html">Impressum</a></li>
-    </ul>
-  </section>
-  <section>
-    <h2>Hilfe</h2>
-    <ul>
-      <li><a href="support.html">Support</a></li>
-    </ul>
-  </section>
-</main>
-<footer>
-  <p>© 2026 Vanessa Heizmann · <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></p>
+
+<section class="story">
+  <h2>Warum es NourishMe gibt</h2>
+  <p>Vor drei Monaten habe ich Zwillinge bekommen. In den ersten Wochen war ich im Überlebensmodus — Stillen alle zwei Stunden parallel, dazwischen pumpen, kaum Schlaf. Frühstück oft ein Müsli auf der Hand.</p>
+  <p>Was mir dabei zunehmend klar wurde: Beim Stillen geht jeder Nährstoff zuerst zu den Kindern. Wenn ich nicht aktiv aufpasse, kommt das aus meinen Reserven. Müdigkeit, brüchige Nägel, Haarausfall sind oft handfeste Mangel-Symptome.</p>
+  <p>Ich wollte das tracken. Aber keine App konnte mit Zwillingen, exklusivem Pumpen oder Tandemstillen umgehen. Keine sagte mir konkret, was ich als Nächstes essen sollte. Keine belegte ihre Empfehlungen mit Quellen.</p>
+  <p>Also habe ich nachts zwischen den Stillsessions angefangen, mir was zu basteln. Das hat mir wirklich geholfen — und jetzt gebe ich es weiter.</p>
+  <p class="signature">— Vanessa</p>
+</section>
+
+<section id="usps" class="usps">
+  <h2>Drei Dinge die NourishMe anders macht</h2>
+  <div class="card-grid">
+    <article class="card">
+      <h3>1. Live-Coaching, nicht nur Tracking</h3>
+      <p>Nach jeder Mahlzeit kommt sofort ein konkreter Hinweis: „Dir fehlen heute noch 30 g Protein, eine Lachs-Bowl mittags wäre passend." Kein Selber-Rechnen, kein Googeln.</p>
+    </article>
+    <article class="card">
+      <h3>2. Berechnet auf deine genaue Situation</h3>
+      <p>Trimester, Anzahl der gestillten Kinder, exklusives Pumpen oder direkt Anlegen, tatsächliches Tagesvolumen Milch — alles individuell. Zwillinge exklusiv? +1.260 kcal, nicht der pauschale „+500"-Standard.</p>
+    </article>
+    <article class="card">
+      <h3>3. Wissenschaftlich transparent, Daten bleiben bei dir</h3>
+      <p>Jede Empfehlung mit Quelle hinterlegt: DGE 2025, BfR, EFSA, LactMed (NIH), FDA/EPA. Tap auf das ⓘ-Icon zeigt sie. Kein Konto, kein Werbe-Tracking, keine Cloud. Alles lokal auf deinem Gerät.</p>
+    </article>
+  </div>
+</section>
+
+<section id="how" class="how">
+  <h2>So funktioniert es</h2>
+  <ol class="steps">
+    <li>
+      <strong>Onboarding in 3 Minuten</strong>
+      <span>Trimester, Größe, Gewicht, Aktivität, Anzahl Kinder, geschätztes Milchvolumen. NourishMe rechnet daraus deinen Tagesbedarf an Energie und Makros aus.</span>
+    </li>
+    <li>
+      <strong>Mahlzeit loggen per Text oder Foto</strong>
+      <span>„Müsli mit Joghurt, eine Schüssel" — fertig. Der Coach parsed Nährwerte und Portionsgröße. Bei Bildern erkennt er den Inhalt automatisch.</span>
+    </li>
+    <li>
+      <strong>Sofort ein Coach-Hinweis</strong>
+      <span>Zu jeder Mahlzeit gibt es einen konkreten Vorschlag für die nächste — basierend auf deinem heutigen Stand und deinem individuellen Tagesziel.</span>
+    </li>
+    <li>
+      <strong>Food-Safety eingebaut</strong>
+      <span>Koffein-Schwellen, Alkohol-Wartezeiten, Quecksilberfisch-Listen, Listeria-Risiken — alles aus offiziellen Quellen.</span>
+    </li>
+  </ol>
+</section>
+
+<section id="beta" class="beta">
+  <h2>Beta-Tester werden</h2>
+  <p>NourishMe geht in den nächsten Tagen in die TestFlight-Beta. Wenn du schwanger bist, stillst, pumpst oder dich bald in einer dieser Situationen wiederfindest, melde dich gerne.</p>
+  <p class="cta-row">
+    <a class="btn btn-primary" href="[TALLY-FORM-LINK]">Für die Beta anmelden</a>
+  </p>
+  <p class="small">Du erhältst eine Einladung per E-Mail sobald die Beta live ist. Keine Spam, kein Newsletter — nur diese eine Einladung und gelegentlich Bitte um Feedback.</p>
+</section>
+
+<section class="trust">
+  <h2>Wissenschaftliche Basis</h2>
+  <p>Alle Schwellenwerte und Empfehlungen in NourishMe basieren auf:</p>
+  <ul class="trust-list">
+    <li>Deutsche Gesellschaft für Ernährung (DGE 2025)</li>
+    <li>Bundesinstitut für Risikobewertung (BfR)</li>
+    <li>European Food Safety Authority (EFSA)</li>
+    <li>LactMed / National Institutes of Health (NIH)</li>
+    <li>U.S. Food and Drug Administration / EPA</li>
+    <li>WHO Antenatal Care Guidelines</li>
+  </ul>
+  <p class="small">NourishMe ist kein medizinisches Produkt. Es ersetzt keine ärztliche oder hebammenbasierte Beratung. Bei medizinischen Fragen wende dich an deine Ärztin oder Hebamme.</p>
+</section>
+
+<footer class="footer">
+  <ul class="footer-links">
+    <li><a href="privacy.html">Datenschutzerklärung</a></li>
+    <li><a href="privacy-en.html">Privacy Policy (EN)</a></li>
+    <li><a href="support.html">Support</a></li>
+    <li><a href="impressum.html">Impressum</a></li>
+  </ul>
+  <p class="small">© 2026 Vanessa Heizmann · <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></p>
 </footer>
+
 </body>
 </html>
