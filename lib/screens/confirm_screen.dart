@@ -547,7 +547,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                   : 'Als Favorit speichern',
               icon: Icon(
                 _saveAsFavorite ? Icons.star : Icons.star_border,
-                color: _saveAsFavorite ? scheme.secondary : null,
+                color: _saveAsFavorite
+                    ? Theme.of(context).colorScheme.secondary
+                    : null,
               ),
               onPressed: () =>
                   setState(() => _saveAsFavorite = !_saveAsFavorite),
