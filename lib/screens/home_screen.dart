@@ -879,7 +879,7 @@ class _WarningIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.warning_amber, size: 20),
-      color: scheme.tertiary,
+      color: Theme.of(context).colorScheme.tertiary,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
