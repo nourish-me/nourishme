@@ -107,6 +107,18 @@ body:not(.landing) {
 
 .landing { font-size: 1.05rem; position: relative; }
 
+/* Site logo (top-left brand mark, mirrors lang-switch on the right) */
+.site-logo {
+  position: absolute;
+  top: 1rem;
+  left: 1.25rem;
+  width: 36px;
+  height: 36px;
+  z-index: 10;
+  display: block;
+}
+.site-logo img { width: 100%; height: 100%; display: block; }
+
 /* Language switcher */
 .lang-switch {
   position: absolute;
