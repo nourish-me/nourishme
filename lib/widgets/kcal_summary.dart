@@ -42,9 +42,9 @@ class KcalSummary extends StatelessWidget {
     final kcalStatus = _statusFor(totalKcal.toDouble(), targetKcal.toDouble());
     final kcalColor = _colorFor(kcalStatus, scheme);
     final progressColor = kcalStatus == _MetricStatus.over
-        ? nmAmberWarm
+        ? NMColors.amber
         : kcalStatus == _MetricStatus.green
-            ? nmMoss
+            ? NMColors.moss
             : scheme.primary;
     final remainingText = remaining > 0
         ? 'Noch ${formatKcal(remaining)} kcal'
@@ -76,7 +76,7 @@ class KcalSummary extends StatelessWidget {
                     remainingText,
                     style: textTheme.bodySmall?.copyWith(
                       color: kcalStatus == _MetricStatus.over
-                          ? nmAmberWarm
+                          ? NMColors.amber
                           : scheme.outline,
                       fontWeight: FontWeight.w500,
                     ),
@@ -129,9 +129,9 @@ Color _colorFor(_MetricStatus status, ColorScheme scheme) {
   // Field Manual palette: moss for sweet spot, amber-warm for over target.
   switch (status) {
     case _MetricStatus.over:
-      return nmAmberWarm;
+      return NMColors.amber;
     case _MetricStatus.green:
-      return nmMoss;
+      return NMColors.moss;
     case _MetricStatus.neutral:
       return scheme.onSurface;
   }

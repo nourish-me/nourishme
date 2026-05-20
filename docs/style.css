@@ -1,16 +1,45 @@
 :root {
-  /* NourishMe Field Manual palette — synced with the app theme.
-     See lib/theme/nourishme_colors.dart for the canonical values. */
-  --bg: #FBF7EF;            /* paper-hi */
-  --bg-soft: #F2ECDE;       /* paper-lo / card surface */
-  --text: #1F1B16;          /* ink */
-  --muted: #4F4A41;         /* ink-soft */
-  --accent: #1E4A45;        /* pine */
-  --accent-dark: #04201D;   /* deep pine */
-  --accent-soft: #C6E2DC;   /* pine-soft (button hover, hero accent) */
-  --secondary: #C8884A;     /* amber-warm (highlights, secondary buttons) */
-  --secondary-soft: #FFE0B8;/* amber container */
-  --border: #D5CEC0;        /* outline-variant */
+  /* NourishMe Field Manual brand tokens.
+     Source of truth: handoff/nourishme_logo_bowl/brand-tokens.css.
+     Mirrored in lib/theme/nourishme_colors.dart (NMColors). */
+
+  /* Surfaces */
+  --paper:        #F4EFE6;
+  --paper-hi:     #FBF7EF;
+  --paper-lo:     #F2ECDE;
+  --paper-deep:   #DDD3BD;
+
+  /* Text */
+  --ink:          #1F1B16;
+  --ink-soft:     #4F4A41;
+  --ink-mute:     #847E72;
+
+  /* Brand */
+  --pine:         #1E4A45;
+  --pine-deep:    #0F2D2A;
+  --amber:        #C8884A;
+  --amber-warm:   #D89A5B;
+
+  /* Functional */
+  --rust:         #9C4623;
+  --moss:         #4B5A47;
+  --plum:         #6B4554;
+
+  /* Lines */
+  --rule:         #D5CEC0;
+
+  /* Semantic aliases used throughout the existing CSS.
+     Kept for backwards-compat; new code should use brand tokens directly. */
+  --bg:           var(--paper-hi);
+  --bg-soft:      var(--paper-lo);
+  --text:         var(--ink);
+  --muted:        var(--ink-soft);
+  --accent:       var(--pine);
+  --accent-dark:  #04201D;
+  --accent-soft:  #C6E2DC;
+  --secondary:    var(--amber);
+  --secondary-soft:#FFE0B8;
+  --border:       var(--rule);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -342,11 +371,11 @@ body:not(.landing) {
   color: var(--muted);
   line-height: 1.4;
 }
-.audience-note {
+.audience .audience-note {
   color: var(--muted);
-  font-size: 0.95rem;
-  max-width: 600px;
-  margin: 0 auto;
+  font-size: 1rem;
+  max-width: 720px;
+  margin: 1.5rem auto 0 auto;
   text-align: center;
 }
 

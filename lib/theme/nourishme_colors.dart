@@ -1,50 +1,72 @@
 // NourishMe / NurtureTrack — Field Manual palette.
-// Hand-tuned. Do NOT regenerate from ColorScheme.fromSeed —
-// auto-generation produces generic M3 pastels that flatten the brand.
-//
-// Drop this file into lib/theme/ and import from main.dart:
-//   import 'theme/nourishme_colors.dart';
-//   ...
-//   theme:     buildLightTheme(),
-//   darkTheme: buildDarkTheme(),
+// Source of truth: handoff/nourishme_logo_bowl/brand-tokens.dart.
+// Mirrored in docs/style.css :root so app and landing stay in sync.
+// Do NOT regenerate via ColorScheme.fromSeed.
 
 import 'package:flutter/material.dart';
 
-// Custom semantic colors beyond the M3 scheme.
-// Used by KcalSummary for the sweet-spot / over-target rule.
-const nmMoss      = Color(0xFF4B5A47); // sweet spot (80–100% target)
-const nmAmberWarm = Color(0xFFC8884A); // over target
-const nmPaper     = Color(0xFFF4EFE6); // warm background
-const nmInkSoft   = Color(0xFF4F4A41);
+class NMColors {
+  // Surfaces
+  static const paper      = Color(0xFFF4EFE6);
+  static const paperHi    = Color(0xFFFBF7EF);
+  static const paperLo    = Color(0xFFEAE2D2);
+  static const paperDeep  = Color(0xFFDDD3BD);
+
+  // Text
+  static const ink        = Color(0xFF1F1B16);
+  static const inkSoft    = Color(0xFF4F4A41);
+  static const inkMute    = Color(0xFF847E72);
+
+  // Brand
+  static const pine       = Color(0xFF1E4A45);
+  static const pineDeep   = Color(0xFF0F2D2A);
+  static const amber      = Color(0xFFC8884A);
+  static const amberWarm  = Color(0xFFD89A5B);
+
+  // Functional
+  static const rust       = Color(0xFF9C4623);
+  static const moss       = Color(0xFF4B5A47);
+  static const plum       = Color(0xFF6B4554);
+
+  // Lines
+  static const rule       = Color(0xFFD5CEC0);
+}
+
+// Legacy aliases — kept so existing callsites keep working.
+// Prefer NMColors.* in new code.
+const nmMoss      = NMColors.moss;
+const nmAmberWarm = NMColors.amber;
+const nmPaper     = NMColors.paper;
+const nmInkSoft   = NMColors.inkSoft;
 
 const _light = ColorScheme(
   brightness: Brightness.light,
-  primary:                Color(0xFF1E4A45), // pine
+  primary:                NMColors.pine,
   onPrimary:              Color(0xFFFFFFFF),
   primaryContainer:       Color(0xFFC6E2DC), // pine-soft / user bubble
   onPrimaryContainer:     Color(0xFF04201D),
-  secondary:              Color(0xFFC8884A), // amber / warmth carrier
+  secondary:              NMColors.amber,
   onSecondary:            Color(0xFFFFFFFF),
-  secondaryContainer:     Color(0xFFFFE0B8), // coach bubble (after token swap)
+  secondaryContainer:     Color(0xFFFFE0B8), // coach bubble
   onSecondaryContainer:   Color(0xFF2A1900),
-  tertiary:               Color(0xFF6B4554), // plum / caution
+  tertiary:               NMColors.plum, // caution / safety warning icons
   onTertiary:             Color(0xFFFFFFFF),
-  tertiaryContainer:      Color(0xFFF4D9E3), // safety warnings stay here
+  tertiaryContainer:      Color(0xFFF4D9E3), // safety warning surface
   onTertiaryContainer:    Color(0xFF2A0D1A),
   error:                  Color(0xFFB3261E),
   onError:                Color(0xFFFFFFFF),
   errorContainer:         Color(0xFFF9DEDC),
   onErrorContainer:       Color(0xFF410E0B),
-  surface:                Color(0xFFFBF7EF), // paper-hi
-  onSurface:              Color(0xFF1F1B16),
+  surface:                NMColors.paperHi,
+  onSurface:              NMColors.ink,
   surfaceContainerLowest: Color(0xFFFFFFFF),
   surfaceContainerLow:    Color(0xFFF2ECDE), // meal card / day card
   surfaceContainer:       Color(0xFFEDE6D7), // input bar
   surfaceContainerHigh:   Color(0xFFE6DECC),
-  surfaceContainerHighest:Color(0xFFDDD3BD), // progress track
-  onSurfaceVariant:       Color(0xFF4F4A41),
-  outline:                Color(0xFF847E72),
-  outlineVariant:         Color(0xFFD5CEC0),
+  surfaceContainerHighest:NMColors.paperDeep, // progress track
+  onSurfaceVariant:       NMColors.inkSoft,
+  outline:                NMColors.inkMute,
+  outlineVariant:         NMColors.rule,
 );
 
 const _dark = ColorScheme(
@@ -80,15 +102,7 @@ const _dark = ColorScheme(
 ThemeData buildLightTheme() => ThemeData(
       useMaterial3: true,
       colorScheme: _light,
-      scaffoldBackgroundColor: nmPaper,
-      // Editorial italic for AppBar titles.
-      // Requires google_fonts in pubspec.yaml.
-      // appBarTheme: AppBarTheme(
-      //   titleTextStyle: GoogleFonts.newsreader(
-      //     fontStyle: FontStyle.italic, fontWeight: FontWeight.w700,
-      //     fontSize: 24, color: _light.onSurface,
-      //   ),
-      // ),
+      scaffoldBackgroundColor: NMColors.paper,
     );
 
 ThemeData buildDarkTheme() => ThemeData(
