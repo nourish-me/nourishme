@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/calorie_target.dart';
+import '../theme/nourishme_colors.dart';
 import '../utils/number_format.dart';
 
 // Shared kcal/macros summary used in both the Tagebuch toolbar and the
@@ -41,9 +42,9 @@ class KcalSummary extends StatelessWidget {
     final kcalStatus = _statusFor(totalKcal.toDouble(), targetKcal.toDouble());
     final kcalColor = _colorFor(kcalStatus, scheme);
     final progressColor = kcalStatus == _MetricStatus.over
-        ? Colors.orange.shade600
+        ? nmAmberWarm
         : kcalStatus == _MetricStatus.green
-            ? Colors.green.shade500
+            ? nmMoss
             : scheme.primary;
     final remainingText = remaining > 0
         ? 'Noch ${formatKcal(remaining)} kcal'
@@ -75,7 +76,7 @@ class KcalSummary extends StatelessWidget {
                     remainingText,
                     style: textTheme.bodySmall?.copyWith(
                       color: kcalStatus == _MetricStatus.over
-                          ? Colors.orange.shade700
+                          ? nmAmberWarm
                           : scheme.outline,
                       fontWeight: FontWeight.w500,
                     ),
@@ -125,12 +126,12 @@ _MetricStatus _statusFor(double current, double target) {
 }
 
 Color _colorFor(_MetricStatus status, ColorScheme scheme) {
-  // Softer shades so the numbers don't shout at the user.
+  // Field Manual palette: moss for sweet spot, amber-warm for over target.
   switch (status) {
     case _MetricStatus.over:
-      return Colors.orange.shade700;
+      return nmAmberWarm;
     case _MetricStatus.green:
-      return Colors.green.shade600;
+      return nmMoss;
     case _MetricStatus.neutral:
       return scheme.onSurface;
   }

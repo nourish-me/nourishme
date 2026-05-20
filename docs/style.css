@@ -1,24 +1,30 @@
 :root {
-  --bg: #fafaf9;
-  --bg-soft: #f4f1ec;
-  --text: #1c1c1b;
-  --muted: #6b6b69;
-  --accent: #4f8a8b;
-  --accent-dark: #3e6e6f;
-  --accent-soft: #e8f0f0;
-  --border: #e4e4e2;
+  /* NourishMe Field Manual palette — synced with the app theme.
+     See lib/theme/nourishme_colors.dart for the canonical values. */
+  --bg: #FBF7EF;            /* paper-hi */
+  --bg-soft: #F2ECDE;       /* paper-lo / card surface */
+  --text: #1F1B16;          /* ink */
+  --muted: #4F4A41;         /* ink-soft */
+  --accent: #1E4A45;        /* pine */
+  --accent-dark: #04201D;   /* deep pine */
+  --accent-soft: #C6E2DC;   /* pine-soft (button hover, hero accent) */
+  --secondary: #C8884A;     /* amber-warm (highlights, secondary buttons) */
+  --secondary-soft: #FFE0B8;/* amber container */
+  --border: #D5CEC0;        /* outline-variant */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1c1c1b;
-    --bg-soft: #25252423;
-    --text: #f4f4f3;
-    --muted: #a8a8a6;
-    --accent: #7fb8b9;
-    --accent-dark: #93c8c9;
-    --accent-soft: #2c3f3f;
-    --border: #333331;
+    --bg: #1B1812;
+    --bg-soft: #221E17;
+    --text: #E8E2D4;
+    --muted: #C8C0AE;
+    --accent: #A6CCC4;
+    --accent-dark: #C2E8E1;
+    --accent-soft: #235650;
+    --secondary: #FFC07A;
+    --secondary-soft: #6B4F1E;
+    --border: #4B4639;
   }
 }
 

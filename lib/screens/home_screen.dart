@@ -897,13 +897,14 @@ class _CoachBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final fg = scheme.onTertiaryContainer;
-    // The bubble color identifies it as the coach; no header label needed.
-    // Small icon left of the markdown body is enough.
+    // Field Manual palette: coach bubbles are warm amber (secondaryContainer)
+    // instead of the previous pink (tertiaryContainer, which now carries
+    // safety warnings).
+    final fg = scheme.onSecondaryContainer;
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
-      color: scheme.tertiaryContainer,
+      color: scheme.secondaryContainer,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: Row(

@@ -10,6 +10,7 @@ import 'services/favorite_repository.dart';
 import 'services/meal_repository.dart';
 import 'services/settings_repository.dart';
 import 'services/thread_repository.dart';
+import 'theme/nourishme_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,24 +57,13 @@ class NourishMeApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    const seed = Color(0xFF4F8A8B);
     return MaterialApp(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       title: 'NourishMe',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seed,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seed,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      // Field Manual palette. Hand-tuned brand colors instead of M3 auto-
+      // generation. See lib/theme/nourishme_colors.dart for the tokens.
+      theme: buildLightTheme(),
+      darkTheme: buildDarkTheme(),
       themeMode: themeMode,
       home: showOnboarding ? const OnboardingScreen() : const MainScaffold(),
     );
