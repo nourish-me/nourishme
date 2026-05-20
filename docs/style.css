@@ -125,15 +125,16 @@ body:not(.landing) {
 }
 
 .hero-photo {
-  max-width: 340px;
+  max-width: 380px;
   justify-self: end;
   width: 100%;
 }
 .hero-photo img {
   width: 100%;
   height: auto;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px -20px rgba(0,0,0,0.25);
+  border-radius: 14px;
+  box-shadow: 0 24px 48px -20px rgba(0,0,0,0.22);
+  display: block;
 }
 
 @media (max-width: 800px) {
