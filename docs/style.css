@@ -42,7 +42,30 @@ body:not(.landing) {
 
 /* --- Landing page styling --- */
 
-.landing { font-size: 1.05rem; }
+.landing { font-size: 1.05rem; position: relative; }
+
+/* Language switcher */
+.lang-switch {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+  z-index: 10;
+}
+.lang-switch a { color: var(--muted); }
+.lang-switch strong { color: var(--text); }
+
+/* "EN coming soon" banner (only on EN landing) */
+.banner-soon {
+  background: var(--accent-soft);
+  color: var(--text);
+  text-align: center;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  border-bottom: 1px solid var(--border);
+}
 
 .landing h1 { font-size: 3rem; font-weight: 800; margin: 0 0 0.25rem 0; letter-spacing: -0.02em; }
 .landing h1 .accent { color: var(--accent); }
