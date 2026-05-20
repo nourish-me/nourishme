@@ -56,6 +56,20 @@ body:not(.landing) {
 .lang-switch a { color: var(--muted); }
 .lang-switch strong { color: var(--text); }
 
+/* Inline language switch used on sub-pages (privacy, support, impressum) */
+.lang-switch-inline {
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.lang-switch-inline a { color: var(--muted); }
+.lang-switch-inline strong { color: var(--text); }
+.lang-switch-inline .disabled {
+  color: var(--border);
+  text-decoration: line-through;
+}
+
 /* "EN coming soon" banner (only on EN landing) */
 .banner-soon {
   background: var(--accent-soft);
