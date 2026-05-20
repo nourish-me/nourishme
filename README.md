@@ -1,17 +1,7 @@
-# nurturetrack
+# NourishMe
 
-A new Flutter project.
+AI-powered nutrition coach for pregnancy and breastfeeding. Logs meals via text or photo, calculates personalized daily targets based on trimester, number of children being nursed, exclusive pumping volume, etc., and returns live coaching plus food-safety hints.
 
-## Getting Started
+Built with Flutter (iOS-first) on top of an Anthropic Claude API proxy running on Cloudflare Workers. Single-user MVP, beta on TestFlight.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Landing page: https://nourish-me.github.io/nourishme/
