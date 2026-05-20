@@ -94,18 +94,26 @@ class _EmptyHistory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.event_note_outlined, size: 48, color: scheme.outline),
-          const SizedBox(height: 12),
-          Text('Noch keine Einträge', style: textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text(
-            'Verlauf füllt sich, sobald du Einträge speicherst.',
-            style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.event_note_outlined, size: 48, color: scheme.outline),
+            const SizedBox(height: 12),
+            Text(
+              'Noch keine Einträge',
+              textAlign: TextAlign.center,
+              style: textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Verlauf füllt sich, sobald du Einträge speicherst.',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
+            ),
+          ],
+        ),
       ),
     );
   }
