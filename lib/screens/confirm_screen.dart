@@ -547,7 +547,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                   : 'Als Favorit speichern',
               icon: Icon(
                 _saveAsFavorite ? Icons.star : Icons.star_border,
-                color: _saveAsFavorite ? Colors.amber.shade700 : null,
+                color: _saveAsFavorite ? scheme.secondary : null,
               ),
               onPressed: () =>
                   setState(() => _saveAsFavorite = !_saveAsFavorite),
@@ -642,7 +642,7 @@ class _SheetHeaderContent extends StatelessWidget {
                 : 'Als Favorit speichern',
             icon: Icon(
               saveAsFavorite ? Icons.star : Icons.star_border,
-              color: saveAsFavorite ? Colors.amber.shade700 : null,
+              color: saveAsFavorite ? scheme.secondary : null,
             ),
             onPressed: onToggleFavorite,
           ),

@@ -1125,7 +1125,7 @@ class _FavoritesSection extends ConsumerWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(
                       Icons.star_rounded,
-                      color: Colors.amber.shade700,
+                      color: scheme.secondary,
                     ),
                     title: Text(f.summary),
                     subtitle: Text(

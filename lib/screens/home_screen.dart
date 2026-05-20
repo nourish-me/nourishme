@@ -840,7 +840,7 @@ class _WarningIconButton extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.warning_amber, color: Colors.orange.shade800),
+                  Icon(Icons.warning_amber, color: scheme.tertiary),
                   const SizedBox(width: 8),
                   Text(
                     'Hinweise zu dieser Mahlzeit',
@@ -879,7 +879,7 @@ class _WarningIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.warning_amber, size: 20),
-      color: Colors.orange.shade700,
+      color: scheme.tertiary,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -1289,7 +1289,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                         // "Favoriten verwalten".
                         return InputChip(
                           avatar: Icon(Icons.star_rounded,
-                              size: 14, color: Colors.amber.shade700),
+                              size: 14, color: scheme.secondary),
                           label: Text(
                             '${f.summary}$menge',
                             style: textTheme.labelSmall,
