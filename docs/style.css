@@ -144,6 +144,59 @@ body:not(.landing) {
   color: var(--muted);
 }
 
+/* Audience */
+.audience {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 1rem;
+  text-align: center;
+}
+.audience > h2 { margin-bottom: 0.5rem; }
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem 1.25rem;
+  margin: 2rem 0 1.25rem 0;
+  text-align: left;
+}
+.audience-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-soft);
+  border-radius: 12px;
+}
+.audience-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.audience-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.audience-item strong {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.audience-item span {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.audience-note {
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 800px) {
+  .audience-grid { grid-template-columns: 1fr; }
+}
+
 /* USPs */
 .usps {
   background: var(--bg-soft);
