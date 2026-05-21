@@ -41,12 +41,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   double _activityFactor = 1.375;
 
   // Lactation
-  int _numChildren = 2;
+  int _numChildren = 1;
   int _childAgeGroup = 0;
   int _milkSharePercent = 100;
   int _dailyVolumeMl =
       UserProfileSettings.estimatedDailyVolumeMl(
-          numChildren: 2, ageGroup: 0, sharePercent: 100);
+          numChildren: 1, ageGroup: 0, sharePercent: 100);
 
   @override
   void dispose() {
@@ -136,11 +136,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _height.clear();
       _weight.clear();
       _activityFactor = 1.375;
-      _numChildren = 2;
+      _numChildren = 1;
       _childAgeGroup = 0;
       _milkSharePercent = 100;
       _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
-        numChildren: 2,
+        numChildren: 1,
         ageGroup: 0,
         sharePercent: 100,
       );
