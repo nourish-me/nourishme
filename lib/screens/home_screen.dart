@@ -1141,7 +1141,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       buffer
         ..writeln('=== Profil der Nutzerin ===')
         ..writeln(
-            'Alter: ${profile.ageYears} Jahre · Größe: ${profile.heightCm.toStringAsFixed(0)} cm · Gewicht: ${profile.weightKg.toStringAsFixed(1)} kg')
+            'Alter: ${profile.currentAge} Jahre · Größe: ${profile.heightCm.toStringAsFixed(0)} cm · Gewicht: ${profile.weightKg.toStringAsFixed(1)} kg')
         ..writeln('Aktivitätsfaktor: ${profile.activityFactor} (PAL)');
       if (profile.isPregnant) {
         buffer.writeln(

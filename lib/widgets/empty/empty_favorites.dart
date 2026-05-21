@@ -43,7 +43,8 @@ class EmptyFavorites extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              'Tippe in einer Mahlzeit auf den Stern, um sie zu speichern.',
+              'Tippe beim Mahlzeit-Loggen auf den Stern, um eine '
+              'Mahlzeit als Favorit zu speichern.',
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,

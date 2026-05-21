@@ -2,7 +2,7 @@ import '../models/user_profile_settings.dart';
 
 // Mifflin-St Jeor BMR for adult women.
 double _bmrFemale(UserProfileSettings p) =>
-    10 * p.weightKg + 6.25 * p.heightCm - 5 * p.ageYears - 161;
+    10 * p.weightKg + 6.25 * p.heightCm - 5 * p.currentAge - 161;
 
 int calculateBmrTdee(UserProfileSettings profile) =>
     (_bmrFemale(profile) * profile.activityFactor).round();

@@ -1,4 +1,8 @@
 class UserProfileSettings {
+  // Birth date is the source of truth (age changes as time passes).
+  // ageYears stays in the model for backward compat with older Hive entries:
+  // when birthdate is null we fall back to it.
+  final DateTime? birthdate;
   final int ageYears;
   final double heightCm;
   final double weightKg;
@@ -24,6 +28,7 @@ class UserProfileSettings {
 
   const UserProfileSettings({
     required this.ageYears,
+    this.birthdate,
     required this.heightCm,
     required this.weightKg,
     required this.activityFactor,
@@ -37,6 +42,24 @@ class UserProfileSettings {
     this.customProteinPct = 0,
     this.customFatPct = 0,
   });
+
+  // Age in completed years, computed from birthdate if available, otherwise
+  // falling back to the stored ageYears for old profiles.
+  int get currentAge {
+    if (birthdate == null) return ageYears;
+    final now = DateTime.now();
+    var age = now.year - birthdate!.year;
+    final beforeBirthday =
+        now.month < birthdate!.month ||
+            (now.month == birthdate!.month && now.day < birthdate!.day);
+    if (beforeBirthday) age--;
+    return age;
+  }
+
+  // Helper for the inverse: derive a plausible January-1 birthdate from a
+  // legacy ageYears value (used once, when the user updates an old profile).
+  static DateTime birthdateFromAge(int age) =>
+      DateTime(DateTime.now().year - age, 1, 1);
 
   factory UserProfileSettings.defaults() => const UserProfileSettings(
         ageYears: 34,
@@ -94,6 +117,7 @@ class UserProfileSettings {
 
   UserProfileSettings copyWith({
     int? ageYears,
+    DateTime? birthdate,
     double? heightCm,
     double? weightKg,
     double? activityFactor,
@@ -109,6 +133,7 @@ class UserProfileSettings {
   }) =>
       UserProfileSettings(
         ageYears: ageYears ?? this.ageYears,
+        birthdate: birthdate ?? this.birthdate,
         heightCm: heightCm ?? this.heightCm,
         weightKg: weightKg ?? this.weightKg,
         activityFactor: activityFactor ?? this.activityFactor,
@@ -125,6 +150,7 @@ class UserProfileSettings {
 
   Map<String, dynamic> toJson() => {
         'ageYears': ageYears,
+        'birthdate': birthdate?.toIso8601String(),
         'heightCm': heightCm,
         'weightKg': weightKg,
         'activityFactor': activityFactor,
@@ -143,8 +169,10 @@ class UserProfileSettings {
     final numChildren = json['numChildrenNursing'] as int? ?? 0;
     final share = json['milkSharePercent'] as int? ?? 100;
     final ageGroup = json['childrenAgeGroup'] as int? ?? 0;
+    final birthdateRaw = json['birthdate'] as String?;
     return UserProfileSettings(
       ageYears: json['ageYears'] as int,
+      birthdate: birthdateRaw != null ? DateTime.tryParse(birthdateRaw) : null,
       heightCm: (json['heightCm'] as num).toDouble(),
       weightKg: (json['weightKg'] as num).toDouble(),
       activityFactor: (json['activityFactor'] as num).toDouble(),

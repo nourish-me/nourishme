@@ -32,9 +32,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _trimester = 1;
 
   // Body fields are pre-filled with neutral defaults so the user can advance
-  // straight away. They are encouraged to adjust, but if they don't the
-  // values shown are what gets persisted (no hidden fallbacks).
-  late final TextEditingController _age = TextEditingController(text: '30');
+  // straight away. Birthdate defaults to 30 years ago (matching old age=30
+  // default) and is editable via date picker.
+  DateTime _birthdate =
+      DateTime(DateTime.now().year - 30, DateTime.now().month, DateTime.now().day);
   late final TextEditingController _height = TextEditingController(text: '165');
   late final TextEditingController _weight = TextEditingController(text: '65');
   double _activityFactor = 1.375;
@@ -50,7 +51,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   void dispose() {
     _controller.dispose();
-    _age.dispose();
     _height.dispose();
     _weight.dispose();
     super.dispose();
@@ -64,12 +64,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         // At least one of pregnant/lactating must be picked.
         return _isPregnant || _isLactating;
       case 2:
-        return int.tryParse(_age.text) != null &&
-            double.tryParse(_height.text.replaceAll(',', '.')) != null &&
+        // Birthdate is pre-filled, height/weight have defaults — always
+        // advanceable. User can still adjust before continuing.
+        return double.tryParse(_height.text.replaceAll(',', '.')) != null &&
             double.tryParse(_weight.text.replaceAll(',', '.')) != null;
       default:
         return true;
     }
+  }
+
+  static int _ageFromBirthdate(DateTime b) {
+    final now = DateTime.now();
+    var age = now.year - b.year;
+    if (now.month < b.month || (now.month == b.month && now.day < b.day)) {
+      age--;
+    }
+    return age;
   }
 
   void _next() {
@@ -121,7 +131,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _isPregnant = false;
       _isLactating = true;
       _trimester = 1;
-      _age.clear();
+      _birthdate = DateTime(
+          DateTime.now().year - 30, DateTime.now().month, DateTime.now().day);
       _height.clear();
       _weight.clear();
       _activityFactor = 1.375;
@@ -138,7 +149,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   UserProfileSettings _buildProfile() => UserProfileSettings(
-        ageYears: int.tryParse(_age.text) ?? 34,
+        ageYears: _ageFromBirthdate(_birthdate),
+        birthdate: _birthdate,
         heightCm:
             double.tryParse(_height.text.replaceAll(',', '.')) ?? 167,
         weightKg:
@@ -194,7 +206,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       }),
                     ),
                     _BodyStep(
-                      age: _age,
+                      birthdate: _birthdate,
+                      onBirthdateChanged: (d) =>
+                          setState(() => _birthdate = d),
                       height: _height,
                       weight: _weight,
                       activityFactor: _activityFactor,
@@ -502,7 +516,7 @@ class _PhaseStep extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Tandemstillen: SS- und Stillzeit-Aufschlag werden addiert.',
+                      'Schwangerschafts- und Stillzeit-Aufschlag werden addiert.',
                       style: textTheme.bodySmall?.copyWith(
                         color: scheme.onTertiaryContainer,
                       ),
@@ -612,19 +626,33 @@ class _PhaseChoice extends StatelessWidget {
 }
 
 class _BodyStep extends StatelessWidget {
-  final TextEditingController age;
+  final DateTime birthdate;
+  final ValueChanged<DateTime> onBirthdateChanged;
   final TextEditingController height;
   final TextEditingController weight;
   final double activityFactor;
   final ValueChanged<double> onActivityChanged;
 
   const _BodyStep({
-    required this.age,
+    required this.birthdate,
+    required this.onBirthdateChanged,
     required this.height,
     required this.weight,
     required this.activityFactor,
     required this.onActivityChanged,
   });
+
+  Future<void> _pickBirthdate(BuildContext context) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: birthdate,
+      firstDate: DateTime(now.year - 80),
+      lastDate: now,
+      helpText: 'Geburtsdatum wählen',
+    );
+    if (picked != null) onBirthdateChanged(picked);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -654,14 +682,19 @@ class _BodyStep extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        TextField(
-          controller: age,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Alter',
-            border: OutlineInputBorder(),
-            suffixText: 'Jahre',
+        InkWell(
+          onTap: () => _pickBirthdate(context),
+          borderRadius: BorderRadius.circular(12),
+          child: InputDecorator(
+            decoration: const InputDecoration(
+              labelText: 'Geburtsdatum',
+              border: OutlineInputBorder(),
+              suffixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+            ),
+            child: Text(
+              _formatBirthdate(birthdate),
+              style: textTheme.bodyLarge?.copyWith(color: scheme.onSurface),
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -1108,3 +1141,6 @@ class _NumberStepper extends StatelessWidget {
     );
   }
 }
+
+String _formatBirthdate(DateTime d) =>
+    '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';

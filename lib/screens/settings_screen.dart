@@ -23,7 +23,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  late final TextEditingController _age;
+  late DateTime _birthdate;
   late final TextEditingController _height;
   late final TextEditingController _weight;
   // Macro split as percentages. 0 = follow auto-default, otherwise overridden.
@@ -48,7 +48,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void dispose() {
     if (_initialized) {
-      _age.dispose();
       _height.dispose();
       _weight.dispose();
     }
@@ -56,7 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _hydrate(UserProfileSettings p) {
-    _age = TextEditingController(text: p.ageYears.toString());
+    _birthdate = p.birthdate ?? UserProfileSettings.birthdateFromAge(p.ageYears);
     _height = TextEditingController(text: p.heightCm.toStringAsFixed(0));
     _weight = TextEditingController(text: p.weightKg.toStringAsFixed(1));
     _activityFactor = p.activityFactor;
@@ -77,7 +76,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _customFatPct = p.customFatPct;
     _initialProfileJson = jsonEncode(p.toJson());
 
-    for (final c in [_age, _height, _weight]) {
+    for (final c in [_height, _weight]) {
       c.addListener(() {
         if (mounted) setState(() {});
       });
@@ -88,13 +87,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   double _parseDouble(String s, double fallback) =>
       double.tryParse(s.replaceAll(',', '.')) ?? fallback;
 
-  int _parseInt(String s, int fallback) => int.tryParse(s) ?? fallback;
+  int _ageFromBirthdate(DateTime b) {
+    final now = DateTime.now();
+    var age = now.year - b.year;
+    if (now.month < b.month || (now.month == b.month && now.day < b.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  Future<void> _pickBirthdate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _birthdate,
+      firstDate: DateTime(now.year - 80),
+      lastDate: now,
+      helpText: 'Geburtsdatum wählen',
+    );
+    if (picked != null) setState(() => _birthdate = picked);
+  }
 
   bool get _isLactating => _phase == 'lactating';
   bool get _isPregnant => _phase == 'pregnant';
 
   UserProfileSettings _currentProfile() => UserProfileSettings(
-        ageYears: _parseInt(_age.text, 30),
+        ageYears: _ageFromBirthdate(_birthdate),
+        birthdate: _birthdate,
         heightCm: _parseDouble(_height.text, 170),
         weightKg: _parseDouble(_weight.text, 65),
         activityFactor: _activityFactor,
@@ -305,7 +324,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _Section(
                   title: 'Dein Profil',
                   child: _ProfileFields(
-                    age: _age,
+                    birthdate: _birthdate,
+                    onBirthdateTap: _pickBirthdate,
                     height: _height,
                     weight: _weight,
                   ),
@@ -549,27 +569,38 @@ class _PhaseChoice extends StatelessWidget {
 }
 
 class _ProfileFields extends StatelessWidget {
-  final TextEditingController age;
+  final DateTime birthdate;
+  final VoidCallback onBirthdateTap;
   final TextEditingController height;
   final TextEditingController weight;
   const _ProfileFields({
-    required this.age,
+    required this.birthdate,
+    required this.onBirthdateTap,
     required this.height,
     required this.weight,
   });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       children: [
-        TextField(
-          controller: age,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Alter',
-            border: OutlineInputBorder(),
-            suffixText: 'Jahre',
+        InkWell(
+          onTap: onBirthdateTap,
+          borderRadius: BorderRadius.circular(4),
+          child: InputDecorator(
+            decoration: const InputDecoration(
+              labelText: 'Geburtsdatum',
+              border: OutlineInputBorder(),
+              suffixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+            ),
+            child: Text(
+              '${birthdate.day.toString().padLeft(2, '0')}.'
+              '${birthdate.month.toString().padLeft(2, '0')}.'
+              '${birthdate.year}',
+              style: textTheme.bodyLarge?.copyWith(color: scheme.onSurface),
+            ),
           ),
         ),
         const SizedBox(height: 12),
