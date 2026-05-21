@@ -100,9 +100,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       _loadingPreviousDay = false;
       return;
     }
+    // Load a full week at a time. Reduces the number of scroll-jump cycles
+    // when the user is paging back through long empty stretches.
+    const batch = 7;
     final oldest = days.first;
-    final newDay = oldest.subtract(const Duration(days: 1));
-    ref.read(loadedDaysProvider.notifier).state = [newDay, ...days];
+    final newDays = <DateTime>[
+      for (int i = batch; i >= 1; i--) oldest.subtract(Duration(days: i)),
+    ];
+    ref.read(loadedDaysProvider.notifier).state = [...newDays, ...days];
     // After the new day renders we measure the height delta and offset the
     // scroll position so the visible items don't jump under the user's thumb.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -505,15 +510,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return widgets;
     }
 
+    // Collapse consecutive empty days into a single discreet range row so the
+    // scroll-back through long empty stretches doesn't fill the screen with
+    // repeated "Keine Einträge" rows. Today is always shown explicitly so the
+    // user can still log into it via the input bar.
+    DateTime? emptyRunStart;
+    DateTime? emptyRunEnd;
+
+    void flushEmptyRun() {
+      if (emptyRunStart == null) return;
+      widgets.add(_EmptyDayRange(
+        start: emptyRunStart!,
+        end: emptyRunEnd!,
+        scheme: scheme,
+        textTheme: textTheme,
+      ));
+      widgets.add(const SizedBox(height: 4));
+      emptyRunStart = null;
+      emptyRunEnd = null;
+    }
+
     for (final day in sortedDays) {
+      final items = threadByDay[day] ?? const <ThreadItem>[];
+      final isToday = isSameDay(day, DateTime.now());
+
+      if (items.isEmpty && !isToday) {
+        // Extend the current empty run rather than rendering a full row.
+        emptyRunStart ??= day;
+        emptyRunEnd = day;
+        continue;
+      }
+
+      // We hit a day with content (or today). Flush any pending empty run
+      // first, then render the day separator + content normally.
+      flushEmptyRun();
       widgets.add(_DaySeparator(
         key: _keyForDay(day),
         day: day,
         scheme: scheme,
         textTheme: textTheme,
       ));
-      final items = threadByDay[day] ?? const <ThreadItem>[];
       if (items.isEmpty) {
+        // Today's row still gets the quick-add affordance.
         widgets.add(_EmptyDay(
           scheme: scheme,
           textTheme: textTheme,
@@ -546,6 +584,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         widgets.add(const SizedBox(height: 8));
       }
     }
+    // If the entire range ended on empty days (most common when paging back),
+    // flush whatever's left.
+    flushEmptyRun();
     return widgets;
   }
 }
@@ -643,6 +684,67 @@ class _DaySeparator extends StatelessWidget {
           ),
           Expanded(
             child: Divider(color: scheme.outlineVariant, thickness: 0.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Compact summary line for a run of consecutive empty days when scrolling
+// back through history. Shows "9. — 18. Mai · keine Einträge" instead of
+// stacking individual day separators with empty rows.
+class _EmptyDayRange extends StatelessWidget {
+  final DateTime start;
+  final DateTime end;
+  final ColorScheme scheme;
+  final TextTheme textTheme;
+  const _EmptyDayRange({
+    required this.start,
+    required this.end,
+    required this.scheme,
+    required this.textTheme,
+  });
+
+  String _format(DateTime d) =>
+      '${d.day}. ${_monthShort(d.month)}';
+
+  String _monthShort(int m) {
+    const names = [
+      '', 'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Juni',
+      'Juli', 'Aug', 'Sept', 'Okt', 'Nov', 'Dez',
+    ];
+    return names[m];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dayCount = end.difference(start).inDays + 1;
+    final label = start.year == end.year &&
+            start.month == end.month &&
+            start.day == end.day
+        ? _format(start)
+        : '${_format(start)} — ${_format(end)}';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(height: 1, color: scheme.outlineVariant),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            dayCount == 1
+                ? '$label · keine Einträge'
+                : '$label · $dayCount Tage leer',
+            style: textTheme.labelSmall?.copyWith(
+              color: scheme.outline,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(height: 1, color: scheme.outlineVariant),
           ),
         ],
       ),
