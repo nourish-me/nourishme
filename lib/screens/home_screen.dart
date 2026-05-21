@@ -1015,43 +1015,49 @@ class _CoachBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    // Field Manual palette: coach bubbles are warm amber (secondaryContainer)
-    // instead of the previous pink (tertiaryContainer, which now carries
-    // safety warnings).
-    final fg = scheme.onSecondaryContainer;
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      color: scheme.secondaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Icon(
-                Icons.tips_and_updates_outlined,
-                size: 16,
-                color: fg,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Light mode keeps the warm amber-container chip look. Dark mode uses
+    // a quieter neutral surface with an amber left rule, otherwise the
+    // saturated dark-amber container reads as heavy/dominant against the
+    // ink background.
+    final bg = isDark ? scheme.surfaceContainerLow : scheme.secondaryContainer;
+    final fg = isDark ? scheme.onSurface : scheme.onSecondaryContainer;
+    final iconColor = scheme.secondary;
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+        border: isDark
+            ? Border(left: BorderSide(color: scheme.secondary, width: 3))
+            : null,
+      ),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              Icons.tips_and_updates_outlined,
+              size: 16,
+              color: iconColor,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: MarkdownBody(
+              data: text,
+              styleSheet:
+                  MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                p: TextStyle(color: fg, height: 1.35),
+                strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
+                em: TextStyle(color: fg, fontStyle: FontStyle.italic),
+                listBullet: TextStyle(color: fg),
+                blockSpacing: 6,
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: MarkdownBody(
-                data: text,
-                styleSheet:
-                    MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                  p: TextStyle(color: fg, height: 1.35),
-                  strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
-                  em: TextStyle(color: fg, fontStyle: FontStyle.italic),
-                  listBullet: TextStyle(color: fg),
-                  blockSpacing: 6,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
