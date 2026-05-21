@@ -8,6 +8,7 @@ import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../services/nutrition_facts.dart';
 import '../utils/number_format.dart';
+import '../widgets/empty/empty_favorites.dart';
 import '../widgets/info_button.dart';
 import 'favorite_edit_sheet.dart';
 import 'onboarding_screen.dart';
@@ -1134,14 +1135,7 @@ class _FavoritesSection extends ConsumerWidget {
     return _Section(
       title: 'Favoriten verwalten',
       child: favorites.isEmpty
-          ? Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'Noch keine Favoriten. Speichere eine Mahlzeit als Favorit '
-                'über das Sternchen im Eintrags-Sheet.',
-                style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-              ),
-            )
+          ? const EmptyFavorites()
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

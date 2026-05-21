@@ -82,6 +82,14 @@ flutter:
     - .env
     - assets/logo/bowl-mark.svg
     - assets/logo/wordmark.svg
+    - assets/icons/ic_nm_pregnancy.svg
+    - assets/icons/ic_nm_nursing.svg
+    - assets/icons/ic_nm_pumping.svg
+    - assets/icons/ic_nm_multiples.svg
+    - assets/icons/ic_nm_meal.svg
+    - assets/icons/ic_nm_food_safety.svg
+    - assets/icons/ic_nm_coach.svg
+    - assets/icons/ic_nm_journal.svg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

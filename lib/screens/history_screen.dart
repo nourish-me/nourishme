@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../utils/date_format.dart';
+import '../widgets/empty/empty_history.dart';
 import '../widgets/kcal_summary.dart';
 import 'settings_screen.dart';
 
@@ -16,9 +17,6 @@ class HistoryScreen extends ConsumerWidget {
     final target = ref.watch(calorieTargetProvider);
     final macroTargets = ref.watch(macroTargetsProvider);
     final recentDays = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     void openDay(DateTime day) {
       final normalized = DateTime(day.year, day.month, day.day);
@@ -56,7 +54,7 @@ class HistoryScreen extends ConsumerWidget {
         ],
       ),
       body: recentDays.isEmpty
-          ? _EmptyHistory(scheme: scheme, textTheme: textTheme)
+          ? const EmptyHistory()
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               itemCount: recentDays.length,
@@ -86,38 +84,8 @@ class HistoryScreen extends ConsumerWidget {
   }
 }
 
-class _EmptyHistory extends StatelessWidget {
-  final ColorScheme scheme;
-  final TextTheme textTheme;
-  const _EmptyHistory({required this.scheme, required this.textTheme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.event_note_outlined, size: 48, color: scheme.outline),
-            const SizedBox(height: 12),
-            Text(
-              'Noch keine Einträge',
-              textAlign: TextAlign.center,
-              style: textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Verlauf füllt sich, sobald du Einträge speicherst.',
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// _EmptyHistory removed — replaced by EmptyHistory widget per TestFlight 1.1
+// design pass (see widgets/empty/empty_history.dart).
 
 // Each day shows a compact tap-target card: the day header + the same
 // KcalSummary used in the Tagebuch toolbar. Tapping it opens that day in
