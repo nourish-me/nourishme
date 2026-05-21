@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../services/nutrition_facts.dart';
+import '../theme/nourishme_colors.dart';
 import '../utils/number_format.dart';
 import '../widgets/info_button.dart';
+import '../widgets/nm_icons.dart';
 import 'main_scaffold.dart';
 
 // First-launch setup. Five steps with a thin progress bar at the top. Each
@@ -304,29 +307,56 @@ class _ProgressHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      child: Column(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: onBack,
-          ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: (step + 1) / total,
-                minHeight: 4,
-                color: scheme.primary,
-                backgroundColor: scheme.surfaceContainerHighest,
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: onBack,
               ),
-            ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'SCHRITT ${step + 1} VON $total',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: NMColors.inkMute,
+                      letterSpacing: 1.4,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Onboarding neu starten',
+                onPressed: onRestart,
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Onboarding neu starten',
-            onPressed: onRestart,
+          const SizedBox(height: 4),
+          // Pill-style step dots: current step is a wide pine pill, others are
+          // small dots in the rule color. Direct visual translation of the
+          // TestFlight 1.1 spec.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (int i = 0; i < total; i++) ...[
+                if (i > 0) const SizedBox(width: 6),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: i == step ? 22 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: i == step ? scheme.primary : NMColors.rule,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),
@@ -342,75 +372,80 @@ class _WelcomeStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       children: [
-        Icon(Icons.book_outlined, size: 56, color: scheme.primary),
-        const SizedBox(height: 20),
-        // "Me" hervorgehoben in primary color.
-        RichText(
-          text: TextSpan(
-            style: textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: scheme.onSurface,
-            ),
-            children: [
-              const TextSpan(text: 'Willkommen bei Nourish'),
-              TextSpan(
-                text: 'Me',
-                style: TextStyle(color: scheme.primary),
-              ),
-            ],
+        Center(
+          child: SvgPicture.asset(
+            'assets/logo/bowl-mark.svg',
+            width: 120,
+            height: 120,
           ),
         ),
-        const SizedBox(height: 12),
-        Text(
-          'Dein Ernährungs-Coach für Schwangerschaft und Stillzeit.',
-          style: textTheme.bodyLarge?.copyWith(height: 1.4),
+        const SizedBox(height: 24),
+        // Wordmark: "NourishMe." in editorial italic with the amber dot.
+        Center(
+          child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: textTheme.displayMedium?.copyWith(
+                color: scheme.onSurface,
+                fontSize: 40,
+              ),
+              children: [
+                const TextSpan(text: 'Nourish'),
+                TextSpan(
+                  text: 'Me',
+                  style: TextStyle(color: scheme.primary),
+                ),
+                TextSpan(
+                  text: '.',
+                  style: TextStyle(color: NMColors.amber),
+                ),
+              ],
+            ),
+          ),
         ),
-        const SizedBox(height: 20),
-        _BulletRow(
-          icon: Icons.tips_and_updates_outlined,
-          text:
-              'Live-Coaching: Zu jeder Mahlzeit ein konkreter Hinweis, was '
-              'dir noch zum Tagesziel fehlt und was du als Nächstes essen kannst.',
+        const SizedBox(height: 16),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: Text(
+              'Ernährung, die mitdenkt.',
+              textAlign: TextAlign.center,
+              style: textTheme.headlineSmall?.copyWith(
+                color: NMColors.inkSoft,
+                fontSize: 22,
+                height: 1.3,
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 8),
-        _BulletRow(
-          icon: Icons.school_outlined,
-          text: 'Wissenschaftlich fundiert, basiert auf offiziellen Empfehlungen '
-              '(DGE, BfR, EFSA u.a.).',
+        const SizedBox(height: 28),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: Text(
+              'Live-Coach für Schwangerschaft und Stillzeit. '
+              'Wissenschaftlich fundiert, datenschutzfreundlich, '
+              'ca. 3 Minuten Setup.',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(
+                color: NMColors.inkSoft,
+                height: 1.5,
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 8),
-        _BulletRow(
-          icon: Icons.lock_outline,
-          text: 'Deine Daten bleiben lokal auf dem Gerät.',
-        ),
-        const SizedBox(height: 8),
-        _BulletRow(
-          icon: Icons.timer_outlined,
-          text: '~3 Minuten Setup.',
-        ),
-      ],
-    );
-  }
-}
-
-class _BulletRow extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _BulletRow({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: scheme.primary),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(text, style: textTheme.bodyMedium),
+        const SizedBox(height: 32),
+        Center(
+          child: Text(
+            'SINGLE USER · LÄUFT LOKAL AUF DEINEM GERÄT',
+            style: textTheme.labelSmall?.copyWith(
+              color: NMColors.inkMute,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );
@@ -451,6 +486,7 @@ class _PhaseStep extends StatelessWidget {
             selected: isLactating,
             onTap: () => onChange(isPregnant, !isLactating),
             fact: NutritionFacts.energyLactation,
+            leading: NMIcons.nursing(size: 28),
           ),
           const SizedBox(height: 12),
           _PhaseChoice(
@@ -459,6 +495,7 @@ class _PhaseStep extends StatelessWidget {
             selected: isPregnant,
             onTap: () => onChange(!isPregnant, isLactating),
             fact: NutritionFacts.energyPregnancy,
+            leading: NMIcons.pregnancy(size: 28),
           ),
           const SizedBox(height: 16),
           if (isPregnant && isLactating)
@@ -496,12 +533,14 @@ class _PhaseChoice extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final NutritionFact fact;
+  final Widget? leading;
   const _PhaseChoice({
     required this.label,
     required this.description,
     required this.selected,
     required this.onTap,
     required this.fact,
+    this.leading,
   });
 
   @override
@@ -509,22 +548,35 @@ class _PhaseChoice extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Material(
-      color: selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(12),
+      color: selected ? scheme.primaryContainer : NMColors.paperHi,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 14, 8, 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? scheme.primary : NMColors.rule,
+              width: 1.5,
+            ),
+          ),
           child: Row(
             children: [
-              Icon(
-                selected
-                    ? Icons.check_circle
-                    : Icons.radio_button_unchecked,
-                color: selected ? scheme.primary : scheme.outline,
-              ),
-              const SizedBox(width: 12),
+              if (leading != null) ...[
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: NMColors.paperLo,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.center,
+                  child: leading,
+                ),
+                const SizedBox(width: 14),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,12 +591,24 @@ class _PhaseChoice extends StatelessWidget {
                     Text(
                       description,
                       style: textTheme.bodySmall?.copyWith(
-                        color: scheme.outline,
+                        color: NMColors.inkSoft,
                       ),
                     ),
                   ],
                 ),
               ),
+              if (selected)
+                Container(
+                  width: 24,
+                  height: 24,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: scheme.primary,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(Icons.check,
+                      color: Colors.white, size: 18),
+                ),
               InfoButton(fact: fact),
             ],
           ),
@@ -764,11 +828,42 @@ class _PhaseDetailsStep extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _NumberStepper(
-            value: numChildren,
-            min: 1,
-            max: 4,
-            onChanged: onChildrenChanged,
+          Row(
+            children: [
+              Expanded(
+                child: _NumberStepper(
+                  value: numChildren,
+                  min: 1,
+                  max: 4,
+                  onChanged: onChildrenChanged,
+                ),
+              ),
+              if (numChildren >= 2) ...[
+                const SizedBox(width: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: NMColors.amberLight,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      NMIcons.multiples(size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Mehrlinge',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: NMColors.ink,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 20),
           Text(
@@ -877,116 +972,105 @@ class _SummaryStep extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       children: [
-        Text('Dein Tagesziel',
-            style: textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          'BERECHNUNG',
+          style: textTheme.labelSmall?.copyWith(
+            color: NMColors.inkMute,
+            letterSpacing: 1.4,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
         Text(
-          'Basierend auf deinen Angaben.',
-          style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
-        ),
-        const SizedBox(height: 20),
-        Card(
-          elevation: 0,
-          color: scheme.primaryContainer,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${formatKcal(total)} kcal/Tag',
-                  style: textTheme.displaySmall?.copyWith(
-                    color: scheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _OutcomeRow(
-                  label: 'Grundbedarf + Aktivität',
-                  value: '${formatKcal(bmrTdee)} kcal',
-                  color: scheme.onPrimaryContainer,
-                  textTheme: textTheme,
-                ),
-                if (pregSupp > 0)
-                  _OutcomeRow(
-                    label: 'Schwangerschaft (T${profile.trimester})',
-                    value: '+${formatKcal(pregSupp)} kcal',
-                    color: scheme.onPrimaryContainer,
-                    textTheme: textTheme,
-                  ),
-                if (lactSupp > 0)
-                  _OutcomeRow(
-                    label: 'Muttermilch-Aufschlag',
-                    value: '+${formatKcal(lactSupp)} kcal',
-                    color: scheme.onPrimaryContainer,
-                    textTheme: textTheme,
-                  ),
-              ],
-            ),
+          'Dein Tagesziel',
+          style: textTheme.headlineMedium?.copyWith(
+            color: scheme.onSurface,
           ),
         ),
-        const SizedBox(height: 16),
-        Card(
-          elevation: 0,
-          color: scheme.surfaceContainerLow,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text('Makronährstoff-Richtwerte',
-                          style: textTheme.titleSmall),
+        const SizedBox(height: 24),
+        // Editorial result card with the big italic kcal hero.
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+          decoration: BoxDecoration(
+            color: NMColors.paperHi,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: NMColors.rule, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    formatKcal(total),
+                    style: textTheme.displayLarge?.copyWith(
+                      color: scheme.primary,
+                      fontSize: 64,
+                      fontWeight: FontWeight.w700,
+                      fontStyle: FontStyle.italic,
+                      height: 1.0,
                     ),
-                    InfoButton(fact: NutritionFacts.proteinLactation),
-                  ],
+                  ),
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      'kcal',
+                      style: textTheme.labelMedium?.copyWith(
+                        color: NMColors.inkSoft,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _buildLede(profile, bmrTdee, pregSupp, lactSupp),
+                style: textTheme.titleLarge?.copyWith(
+                  color: NMColors.inkSoft,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w400,
+                  height: 1.4,
                 ),
-                const SizedBox(height: 8),
-                _MacroRow(label: 'Protein', value: '${macros.proteinG} g'),
-                _MacroRow(label: 'Kohlenhydrate', value: '${macros.carbsG} g'),
-                _MacroRow(label: 'Fett', value: '${macros.fatG} g'),
-              ],
-            ),
+              ),
+              const SizedBox(height: 20),
+              Divider(color: NMColors.rule, height: 1),
+              const SizedBox(height: 16),
+              Text(
+                'MAKRONÄHRSTOFFE · TAGESBEDARF',
+                style: textTheme.labelSmall?.copyWith(
+                  color: NMColors.inkMute,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _MacroRow(label: 'Protein', value: '${macros.proteinG} g'),
+              Divider(color: NMColors.rule, height: 1),
+              _MacroRow(label: 'Kohlenhydrate', value: '${macros.carbsG} g'),
+              Divider(color: NMColors.rule, height: 1),
+              _MacroRow(label: 'Fett', value: '${macros.fatG} g'),
+            ],
           ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Spacer(),
+            InfoButton(fact: NutritionFacts.proteinLactation),
+          ],
         ),
       ],
     );
   }
-}
 
-class _OutcomeRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  final TextTheme textTheme;
-  const _OutcomeRow({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.textTheme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(label,
-                style: textTheme.bodyMedium?.copyWith(color: color)),
-          ),
-          Text(value,
-              style: textTheme.bodyMedium?.copyWith(
-                color: color,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              )),
-        ],
-      ),
-    );
+  String _buildLede(UserProfileSettings p, int bmr, int preg, int lact) {
+    final parts = <String>['Grundbedarf + Aktivität: ${formatKcal(bmr)} kcal'];
+    if (preg > 0) parts.add('+ ${formatKcal(preg)} kcal Schwangerschaft (T${p.trimester})');
+    if (lact > 0) parts.add('+ ${formatKcal(lact)} kcal für Stillen');
+    return parts.join(' · ');
   }
 }
 
@@ -999,15 +1083,23 @@ class _MacroRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 11),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: textTheme.bodyMedium)),
-          Text(value,
-              style: textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              )),
+          Expanded(
+            child: Text(
+              label,
+              style: textTheme.bodyMedium?.copyWith(color: NMColors.ink),
+            ),
+          ),
+          Text(
+            value,
+            style: textTheme.labelMedium?.copyWith(
+              color: NMColors.inkSoft,
+              fontWeight: FontWeight.w600,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
         ],
       ),
     );

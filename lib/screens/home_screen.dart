@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../widgets/empty/empty_today.dart';
+
 import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
@@ -498,11 +500,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ));
       final items = threadByDay[day] ?? const <ThreadItem>[];
       if (items.isEmpty) {
-        widgets.add(_EmptyDay(
-          scheme: scheme,
-          textTheme: textTheme,
-          onAdd: () => _logForDay(day),
-        ));
+        // True first-launch state: only one day loaded, no meals anywhere.
+        // Render the prominent EmptyToday welcome card instead of the small
+        // inline "Keine Einträge + hinzufügen" row.
+        final isFirstLaunch = mealsAll.isEmpty && sortedDays.length == 1;
+        if (isFirstLaunch) {
+          widgets.add(const EmptyToday());
+        } else {
+          widgets.add(_EmptyDay(
+            scheme: scheme,
+            textTheme: textTheme,
+            onAdd: () => _logForDay(day),
+          ));
+        }
         widgets.add(const SizedBox(height: 8));
         continue;
       }

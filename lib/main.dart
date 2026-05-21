@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'providers/meal_providers.dart';
@@ -16,6 +19,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await Hive.initFlutter();
+  // Preload Newsreader so the editorial headlines render without a flash
+  // of fallback serif on first launch. Other Google Fonts (Inter,
+  // JetBrainsMono) lazy-load on demand and are far less brand-critical.
+  unawaited(
+    GoogleFonts.pendingFonts([
+      GoogleFonts.newsreader(fontWeight: FontWeight.w700),
+      GoogleFonts.newsreader(
+          fontWeight: FontWeight.w700, fontStyle: FontStyle.italic),
+    ]),
+  );
   final mealRepo = await MealRepository.open();
   final settingsRepo = await SettingsRepository.open();
   final favoriteRepo = await FavoriteRepository.open();

@@ -4,6 +4,7 @@
 // Do NOT regenerate via ColorScheme.fromSeed.
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class NMColors {
   // Surfaces
@@ -20,8 +21,10 @@ class NMColors {
   // Brand
   static const pine       = Color(0xFF1E4A45);
   static const pineDeep   = Color(0xFF0F2D2A);
+  static const pineSoft   = Color(0xFFC6E2DC); // selected tile bg
   static const amber      = Color(0xFFC8884A);
   static const amberWarm  = Color(0xFFD89A5B);
+  static const amberLight = Color(0xFFFFE0B8); // coach card / multiples chip
 
   // Functional
   static const rust       = Color(0xFF9C4623);
@@ -99,14 +102,116 @@ const _dark = ColorScheme(
   outlineVariant:         Color(0xFF4B4639),
 );
 
+// Newsreader = display/headline serif (italic-heavy editorial voice).
+// Inter = body sans-serif.
+// JetBrains Mono = caption/eyebrow/mono numerals.
+TextTheme _buildTextTheme(ColorScheme scheme) {
+  final base = Typography.material2021(platform: TargetPlatform.iOS)
+      .englishLike
+      .merge(Typography.material2021(platform: TargetPlatform.iOS).black)
+      .apply(
+        bodyColor: scheme.onSurface,
+        displayColor: scheme.onSurface,
+      );
+  return base.copyWith(
+    displayLarge: GoogleFonts.newsreader(
+      textStyle: base.displayLarge,
+      fontWeight: FontWeight.w700,
+      fontStyle: FontStyle.italic,
+      letterSpacing: -0.5,
+    ),
+    displayMedium: GoogleFonts.newsreader(
+      textStyle: base.displayMedium,
+      fontWeight: FontWeight.w700,
+      fontStyle: FontStyle.italic,
+      letterSpacing: -0.4,
+    ),
+    displaySmall: GoogleFonts.newsreader(
+      textStyle: base.displaySmall,
+      fontWeight: FontWeight.w700,
+      fontStyle: FontStyle.italic,
+      letterSpacing: -0.3,
+    ),
+    headlineLarge: GoogleFonts.newsreader(
+      textStyle: base.headlineLarge,
+      fontWeight: FontWeight.w700,
+      fontStyle: FontStyle.italic,
+    ),
+    headlineMedium: GoogleFonts.newsreader(
+      textStyle: base.headlineMedium,
+      fontWeight: FontWeight.w700,
+      fontStyle: FontStyle.italic,
+    ),
+    headlineSmall: GoogleFonts.newsreader(
+      textStyle: base.headlineSmall,
+      fontWeight: FontWeight.w600,
+      fontStyle: FontStyle.italic,
+    ),
+    titleLarge: GoogleFonts.newsreader(
+      textStyle: base.titleLarge,
+      fontWeight: FontWeight.w600,
+      fontStyle: FontStyle.italic,
+    ),
+    titleMedium: GoogleFonts.inter(
+      textStyle: base.titleMedium,
+      fontWeight: FontWeight.w600,
+    ),
+    titleSmall: GoogleFonts.inter(
+      textStyle: base.titleSmall,
+      fontWeight: FontWeight.w600,
+    ),
+    bodyLarge: GoogleFonts.inter(textStyle: base.bodyLarge),
+    bodyMedium: GoogleFonts.inter(textStyle: base.bodyMedium),
+    bodySmall: GoogleFonts.inter(textStyle: base.bodySmall),
+    labelLarge: GoogleFonts.inter(
+      textStyle: base.labelLarge,
+      fontWeight: FontWeight.w600,
+    ),
+    labelMedium: GoogleFonts.jetBrainsMono(
+      textStyle: base.labelMedium,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.6,
+    ),
+    labelSmall: GoogleFonts.jetBrainsMono(
+      textStyle: base.labelSmall,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.8,
+    ),
+  );
+}
+
 ThemeData buildLightTheme() => ThemeData(
       useMaterial3: true,
       colorScheme: _light,
       scaffoldBackgroundColor: NMColors.paper,
+      textTheme: _buildTextTheme(_light),
+      appBarTheme: AppBarTheme(
+        backgroundColor: NMColors.paper,
+        foregroundColor: NMColors.ink,
+        elevation: 0,
+        titleTextStyle: GoogleFonts.newsreader(
+          fontWeight: FontWeight.w700,
+          fontStyle: FontStyle.italic,
+          fontSize: 22,
+          color: NMColors.ink,
+        ),
+      ),
     );
 
 ThemeData buildDarkTheme() => ThemeData(
       useMaterial3: true,
       colorScheme: _dark,
       scaffoldBackgroundColor: const Color(0xFF15110B),
+      textTheme: _buildTextTheme(_dark),
+      appBarTheme: AppBarTheme(
+        backgroundColor: const Color(0xFF1B1812),
+        foregroundColor: const Color(0xFFE8E2D4),
+        elevation: 0,
+        titleTextStyle: GoogleFonts.newsreader(
+          fontWeight: FontWeight.w700,
+          fontStyle: FontStyle.italic,
+          fontSize: 22,
+          color: const Color(0xFFE8E2D4),
+        ),
+      ),
     );
