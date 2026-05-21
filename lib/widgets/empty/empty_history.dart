@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/nourishme_colors.dart';
 import '../nm_icons.dart';
 
 // Empty state for the Verlauf tab when no day has data yet.
@@ -22,9 +21,9 @@ class EmptyHistory extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: NMColors.paperHi,
+                color: scheme.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: NMColors.rule, width: 1),
+                border: Border.all(color: scheme.outlineVariant, width: 1),
               ),
               alignment: Alignment.center,
               child: NMIcons.journal(size: 48),
@@ -40,7 +39,7 @@ class EmptyHistory extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const _GhostChart(),
+            _GhostChart(scheme: scheme, textTheme: textTheme),
           ],
         ),
       ),
@@ -49,14 +48,15 @@ class EmptyHistory extends StatelessWidget {
 }
 
 class _GhostChart extends StatelessWidget {
-  const _GhostChart();
+  final ColorScheme scheme;
+  final TextTheme textTheme;
+  const _GhostChart({required this.scheme, required this.textTheme});
 
   static const _labels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
   static const _heights = [22.0, 36.0, 18.0, 44.0, 30.0, 26.0, 12.0];
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     return SizedBox(
       width: 240,
       child: Column(
@@ -70,7 +70,7 @@ class _GhostChart extends StatelessWidget {
                   width: 22,
                   height: h,
                   decoration: BoxDecoration(
-                    color: NMColors.paperLo,
+                    color: scheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -87,8 +87,7 @@ class _GhostChart extends StatelessWidget {
                     label,
                     textAlign: TextAlign.center,
                     style: textTheme.labelSmall?.copyWith(
-                      color: NMColors.inkMute,
-                      fontFeatures: const [],
+                      color: scheme.outline,
                     ),
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -78,6 +79,16 @@ class NourishMeApp extends ConsumerWidget {
       theme: buildLightTheme(),
       darkTheme: buildDarkTheme(),
       themeMode: themeMode,
+      // App-UI is German, including the system date picker, weekday names,
+      // and the back-button tooltip. English fallback covers any rare
+      // unlocalised string from third-party packages.
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('de'), Locale('en')],
+      locale: const Locale('de'),
       home: showOnboarding ? const OnboardingScreen() : const MainScaffold(),
     );
   }

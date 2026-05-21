@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/nourishme_colors.dart';
 import '../nm_icons.dart';
 
 // First-meal-of-the-day empty state for the Tagebuch.
 // Spec: handoff/testflight_1_1/README.md "Heute (leer)".
-// Not yet wired into home_screen; ready for use when first-launch flow
-// is restructured.
 class EmptyToday extends StatelessWidget {
   const EmptyToday({super.key});
 
@@ -16,7 +13,8 @@ class EmptyToday extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
-      child: DottedBorderBox(
+      child: _DottedBorderBox(
+        color: scheme.outlineVariant,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
           child: Column(
@@ -26,9 +24,9 @@ class EmptyToday extends StatelessWidget {
                 width: 88,
                 height: 88,
                 decoration: BoxDecoration(
-                  color: NMColors.paperHi,
+                  color: scheme.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: NMColors.rule, width: 1),
+                  border: Border.all(color: scheme.outlineVariant, width: 1),
                 ),
                 alignment: Alignment.center,
                 child: NMIcons.meal(size: 48),
@@ -48,7 +46,7 @@ class EmptyToday extends StatelessWidget {
                 'Tipp einfach drauf los, der Coach erkennt den Rest.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium?.copyWith(
-                  color: NMColors.inkSoft,
+                  color: scheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -60,15 +58,15 @@ class EmptyToday extends StatelessWidget {
   }
 }
 
-// Simple dashed-border container, no extra deps.
-class DottedBorderBox extends StatelessWidget {
+class _DottedBorderBox extends StatelessWidget {
   final Widget child;
-  const DottedBorderBox({super.key, required this.child});
+  final Color color;
+  const _DottedBorderBox({required this.child, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _DashedBorderPainter(color: NMColors.rule),
+      painter: _DashedBorderPainter(color: color),
       child: child,
     );
   }

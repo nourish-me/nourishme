@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -40,6 +42,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late int _childrenAgeGroup;
   late int _dailyVolumeMl;
   bool _initialized = false;
+  String? _initialProfileJson;
+  bool _justSaved = false;
 
   @override
   void dispose() {
@@ -71,6 +75,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           );
     _customProteinPct = p.customProteinPct;
     _customFatPct = p.customFatPct;
+    _initialProfileJson = jsonEncode(p.toJson());
 
     for (final c in [_age, _height, _weight]) {
       c.addListener(() {
@@ -169,10 +174,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     });
   }
 
+  bool get _isDirty {
+    if (_initialProfileJson == null) return false;
+    return jsonEncode(_currentProfile().toJson()) != _initialProfileJson;
+  }
+
+  Future<bool> _confirmDiscard() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Änderungen verwerfen?'),
+        content: const Text(
+          'Deine ungespeicherten Änderungen gehen verloren.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Verwerfen'),
+          ),
+        ],
+      ),
+    );
+    return discard ?? false;
+  }
+
   Future<void> _save() async {
     await ref.read(settingsRepositoryProvider).saveProfile(_currentProfile());
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
+    _justSaved = true;
     Navigator.pop(context);
     // Surface confirmation on the parent scaffold (Verlauf / Tagebuch) so the
     // user lands back, sees the updated kcal/macros toolbar AND a brief
@@ -234,14 +271,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       error: (e, _) => Scaffold(body: Center(child: Text('Fehler: $e'))),
       data: (profile) {
         if (!_initialized) _hydrate(profile);
-        return GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          behavior: HitTestBehavior.opaque,
-          child: Scaffold(
-            appBar: AppBar(
-              title: const Text('Einstellungen'),
-              centerTitle: false,
-            ),
+        return PopScope(
+          canPop: _justSaved || !_isDirty,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) return;
+            final navigator = Navigator.of(context);
+            final discard = await _confirmDiscard();
+            if (discard && mounted) {
+              _justSaved = true; // bypass second confirm if any
+              navigator.pop();
+            }
+          },
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            behavior: HitTestBehavior.opaque,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('Einstellungen'),
+                centerTitle: false,
+              ),
             body: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               children: [
@@ -325,6 +373,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   child: const Text('Speichern'),
                 ),
               ),
+            ),
             ),
           ),
         );

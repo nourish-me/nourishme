@@ -6,8 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../widgets/empty/empty_today.dart';
-
+import '../main.dart';
 import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
@@ -15,6 +14,7 @@ import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
+import '../widgets/empty/empty_today.dart';
 import '../widgets/kcal_summary.dart';
 import 'confirm_screen.dart';
 import 'settings_screen.dart';
@@ -321,6 +321,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     }
     final totalItems = threadByDay.values.fold<int>(0, (s, l) => s + l.length);
+    // Peek scroll-to-day target before the autoscroll heuristics fire so a
+    // pending day-jump from Verlauf doesn't get overridden by the
+    // "follow new bottom" autoscroll when loadedDays grows.
+    final pendingScrollTarget = ref.read(scrollToDayProvider);
     if (scrollTargetMealId != null) {
       final id = scrollTargetMealId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -328,7 +332,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       });
     } else if (totalItems > _lastTotalItemCount &&
         _lastTotalItemCount > 0 &&
-        newlyRenderedMealIds.isEmpty) {
+        newlyRenderedMealIds.isEmpty &&
+        pendingScrollTarget == null) {
       // A non-meal thread item was added (typically the coach response).
       // Only follow if user is still near the bottom.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -491,6 +496,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final mealsById = {for (final m in mealsAll) m.id: m};
 
+    // First-launch shortcut: no meals exist anywhere yet. Show the
+    // prominent EmptyToday welcome card once instead of stacking day
+    // separators + small inline "Keine Einträge" rows for every loaded
+    // empty day.
+    if (mealsAll.isEmpty) {
+      widgets.add(const EmptyToday());
+      return widgets;
+    }
+
     for (final day in sortedDays) {
       widgets.add(_DaySeparator(
         key: _keyForDay(day),
@@ -500,19 +514,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ));
       final items = threadByDay[day] ?? const <ThreadItem>[];
       if (items.isEmpty) {
-        // True first-launch state: only one day loaded, no meals anywhere.
-        // Render the prominent EmptyToday welcome card instead of the small
-        // inline "Keine Einträge + hinzufügen" row.
-        final isFirstLaunch = mealsAll.isEmpty && sortedDays.length == 1;
-        if (isFirstLaunch) {
-          widgets.add(const EmptyToday());
-        } else {
-          widgets.add(_EmptyDay(
-            scheme: scheme,
-            textTheme: textTheme,
-            onAdd: () => _logForDay(day),
-          ));
-        }
+        widgets.add(_EmptyDay(
+          scheme: scheme,
+          textTheme: textTheme,
+          onAdd: () => _logForDay(day),
+        ));
         widgets.add(const SizedBox(height: 8));
         continue;
       }
@@ -1203,6 +1209,18 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     }
   }
 
+  void _showSnack(String message) {
+    if (!mounted) return;
+    rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+    rootScaffoldMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Future<void> _send() async {
     final text = _controller.text.trim();
     final hasImage = _imageBytes != null;
@@ -1235,21 +1253,27 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         // route transition) left a focused TextField. Without this, iOS keeps
         // the keyboard shown and the new entry view is half the screen.
         FocusManager.instance.primaryFocus?.unfocus();
+      } else if (text.isEmpty && hasImage) {
+        // Image-only input that didn't parse as a meal — almost always a
+        // non-food photo. Surface as a snackbar so it's clearly a system
+        // hint, not a coach response.
+        _showSnack(
+          parsed.rejectionReason ??
+              'Das Bild scheint kein Essen zu zeigen. Beschreibe es als '
+                  'Text oder probier ein anderes Foto.',
+        );
       } else {
+        // Text input that didn't parse as a meal — treat as a coach question.
         await _askAsQuestion(text);
       }
       _controller.clear();
       if (mounted) setState(() => _imageBytes = null);
     } on CoachApiException catch (e) {
-      await ref.read(threadRepositoryProvider).add(ThreadItem.coachAnswer(
-            text: e.userMessage,
-            at: DateTime.now(),
-          ));
+      // Backend complained for a specific reason: surface as system snackbar,
+      // not as a coach bubble (those should feel like dialogue, not errors).
+      _showSnack(e.userMessage);
     } catch (_) {
-      await ref.read(threadRepositoryProvider).add(ThreadItem.coachAnswer(
-            text: 'Etwas ist schiefgelaufen. Probier es nochmal.',
-            at: DateTime.now(),
-          ));
+      _showSnack('Senden hat nicht geklappt. Probier es nochmal.');
     } finally {
       if (mounted) setState(() => _sending = false);
     }

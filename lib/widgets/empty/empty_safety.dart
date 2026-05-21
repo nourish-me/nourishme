@@ -5,8 +5,6 @@ import '../nm_icons.dart';
 
 // "All clear" food-safety state.
 // Spec: handoff/testflight_1_1/README.md "Food Safety (alles ok)".
-// Not wired into a screen yet — Food Safety is currently only surfaced
-// inline on meal warnings.
 class EmptySafety extends StatelessWidget {
   final List<SafetyCheckRow> checks;
   const EmptySafety({super.key, this.checks = const []});
@@ -16,6 +14,12 @@ class EmptySafety extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final rows = checks.isEmpty ? _defaultChecks : checks;
+    // Moss stays as the semantic "ok" colour token; on dark backgrounds we
+    // brighten it via the colorScheme outline-variant blend so it remains
+    // legible against the dark surface.
+    final okDotColor = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFA8C5A2)
+        : NMColors.moss;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
       child: Column(
@@ -26,7 +30,7 @@ class EmptySafety extends StatelessWidget {
             'FOOD SAFETY · BFR',
             textAlign: TextAlign.center,
             style: textTheme.labelSmall?.copyWith(
-              color: NMColors.inkMute,
+              color: scheme.outline,
               letterSpacing: 1.2,
               fontWeight: FontWeight.w600,
             ),
@@ -37,9 +41,9 @@ class EmptySafety extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: NMColors.paperHi,
+                color: scheme.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: NMColors.rule, width: 1),
+                border: Border.all(color: scheme.outlineVariant, width: 1),
               ),
               alignment: Alignment.center,
               child: NMIcons.foodSafety(size: 48),
@@ -58,7 +62,7 @@ class EmptySafety extends StatelessWidget {
           const SizedBox(height: 20),
           for (var i = 0; i < rows.length; i++) ...[
             if (i > 0)
-              Divider(color: NMColors.rule, height: 1, thickness: 1),
+              Divider(color: scheme.outlineVariant, height: 1, thickness: 1),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Row(
@@ -67,7 +71,7 @@ class EmptySafety extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: NMColors.moss,
+                      color: okDotColor,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -83,7 +87,7 @@ class EmptySafety extends StatelessWidget {
                   Text(
                     rows[i].note,
                     style: textTheme.labelSmall?.copyWith(
-                      color: NMColors.inkMute,
+                      color: scheme.outline,
                       letterSpacing: 0.3,
                     ),
                   ),

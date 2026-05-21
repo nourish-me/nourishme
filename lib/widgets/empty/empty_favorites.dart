@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/nourishme_colors.dart';
-
 // Empty state for the Favoriten section in Settings.
 // Spec: handoff/testflight_1_1/README.md "Favoriten (leer)".
 class EmptyFavorites extends StatelessWidget {
@@ -20,15 +18,15 @@ class EmptyFavorites extends StatelessWidget {
             width: 88,
             height: 88,
             decoration: BoxDecoration(
-              color: NMColors.paperHi,
+              color: scheme.surface,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: NMColors.rule, width: 1),
+              border: Border.all(color: scheme.outlineVariant, width: 1),
             ),
             alignment: Alignment.center,
             child: Icon(
               Icons.star_outline_rounded,
               size: 48,
-              color: NMColors.amber,
+              color: scheme.secondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -48,7 +46,7 @@ class EmptyFavorites extends StatelessWidget {
               'Tippe in einer Mahlzeit auf den Stern, um sie zu speichern.',
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
-                color: NMColors.inkSoft,
+                color: scheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -56,20 +54,20 @@ class EmptyFavorites extends StatelessWidget {
           // Inline example row showing the affordance.
           Container(
             decoration: BoxDecoration(
-              color: NMColors.paperHi,
+              color: scheme.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: NMColors.rule, width: 1),
+              border: Border.all(color: scheme.outlineVariant, width: 1),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 14,
-                  backgroundColor: NMColors.paperLo,
+                  backgroundColor: scheme.surfaceContainerLow,
                   child: Icon(
                     Icons.lunch_dining_outlined,
                     size: 16,
-                    color: NMColors.inkSoft,
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -84,7 +82,7 @@ class EmptyFavorites extends StatelessWidget {
                 Icon(
                   Icons.star_outline_rounded,
                   size: 18,
-                  color: NMColors.amber,
+                  color: scheme.secondary,
                 ),
               ],
             ),

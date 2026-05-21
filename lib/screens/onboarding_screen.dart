@@ -6,7 +6,6 @@ import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../services/nutrition_facts.dart';
-import '../theme/nourishme_colors.dart';
 import '../utils/number_format.dart';
 import '../widgets/info_button.dart';
 import '../widgets/nm_icons.dart';
@@ -32,10 +31,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _isLactating = true;
   int _trimester = 1;
 
-  // Body (start empty so the user doesn't accidentally accept defaults).
-  late final TextEditingController _age = TextEditingController();
-  late final TextEditingController _height = TextEditingController();
-  late final TextEditingController _weight = TextEditingController();
+  // Body fields are pre-filled with neutral defaults so the user can advance
+  // straight away. They are encouraged to adjust, but if they don't the
+  // values shown are what gets persisted (no hidden fallbacks).
+  late final TextEditingController _age = TextEditingController(text: '30');
+  late final TextEditingController _height = TextEditingController(text: '165');
+  late final TextEditingController _weight = TextEditingController(text: '65');
   double _activityFactor = 1.375;
 
   // Lactation
@@ -323,7 +324,7 @@ class _ProgressHeader extends StatelessWidget {
                   child: Text(
                     'SCHRITT ${step + 1} VON $total',
                     style: textTheme.labelSmall?.copyWith(
-                      color: NMColors.inkMute,
+                      color: scheme.outline,
                       letterSpacing: 1.4,
                       fontWeight: FontWeight.w600,
                     ),
@@ -351,7 +352,7 @@ class _ProgressHeader extends StatelessWidget {
                   width: i == step ? 22 : 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: i == step ? scheme.primary : NMColors.rule,
+                    color: i == step ? scheme.primary : scheme.outlineVariant,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
@@ -399,7 +400,7 @@ class _WelcomeStep extends StatelessWidget {
                 ),
                 TextSpan(
                   text: '.',
-                  style: TextStyle(color: NMColors.amber),
+                  style: TextStyle(color: scheme.secondary),
                 ),
               ],
             ),
@@ -413,7 +414,7 @@ class _WelcomeStep extends StatelessWidget {
               'Ernährung, die mitdenkt.',
               textAlign: TextAlign.center,
               style: textTheme.headlineSmall?.copyWith(
-                color: NMColors.inkSoft,
+                color: scheme.onSurfaceVariant,
                 fontSize: 22,
                 height: 1.3,
               ),
@@ -430,20 +431,9 @@ class _WelcomeStep extends StatelessWidget {
               'ca. 3 Minuten Setup.',
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
-                color: NMColors.inkSoft,
+                color: scheme.onSurfaceVariant,
                 height: 1.5,
               ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 32),
-        Center(
-          child: Text(
-            'SINGLE USER · LÄUFT LOKAL AUF DEINEM GERÄT',
-            style: textTheme.labelSmall?.copyWith(
-              color: NMColors.inkMute,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -548,7 +538,7 @@ class _PhaseChoice extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Material(
-      color: selected ? scheme.primaryContainer : NMColors.paperHi,
+      color: selected ? scheme.primaryContainer : scheme.surface,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -558,7 +548,7 @@ class _PhaseChoice extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected ? scheme.primary : NMColors.rule,
+              color: selected ? scheme.primary : scheme.outlineVariant,
               width: 1.5,
             ),
           ),
@@ -569,7 +559,7 @@ class _PhaseChoice extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: NMColors.paperLo,
+                    color: scheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
@@ -585,13 +575,16 @@ class _PhaseChoice extends StatelessWidget {
                       label,
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: selected
+                            ? scheme.onPrimaryContainer
+                            : scheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       description,
                       style: textTheme.bodySmall?.copyWith(
-                        color: NMColors.inkSoft,
+                        color: scheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -606,8 +599,8 @@ class _PhaseChoice extends StatelessWidget {
                     color: scheme.primary,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Icon(Icons.check,
-                      color: Colors.white, size: 18),
+                  child: Icon(Icons.check,
+                      color: scheme.onPrimary, size: 18),
                 ),
               InfoButton(fact: fact),
             ],
@@ -828,42 +821,11 @@ class _PhaseDetailsStep extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _NumberStepper(
-                  value: numChildren,
-                  min: 1,
-                  max: 4,
-                  onChanged: onChildrenChanged,
-                ),
-              ),
-              if (numChildren >= 2) ...[
-                const SizedBox(width: 10),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: NMColors.amberLight,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      NMIcons.multiples(size: 18),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Mehrlinge',
-                        style: textTheme.labelMedium?.copyWith(
-                          color: NMColors.ink,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
+          _NumberStepper(
+            value: numChildren,
+            min: 1,
+            max: 4,
+            onChanged: onChildrenChanged,
           ),
           const SizedBox(height: 20),
           Text(
@@ -975,7 +937,7 @@ class _SummaryStep extends StatelessWidget {
         Text(
           'BERECHNUNG',
           style: textTheme.labelSmall?.copyWith(
-            color: NMColors.inkMute,
+            color: scheme.outline,
             letterSpacing: 1.4,
             fontWeight: FontWeight.w600,
           ),
@@ -992,9 +954,9 @@ class _SummaryStep extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
           decoration: BoxDecoration(
-            color: NMColors.paperHi,
+            color: scheme.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: NMColors.rule, width: 1),
+            border: Border.all(color: scheme.outlineVariant, width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1018,7 +980,7 @@ class _SummaryStep extends StatelessWidget {
                     child: Text(
                       'kcal',
                       style: textTheme.labelMedium?.copyWith(
-                        color: NMColors.inkSoft,
+                        color: scheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1029,28 +991,28 @@ class _SummaryStep extends StatelessWidget {
               Text(
                 _buildLede(profile, bmrTdee, pregSupp, lactSupp),
                 style: textTheme.titleLarge?.copyWith(
-                  color: NMColors.inkSoft,
+                  color: scheme.onSurfaceVariant,
                   fontSize: 17,
                   fontWeight: FontWeight.w400,
                   height: 1.4,
                 ),
               ),
               const SizedBox(height: 20),
-              Divider(color: NMColors.rule, height: 1),
+              Divider(color: scheme.outlineVariant, height: 1),
               const SizedBox(height: 16),
               Text(
                 'MAKRONÄHRSTOFFE · TAGESBEDARF',
                 style: textTheme.labelSmall?.copyWith(
-                  color: NMColors.inkMute,
+                  color: scheme.outline,
                   letterSpacing: 1.2,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 8),
               _MacroRow(label: 'Protein', value: '${macros.proteinG} g'),
-              Divider(color: NMColors.rule, height: 1),
+              Divider(color: scheme.outlineVariant, height: 1),
               _MacroRow(label: 'Kohlenhydrate', value: '${macros.carbsG} g'),
-              Divider(color: NMColors.rule, height: 1),
+              Divider(color: scheme.outlineVariant, height: 1),
               _MacroRow(label: 'Fett', value: '${macros.fatG} g'),
             ],
           ),
@@ -1081,6 +1043,7 @@ class _MacroRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 11),
@@ -1089,13 +1052,13 @@ class _MacroRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: textTheme.bodyMedium?.copyWith(color: NMColors.ink),
+              style: textTheme.bodyMedium?.copyWith(color: scheme.onSurface),
             ),
           ),
           Text(
             value,
             style: textTheme.labelMedium?.copyWith(
-              color: NMColors.inkSoft,
+              color: scheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
