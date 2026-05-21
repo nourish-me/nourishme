@@ -7,6 +7,7 @@ import '../services/calorie_target.dart';
 import '../theme/nourishme_colors.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
+import 'settings_screen.dart';
 
 // TrendsScreen: first-pass reporting view introduced in TestFlight 1.1.
 // Pure derivation from existing meal data, no new API calls. Cards:
@@ -32,6 +33,18 @@ class TrendsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Trends'),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Einstellungen',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
