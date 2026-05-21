@@ -7,6 +7,8 @@ class MealEntry {
   final double proteinG;
   final double carbsG;
   final double fatG;
+  final double portionAmount;
+  final String portionUnit;
   final List<String> safetyWarnings;
 
   const MealEntry({
@@ -18,6 +20,8 @@ class MealEntry {
     required this.proteinG,
     required this.carbsG,
     required this.fatG,
+    required this.portionAmount,
+    required this.portionUnit,
     required this.safetyWarnings,
   });
 
@@ -30,9 +34,13 @@ class MealEntry {
         'proteinG': proteinG,
         'carbsG': carbsG,
         'fatG': fatG,
+        'portionAmount': portionAmount,
+        'portionUnit': portionUnit,
         'safetyWarnings': safetyWarnings,
       };
 
+  // Older entries (pre-portion-persistence) deserialise with sensible
+  // defaults so existing Hive data keeps working without a migration step.
   factory MealEntry.fromJson(Map<String, dynamic> json) => MealEntry(
         id: json['id'] as String,
         createdAt: DateTime.parse(json['createdAt'] as String),
@@ -42,6 +50,8 @@ class MealEntry {
         proteinG: (json['proteinG'] as num).toDouble(),
         carbsG: (json['carbsG'] as num).toDouble(),
         fatG: (json['fatG'] as num).toDouble(),
+        portionAmount: (json['portionAmount'] as num?)?.toDouble() ?? 0,
+        portionUnit: json['portionUnit'] as String? ?? 'g',
         safetyWarnings: List<String>.from(json['safetyWarnings'] as List),
       );
 }

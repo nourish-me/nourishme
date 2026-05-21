@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../main.dart';
 import '../models/favorite_meal.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
@@ -172,6 +173,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
     Navigator.pop(context);
+    // Surface confirmation on the parent scaffold (Verlauf / Tagebuch) so the
+    // user lands back, sees the updated kcal/macros toolbar AND a brief
+    // "Gespeichert" cue tying the two together.
+    rootScaffoldMessengerKey.currentState?.showSnackBar(
+      const SnackBar(
+        content: Text('Profil gespeichert'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _resetApp() async {
@@ -980,21 +991,35 @@ class _MacroSplitSection extends StatelessWidget {
             onChanged: onFatChanged,
           ),
           const SizedBox(height: 12),
-          // Carbs are the remainder, not interactive.
+          // Carbs are the remainder, not interactive. Render with the same
+          // visual structure as Protein/Fett so the three rows read uniformly.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Kohlenhydrate (Rest)',
-                    style: textTheme.bodyMedium,
+                  child: RichText(
+                    text: TextSpan(
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurface,
+                      ),
+                      children: [
+                        const TextSpan(text: 'Kohlenhydrate '),
+                        TextSpan(
+                          text: '(Rest)',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: scheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Text(
                   '$cPct % · ${cGrams}g · $cKcal kcal',
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.outline,
+                    fontWeight: FontWeight.w600,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),

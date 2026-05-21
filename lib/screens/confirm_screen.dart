@@ -149,6 +149,8 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       proteinG: proteinG,
       carbsG: carbsG,
       fatG: fatG,
+      portionAmount: portion,
+      portionUnit: widget.parsed.portionUnit,
       safetyWarnings: widget.parsed.safetyWarnings,
     );
     await ref.read(mealRepositoryProvider).save(meal);

@@ -1438,8 +1438,8 @@ MealParseResult _toParseResult(MealEntry meal) => MealParseResult(
       proteinG: meal.proteinG,
       carbsG: meal.carbsG,
       fatG: meal.fatG,
-      portionAmount: 0,
-      portionUnit: 'g',
+      portionAmount: meal.portionAmount,
+      portionUnit: meal.portionUnit,
       safetyWarnings: meal.safetyWarnings,
     );
 
@@ -1467,6 +1467,8 @@ Future<void> _duplicateMeal(WidgetRef ref, MealEntry meal) async {
     proteinG: meal.proteinG,
     carbsG: meal.carbsG,
     fatG: meal.fatG,
+    portionAmount: meal.portionAmount,
+    portionUnit: meal.portionUnit,
     safetyWarnings: meal.safetyWarnings,
   );
   await ref.read(mealRepositoryProvider).save(clone);
