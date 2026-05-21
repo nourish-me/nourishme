@@ -92,24 +92,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _loadPreviousDay() async {
     if (_loadingPreviousDay) return;
+    final days = ref.read(loadedDaysProvider);
+    if (days.isEmpty) return;
+
+    // Stop auto-loading once we've walked back past the user's earliest
+    // logged meal — the empty-day collapse means the new days don't push
+    // the viewport down much, so the near-top trigger would re-fire in a
+    // tight loop and the list visibly flickers.
+    final mealsAll = ref.read(mealsProvider).valueOrNull ?? const [];
+    if (mealsAll.isEmpty) return;
+    final earliestMealDay = mealsAll
+        .map((m) =>
+            DateTime(m.createdAt.year, m.createdAt.month, m.createdAt.day))
+        .reduce((a, b) => a.isBefore(b) ? a : b);
+    // Allow a single 7-day grace window past the earliest meal so the user
+    // can scroll back a bit further for context, then stop.
+    final stopAt = earliestMealDay.subtract(const Duration(days: 7));
+    if (!days.first.isAfter(stopAt)) return;
+
+    // Also hard-cap at 60 days of loaded history so we don't grow the list
+    // unboundedly. Older days are reachable via the Verlauf tap-into-day.
+    if (days.length >= 60) return;
+
     _loadingPreviousDay = true;
     final prevMax = _scroll.position.maxScrollExtent;
     final prevOffset = _scroll.offset;
-    final days = ref.read(loadedDaysProvider);
-    if (days.isEmpty) {
-      _loadingPreviousDay = false;
-      return;
-    }
-    // Load a full week at a time. Reduces the number of scroll-jump cycles
-    // when the user is paging back through long empty stretches.
     const batch = 7;
     final oldest = days.first;
     final newDays = <DateTime>[
       for (int i = batch; i >= 1; i--) oldest.subtract(Duration(days: i)),
     ];
     ref.read(loadedDaysProvider.notifier).state = [...newDays, ...days];
-    // After the new day renders we measure the height delta and offset the
-    // scroll position so the visible items don't jump under the user's thumb.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scroll.hasClients) {
         _loadingPreviousDay = false;
@@ -120,7 +133,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (delta > 0) {
         _scroll.jumpTo(prevOffset + delta);
       }
-      _loadingPreviousDay = false;
+      // Hold the loading flag for a short cooldown so a near-top scroll
+      // listener can't immediately re-fire while the user is still pulling.
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) _loadingPreviousDay = false;
+      });
     });
   }
 
