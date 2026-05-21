@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../main.dart';
 import '../models/favorite_meal.dart';
+import '../services/feedback_sender.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
@@ -364,6 +365,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const _FavoritesSection(),
                 const SizedBox(height: 12),
                 _ThemeSection(),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => FeedbackSender.openFeedbackMail(),
+                  icon: const Icon(Icons.mail_outline),
+                  label: const Text('Feedback senden'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: _resetApp,
