@@ -12,6 +12,7 @@ import 'screens/main_scaffold.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/favorite_repository.dart';
 import 'services/meal_repository.dart';
+import 'services/notification_scheduler.dart';
 import 'services/settings_repository.dart';
 import 'services/thread_repository.dart';
 import 'theme/nourishme_colors.dart';
@@ -34,6 +35,14 @@ Future<void> main() async {
   final settingsRepo = await SettingsRepository.open();
   final favoriteRepo = await FavoriteRepository.open();
   final threadRepo = await ThreadRepository.open();
+
+  // Sync local notifications to the persisted reminder settings — on first
+  // launch this is a no-op (master is off by default), but on subsequent
+  // launches it re-arms any scheduled slot in case iOS dropped them after
+  // OS updates or app reinstall.
+  unawaited(
+    NotificationScheduler.rescheduleFor(settingsRepo.getReminders()),
+  );
   final hasProfile = settingsRepo.hasProfile();
   final themeMode = _parseThemeMode(settingsRepo.getThemeMode());
 

@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../main.dart';
 import '../models/favorite_meal.dart';
+import '../models/reminder_settings.dart';
 import '../services/feedback_sender.dart';
+import '../services/notification_scheduler.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
@@ -364,6 +366,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 12),
                 const _FavoritesSection(),
                 const SizedBox(height: 16),
+                const _RemindersSection(),
+                const SizedBox(height: 16),
                 _ThemeSection(),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
@@ -696,6 +700,130 @@ class _ActivitySection extends StatelessWidget {
             ActivityLevel.closestTo(activityFactor).hint,
             style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RemindersSection extends ConsumerStatefulWidget {
+  const _RemindersSection();
+
+  @override
+  ConsumerState<_RemindersSection> createState() => _RemindersSectionState();
+}
+
+class _RemindersSectionState extends ConsumerState<_RemindersSection> {
+  ReminderSettings? _settings;
+
+  @override
+  void initState() {
+    super.initState();
+    _settings = ref.read(settingsRepositoryProvider).getReminders();
+  }
+
+  Future<void> _persist() async {
+    final s = _settings!;
+    await ref.read(settingsRepositoryProvider).saveReminders(s);
+    await NotificationScheduler.rescheduleFor(s);
+  }
+
+  Future<void> _onMasterToggled(bool on) async {
+    if (on) {
+      final granted = await NotificationScheduler.requestPermissions();
+      if (!mounted) return;
+      if (!granted) {
+        rootScaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Benachrichtigungen sind in den iOS-Einstellungen blockiert.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+    }
+    setState(() {
+      _settings = _settings!.copyWith(masterEnabled: on);
+    });
+    await _persist();
+  }
+
+  Future<void> _onEntryToggled(ReminderEntry entry, bool on) async {
+    setState(() {
+      _settings = _settings!.withEntry(entry.copyWith(enabled: on));
+    });
+    await _persist();
+  }
+
+  Future<void> _onTimeTap(ReminderEntry entry) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: entry.time,
+      helpText: '${ReminderCopy.label(entry.slot)} um …',
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _settings = _settings!.withEntry(
+          entry.copyWith(hour: picked.hour, minute: picked.minute));
+    });
+    await _persist();
+  }
+
+  String _formatTime(ReminderEntry e) =>
+      '${e.hour.toString().padLeft(2, '0')}:${e.minute.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _settings ?? ReminderSettings.defaults;
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return _Section(
+      title: 'Erinnerungen',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Mahlzeit-Erinnerungen'),
+            subtitle: Text(
+              s.masterEnabled
+                  ? 'Aktiv. Stelle ein, was du wann hören willst.'
+                  : 'Aus. Bei Aktivierung fragt iOS einmal um Erlaubnis.',
+              style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+            ),
+            value: s.masterEnabled,
+            onChanged: _onMasterToggled,
+          ),
+          if (s.masterEnabled) ...[
+            const SizedBox(height: 8),
+            for (final entry in s.entries) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(ReminderCopy.label(entry.slot)),
+                      value: entry.enabled,
+                      onChanged: (on) => _onEntryToggled(entry, on),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: entry.enabled ? () => _onTimeTap(entry) : null,
+                    child: Text(
+                      _formatTime(entry),
+                      style: textTheme.titleMedium?.copyWith(
+                        color: entry.enabled
+                            ? scheme.primary
+                            : scheme.outline,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
         ],
       ),
     );

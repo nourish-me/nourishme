@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:hive/hive.dart';
 
+import '../models/reminder_settings.dart';
 import '../models/user_profile_settings.dart';
 
 class SettingsRepository {
@@ -10,6 +11,7 @@ class SettingsRepository {
   static const _coachingDateKey = 'coaching_last_opened_day';
   static const _insightDateKey = 'insight_last_generated_day';
   static const _themeModeKey = 'theme_mode';
+  static const _remindersKey = 'meal_reminders';
 
   final Box<String> _box;
 
@@ -70,4 +72,17 @@ class SettingsRepository {
         '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
     return _box.put(_insightDateKey, iso);
   }
+
+  ReminderSettings getReminders() {
+    final raw = _box.get(_remindersKey);
+    if (raw == null) return ReminderSettings.defaults;
+    try {
+      return ReminderSettings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return ReminderSettings.defaults;
+    }
+  }
+
+  Future<void> saveReminders(ReminderSettings r) =>
+      _box.put(_remindersKey, jsonEncode(r.toJson()));
 }
