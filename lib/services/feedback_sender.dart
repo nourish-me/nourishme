@@ -8,7 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 // includes app + device context, so triaging feedback doesn't need an extra
 // back-and-forth on "which version are you on?".
 class FeedbackSender {
-  static const _recipient = 'vanessa.heizmann5@gmail.com';
+  static const _recipient = 'hi.nourishme@gmail.com';
 
   static Future<void> openFeedbackMail() async {
     final pkg = await PackageInfo.fromPlatform();
