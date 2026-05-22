@@ -783,44 +783,93 @@ class _RemindersSectionState extends ConsumerState<_RemindersSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Mahlzeit-Erinnerungen'),
-            subtitle: Text(
-              s.masterEnabled
-                  ? 'Aktiv. Stelle ein, was du wann hören willst.'
-                  : 'Aus. Bei Aktivierung fragt iOS einmal um Erlaubnis.',
-              style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mahlzeit-Erinnerungen',
+                        style: textTheme.bodyLarge
+                            ?.copyWith(color: scheme.onSurface),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        s.masterEnabled
+                            ? 'Aktiv. Stelle ein, was du wann hören willst.'
+                            : 'Aus. Bei Aktivierung fragt iOS einmal um Erlaubnis.',
+                        style: textTheme.bodySmall
+                            ?.copyWith(color: scheme.outline),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Switch(
+                  value: s.masterEnabled,
+                  onChanged: _onMasterToggled,
+                ),
+              ],
             ),
-            value: s.masterEnabled,
-            onChanged: _onMasterToggled,
           ),
           if (s.masterEnabled) ...[
-            const SizedBox(height: 8),
-            for (final entry in s.entries) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(ReminderCopy.label(entry.slot)),
-                      value: entry.enabled,
-                      onChanged: (on) => _onEntryToggled(entry, on),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: entry.enabled ? () => _onTimeTap(entry) : null,
-                    child: Text(
-                      _formatTime(entry),
-                      style: textTheme.titleMedium?.copyWith(
-                        color: entry.enabled
-                            ? scheme.primary
-                            : scheme.outline,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+            const SizedBox(height: 4),
+            for (var i = 0; i < s.entries.length; i++) ...[
+              if (i > 0) Divider(color: scheme.outlineVariant, height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        ReminderCopy.label(s.entries[i].slot),
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: s.entries[i].enabled
+                              ? scheme.onSurface
+                              : scheme.outline,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    // Time chip: clearly tappable when enabled, dim when off.
+                    Material(
+                      color: s.entries[i].enabled
+                          ? scheme.primaryContainer
+                          : scheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(20),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: s.entries[i].enabled
+                            ? () => _onTimeTap(s.entries[i])
+                            : null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 6),
+                          child: Text(
+                            _formatTime(s.entries[i]),
+                            style: textTheme.labelLarge?.copyWith(
+                              color: s.entries[i].enabled
+                                  ? scheme.onPrimaryContainer
+                                  : scheme.outline,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ],
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Switch(
+                      value: s.entries[i].enabled,
+                      onChanged: (on) =>
+                          _onEntryToggled(s.entries[i], on),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
