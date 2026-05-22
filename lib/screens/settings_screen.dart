@@ -363,9 +363,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 const _FavoritesSection(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 _ThemeSection(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () => FeedbackSender.openFeedbackMail(),
                   icon: const Icon(Icons.mail_outline),
@@ -374,12 +374,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     minimumSize: const Size.fromHeight(48),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: _resetApp,
                   icon: const Icon(Icons.restore_outlined),
                   label: const Text('App zurücksetzen'),
                   style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
                     foregroundColor:
                         Theme.of(context).colorScheme.error,
                     side: BorderSide(
@@ -389,7 +390,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
               ],
             ),
             bottomNavigationBar: SafeArea(

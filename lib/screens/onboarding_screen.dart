@@ -604,18 +604,6 @@ class _PhaseChoice extends StatelessWidget {
                   ],
                 ),
               ),
-              if (selected)
-                Container(
-                  width: 24,
-                  height: 24,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: scheme.primary,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(Icons.check,
-                      color: scheme.onPrimary, size: 18),
-                ),
               InfoButton(fact: fact),
             ],
           ),
