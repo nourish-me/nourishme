@@ -207,7 +207,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // The created meal's createdAt is overridden to noon of that day.
   Future<void> _logForDay(DateTime day) async {
     final controller = TextEditingController();
-    final text = await showModalBottomSheet<String>(
+    final entry =
+        await showModalBottomSheet<({String text, TimeOfDay time})?>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
@@ -220,11 +221,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       },
     );
     controller.dispose();
-    if (text == null || text.trim().isEmpty || !mounted) return;
+    if (entry == null || entry.text.trim().isEmpty || !mounted) return;
     try {
-      final parsed = await ref.read(claudeClientProvider).parseMeal(text);
+      final parsed = await ref.read(claudeClientProvider).parseMeal(entry.text);
       if (!mounted || !parsed.isMeal) return;
-      final createdAt = DateTime(day.year, day.month, day.day, 12, 0);
+      final createdAt = DateTime(
+          day.year, day.month, day.day, entry.time.hour, entry.time.minute);
       if (!mounted) return;
       await showModalBottomSheet<MealEntry>(
         context: context,
@@ -232,7 +234,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         useSafeArea: true,
         showDragHandle: true,
         builder: (_) => ConfirmScreen(
-          rawText: text,
+          rawText: entry.text,
           parsed: parsed,
           existingCreatedAt: createdAt,
           asSheet: true,
@@ -797,10 +799,37 @@ class _EmptyDay extends StatelessWidget {
   }
 }
 
-class _PastDayInputSheet extends StatelessWidget {
+class _PastDayInputSheet extends StatefulWidget {
   final TextEditingController controller;
   final DateTime day;
   const _PastDayInputSheet({required this.controller, required this.day});
+
+  @override
+  State<_PastDayInputSheet> createState() => _PastDayInputSheetState();
+}
+
+class _PastDayInputSheetState extends State<_PastDayInputSheet> {
+  // Defaults to noon so the entry lands somewhere reasonable if the user
+  // doesn't bother to set a time.
+  TimeOfDay _time = const TimeOfDay(hour: 12, minute: 0);
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _time,
+      helpText: 'Uhrzeit wählen',
+    );
+    if (picked != null) setState(() => _time = picked);
+  }
+
+  void _submit() {
+    Navigator.of(context).pop(
+      (text: widget.controller.text, time: _time),
+    );
+  }
+
+  String _formatTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')} Uhr';
 
   @override
   Widget build(BuildContext context) {
@@ -819,7 +848,7 @@ class _PastDayInputSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Eintrag für ${formatDayHeader(day)}',
+                'Eintrag für ${formatDayHeader(widget.day)}',
                 style: textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
@@ -829,19 +858,42 @@ class _PastDayInputSheet extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               TextField(
-                controller: controller,
+                controller: widget.controller,
                 autofocus: true,
                 minLines: 1,
                 maxLines: 4,
                 textInputAction: TextInputAction.send,
-                onSubmitted: (_) =>
-                    Navigator.of(context).pop(controller.text),
+                onSubmitted: (_) => _submit(),
                 decoration: const InputDecoration(
                   hintText: 'z.B. Müsli mit Joghurt, 1 Schüssel',
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
+              InkWell(
+                onTap: _pickTime,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                  child: Row(
+                    children: [
+                      Icon(Icons.schedule_outlined,
+                          size: 18, color: scheme.outline),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Uhrzeit: ${_formatTime(_time)}',
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: scheme.onSurface),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(Icons.edit_outlined,
+                          size: 14, color: scheme.outline),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -853,8 +905,7 @@ class _PastDayInputSheet extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: FilledButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(controller.text),
+                      onPressed: _submit,
                       child: const Text('Weiter'),
                     ),
                   ),
