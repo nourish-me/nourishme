@@ -5,7 +5,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
+import '../models/reminder_settings.dart';
 import '../services/nutrition_facts.dart';
+import '../services/notification_scheduler.dart';
 import '../utils/number_format.dart';
 import '../widgets/info_button.dart';
 import '../widgets/nm_icons.dart';
@@ -44,6 +46,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _numChildren = 1;
   int _childAgeGroup = 0;
   int _milkSharePercent = 100;
+  // Meal-reminder opt-in on the final summary step. Defaults to true so most
+  // users land in the app with reminders set up; if iOS denies the system
+  // permission we honestly flip the persisted master flag back to off.
+  bool _remindersOptIn = true;
   int _dailyVolumeMl =
       UserProfileSettings.estimatedDailyVolumeMl(
           numChildren: 1, ageGroup: 0, sharePercent: 100);
@@ -167,8 +173,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _finish() async {
     final profile = _buildProfile();
-    await ref.read(settingsRepositoryProvider).saveProfile(profile);
+    final settingsRepo = ref.read(settingsRepositoryProvider);
+    await settingsRepo.saveProfile(profile);
     ref.invalidate(userProfileProvider);
+
+    // If the user kept the meal-reminders opt-in on, request iOS permission
+    // now (in onboarding context, so it doesn't feel like an ambush later)
+    // and persist the final state honestly: enabled only if the system
+    // actually granted. Either way the slot defaults are saved so the
+    // Settings → Erinnerungen UI can toggle them back on without rebuild.
+    var reminders = ReminderSettings.defaults;
+    if (_remindersOptIn) {
+      final granted = await NotificationScheduler.requestPermissions();
+      reminders = reminders.copyWith(masterEnabled: granted);
+    }
+    await settingsRepo.saveReminders(reminders);
+    await NotificationScheduler.rescheduleFor(reminders);
+
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const MainScaffold()),
@@ -261,7 +282,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onVolumeChanged: (v) =>
                           setState(() => _dailyVolumeMl = v),
                     ),
-                    _SummaryStep(profile: _buildProfile()),
+                    _SummaryStep(
+                      profile: _buildProfile(),
+                      remindersOptIn: _remindersOptIn,
+                      onRemindersToggled: (v) =>
+                          setState(() => _remindersOptIn = v),
+                    ),
                   ],
                 ),
               ),
@@ -940,7 +966,13 @@ class _PhaseDetailsStep extends StatelessWidget {
 
 class _SummaryStep extends StatelessWidget {
   final UserProfileSettings profile;
-  const _SummaryStep({required this.profile});
+  final bool remindersOptIn;
+  final ValueChanged<bool> onRemindersToggled;
+  const _SummaryStep({
+    required this.profile,
+    required this.remindersOptIn,
+    required this.onRemindersToggled,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1044,6 +1076,49 @@ class _SummaryStep extends StatelessWidget {
             const Spacer(),
             InfoButton(fact: NutritionFacts.proteinLactation),
           ],
+        ),
+        const SizedBox(height: 16),
+        // Meal-reminder opt-in card. Default on; explicit toggle so the user
+        // sees they're opting in to iOS notifications before "Tagebuch öffnen"
+        // triggers the system permission prompt.
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: scheme.outlineVariant, width: 1),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.notifications_active_outlined,
+                  size: 22, color: scheme.secondary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Mahlzeit-Erinnerungen',
+                      style: textTheme.bodyLarge
+                          ?.copyWith(color: scheme.onSurface),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Fünf Slots über den Tag verteilt. iOS fragt einmal '
+                      'um Erlaubnis, wenn du "Tagebuch öffnen" tippst.',
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Switch(
+                value: remindersOptIn,
+                onChanged: onRemindersToggled,
+              ),
+            ],
+          ),
         ),
       ],
     );
