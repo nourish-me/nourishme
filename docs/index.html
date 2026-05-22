@@ -126,6 +126,9 @@
   .topbar-spacer { flex: 1; }
   .topbar a.nav { color: var(--ink-soft); font-size: 15px; }
   .topbar a.nav:hover { color: var(--ink); text-decoration: none; }
+  /* Compact CTA inside the topbar so it shares the brand-text height
+     rather than ballooning the bar to fit a hero-size button. */
+  .topbar .btn { padding: 7px 14px; font-size: 14px; }
 
   /* ─────────── Buttons ─────────── */
   .btn {
@@ -316,7 +319,7 @@
 
   /* ─────────── USPs ─────────── */
   .usps {
-    padding: 96px 0 72px;
+    padding: 64px 0 56px;
   }
   .usp-head { text-align: center; margin-bottom: 56px; }
   .usp-head .eyebrow { display: block; margin-bottom: 12px; }
@@ -361,7 +364,7 @@
 
   /* ─────────── Audience selector ─────────── */
   .audience {
-    padding: 96px 0;
+    padding: 64px 0;
     background: var(--paper-hi);
     border-top: 0.5px solid var(--rule);
     border-bottom: 0.5px solid var(--rule);
@@ -447,9 +450,9 @@
 
   /* ─────────── How it works ─────────── */
   .how {
-    padding: 96px 0 88px;
+    padding: 64px 0;
   }
-  .how-head { text-align: center; margin-bottom: 56px; }
+  .how-head { text-align: center; margin-bottom: 40px; }
   .how-steps {
     max-width: 720px; margin: 0 auto;
     display: flex; flex-direction: column;
@@ -478,26 +481,31 @@
 
   /* ─────────── Story ─────────── */
   .story {
-    padding: 96px 0;
+    padding: 72px 0;
     background: var(--paper-hi);
     border-top: 0.5px solid var(--rule);
     border-bottom: 0.5px solid var(--rule);
   }
+  /* Centered editorial: portrait on top, text below, everything aligned
+     on the page's central axis. Was a 2-column grid before. */
   .story-grid {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 48px;
-    align-items: start;
-    max-width: 880px; margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    max-width: 680px;
+    margin: 0 auto;
+    text-align: center;
   }
   .story-photo {
-    width: 240px; height: 300px;
+    width: 200px; height: 250px;
     overflow: hidden;
     border-radius: 4px;
     background: var(--paper-lo);
     box-shadow: 0 8px 24px -10px rgba(15,45,42,0.18);
   }
   .story-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .story-content { width: 100%; }
   .story-content .mono { display: block; margin-bottom: 12px; }
   .story-content h2 {
     font-family: var(--serif); font-weight: 600;
@@ -517,9 +525,9 @@
 
   /* ─────────── Wissenschaftliche Basis ─────────── */
   .basis {
-    padding: 96px 0 80px;
+    padding: 64px 0;
   }
-  .basis-head { text-align: center; margin-bottom: 44px; }
+  .basis-head { text-align: center; margin-bottom: 36px; }
   .basis-list {
     max-width: 720px; margin: 0 auto;
     display: grid;
@@ -553,7 +561,7 @@
 
   /* ─────────── Beta CTA ─────────── */
   .beta {
-    padding: 96px 0;
+    padding: 64px 0;
     background: var(--pine);
     color: var(--paper-hi);
     text-align: center;
@@ -606,7 +614,7 @@
     .section-title { font-size: 26px; }
     .topbar-inner { padding: 14px 20px; }
     .wrap, .wrap-narrow { padding: 0 20px; }
-    .usps, .audience, .how, .story, .basis, .beta { padding-top: 64px; padding-bottom: 60px; }
+    .usps, .audience, .how, .story, .basis, .beta { padding-top: 52px; padding-bottom: 48px; }
     .usp-grid { grid-template-columns: 1fr; }
     .usp { border-right: none; border-bottom: 0.5px solid var(--rule); }
     .usp:last-child { border-bottom: none; }
@@ -652,7 +660,7 @@
     .trust-inner { gap: 12px 16px; }
 
     /* Section vertical rhythm */
-    .usps, .audience, .how, .story, .basis, .beta { padding-top: 48px; padding-bottom: 48px; }
+    .usps, .audience, .how, .story, .basis, .beta { padding-top: 40px; padding-bottom: 40px; }
     .section-title { font-size: 24px; }
 
     /* USPs cards */
@@ -956,14 +964,20 @@
       </div>
       <div class="story-content">
         <span class="mono">Warum es NourishMe gibt</span>
-        <h2>Schwangerschafts- und Stillzeit-Ernährung ist ein <em>Versorgungs­thema</em> — kein Diätthema.</h2>
+        <h2>Vor 14 Wochen habe ich Zwillinge bekommen. <em>Carl und Leo.</em></h2>
         <p>
-          Ab dem ersten Trimester war mir klar: ich versorge jetzt mehr als nur mich. Jeder Nährstoff geht erst an den Nachwuchs — über die Plazenta, später über die Milch. Ich muss selbst gut versorgt sein, damit das ganze System läuft.
+          Ab der ersten Schwangerschaftswoche trieb mich eine Frage um: Esse ich gerade genug für uns drei? Jeder Nährstoff geht erst an den Nachwuchs. Ich muss selbst gut versorgt sein, damit das System läuft.
         </p>
         <p>
-          Was es gab: Apps fürs Abnehmen. Apps für Schwangere, die am Tag der Geburt endeten. Apps für Stillende, die pauschal +500 kcal rechneten — egal ob ein Kind oder Zwillinge. Was es brauchte: eine App, die live mitrechnet, was wir gerade brauchen. Auf Basis von DGE, BfR, EFSA und LactMed.
+          Es gab keine App, die mir das beantworten konnte. Apps für Ernährung sind auf Diäten ausgerichtet. Apps für Schwangere endeten am Tag der Geburt. Apps fürs Stillen rechneten pauschal +500 kcal, egal ob ein Kind oder Zwillinge, egal ob Stillen oder Pumpen.
         </p>
-        <div class="story-sign">— Vanessa, Mama von Leo und Carl</div>
+        <p>
+          So ist <b>NourishMe</b> entstanden.
+        </p>
+        <p>
+          Sie rechnet nach jeder Mahlzeit live nach, was mir und dem Nachwuchs gerade noch fehlt: auf Basis meiner tatsächlichen Daten, nicht pauschal. Und sie zieht ihre Werte aus echten Quellen: DGE, BfR, EFSA, LactMed.
+        </p>
+        <div class="story-sign">— Vanessa, Mama von Carl und Leo</div>
       </div>
     </div>
   </div>
