@@ -53,6 +53,8 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); }
+  html { -webkit-text-size-adjust: 100%; }
+  body { overflow-x: hidden; } /* belt + braces against the hero glow & wide chip wraps */
   body {
     font-family: var(--serif);
     font-size: 18px;
@@ -616,6 +618,85 @@
     .story-photo { width: 180px; height: 220px; }
     .basis-list { grid-template-columns: 1fr; }
     .beta h2 { font-size: 30px; }
+  }
+
+  /* ─────────── Phones (≤600px) ─────────── */
+  @media (max-width: 600px) {
+    body { font-size: 17px; }
+    .wrap, .wrap-narrow { padding: 0 18px; }
+
+    /* Topbar: tighter, brand smaller, no spacer-pushed nav items */
+    .topbar-inner { padding: 12px 18px; gap: 10px; }
+    .brand { font-size: 19px; }
+    .topbar a.nav { font-size: 14px; }
+
+    /* Hero */
+    .hero { padding: 24px 0 40px; }
+    .hero-grid { gap: 28px; }
+    .hero h1.display { font-size: clamp(32px, 8vw, 40px); line-height: 1.08; }
+    .hero-sub { font-size: 17px; margin: 18px 0 24px; }
+    .hero-cta { gap: 6px; }
+    .hero-cta .btn { padding: 12px 18px; font-size: 15px; }
+    .hero-meta { gap: 18px; flex-wrap: wrap; font-size: 13.5px; }
+
+    /* Mockup glow doesn't bleed past the viewport edge */
+    .mockup-stage::before { inset: -8px 0 -8px 0; }
+    .screen { width: min(320px, 88vw); border-radius: 28px; }
+
+    /* Trust strip: stack source pills tighter, allow wraps */
+    .trust { padding: 18px 0; }
+    .trust-inner { gap: 12px 16px; }
+
+    /* Section vertical rhythm */
+    .usps, .audience, .how, .story, .basis, .beta { padding-top: 48px; padding-bottom: 48px; }
+    .section-title { font-size: 24px; }
+
+    /* USPs cards */
+    .usp { padding: 28px 22px; }
+    .usp-title { font-size: 20px; }
+    .usp-body { font-size: 15.5px; }
+    .usp-example { font-size: 14.5px; padding: 12px 14px; }
+
+    /* Selector chips a bit smaller so they wrap less often */
+    .audience-head { margin-bottom: 32px; }
+    .selector-label { font-size: 15px; padding: 12px 16px 4px; }
+    .selector-options { padding: 12px 14px; gap: 6px; }
+    .chip { padding: 7px 12px; font-size: 14px; }
+    .selector-output { padding: 22px 18px 22px; gap: 14px; }
+    .selector-output-headline { font-size: 20px; }
+    .selector-output-body { font-size: 15.5px; }
+    .selector-output-numbers { padding-top: 14px; min-width: 0; }
+    .selector-output-numbers .num { font-size: 26px; }
+
+    /* How steps */
+    .how-head { margin-bottom: 36px; }
+    .step { grid-template-columns: 44px 1fr; gap: 16px; padding: 22px 0; }
+    .step-num { font-size: 30px; }
+    .step-title { font-size: 17px; }
+    .step-body { font-size: 15.5px; }
+
+    /* Story */
+    .story-grid { gap: 22px; }
+    .story-photo { width: 140px; height: 180px; }
+    .story-content h2 { font-size: 24px; }
+    .story-content p { font-size: 16px; }
+
+    /* Wissenschaftliche Basis */
+    .basis-head { margin-bottom: 28px; }
+    .basis-list { gap: 8px; }
+    .basis-list li { font-size: 15.5px; }
+    .disclaimer { font-size: 13.5px; padding: 14px 16px; margin-top: 24px; }
+
+    /* Beta CTA */
+    .beta h2 { font-size: 26px; line-height: 1.15; }
+    .beta p { font-size: 16px; margin-bottom: 24px; }
+    .beta .btn { padding: 13px 22px; font-size: 16px; }
+    .beta-foot { font-size: 13.5px; margin-top: 24px; padding: 0 12px; }
+
+    /* Footer: stack vertically on phones */
+    footer { padding: 28px 0 32px; font-size: 13.5px; }
+    .footer-inner { gap: 6px 12px; }
+    .footer-inner .grow { flex-basis: 100%; margin-bottom: 8px; }
   }
 </style>
 </head>
