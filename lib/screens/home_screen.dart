@@ -473,6 +473,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       coachLoading: coachLoading,
                       scheme: scheme,
                       textTheme: textTheme,
+                      // A day jumped-to from Verlauf / DatePicker stays
+                      // expanded as its own day separator + empty row even
+                      // if it has no entries, so the user can land on it
+                      // and add a meal.
+                      expandedEmptyDay: scrollTarget,
                     ),
                   ),
                 ),
@@ -506,15 +511,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required bool coachLoading,
     required ColorScheme scheme,
     required TextTheme textTheme,
+    DateTime? expandedEmptyDay,
   }) {
     // Loaded days are stored newest-last (today at the end). Render top-down
     // so older days are above, today is at the bottom.
     final sortedDays = [...loadedDays]..sort((a, b) => a.compareTo(b));
     final widgets = <Widget>[];
 
-    if (_loadingPreviousDay) {
-      widgets.add(const _LoadMoreSpinner());
-    }
+    // Auto-load happens within a frame or two from Hive, so the spinner
+    // just flickers briefly the first time the user pulls up — removed
+    // for less visual noise. The empty-day-collapse divider already
+    // signals the boundary.
 
     final mealsById = {for (final m in mealsAll) m.id: m};
 
@@ -550,8 +557,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     for (final day in sortedDays) {
       final items = threadByDay[day] ?? const <ThreadItem>[];
       final isToday = isSameDay(day, DateTime.now());
+      final isExpanded =
+          expandedEmptyDay != null && isSameDay(day, expandedEmptyDay);
 
-      if (items.isEmpty && !isToday) {
+      if (items.isEmpty && !isToday && !isExpanded) {
         // Extend the current empty run rather than rendering a full row.
         emptyRunStart ??= day;
         emptyRunEnd = day;
@@ -639,28 +648,6 @@ class _CoachLoadingBanner extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LoadMoreSpinner extends StatelessWidget {
-  const _LoadMoreSpinner();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Center(
-        child: SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: scheme.outline,
-          ),
         ),
       ),
     );

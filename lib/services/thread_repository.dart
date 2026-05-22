@@ -25,7 +25,28 @@ class ThreadRepository {
     final items = list
         .map((j) => ThreadItem.fromJson(j as Map<String, dynamic>))
         .toList();
-    items.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    // Build a quick lookup of meal-item timestamps by id so we can anchor
+    // their coach response next to them, even if the response arrived
+    // after the user interleaved a question on a different topic. The
+    // meal's timestamp + 1µs is used as the sort key so the response
+    // always lands immediately after its meal.
+    final mealTs = <String, DateTime>{
+      for (final i in items)
+        if (i.type == ThreadItemType.meal && i.mealId != null)
+          i.mealId!: i.timestamp,
+    };
+    DateTime sortKey(ThreadItem i) {
+      if (i.type == ThreadItemType.coachResponse && i.mealId != null) {
+        final anchor = mealTs[i.mealId!];
+        if (anchor != null) {
+          return anchor.add(const Duration(microseconds: 1));
+        }
+      }
+      return i.timestamp;
+    }
+
+    items.sort((a, b) => sortKey(a).compareTo(sortKey(b)));
     return items;
   }
 
