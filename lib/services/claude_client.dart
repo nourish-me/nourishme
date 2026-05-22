@@ -32,6 +32,10 @@ class MealParseResult {
   final double fatG;
   final double portionAmount;
   final String portionUnit;
+  // Optional human-friendly equivalent for the amount, e.g. "eine Handvoll",
+  // "2 EL", "ein kleiner Becher". Surfaced beside the gram/ml number so the
+  // user can sanity-check the magnitude without weighing.
+  final String? portionAlias;
   final List<String> safetyWarnings;
 
   const MealParseResult({
@@ -44,6 +48,7 @@ class MealParseResult {
     required this.fatG,
     required this.portionAmount,
     required this.portionUnit,
+    required this.portionAlias,
     required this.safetyWarnings,
   });
 }
@@ -108,11 +113,13 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
   "fat_g": number,
   "portion_amount": number,
   "portion_unit": string ("g" oder "ml"),
+  "portion_alias": string oder null,
   "safety_warnings": [string]
 }
 
 "summary" ist eine kurze deutsche Beschreibung, maximal 80 Zeichen.
 "portion_amount" und "portion_unit" zusammen müssen plausibel zur summary passen. Bei is_meal=false dürfen sie 0 bzw. "g" sein.
+"portion_alias" ist eine handliche Bezugsgröße auf Deutsch, max. 25 Zeichen, die der Userin hilft die Menge ohne Waage einzuschätzen. Beispiele: "eine Handvoll", "2 EL", "ein kleiner Becher", "1 Handfläche", "ein gehäufter TL", "1 mittlere Schüssel". Wenn keine sinnvolle Bezugsgröße existiert (z. B. Wasser, Mineralwasser): null.
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
@@ -307,6 +314,9 @@ ${NutritionFacts.coachContextBlock}
       fatG: (parsed['fat_g'] as num?)?.toDouble() ?? 0,
       portionAmount: (parsed['portion_amount'] as num?)?.toDouble() ?? 0,
       portionUnit: parsed['portion_unit'] as String? ?? 'g',
+      portionAlias: (parsed['portion_alias'] as String?)?.trim().isEmpty == true
+          ? null
+          : parsed['portion_alias'] as String?,
       safetyWarnings: List<String>.from(parsed['safety_warnings'] as List? ?? const []),
     );
   }

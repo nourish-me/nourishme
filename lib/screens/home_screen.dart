@@ -1225,6 +1225,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       fatG: favorite.fatG,
       portionAmount: favorite.portionAmount,
       portionUnit: favorite.portionUnit,
+      portionAlias: null,
       safetyWarnings: favorite.safetyWarnings,
     );
     await showModalBottomSheet<MealEntry>(
@@ -1637,6 +1638,7 @@ MealParseResult _toParseResult(MealEntry meal) => MealParseResult(
       fatG: meal.fatG,
       portionAmount: meal.portionAmount,
       portionUnit: meal.portionUnit,
+      portionAlias: meal.portionAlias,
       safetyWarnings: meal.safetyWarnings,
     );
 
@@ -1666,6 +1668,7 @@ Future<void> _duplicateMeal(WidgetRef ref, MealEntry meal) async {
     fatG: meal.fatG,
     portionAmount: meal.portionAmount,
     portionUnit: meal.portionUnit,
+    portionAlias: meal.portionAlias,
     safetyWarnings: meal.safetyWarnings,
   );
   await ref.read(mealRepositoryProvider).save(clone);

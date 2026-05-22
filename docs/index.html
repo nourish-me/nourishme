@@ -625,21 +625,25 @@
     body { font-size: 17px; }
     .wrap, .wrap-narrow { padding: 0 18px; }
 
-    /* Topbar: tighter, brand smaller, no spacer-pushed nav items */
+    /* Topbar: tighter, brand smaller, hide the "So funktioniert es" nav
+       link entirely — the Beta button stays for the only CTA. */
     .topbar-inner { padding: 12px 18px; gap: 10px; }
     .brand { font-size: 19px; }
+    .nav-desktop-only { display: none; }
     .topbar a.nav { font-size: 14px; }
 
     /* Hero */
     .hero { padding: 24px 0 40px; }
-    .hero-grid { gap: 28px; }
+    .hero-grid { gap: 28px; text-align: center; }
     .hero h1.display { font-size: clamp(32px, 8vw, 40px); line-height: 1.08; }
-    .hero-sub { font-size: 17px; margin: 18px 0 24px; }
-    .hero-cta { gap: 6px; }
+    .hero-sub { font-size: 17px; margin: 18px auto 24px; }
+    .hero-cta { gap: 6px; justify-content: center; }
     .hero-cta .btn { padding: 12px 18px; font-size: 15px; }
-    .hero-meta { gap: 18px; flex-wrap: wrap; font-size: 13.5px; }
+    .hero-meta { gap: 18px; flex-wrap: wrap; font-size: 13.5px; justify-content: center; }
+    .hero-eyebrow { justify-content: center; }
 
-    /* Mockup glow doesn't bleed past the viewport edge */
+    /* Mockup centered explicitly and the glow can't bleed past the viewport */
+    .mockup-stage { margin: 0 auto; }
     .mockup-stage::before { inset: -8px 0 -8px 0; }
     .screen { width: min(320px, 88vw); border-radius: 28px; }
 
@@ -714,8 +718,8 @@
       NourishMe
     </a>
     <div class="topbar-spacer"></div>
-    <a href="#wie" class="nav">So funktioniert es</a>
-    <a href="#beta" class="btn">Beta-Zugang</a>
+    <a href="#wie" class="nav nav-desktop-only">So funktioniert es</a>
+    <a href="#beta" class="btn">Beta</a>
   </div>
 </header>
 
@@ -990,13 +994,12 @@
 <section class="beta" id="beta">
   <div class="wrap-narrow">
     <span class="mono">Beta · Juni 2026 · TestFlight</span>
-    <h2>Beta-Zugang <em>anfordern</em>.</h2>
+    <h2>In die <em>Beta</em>.</h2>
     <p>
       NourishMe ist in TestFlight-Beta. Egal in welcher Phase oder Konstellation du gerade bist — wenn du Lust hast zu testen, melde dich.
     </p>
     <a href="mailto:hi.nourishme@gmail.com?subject=Beta-Zugang%20NourishMe" class="btn">Für die Beta anmelden</a>
     <div class="beta-foot">
-      Du bekommst eine Einladung per E-Mail, sobald die Beta live ist. Kein Spam, kein Newsletter — nur die Einladung und gelegentlich eine Bitte um Feedback.<br>
       PS: Die App startet auf Deutsch. Englische Version folgt in den nächsten Wochen.
     </div>
   </div>
@@ -1008,11 +1011,11 @@
     <span class="grow">© 2026 Vanessa · <a href="mailto:hi.nourishme@gmail.com">hi.nourishme@gmail.com</a></span>
     <a href="privacy.html">Datenschutz</a>
     <span class="sep-dot">·</span>
-    <a href="privacy-en.html">Privacy Policy (EN)</a>
-    <span class="sep-dot">·</span>
     <a href="support.html">Support</a>
     <span class="sep-dot">·</span>
     <a href="impressum.html">Impressum</a>
+    <span class="sep-dot">·</span>
+    <a href="privacy-en.html">EN</a>
   </div>
 </footer>
 

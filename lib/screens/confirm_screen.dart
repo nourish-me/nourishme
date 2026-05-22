@@ -151,6 +151,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       fatG: fatG,
       portionAmount: portion,
       portionUnit: widget.parsed.portionUnit,
+      portionAlias: widget.parsed.portionAlias,
       safetyWarnings: widget.parsed.safetyWarnings,
     );
     await ref.read(mealRepositoryProvider).save(meal);
@@ -351,6 +352,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                 controller: _portion,
                 label: 'Portion',
                 suffix: portionUnit,
+                helper: widget.parsed.portionAlias != null
+                    ? '≈ ${widget.parsed.portionAlias}'
+                    : null,
                 decimal: true,
                 onSubmit: _save,
               ),
@@ -575,12 +579,14 @@ class _SmallField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final String suffix;
+  final String? helper;
   final bool decimal;
   final VoidCallback? onSubmit;
   const _SmallField({
     required this.controller,
     required this.label,
     required this.suffix,
+    this.helper,
     required this.decimal,
     this.onSubmit,
   });
@@ -602,6 +608,7 @@ class _SmallField extends StatelessWidget {
       },
       decoration: InputDecoration(
         labelText: label,
+        helperText: helper,
         border: const OutlineInputBorder(),
         suffixText: suffix,
         isDense: true,

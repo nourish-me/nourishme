@@ -9,6 +9,9 @@ class MealEntry {
   final double fatG;
   final double portionAmount;
   final String portionUnit;
+  // Human-friendly equivalent of the portion, e.g. "eine Handvoll", "2 EL".
+  // Persisted so the edit / detail views can show the same hint.
+  final String? portionAlias;
   final List<String> safetyWarnings;
 
   const MealEntry({
@@ -22,6 +25,7 @@ class MealEntry {
     required this.fatG,
     required this.portionAmount,
     required this.portionUnit,
+    this.portionAlias,
     required this.safetyWarnings,
   });
 
@@ -36,6 +40,7 @@ class MealEntry {
         'fatG': fatG,
         'portionAmount': portionAmount,
         'portionUnit': portionUnit,
+        'portionAlias': portionAlias,
         'safetyWarnings': safetyWarnings,
       };
 
@@ -52,6 +57,7 @@ class MealEntry {
         fatG: (json['fatG'] as num).toDouble(),
         portionAmount: (json['portionAmount'] as num?)?.toDouble() ?? 0,
         portionUnit: json['portionUnit'] as String? ?? 'g',
+        portionAlias: json['portionAlias'] as String?,
         safetyWarnings: List<String>.from(json['safetyWarnings'] as List),
       );
 }
