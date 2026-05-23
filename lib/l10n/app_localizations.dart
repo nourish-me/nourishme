@@ -493,6 +493,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get commonDone;
+
+  /// No description provided for @commonCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
+
+  /// No description provided for @commonDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get commonDelete;
+
+  /// No description provided for @commonGenericError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again.'**
+  String get commonGenericError;
+
+  /// No description provided for @commonSendError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Try again.'**
+  String get commonSendError;
+
+  /// No description provided for @homeOpenDayHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open day'**
+  String get homeOpenDayHelp;
+
+  /// No description provided for @homeCoachThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach is thinking…'**
+  String get homeCoachThinking;
+
+  /// No description provided for @homeEmptyRangeSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · no entries'**
+  String homeEmptyRangeSingle(String label);
+
+  /// No description provided for @homeEmptyRangeMulti.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} — {to} · {count} days without entries'**
+  String homeEmptyRangeMulti(String from, String to, int count);
+
+  /// No description provided for @homeEmptyDayText.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries'**
+  String get homeEmptyDayText;
+
+  /// No description provided for @homeEmptyDayAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'add'**
+  String get homeEmptyDayAdd;
+
+  /// No description provided for @homeTimePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time'**
+  String get homeTimePickerHelp;
+
+  /// No description provided for @homeTimeSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **''**
+  String get homeTimeSuffix;
+
+  /// No description provided for @homePastDayHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry for {day}'**
+  String homePastDayHeader(String day);
+
+  /// No description provided for @homePastDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you eat or drink?'**
+  String get homePastDayBody;
+
+  /// No description provided for @homePastDayInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. cereal with yogurt, one bowl'**
+  String get homePastDayInputHint;
+
+  /// No description provided for @homeContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get homeContinue;
+
+  /// No description provided for @homePhotoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get homePhotoCamera;
+
+  /// No description provided for @homePhotoGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo Library'**
+  String get homePhotoGallery;
+
+  /// No description provided for @homePhotoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get homePhotoButton;
+
+  /// No description provided for @homeMainInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a meal / ask the coach'**
+  String get homeMainInputHint;
+
+  /// No description provided for @homeMealDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{summary}\"?'**
+  String homeMealDeleteTitle(String summary);
+
+  /// No description provided for @homePhotoNotFoodError.
+  ///
+  /// In en, this message translates to:
+  /// **'That photo doesn\'t look like food. Describe it as text or try another photo.'**
+  String get homePhotoNotFoodError;
+
+  /// No description provided for @homeMealHintsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes for this meal'**
+  String get homeMealHintsHeader;
+
+  /// No description provided for @favoriteRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{summary}\"?'**
+  String favoriteRemoveTitle(String summary);
+
+  /// No description provided for @favoriteRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get favoriteRemoveConfirm;
 }
 
 class _AppLocalizationsDelegate

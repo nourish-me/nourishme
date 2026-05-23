@@ -2,10 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../l10n/app_localizations.dart';
 import '../main.dart';
 import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
@@ -248,8 +250,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Etwas ist schiefgelaufen. Probier es nochmal.')),
+        SnackBar(content: Text(AppLocalizations.of(context).commonGenericError)),
       );
     }
   }
@@ -258,13 +259,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final now = DateTime.now();
     final loaded = ref.read(loadedDaysProvider);
     final initial = loaded.isNotEmpty ? loaded.last : now;
+    final l10n = AppLocalizations.of(context);
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
       firstDate: DateTime(now.year - 1),
       lastDate: now,
-      helpText: 'Tag öffnen',
-      cancelText: 'Abbrechen',
+      helpText: l10n.homeOpenDayHelp,
+      cancelText: l10n.commonCancel,
       confirmText: 'OK',
     );
     if (picked == null) return;
@@ -643,7 +645,7 @@ class _CoachLoadingBanner extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'Coach denkt nach…',
+              AppLocalizations.of(context).homeCoachThinking,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onTertiaryContainer,
                 fontWeight: FontWeight.w500,
@@ -712,25 +714,21 @@ class _EmptyDayRange extends StatelessWidget {
     required this.textTheme,
   });
 
-  String _format(DateTime d) =>
-      '${d.day}. ${_monthShort(d.month)}';
-
-  String _monthShort(int m) {
-    const names = [
-      '', 'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Juni',
-      'Juli', 'Aug', 'Sept', 'Okt', 'Nov', 'Dez',
-    ];
-    return names[m];
+  String _format(DateTime d, BuildContext context) {
+    // Use the platform-localised short month name. intl ships with the
+    // localisation data via flutter_localizations.
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final monthName = DateFormat.MMM(localeTag).format(d);
+    return '${d.day}. $monthName';
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final dayCount = end.difference(start).inDays + 1;
-    final label = start.year == end.year &&
-            start.month == end.month &&
-            start.day == end.day
-        ? _format(start)
-        : '${_format(start)} — ${_format(end)}';
+    final fromLabel = _format(start, context);
+    final toLabel = _format(end, context);
+    final label = dayCount == 1 ? fromLabel : null;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       child: Row(
@@ -741,8 +739,8 @@ class _EmptyDayRange extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             dayCount == 1
-                ? '$label · keine Einträge'
-                : '$label · $dayCount Tage leer',
+                ? l10n.homeEmptyRangeSingle(label!)
+                : l10n.homeEmptyRangeMulti(fromLabel, toLabel, dayCount),
             style: textTheme.labelSmall?.copyWith(
               color: scheme.outline,
               letterSpacing: 0.6,
@@ -779,14 +777,14 @@ class _EmptyDay extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Keine Einträge',
+              AppLocalizations.of(context).homeEmptyDayText,
               style: textTheme.bodySmall?.copyWith(color: scheme.outline),
             ),
             const SizedBox(width: 8),
             Icon(Icons.add, size: 16, color: scheme.primary),
             const SizedBox(width: 2),
             Text(
-              'hinzufügen',
+              AppLocalizations.of(context).homeEmptyDayAdd,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.primary,
                 fontWeight: FontWeight.w600,
@@ -817,7 +815,7 @@ class _PastDayInputSheetState extends State<_PastDayInputSheet> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _time,
-      helpText: 'Uhrzeit wählen',
+      helpText: AppLocalizations.of(context).homeTimePickerHelp,
     );
     if (picked != null) setState(() => _time = picked);
   }
@@ -828,13 +826,14 @@ class _PastDayInputSheetState extends State<_PastDayInputSheet> {
     );
   }
 
-  String _formatTime(TimeOfDay t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')} Uhr';
+  String _formatTime(TimeOfDay t, String suffix) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}$suffix';
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -848,12 +847,12 @@ class _PastDayInputSheetState extends State<_PastDayInputSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Eintrag für ${formatDayHeader(widget.day)}',
+                l10n.homePastDayHeader(formatDayHeader(widget.day)),
                 style: textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
               Text(
-                'Was hast du gegessen oder getrunken?',
+                l10n.homePastDayBody,
                 style: textTheme.bodySmall?.copyWith(color: scheme.outline),
               ),
               const SizedBox(height: 12),
@@ -864,9 +863,9 @@ class _PastDayInputSheetState extends State<_PastDayInputSheet> {
                 maxLines: 4,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _submit(),
-                decoration: const InputDecoration(
-                  hintText: 'z.B. Müsli mit Joghurt, 1 Schüssel',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: l10n.homePastDayInputHint,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 10),
@@ -882,7 +881,7 @@ class _PastDayInputSheetState extends State<_PastDayInputSheet> {
                           size: 18, color: scheme.outline),
                       const SizedBox(width: 8),
                       Text(
-                        'Uhrzeit: ${_formatTime(_time)}',
+                        _formatTime(_time, l10n.homeTimeSuffix),
                         style: textTheme.bodyMedium
                             ?.copyWith(color: scheme.onSurface),
                       ),
@@ -899,14 +898,14 @@ class _PastDayInputSheetState extends State<_PastDayInputSheet> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Abbrechen'),
+                      child: Text(l10n.commonCancel),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: FilledButton(
                       onPressed: _submit,
-                      child: const Text('Weiter'),
+                      child: Text(l10n.homeContinue),
                     ),
                   ),
                 ],
@@ -1016,7 +1015,7 @@ class _WarningIconButton extends StatelessWidget {
                   Icon(Icons.warning_amber, color: scheme.tertiary),
                   const SizedBox(width: 8),
                   Text(
-                    'Hinweise zu dieser Mahlzeit',
+                    AppLocalizations.of(context).homeMealHintsHeader,
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -1193,7 +1192,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Kamera'),
+              title: Text(AppLocalizations.of(context).homePhotoCamera),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _pickImage(ImageSource.camera);
@@ -1201,7 +1200,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Galerie'),
+              title: Text(AppLocalizations.of(context).homePhotoGallery),
               onTap: () {
                 Navigator.pop(sheetContext);
                 _pickImage(ImageSource.gallery);
@@ -1242,18 +1241,19 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
   }
 
   Future<void> _confirmDeleteFavorite(FavoriteMeal favorite) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('„${favorite.summary}" entfernen?'),
+        title: Text(l10n.favoriteRemoveTitle(favorite.summary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Entfernen'),
+            child: Text(l10n.favoriteRemoveConfirm),
           ),
         ],
       ),
@@ -1365,7 +1365,9 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       ));
     } catch (e) {
       await threadRepo.add(ThreadItem.coachAnswer(
-        text: 'Etwas ist schiefgelaufen. Probier es nochmal.',
+        text: mounted
+            ? AppLocalizations.of(context).commonGenericError
+            : 'Something went wrong. Try again.',
         at: DateTime.now(),
       ));
     } finally {
@@ -1423,8 +1425,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         // hint, not a coach response.
         _showSnack(
           parsed.rejectionReason ??
-              'Das Bild scheint kein Essen zu zeigen. Beschreibe es als '
-                  'Text oder probier ein anderes Foto.',
+              AppLocalizations.of(context).homePhotoNotFoodError,
         );
       } else {
         // Text input that didn't parse as a meal — treat as a coach question.
@@ -1437,7 +1438,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       // not as a coach bubble (those should feel like dialogue, not errors).
       _showSnack(e.userMessage);
     } catch (_) {
-      _showSnack('Senden hat nicht geklappt. Probier es nochmal.');
+      if (mounted) _showSnack(AppLocalizations.of(context).commonSendError);
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1548,7 +1549,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                     IconButton(
                       onPressed: _sending ? null : _showPhotoPicker,
                       icon: const Icon(Icons.add_a_photo_outlined),
-                      tooltip: 'Foto hinzufügen',
+                      tooltip: AppLocalizations.of(context).homePhotoButton,
                       iconSize: 22,
                       padding: const EdgeInsets.all(8),
                       constraints: const BoxConstraints(
@@ -1566,7 +1567,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                         onSubmitted: (_) => _send(),
                         style: textTheme.bodyMedium,
                         decoration: InputDecoration(
-                          hintText: 'Essen loggen / Frage stellen',
+                          hintText: AppLocalizations.of(context).homeMainInputHint,
                           hintStyle: TextStyle(color: scheme.outline),
                           isDense: true,
                           filled: true,
@@ -1679,18 +1680,19 @@ Future<void> _duplicateMeal(WidgetRef ref, MealEntry meal) async {
 
 Future<void> _confirmDelete(
     BuildContext context, WidgetRef ref, MealEntry meal) async {
+  final l10n = AppLocalizations.of(context);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: Text('„${meal.summary}" löschen?'),
+      title: Text(l10n.homeMealDeleteTitle(meal.summary)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, false),
-          child: const Text('Abbrechen'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(dialogContext, true),
-          child: const Text('Löschen'),
+          child: Text(l10n.commonDelete),
         ),
       ],
     ),

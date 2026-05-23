@@ -218,4 +218,90 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonDone => 'Done';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonDelete => 'Delete';
+
+  @override
+  String get commonGenericError => 'Something went wrong. Try again.';
+
+  @override
+  String get commonSendError => 'Couldn\'t send. Try again.';
+
+  @override
+  String get homeOpenDayHelp => 'Open day';
+
+  @override
+  String get homeCoachThinking => 'Coach is thinking…';
+
+  @override
+  String homeEmptyRangeSingle(String label) {
+    return '$label · no entries';
+  }
+
+  @override
+  String homeEmptyRangeMulti(String from, String to, int count) {
+    return '$from — $to · $count days without entries';
+  }
+
+  @override
+  String get homeEmptyDayText => 'No entries';
+
+  @override
+  String get homeEmptyDayAdd => 'add';
+
+  @override
+  String get homeTimePickerHelp => 'Pick a time';
+
+  @override
+  String get homeTimeSuffix => '';
+
+  @override
+  String homePastDayHeader(String day) {
+    return 'Entry for $day';
+  }
+
+  @override
+  String get homePastDayBody => 'What did you eat or drink?';
+
+  @override
+  String get homePastDayInputHint => 'e.g. cereal with yogurt, one bowl';
+
+  @override
+  String get homeContinue => 'Continue';
+
+  @override
+  String get homePhotoCamera => 'Camera';
+
+  @override
+  String get homePhotoGallery => 'Photo Library';
+
+  @override
+  String get homePhotoButton => 'Add a photo';
+
+  @override
+  String get homeMainInputHint => 'Log a meal / ask the coach';
+
+  @override
+  String homeMealDeleteTitle(String summary) {
+    return 'Delete \"$summary\"?';
+  }
+
+  @override
+  String get homePhotoNotFoodError =>
+      'That photo doesn\'t look like food. Describe it as text or try another photo.';
+
+  @override
+  String get homeMealHintsHeader => 'Notes for this meal';
+
+  @override
+  String favoriteRemoveTitle(String summary) {
+    return 'Remove \"$summary\"?';
+  }
+
+  @override
+  String get favoriteRemoveConfirm => 'Remove';
 }

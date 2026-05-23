@@ -220,4 +220,92 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get commonDone => 'Fertig';
+
+  @override
+  String get commonCancel => 'Abbrechen';
+
+  @override
+  String get commonDelete => 'Löschen';
+
+  @override
+  String get commonGenericError =>
+      'Etwas ist schiefgelaufen. Probier es nochmal.';
+
+  @override
+  String get commonSendError =>
+      'Senden hat nicht geklappt. Probier es nochmal.';
+
+  @override
+  String get homeOpenDayHelp => 'Tag öffnen';
+
+  @override
+  String get homeCoachThinking => 'Coach denkt nach…';
+
+  @override
+  String homeEmptyRangeSingle(String label) {
+    return '$label · keine Einträge';
+  }
+
+  @override
+  String homeEmptyRangeMulti(String from, String to, int count) {
+    return '$from — $to · $count Tage leer';
+  }
+
+  @override
+  String get homeEmptyDayText => 'Keine Einträge';
+
+  @override
+  String get homeEmptyDayAdd => 'hinzufügen';
+
+  @override
+  String get homeTimePickerHelp => 'Uhrzeit wählen';
+
+  @override
+  String get homeTimeSuffix => ' Uhr';
+
+  @override
+  String homePastDayHeader(String day) {
+    return 'Eintrag für $day';
+  }
+
+  @override
+  String get homePastDayBody => 'Was hast du gegessen oder getrunken?';
+
+  @override
+  String get homePastDayInputHint => 'z.B. Müsli mit Joghurt, 1 Schüssel';
+
+  @override
+  String get homeContinue => 'Weiter';
+
+  @override
+  String get homePhotoCamera => 'Kamera';
+
+  @override
+  String get homePhotoGallery => 'Galerie';
+
+  @override
+  String get homePhotoButton => 'Foto hinzufügen';
+
+  @override
+  String get homeMainInputHint => 'Essen loggen / Frage stellen';
+
+  @override
+  String homeMealDeleteTitle(String summary) {
+    return '\"$summary\" löschen?';
+  }
+
+  @override
+  String get homePhotoNotFoodError =>
+      'Das Bild scheint kein Essen zu zeigen. Beschreibe es als Text oder probier ein anderes Foto.';
+
+  @override
+  String get homeMealHintsHeader => 'Hinweise zu dieser Mahlzeit';
+
+  @override
+  String favoriteRemoveTitle(String summary) {
+    return '\"$summary\" entfernen?';
+  }
+
+  @override
+  String get favoriteRemoveConfirm => 'Entfernen';
 }

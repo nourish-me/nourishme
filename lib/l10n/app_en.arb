@@ -106,5 +106,58 @@
   "confirmHintsHeader": "Notes for this meal",
   "confirmSafetyHeader": "Please note",
   "confirmCoachErrorFallback": "Couldn't get a coach reply. Try again later.",
-  "commonDone": "Done"
+  "commonDone": "Done",
+  "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "commonGenericError": "Something went wrong. Try again.",
+  "commonSendError": "Couldn't send. Try again.",
+
+  "homeOpenDayHelp": "Open day",
+  "homeCoachThinking": "Coach is thinking…",
+  "homeEmptyRangeSingle": "{label} · no entries",
+  "@homeEmptyRangeSingle": {
+    "placeholders": {
+      "label": {"type": "String"}
+    }
+  },
+  "homeEmptyRangeMulti": "{from} — {to} · {count} days without entries",
+  "@homeEmptyRangeMulti": {
+    "placeholders": {
+      "from": {"type": "String"},
+      "to": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "homeEmptyDayText": "No entries",
+  "homeEmptyDayAdd": "add",
+  "homeTimePickerHelp": "Pick a time",
+  "homeTimeSuffix": "",
+  "homePastDayHeader": "Entry for {day}",
+  "@homePastDayHeader": {
+    "placeholders": {
+      "day": {"type": "String"}
+    }
+  },
+  "homePastDayBody": "What did you eat or drink?",
+  "homePastDayInputHint": "e.g. cereal with yogurt, one bowl",
+  "homeContinue": "Continue",
+  "homePhotoCamera": "Camera",
+  "homePhotoGallery": "Photo Library",
+  "homePhotoButton": "Add a photo",
+  "homeMainInputHint": "Log a meal / ask the coach",
+  "homeMealDeleteTitle": "Delete \"{summary}\"?",
+  "@homeMealDeleteTitle": {
+    "placeholders": {
+      "summary": {"type": "String"}
+    }
+  },
+  "homePhotoNotFoodError": "That photo doesn't look like food. Describe it as text or try another photo.",
+  "homeMealHintsHeader": "Notes for this meal",
+  "favoriteRemoveTitle": "Remove \"{summary}\"?",
+  "@favoriteRemoveTitle": {
+    "placeholders": {
+      "summary": {"type": "String"}
+    }
+  },
+  "favoriteRemoveConfirm": "Remove"
 }
