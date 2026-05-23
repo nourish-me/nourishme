@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../services/calorie_target.dart';
 import '../theme/nourishme_colors.dart';
 import '../utils/number_format.dart';
@@ -35,6 +36,7 @@ class KcalSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final remaining = targetKcal - totalKcal;
     final progress = targetKcal > 0
         ? (totalKcal / targetKcal).clamp(0.0, 1.0)
@@ -47,10 +49,10 @@ class KcalSummary extends StatelessWidget {
             ? NMColors.moss
             : scheme.primary;
     final remainingText = remaining > 0
-        ? 'Noch ${formatKcal(remaining)} kcal'
+        ? l10n.kcalRemainingPositive(formatKcal(remaining))
         : remaining == 0
-            ? 'Tagesziel erreicht'
-            : '${formatKcal(-remaining)} kcal über Ziel';
+            ? l10n.kcalRemainingZero
+            : l10n.kcalRemainingNegative(formatKcal(-remaining));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -65,7 +67,10 @@ class KcalSummary extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '${formatKcal(totalKcal)} / ${formatKcal(targetKcal)} kcal',
+                    l10n.kcalCombined(
+                      formatKcal(totalKcal),
+                      formatKcal(targetKcal),
+                    ),
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: kcalColor,
@@ -92,6 +97,9 @@ class KcalSummary extends StatelessWidget {
               targets: macroTargets,
               scheme: scheme,
               textTheme: textTheme,
+              proteinLabel: l10n.macroLabelProtein,
+              carbsLabel: l10n.macroLabelCarbs,
+              fatLabel: l10n.macroLabelFat,
             ),
           ],
         ),
@@ -144,6 +152,9 @@ class _MacrosColumn extends StatelessWidget {
   final MacroTargets targets;
   final ColorScheme scheme;
   final TextTheme textTheme;
+  final String proteinLabel;
+  final String carbsLabel;
+  final String fatLabel;
 
   const _MacrosColumn({
     required this.protein,
@@ -152,6 +163,9 @@ class _MacrosColumn extends StatelessWidget {
     required this.targets,
     required this.scheme,
     required this.textTheme,
+    required this.proteinLabel,
+    required this.carbsLabel,
+    required this.fatLabel,
   });
 
   @override
@@ -160,9 +174,9 @@ class _MacrosColumn extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _macroLine('P', protein, targets.proteinG.toDouble()),
-        _macroLine('KH', carbs, targets.carbsG.toDouble()),
-        _macroLine('F', fat, targets.fatG.toDouble()),
+        _macroLine(proteinLabel, protein, targets.proteinG.toDouble()),
+        _macroLine(carbsLabel, carbs, targets.carbsG.toDouble()),
+        _macroLine(fatLabel, fat, targets.fatG.toDouble()),
       ],
     );
   }

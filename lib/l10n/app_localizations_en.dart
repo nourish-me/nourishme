@@ -822,4 +822,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get factProteinLactationSource => 'DGE 2025, EFSA 2012';
+
+  @override
+  String kcalRemainingPositive(String kcal) {
+    return '$kcal kcal left';
+  }
+
+  @override
+  String get kcalRemainingZero => 'Target reached';
+
+  @override
+  String kcalRemainingNegative(String kcal) {
+    return '$kcal kcal over target';
+  }
+
+  @override
+  String kcalCombined(String current, String target) {
+    return '$current / $target kcal';
+  }
+
+  @override
+  String get macroLabelProtein => 'P';
+
+  @override
+  String get macroLabelCarbs => 'C';
+
+  @override
+  String get macroLabelFat => 'F';
 }

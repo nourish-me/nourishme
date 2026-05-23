@@ -403,5 +403,25 @@
   "factProteinLactationTopic": "Protein requirement",
   "factProteinLactationSummary": "Lactation: 1.2 g/kg body weight/day (DGE)",
   "factProteinLactationDetail": "Non-pregnant baseline: 0.8 g/kg. Pregnancy T2: 0.9 g/kg, T3: 1.0 g/kg. Lactation 0-6 mo: 1.2 g/kg (about +23 g/day above baseline). Good sources: lean meat, fish, legumes, eggs, dairy, tofu.",
-  "factProteinLactationSource": "DGE 2025, EFSA 2012"
+  "factProteinLactationSource": "DGE 2025, EFSA 2012",
+
+  "kcalRemainingPositive": "{kcal} kcal left",
+  "@kcalRemainingPositive": {
+    "placeholders": {"kcal": {"type": "String"}}
+  },
+  "kcalRemainingZero": "Target reached",
+  "kcalRemainingNegative": "{kcal} kcal over target",
+  "@kcalRemainingNegative": {
+    "placeholders": {"kcal": {"type": "String"}}
+  },
+  "kcalCombined": "{current} / {target} kcal",
+  "@kcalCombined": {
+    "placeholders": {
+      "current": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "macroLabelProtein": "P",
+  "macroLabelCarbs": "C",
+  "macroLabelFat": "F"
 }

@@ -5,9 +5,9 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Wird benötigt, um Mahlzeiten oder Getränke per Foto zu erfassen.</string>
+	<string>Used to capture meals or drinks by photo.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Wird benötigt, um Fotos aus deiner Galerie für die Mahlzeitenanalyse auszuwählen.</string>
+	<string>Used to pick a photo from your library for meal analysis.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

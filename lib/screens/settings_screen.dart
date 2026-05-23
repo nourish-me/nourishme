@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../l10n/app_localizations.dart';
 import '../main.dart';
@@ -618,9 +619,9 @@ class _ProfileFields extends StatelessWidget {
               suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
             ),
             child: Text(
-              '${birthdate.day.toString().padLeft(2, '0')}.'
-              '${birthdate.month.toString().padLeft(2, '0')}.'
-              '${birthdate.year}',
+              intl.DateFormat.yMd(
+                Localizations.localeOf(context).toLanguageTag(),
+              ).format(birthdate),
               style: textTheme.bodyLarge?.copyWith(color: scheme.onSurface),
             ),
           ),

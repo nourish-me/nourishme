@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
@@ -716,7 +717,7 @@ class _BodyStep extends StatelessWidget {
               suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
             ),
             child: Text(
-              _formatBirthdate(birthdate),
+              _formatBirthdate(context, birthdate),
               style: textTheme.bodyLarge?.copyWith(color: scheme.onSurface),
             ),
           ),
@@ -1231,5 +1232,6 @@ class _NumberStepper extends StatelessWidget {
   }
 }
 
-String _formatBirthdate(DateTime d) =>
-    '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+String _formatBirthdate(BuildContext context, DateTime d) => intl.DateFormat.yMd(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(d);

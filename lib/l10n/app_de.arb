@@ -280,5 +280,13 @@
   "factProteinLactationTopic": "Protein-Bedarf",
   "factProteinLactationSummary": "Stillzeit: 1,2 g/kg KG/Tag (DGE)",
   "factProteinLactationDetail": "Nicht-schwangere Frau Basis: 0,8 g/kg. Schwangerschaft T2: 0,9 g/kg, T3: 1,0 g/kg. Stillzeit 0-6 Mo: 1,2 g/kg (+~23 g/Tag über Basis). Gut: mageres Fleisch, Fisch, Hülsenfrüchte, Eier, Milchprodukte, Tofu.",
-  "factProteinLactationSource": "DGE 2025, EFSA 2012"
+  "factProteinLactationSource": "DGE 2025, EFSA 2012",
+
+  "kcalRemainingPositive": "Noch {kcal} kcal",
+  "kcalRemainingZero": "Tagesziel erreicht",
+  "kcalRemainingNegative": "{kcal} kcal über Ziel",
+  "kcalCombined": "{current} / {target} kcal",
+  "macroLabelProtein": "P",
+  "macroLabelCarbs": "KH",
+  "macroLabelFat": "F"
 }

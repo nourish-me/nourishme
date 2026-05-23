@@ -6,6 +6,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart' as intl;
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/meal_providers.dart';
@@ -22,6 +24,14 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await Hive.initFlutter();
+
+  // Set the global Intl default locale from the device language so
+  // intl.NumberFormat / DateFormat without an explicit locale produce
+  // locale-correct output (EN thousand separators are commas, DE are dots).
+  // initializeDateFormatting loads locale data for DateFormat used in the UI.
+  final deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
+  intl.Intl.defaultLocale = deviceLocale.toLanguageTag();
+  await initializeDateFormatting(intl.Intl.defaultLocale);
   // Preload Newsreader so the editorial headlines render without a flash
   // of fallback serif on first launch. Other Google Fonts (Inter,
   // JetBrainsMono) lazy-load on demand and are far less brand-critical.

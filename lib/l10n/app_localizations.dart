@@ -1561,6 +1561,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DGE 2025, EFSA 2012'**
   String get factProteinLactationSource;
+
+  /// No description provided for @kcalRemainingPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'{kcal} kcal left'**
+  String kcalRemainingPositive(String kcal);
+
+  /// No description provided for @kcalRemainingZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Target reached'**
+  String get kcalRemainingZero;
+
+  /// No description provided for @kcalRemainingNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'{kcal} kcal over target'**
+  String kcalRemainingNegative(String kcal);
+
+  /// No description provided for @kcalCombined.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {target} kcal'**
+  String kcalCombined(String current, String target);
+
+  /// No description provided for @macroLabelProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'P'**
+  String get macroLabelProtein;
+
+  /// No description provided for @macroLabelCarbs.
+  ///
+  /// In en, this message translates to:
+  /// **'C'**
+  String get macroLabelCarbs;
+
+  /// No description provided for @macroLabelFat.
+  ///
+  /// In en, this message translates to:
+  /// **'F'**
+  String get macroLabelFat;
 }
 
 class _AppLocalizationsDelegate
