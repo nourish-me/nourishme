@@ -14,6 +14,7 @@ import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../services/nutrition_facts.dart';
 import '../utils/number_format.dart';
+import '../utils/profile_labels.dart';
 import '../widgets/empty/empty_favorites.dart';
 import '../widgets/info_button.dart';
 import 'favorite_edit_sheet.dart';
@@ -107,7 +108,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       initialDate: _birthdate,
       firstDate: DateTime(now.year - 80),
       lastDate: now,
-      helpText: 'Geburtsdatum wählen',
+      helpText: AppLocalizations.of(context).settingsBirthdatePickerHelp,
     );
     if (picked != null) setState(() => _birthdate = picked);
   }
@@ -203,24 +204,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<bool> _confirmDiscard() async {
+    final l10n = AppLocalizations.of(context);
     final discard = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Änderungen verwerfen?'),
-        content: const Text(
-          'Deine ungespeicherten Änderungen gehen verloren.',
-        ),
+        title: Text(l10n.confirmDiscardTitle),
+        content: Text(l10n.confirmDiscardBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Verwerfen'),
+            child: Text(l10n.confirmDiscardConfirm),
           ),
         ],
       ),
@@ -229,6 +229,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
     await ref.read(settingsRepositoryProvider).saveProfile(_currentProfile());
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
@@ -238,34 +239,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // user lands back, sees the updated kcal/macros toolbar AND a brief
     // "Gespeichert" cue tying the two together.
     rootScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Text('Profil gespeichert'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(l10n.settingsSavedSnackbar),
+        duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   Future<void> _resetApp() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('App zurücksetzen?'),
-        content: const Text(
-          'Alle Einträge, Favoriten und dein Profil werden gelöscht. '
-          'Du startest danach mit dem Onboarding.',
-        ),
+        title: Text(l10n.settingsResetTitle),
+        content: Text(l10n.settingsResetBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Zurücksetzen'),
+            child: Text(l10n.settingsResetConfirm),
           ),
         ],
       ),
@@ -291,7 +290,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) => Scaffold(body: Center(child: Text('Fehler: $e'))),
+      error: (e, _) => Scaffold(
+        body: Center(
+          child: Text(AppLocalizations.of(context).settingsErrorPrefix('$e')),
+        ),
+      ),
       data: (profile) {
         if (!_initialized) _hydrate(profile);
         return PopScope(
@@ -310,7 +313,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             behavior: HitTestBehavior.opaque,
             child: Scaffold(
               appBar: AppBar(
-                title: const Text('Einstellungen'),
+                title: Text(AppLocalizations.of(context).settingsTitle),
                 centerTitle: false,
               ),
             body: ListView(
@@ -326,7 +329,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 _Section(
-                  title: 'Dein Profil',
+                  title: AppLocalizations.of(context).settingsSectionProfile,
                   child: _ProfileFields(
                     birthdate: _birthdate,
                     onBirthdateTap: _pickBirthdate,
@@ -376,7 +379,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     AppLocalizations.of(context),
                   ),
                   icon: const Icon(Icons.mail_outline),
-                  label: const Text('Feedback senden'),
+                  label: Text(AppLocalizations.of(context).settingsButtonFeedback),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
                   ),
@@ -385,7 +388,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 OutlinedButton.icon(
                   onPressed: _resetApp,
                   icon: const Icon(Icons.restore_outlined),
-                  label: const Text('App zurücksetzen'),
+                  label: Text(AppLocalizations.of(context).settingsButtonReset),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
                     foregroundColor:
@@ -408,7 +411,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
                   ),
-                  child: const Text('Speichern'),
+                  child: Text(AppLocalizations.of(context).settingsButtonSave),
                 ),
               ),
             ),
@@ -481,8 +484,9 @@ class _PhaseSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return _Section(
-      title: 'Aktuelle Phase',
+      title: l10n.settingsSectionPhase,
       info: InfoButton(
         fact: phase == 'pregnant'
             ? NutritionFacts.energyPregnancy
@@ -493,21 +497,21 @@ class _PhaseSection extends StatelessWidget {
         children: [
           _PhaseChoice(
             value: 'lactating',
-            label: 'Milchproduzierend',
-            subtitle: 'Stillend oder pumpend',
+            label: l10n.settingsPhaseLactating,
+            subtitle: l10n.settingsPhaseLactatingHint,
             selected: phase == 'lactating',
             onTap: () => onPhaseChanged('lactating'),
           ),
           _PhaseChoice(
             value: 'pregnant',
-            label: 'Schwanger',
-            subtitle: 'Aktuell schwanger',
+            label: l10n.settingsPhasePregnant,
+            subtitle: l10n.settingsPhasePregnantHint,
             selected: phase == 'pregnant',
             onTap: () => onPhaseChanged('pregnant'),
           ),
           if (phase == 'pregnant') ...[
             const SizedBox(height: 12),
-            Text('Trimester', style: textTheme.bodyMedium),
+            Text(l10n.settingsPhaseTrimester, style: textTheme.bodyMedium),
             const SizedBox(height: 6),
             SizedBox(
               width: double.infinity,
@@ -608,10 +612,10 @@ class _ProfileFields extends StatelessWidget {
           onTap: onBirthdateTap,
           borderRadius: BorderRadius.circular(4),
           child: InputDecorator(
-            decoration: const InputDecoration(
-              labelText: 'Geburtsdatum',
-              border: OutlineInputBorder(),
-              suffixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).settingsFieldBirthdate,
+              border: const OutlineInputBorder(),
+              suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
             ),
             child: Text(
               '${birthdate.day.toString().padLeft(2, '0')}.'
@@ -630,10 +634,11 @@ class _ProfileFields extends StatelessWidget {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Größe',
-                  border: OutlineInputBorder(),
-                  suffixText: 'cm',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).settingsFieldHeight,
+                  border: const OutlineInputBorder(),
+                  suffixText:
+                      AppLocalizations.of(context).settingsFieldHeightSuffix,
                 ),
               ),
             ),
@@ -644,10 +649,11 @@ class _ProfileFields extends StatelessWidget {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'Gewicht',
-                  border: OutlineInputBorder(),
-                  suffixText: 'kg',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).settingsFieldWeight,
+                  border: const OutlineInputBorder(),
+                  suffixText:
+                      AppLocalizations.of(context).settingsFieldWeightSuffix,
                 ),
               ),
             ),
@@ -670,17 +676,16 @@ class _ActivitySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final labels = activityLabelsOf(l10n);
     return _Section(
-      title: 'Aktivitätslevel',
-      info: const InfoButton(
+      title: l10n.settingsSectionActivity,
+      info: InfoButton(
         fact: NutritionFact(
-          topic: 'Aktivitätslevel',
-          summary: 'Skaliert den Grundbedarf (PAL-Faktor)',
-          detail:
-              'Gering 1,2: kaum Bewegung. Mäßig 1,375: Spaziergänge, leichte Hausarbeit. '
-              'Aktiv 1,55: regelmäßiges Training. Hoch 1,725: intensives Training oder '
-              'körperliche Arbeit. Bei Babys zu Hause meist "Mäßig".',
-          source: 'DGE PAL-Klassifikation',
+          topic: l10n.settingsSectionActivity,
+          summary: l10n.settingsActivityInfoSummary,
+          detail: l10n.settingsActivityInfoDetail,
+          source: l10n.settingsActivityInfoSource,
         ),
       ),
       child: Column(
@@ -689,18 +694,18 @@ class _ActivitySection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: SegmentedButton<double>(
-              segments: ActivityLevel.all
+              segments: ActivityLevel.allFor(labels)
                   .map((l) =>
                       ButtonSegment(value: l.factor, label: Text(l.label)))
                   .toList(),
-              selected: {ActivityLevel.closestTo(activityFactor).factor},
+              selected: {ActivityLevel.closestTo(activityFactor, labels).factor},
               showSelectedIcon: false,
               onSelectionChanged: (s) => onChanged(s.first),
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            ActivityLevel.closestTo(activityFactor).hint,
+            ActivityLevel.closestTo(activityFactor, labels).hint,
             style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           ),
         ],
@@ -783,8 +788,9 @@ class _RemindersSectionState extends ConsumerState<_RemindersSection> {
     final s = _settings ?? ReminderSettings.defaults;
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return _Section(
-      title: 'Erinnerungen',
+      title: l10n.settingsSectionReminders,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -797,15 +803,15 @@ class _RemindersSectionState extends ConsumerState<_RemindersSection> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Mahlzeit-Erinnerungen',
+                        l10n.settingsReminderToggleTitle,
                         style: textTheme.bodyLarge
                             ?.copyWith(color: scheme.onSurface),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         s.masterEnabled
-                            ? 'Aktiv. Stelle ein, was du wann hören willst.'
-                            : 'Aus. Bei Aktivierung fragt iOS einmal um Erlaubnis.',
+                            ? l10n.settingsReminderToggleOn
+                            : l10n.settingsReminderToggleOff,
                         style: textTheme.bodySmall
                             ?.copyWith(color: scheme.outline),
                       ),
@@ -944,14 +950,15 @@ class _ThemeSection extends ConsumerWidget {
       );
     }
 
+    final l10n = AppLocalizations.of(context);
     return _Section(
-      title: 'Design',
+      title: l10n.settingsSectionTheme,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          choice('System', 'Folgt dem Geräte-Setting', ThemeMode.system),
-          choice('Hell', 'Helles Theme', ThemeMode.light),
-          choice('Dunkel', 'Dunkles Theme', ThemeMode.dark),
+          choice(l10n.themeSystem, l10n.themeSystemHint, ThemeMode.system),
+          choice(l10n.themeLight, l10n.themeLightHint, ThemeMode.light),
+          choice(l10n.themeDark, l10n.themeDarkHint, ThemeMode.dark),
         ],
       ),
     );
@@ -983,14 +990,17 @@ class _MilkSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final ageLabels = childAgeLabelsOf(l10n);
+    final ageGroups = ChildAgeGroup.allFor(ageLabels);
     return _Section(
-      title: 'Muttermilch',
+      title: l10n.settingsSectionMilk,
       info: InfoButton(fact: NutritionFacts.energyLactation),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Kinder, die du mit Milch versorgst',
+            l10n.settingsMilkChildren,
             style: textTheme.bodyMedium,
           ),
           const SizedBox(height: 6),
@@ -1004,8 +1014,8 @@ class _MilkSection extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               numChildren == 1
-                  ? 'Alter des Kindes'
-                  : 'Alter der Kinder',
+                  ? l10n.settingsMilkChildSingular
+                  : l10n.settingsMilkChildPlural,
               style: textTheme.bodyMedium,
             ),
             const SizedBox(height: 6),
@@ -1013,10 +1023,10 @@ class _MilkSection extends StatelessWidget {
               width: double.infinity,
               child: SegmentedButton<int>(
                 segments: List.generate(
-                  ChildAgeGroup.all.length,
+                  ageGroups.length,
                   (i) => ButtonSegment(
                     value: i,
-                    label: Text(ChildAgeGroup.all[i].label),
+                    label: Text(ageGroups[i].label),
                   ),
                 ),
                 selected: {ageGroup},
@@ -1027,8 +1037,8 @@ class _MilkSection extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               numChildren == 1
-                  ? 'Dein Anteil: $sharePercent%'
-                  : 'Anteil pro Kind: $sharePercent%',
+                  ? l10n.settingsMilkShareSingular(sharePercent)
+                  : l10n.settingsMilkSharePlural(sharePercent),
               style: textTheme.bodyMedium,
             ),
             Slider(
@@ -1043,18 +1053,16 @@ class _MilkSection extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text('Geschätztes Tagesvolumen',
+                  child: Text(l10n.settingsMilkVolume,
                       style: textTheme.bodyMedium),
                 ),
-                const InfoButton(
+                InfoButton(
                   fact: NutritionFact(
-                    topic: 'Tagesvolumen Muttermilch',
-                    summary: 'Energie = Volumen × 0,84 kcal/ml',
-                    detail:
-                        'Energiekosten der Synthese: ~0,84 kcal pro ml Milch. '
-                        'Wenn du pumpst und dein Volumen kennst, trage es exakt ein. '
-                        'Anteil-Slider darüber liefert sonst eine Schätzung.',
-                    source: 'DGE 2025, EFSA 2017',
+                    topic: l10n.settingsMilkVolumeInfoTopic,
+                    summary: l10n.settingsMilkVolumeInfoTitle,
+                    detail: '${l10n.settingsMilkVolumeInfoSummary} '
+                        '${l10n.settingsMilkVolumeInfoDetail}',
+                    source: l10n.settingsMilkVolumeInfoSource,
                   ),
                 ),
               ],
@@ -1068,7 +1076,10 @@ class _MilkSection extends StatelessWidget {
               onChanged: (v) => onVolumeChanged(v.round()),
             ),
             Text(
-              '$dailyVolumeMl ml/Tag → +${UserProfileSettings.volumeBasedSupplement(dailyVolumeMl)} kcal/Tag',
+              l10n.settingsMilkVolumePerDayLabel(
+                dailyVolumeMl,
+                UserProfileSettings.volumeBasedSupplement(dailyVolumeMl),
+              ),
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.outline,
                 fontWeight: FontWeight.w500,
@@ -1089,6 +1100,7 @@ class _OutcomeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final bmrTdee = calculateBmrTdee(profile);
     final pregSupp = calculatePregnancySupplement(profile);
     final lactSupp = calculateLactationSupplement(profile);
@@ -1104,7 +1116,7 @@ class _OutcomeCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Dein Tagesziel',
+              l10n.settingsTodayTarget,
               style: textTheme.titleSmall?.copyWith(
                 color: scheme.onPrimaryContainer.withValues(alpha: 0.8),
                 letterSpacing: 0.4,
@@ -1121,21 +1133,21 @@ class _OutcomeCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _OutcomeRow(
-              label: 'Grundbedarf + Aktivität',
+              label: l10n.settingsOutcomeBase,
               value: '${formatKcal(bmrTdee)} kcal',
               color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
               textTheme: textTheme,
             ),
             if (pregSupp > 0)
               _OutcomeRow(
-                label: 'Schwangerschaft (T${profile.trimester})',
+                label: l10n.settingsOutcomePregnancy(profile.trimester ?? 0),
                 value: '+${formatKcal(pregSupp)} kcal',
                 color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
                 textTheme: textTheme,
               ),
             if (lactSupp > 0)
               _OutcomeRow(
-                label: 'Muttermilch-Aufschlag',
+                label: l10n.settingsOutcomeLactation,
                 value: '+${formatKcal(lactSupp)} kcal',
                 color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
                 textTheme: textTheme,
@@ -1222,18 +1234,14 @@ class _MacroSplitSection extends StatelessWidget {
     // Fat slider has to leave at least 5 % for carbs after subtracting protein.
     final fatMax = (100 - pPct - 5).clamp(10, 60);
 
+    final l10n = AppLocalizations.of(context);
     return _Section(
-      title: 'Makro-Split',
-      info: const InfoButton(
+      title: l10n.settingsMacroTitle,
+      info: InfoButton(
         fact: NutritionFact(
-          topic: 'Makro-Split',
-          summary: 'Anteile von Protein / Fett / KH am Tagesziel',
-          detail:
-              'Standard-Split aus DGE: Protein ergibt sich aus deinem Gewicht '
-              '(1,2 g/kg in der Stillzeit), Fett ~30 % der kcal, Kohlenhydrate '
-              'füllen den Rest. Du kannst Protein und Fett anpassen wenn du '
-              'einer spezifischen Ernährung folgst (Low-Carb, High-Protein). '
-              'Kohlenhydrate werden automatisch als Rest berechnet.',
+          topic: l10n.settingsMacroTitle,
+          summary: l10n.settingsMacroInfoSummary,
+          detail: l10n.settingsMacroInfoDetail,
           source: 'DGE 2025',
         ),
       ),
@@ -1241,7 +1249,7 @@ class _MacroSplitSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _MacroSlider(
-            label: 'Protein',
+            label: l10n.settingsMacroProtein,
             pct: pPct,
             min: 5,
             max: 50,
@@ -1254,7 +1262,7 @@ class _MacroSplitSection extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           _MacroSlider(
-            label: 'Fett',
+            label: l10n.settingsMacroFat,
             pct: fPct,
             min: 10,
             max: fatMax,
@@ -1273,25 +1281,15 @@ class _MacroSplitSection extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface,
-                      ),
-                      children: [
-                        const TextSpan(text: 'Kohlenhydrate '),
-                        TextSpan(
-                          text: '(Rest)',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: scheme.outline,
-                          ),
-                        ),
-                      ],
+                  child: Text(
+                    l10n.settingsMacroCarbsRemainder,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface,
                     ),
                   ),
                 ),
                 Text(
-                  '$cPct % · ${cGrams}g · $cKcal kcal',
+                  l10n.settingsMacroSliderValue(cPct, cGrams, cKcal),
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.outline,
                     fontWeight: FontWeight.w600,
@@ -1308,7 +1306,7 @@ class _MacroSplitSection extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: onReset,
                 icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Auto wiederherstellen'),
+                label: Text(l10n.settingsMacroResetAuto),
               ),
             ),
           ],
@@ -1347,6 +1345,7 @@ class _MacroSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1363,7 +1362,7 @@ class _MacroSlider extends StatelessWidget {
                     children: [
                       TextSpan(text: '$label '),
                       TextSpan(
-                        text: isAuto ? '(Auto $autoPct %)' : '(Auto $autoPct %)',
+                        text: l10n.settingsMacroAutoLabel(autoPct),
                         style: textTheme.bodySmall?.copyWith(
                           color: scheme.outline,
                         ),
@@ -1373,7 +1372,7 @@ class _MacroSlider extends StatelessWidget {
                 ),
               ),
               Text(
-                '$pct % · ${grams}g · $kcal kcal',
+                l10n.settingsMacroSliderValue(pct, grams, kcal),
                 style: textTheme.bodySmall?.copyWith(
                   color: isAuto ? scheme.outline : scheme.primary,
                   fontWeight: FontWeight.w600,
@@ -1407,7 +1406,7 @@ class _FavoritesSection extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return _Section(
-      title: 'Favoriten verwalten',
+      title: AppLocalizations.of(context).settingsSectionFavorites,
       child: favorites.isEmpty
           ? const EmptyFavorites()
           : Column(

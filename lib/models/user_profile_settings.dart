@@ -189,21 +189,49 @@ class UserProfileSettings {
   }
 }
 
+// Activity level + age-group labels live as static `factors` lists for the
+// math/IDs and as l10n-aware `_LabelsFor` lookups so the UI strings flip
+// language with the app. The numeric tables stay const.
+
 class ActivityLevel {
   final String label;
   final String hint;
   final double factor;
   const ActivityLevel(this.label, this.hint, this.factor);
 
-  static const all = [
-    ActivityLevel('Gering', 'Kaum Bewegung', 1.2),
-    ActivityLevel('Mäßig', 'Spaziergänge, leichte Hausarbeit', 1.375),
-    ActivityLevel('Aktiv', 'Regelmäßiges Training', 1.55),
-    ActivityLevel('Hoch', 'Intensives Training, körperliche Arbeit', 1.725),
-  ];
+  // Numeric PAL factors in display order. The labels come from l10n.
+  static const factors = <double>[1.2, 1.375, 1.55, 1.725];
 
-  static ActivityLevel closestTo(double f) =>
-      all.reduce((a, b) => (a.factor - f).abs() < (b.factor - f).abs() ? a : b);
+  static List<ActivityLevel> allFor(ActivityLabels labels) => [
+        ActivityLevel(labels.low, labels.lowHint, factors[0]),
+        ActivityLevel(labels.moderate, labels.moderateHint, factors[1]),
+        ActivityLevel(labels.active, labels.activeHint, factors[2]),
+        ActivityLevel(labels.high, labels.highHint, factors[3]),
+      ];
+
+  static ActivityLevel closestTo(double f, ActivityLabels labels) =>
+      allFor(labels).reduce(
+          (a, b) => (a.factor - f).abs() < (b.factor - f).abs() ? a : b);
+}
+
+// Lightweight value type so model code doesn't need to import the generated
+// AppLocalizations directly. The UI builds this from l10n once per
+// build-tree and passes it in.
+class ActivityLabels {
+  final String low, lowHint;
+  final String moderate, moderateHint;
+  final String active, activeHint;
+  final String high, highHint;
+  const ActivityLabels({
+    required this.low,
+    required this.lowHint,
+    required this.moderate,
+    required this.moderateHint,
+    required this.active,
+    required this.activeHint,
+    required this.high,
+    required this.highHint,
+  });
 }
 
 class ChildAgeGroup {
@@ -212,9 +240,26 @@ class ChildAgeGroup {
   final int typicalMlPerChild;
   const ChildAgeGroup(this.label, this.hint, this.typicalMlPerChild);
 
-  static const all = [
-    ChildAgeGroup('0–6 Mo', 'Voller Milchbedarf', 780),
-    ChildAgeGroup('6–12 Mo', 'Mit Beikost', 575),
-    ChildAgeGroup('12+ Mo', 'Erweiterte Stillzeit', 300),
-  ];
+  // ML/day per child, same order as the labels below.
+  static const typicalMls = <int>[780, 575, 300];
+
+  static List<ChildAgeGroup> allFor(ChildAgeLabels labels) => [
+        ChildAgeGroup(labels.zeroToSix, labels.zeroToSixHint, typicalMls[0]),
+        ChildAgeGroup(labels.sixToTwelve, labels.sixToTwelveHint, typicalMls[1]),
+        ChildAgeGroup(labels.twelvePlus, labels.twelvePlusHint, typicalMls[2]),
+      ];
+}
+
+class ChildAgeLabels {
+  final String zeroToSix, zeroToSixHint;
+  final String sixToTwelve, sixToTwelveHint;
+  final String twelvePlus, twelvePlusHint;
+  const ChildAgeLabels({
+    required this.zeroToSix,
+    required this.zeroToSixHint,
+    required this.sixToTwelve,
+    required this.sixToTwelveHint,
+    required this.twelvePlus,
+    required this.twelvePlusHint,
+  });
 }

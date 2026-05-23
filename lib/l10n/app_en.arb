@@ -182,5 +182,211 @@
   "feedbackMailSubject": "NourishMe feedback",
   "feedbackMailTriageHint": "Please don't edit below — it helps with triage.",
   "feedbackMailDeviceLabel": "Device",
-  "reminderPermissionBlocked": "Notifications are blocked in iOS Settings."
+  "reminderPermissionBlocked": "Notifications are blocked in iOS Settings.",
+
+  "settingsTitle": "Settings",
+  "settingsSectionProfile": "Your profile",
+  "settingsSectionPhase": "Current phase",
+  "settingsSectionMilk": "Breast milk",
+  "settingsSectionActivity": "Activity level",
+  "settingsSectionMacros": "Macro split",
+  "settingsSectionReminders": "Reminders",
+  "settingsSectionTheme": "Appearance",
+  "settingsSectionFavorites": "Manage favourites",
+  "settingsFieldBirthdate": "Date of birth",
+  "settingsFieldHeight": "Height",
+  "settingsFieldWeight": "Weight",
+  "settingsFieldHeightSuffix": "cm",
+  "settingsFieldWeightSuffix": "kg",
+  "settingsBirthdatePickerHelp": "Pick your date of birth",
+  "settingsButtonFeedback": "Send feedback",
+  "settingsButtonReset": "Reset app",
+  "settingsButtonSave": "Save",
+  "settingsResetTitle": "Reset app?",
+  "settingsResetBody": "All entries, favourites and your profile will be deleted. You'll start with onboarding again.",
+  "settingsResetConfirm": "Reset",
+  "settingsSavedSnackbar": "Profile saved",
+
+  "settingsPhaseLactating": "Producing milk",
+  "settingsPhaseLactatingHint": "Breastfeeding or pumping",
+  "settingsPhasePregnant": "Pregnant",
+  "settingsPhasePregnantHint": "Currently pregnant",
+  "settingsPhaseTrimester": "Trimester",
+
+  "settingsMilkChildren": "Children you're feeding milk to",
+  "settingsMilkAgeLabel": "Age of the children",
+  "settingsMilkVolume": "Estimated daily volume",
+  "settingsMilkVolumePerDay": "{volume} ml/day → +{supplement} kcal/day",
+  "@settingsMilkVolumePerDay": {
+    "placeholders": {
+      "volume": {"type": "int"},
+      "supplement": {"type": "int"}
+    }
+  },
+  "settingsMilkVolumeInfoSummary": "Synthesis cost: ~0.84 kcal per ml of milk.",
+  "settingsMilkVolumeInfoDetail": "If you pump and know your volume, enter it exactly. Otherwise the share slider above gives an estimate.",
+  "settingsMilkVolumeInfoSource": "DGE 2025, EFSA 2017",
+
+  "settingsActivityInfoSummary": "Influences daily expenditure (PAL factor)",
+  "settingsActivityInfoDetail": "Low 1.2: barely moving. Moderate 1.375: walks, light housework. Active 1.55: regular training. High 1.725: intense training or physical labour. With a baby at home, usually \"Moderate\".",
+  "settingsActivityInfoSource": "DGE PAL classification",
+  "activityLow": "Low",
+  "activityLowHint": "Barely any movement",
+  "activityModerate": "Moderate",
+  "activityModerateHint": "Walks, light housework",
+  "activityActive": "Active",
+  "activityActiveHint": "Regular training",
+  "activityHigh": "High",
+  "activityHighHint": "Intense training, physical work",
+
+  "childAge0to6": "0–6 mo",
+  "childAge0to6Hint": "Full milk demand",
+  "childAge6to12": "6–12 mo",
+  "childAge6to12Hint": "With solids",
+  "childAge12plus": "12+ mo",
+  "childAge12plusHint": "Extended breastfeeding",
+
+  "settingsMacroTitle": "Macro split",
+  "settingsMacroInfoSummary": "Protein / fat / carbs as % of daily kcal",
+  "settingsMacroInfoDetail": "Default split per DGE: protein from your weight (1.2 g/kg in lactation), fat ~30% of kcal, carbs make up the rest. You can adjust protein and fat for a specific diet (low-carb, high-protein). Carbs always rebalance to 100%.",
+  "settingsMacroProtein": "Protein",
+  "settingsMacroFat": "Fat",
+  "settingsMacroCarbs": "Carbs",
+  "settingsMacroCarbsAuto": "auto",
+  "settingsMacroResetAuto": "Reset to auto",
+  "settingsMacroAutoLabel": "(auto {percent} %)",
+  "@settingsMacroAutoLabel": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+
+  "settingsOutcomeBase": "Base + activity",
+  "settingsOutcomePregnancy": "Pregnancy (T{trimester})",
+  "@settingsOutcomePregnancy": {
+    "placeholders": {
+      "trimester": {"type": "int"}
+    }
+  },
+  "settingsOutcomeLactation": "Milk supplement",
+
+  "themeAuto": "Follows device setting",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+
+  "settingsReminderToggleTitle": "Meal reminders",
+  "settingsReminderToggleOn": "On. Set what you want to hear and when.",
+  "settingsReminderToggleOff": "Off. Turning on will ask iOS for permission once.",
+
+  "settingsErrorPrefix": "Error: {message}",
+  "@settingsErrorPrefix": {
+    "placeholders": {"message": {"type": "String"}}
+  },
+
+  "settingsMilkChildSingular": "Age of the child",
+  "settingsMilkChildPlural": "Ages of the children",
+  "settingsMilkShareSingular": "Your share: {percent}%",
+  "settingsMilkSharePlural": "Share per child: {percent}%",
+  "@settingsMilkShareSingular": {
+    "placeholders": {"percent": {"type": "int"}}
+  },
+  "@settingsMilkSharePlural": {
+    "placeholders": {"percent": {"type": "int"}}
+  },
+  "settingsMilkVolumePerDayLabel": "{volume} ml/day → +{supplement} kcal/day",
+  "@settingsMilkVolumePerDayLabel": {
+    "placeholders": {
+      "volume": {"type": "int"},
+      "supplement": {"type": "int"}
+    }
+  },
+  "settingsMilkVolumeInfoTopic": "Daily milk volume",
+  "settingsMilkVolumeInfoTitle": "Energy = volume × 0.84 kcal/ml",
+
+  "settingsTodayTarget": "Your daily target",
+  "settingsMacroCarbsRemainder": "Carbs (remainder)",
+  "settingsMacroSliderValue": "{percent} % · {grams}g · {kcal} kcal",
+  "@settingsMacroSliderValue": {
+    "placeholders": {
+      "percent": {"type": "int"},
+      "grams": {"type": "int"},
+      "kcal": {"type": "int"}
+    }
+  },
+
+  "themeSystem": "System",
+  "themeSystemHint": "Follows device setting",
+  "themeLightHint": "Light theme",
+  "themeDarkHint": "Dark theme",
+
+  "settingsReminderTimeFormat": "{hour}:{minute}",
+  "@settingsReminderTimeFormat": {
+    "placeholders": {
+      "hour": {"type": "String"},
+      "minute": {"type": "String"}
+    }
+  },
+
+  "infoBackgroundTooltip": "Background",
+  "infoSourceLabel": "Source: {source}",
+  "@infoSourceLabel": {
+    "placeholders": {"source": {"type": "String"}}
+  },
+
+  "onboardingRestartTitle": "Restart onboarding?",
+  "onboardingRestartBody": "Your inputs so far will be discarded.",
+  "onboardingRestartConfirm": "Restart",
+  "onboardingRestartTooltip": "Restart onboarding",
+  "onboardingStepIndicator": "STEP {step} OF {total}",
+  "@onboardingStepIndicator": {
+    "placeholders": {
+      "step": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingButtonNext": "Next",
+  "onboardingButtonStart": "Get started",
+  "onboardingFooterEditLater": "You can change every value later in settings.",
+  "onboardingTagline": "Nutrition that thinks along.",
+  "onboardingSubline": "A live coach for pregnancy and breastfeeding. Evidence-based, privacy-friendly, no calorie-counting fuss.",
+
+  "onboardingPhaseQuestion": "Which phase are you in?",
+  "onboardingPhaseExplainer": "We use this to calculate your energy supplement and protein target.",
+  "onboardingPhaseLactation": "Breastfeeding",
+  "onboardingPhaseLactationHint": "You're producing breast milk (nursing or pumping)",
+  "onboardingPhasePregnancy": "Pregnancy",
+  "onboardingPhasePregnancyHint": "Currently pregnant",
+  "onboardingPhaseBothNote": "Pregnancy and breastfeeding supplements will be added together.",
+
+  "onboardingBasicsTitle": "Your basic data",
+  "onboardingBasicsInfoTopic": "Basic data",
+  "onboardingBasicsInfoSummary": "Needed to calculate your basal metabolic rate",
+  "onboardingBasicsInfoDetail": "We use the Mifflin-St Jeor formula to estimate your daily basal metabolic rate. That plus your activity factor plus the pregnancy/breastfeeding supplement gives your daily target.",
+  "onboardingBasicsInfoSource": "Mifflin-St Jeor 1990, DGE",
+  "onboardingActivityHintBaby": "With a baby at home, usually \"Moderate\". Adjust when you go back to more sport.",
+
+  "onboardingDetailsTitle": "Details",
+  "onboardingVolumeShareQuestionSingular": "What's your share of the feeding?",
+  "onboardingVolumeShareQuestionPlural": "What's your share per child?",
+  "onboardingVolumeInfoDetail": "Energy cost of milk synthesis is ~0.84 kcal per ml. Typical volumes: single 0-6mo ~780 ml/day, twins ~1500 ml/day, 6-12mo ~575 ml, >12mo ~300 ml. If you pump and know your volume, enter it exactly.",
+
+  "onboardingResultEyebrow": "CALCULATION",
+  "onboardingResultMacrosEyebrow": "MACRONUTRIENTS · DAILY TARGET",
+  "onboardingLedeBase": "Base + activity: {kcal} kcal",
+  "@onboardingLedeBase": {
+    "placeholders": {"kcal": {"type": "String"}}
+  },
+  "onboardingLedePregnancy": "+ {kcal} kcal pregnancy (T{trimester})",
+  "@onboardingLedePregnancy": {
+    "placeholders": {
+      "kcal": {"type": "String"},
+      "trimester": {"type": "int"}
+    }
+  },
+  "onboardingLedeLactation": "+ {kcal} kcal breastfeeding",
+  "@onboardingLedeLactation": {
+    "placeholders": {"kcal": {"type": "String"}}
+  },
+
+  "onboardingRemindersDetail": "Five slots across the day. iOS will ask once for permission when you tap \"Open diary\"."
 }

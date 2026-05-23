@@ -378,4 +378,413 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get reminderPermissionBlocked =>
       'Benachrichtigungen sind in den iOS-Einstellungen blockiert.';
+
+  @override
+  String get settingsTitle => 'Einstellungen';
+
+  @override
+  String get settingsSectionProfile => 'Dein Profil';
+
+  @override
+  String get settingsSectionPhase => 'Aktuelle Phase';
+
+  @override
+  String get settingsSectionMilk => 'Muttermilch';
+
+  @override
+  String get settingsSectionActivity => 'Aktivitätslevel';
+
+  @override
+  String get settingsSectionMacros => 'Makro-Split';
+
+  @override
+  String get settingsSectionReminders => 'Erinnerungen';
+
+  @override
+  String get settingsSectionTheme => 'Design';
+
+  @override
+  String get settingsSectionFavorites => 'Favoriten verwalten';
+
+  @override
+  String get settingsFieldBirthdate => 'Geburtsdatum';
+
+  @override
+  String get settingsFieldHeight => 'Größe';
+
+  @override
+  String get settingsFieldWeight => 'Gewicht';
+
+  @override
+  String get settingsFieldHeightSuffix => 'cm';
+
+  @override
+  String get settingsFieldWeightSuffix => 'kg';
+
+  @override
+  String get settingsBirthdatePickerHelp => 'Geburtsdatum wählen';
+
+  @override
+  String get settingsButtonFeedback => 'Feedback senden';
+
+  @override
+  String get settingsButtonReset => 'App zurücksetzen';
+
+  @override
+  String get settingsButtonSave => 'Speichern';
+
+  @override
+  String get settingsResetTitle => 'App zurücksetzen?';
+
+  @override
+  String get settingsResetBody =>
+      'Alle Einträge, Favoriten und dein Profil werden gelöscht. Du startest danach mit dem Onboarding.';
+
+  @override
+  String get settingsResetConfirm => 'Zurücksetzen';
+
+  @override
+  String get settingsSavedSnackbar => 'Profil gespeichert';
+
+  @override
+  String get settingsPhaseLactating => 'Milchproduzierend';
+
+  @override
+  String get settingsPhaseLactatingHint => 'Stillend oder pumpend';
+
+  @override
+  String get settingsPhasePregnant => 'Schwanger';
+
+  @override
+  String get settingsPhasePregnantHint => 'Aktuell schwanger';
+
+  @override
+  String get settingsPhaseTrimester => 'Trimester';
+
+  @override
+  String get settingsMilkChildren => 'Kinder, die du mit Milch versorgst';
+
+  @override
+  String get settingsMilkAgeLabel => 'Alter der Kinder';
+
+  @override
+  String get settingsMilkVolume => 'Geschätztes Tagesvolumen';
+
+  @override
+  String settingsMilkVolumePerDay(int volume, int supplement) {
+    return '$volume ml/Tag → +$supplement kcal/Tag';
+  }
+
+  @override
+  String get settingsMilkVolumeInfoSummary =>
+      'Energiekosten der Synthese: ~0,84 kcal pro ml Milch.';
+
+  @override
+  String get settingsMilkVolumeInfoDetail =>
+      'Wenn du pumpst und dein Volumen kennst, trage es exakt ein. Anteil-Slider darüber liefert sonst eine Schätzung.';
+
+  @override
+  String get settingsMilkVolumeInfoSource => 'DGE 2025, EFSA 2017';
+
+  @override
+  String get settingsActivityInfoSummary =>
+      'Beeinflusst den Tagesumsatz (PAL-Faktor)';
+
+  @override
+  String get settingsActivityInfoDetail =>
+      'Gering 1,2: kaum Bewegung. Mäßig 1,375: Spaziergänge, leichte Hausarbeit. Aktiv 1,55: regelmäßiges Training. Hoch 1,725: intensives Training oder körperliche Arbeit. Bei Babys zu Hause meist \"Mäßig\".';
+
+  @override
+  String get settingsActivityInfoSource => 'DGE PAL-Klassifikation';
+
+  @override
+  String get activityLow => 'Gering';
+
+  @override
+  String get activityLowHint => 'Kaum Bewegung';
+
+  @override
+  String get activityModerate => 'Mäßig';
+
+  @override
+  String get activityModerateHint => 'Spaziergänge, leichte Hausarbeit';
+
+  @override
+  String get activityActive => 'Aktiv';
+
+  @override
+  String get activityActiveHint => 'Regelmäßiges Training';
+
+  @override
+  String get activityHigh => 'Hoch';
+
+  @override
+  String get activityHighHint => 'Intensives Training, körperliche Arbeit';
+
+  @override
+  String get childAge0to6 => '0–6 Mo';
+
+  @override
+  String get childAge0to6Hint => 'Voller Milchbedarf';
+
+  @override
+  String get childAge6to12 => '6–12 Mo';
+
+  @override
+  String get childAge6to12Hint => 'Mit Beikost';
+
+  @override
+  String get childAge12plus => '12+ Mo';
+
+  @override
+  String get childAge12plusHint => 'Erweiterte Stillzeit';
+
+  @override
+  String get settingsMacroTitle => 'Makro-Split';
+
+  @override
+  String get settingsMacroInfoSummary =>
+      'Anteile von Protein / Fett / KH am Tagesziel';
+
+  @override
+  String get settingsMacroInfoDetail =>
+      'Standard-Split aus DGE: Protein ergibt sich aus deinem Gewicht (1,2 g/kg in der Stillzeit), Fett ~30 % der kcal, Kohlenhydrate füllen den Rest. Du kannst Protein und Fett anpassen wenn du einer spezifischen Ernährung folgst (Low-Carb, High-Protein). Kohlenhydrate werden automatisch als Rest berechnet.';
+
+  @override
+  String get settingsMacroProtein => 'Protein';
+
+  @override
+  String get settingsMacroFat => 'Fett';
+
+  @override
+  String get settingsMacroCarbs => 'Kohlenhydrate';
+
+  @override
+  String get settingsMacroCarbsAuto => 'Rest';
+
+  @override
+  String get settingsMacroResetAuto => 'Auto wiederherstellen';
+
+  @override
+  String settingsMacroAutoLabel(int percent) {
+    return '(Auto $percent %)';
+  }
+
+  @override
+  String get settingsOutcomeBase => 'Grundbedarf + Aktivität';
+
+  @override
+  String settingsOutcomePregnancy(int trimester) {
+    return 'Schwangerschaft (T$trimester)';
+  }
+
+  @override
+  String get settingsOutcomeLactation => 'Muttermilch-Aufschlag';
+
+  @override
+  String get themeAuto => 'Folgt dem Geräte-Setting';
+
+  @override
+  String get themeLight => 'Hell';
+
+  @override
+  String get themeDark => 'Dunkel';
+
+  @override
+  String get settingsReminderToggleTitle => 'Mahlzeit-Erinnerungen';
+
+  @override
+  String get settingsReminderToggleOn =>
+      'Aktiv. Stelle ein, was du wann hören willst.';
+
+  @override
+  String get settingsReminderToggleOff =>
+      'Aus. Bei Aktivierung fragt iOS einmal um Erlaubnis.';
+
+  @override
+  String settingsErrorPrefix(String message) {
+    return 'Fehler: $message';
+  }
+
+  @override
+  String get settingsMilkChildSingular => 'Alter des Kindes';
+
+  @override
+  String get settingsMilkChildPlural => 'Alter der Kinder';
+
+  @override
+  String settingsMilkShareSingular(int percent) {
+    return 'Dein Anteil: $percent%';
+  }
+
+  @override
+  String settingsMilkSharePlural(int percent) {
+    return 'Anteil pro Kind: $percent%';
+  }
+
+  @override
+  String settingsMilkVolumePerDayLabel(int volume, int supplement) {
+    return '$volume ml/Tag → +$supplement kcal/Tag';
+  }
+
+  @override
+  String get settingsMilkVolumeInfoTopic => 'Tagesvolumen Muttermilch';
+
+  @override
+  String get settingsMilkVolumeInfoTitle => 'Energie = Volumen × 0,84 kcal/ml';
+
+  @override
+  String get settingsTodayTarget => 'Dein Tagesziel';
+
+  @override
+  String get settingsMacroCarbsRemainder => 'Kohlenhydrate (Rest)';
+
+  @override
+  String settingsMacroSliderValue(int percent, int grams, int kcal) {
+    return '$percent % · ${grams}g · $kcal kcal';
+  }
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeSystemHint => 'Folgt dem Geräte-Setting';
+
+  @override
+  String get themeLightHint => 'Helles Theme';
+
+  @override
+  String get themeDarkHint => 'Dunkles Theme';
+
+  @override
+  String settingsReminderTimeFormat(String hour, String minute) {
+    return '$hour:$minute';
+  }
+
+  @override
+  String get infoBackgroundTooltip => 'Hintergrund';
+
+  @override
+  String infoSourceLabel(String source) {
+    return 'Quelle: $source';
+  }
+
+  @override
+  String get onboardingRestartTitle => 'Onboarding neu starten?';
+
+  @override
+  String get onboardingRestartBody =>
+      'Deine bisherigen Eingaben werden verworfen.';
+
+  @override
+  String get onboardingRestartConfirm => 'Neu starten';
+
+  @override
+  String get onboardingRestartTooltip => 'Onboarding neu starten';
+
+  @override
+  String onboardingStepIndicator(int step, int total) {
+    return 'SCHRITT $step VON $total';
+  }
+
+  @override
+  String get onboardingButtonNext => 'Weiter';
+
+  @override
+  String get onboardingButtonStart => 'Loslegen';
+
+  @override
+  String get onboardingFooterEditLater =>
+      'Du kannst alle Werte später in den Einstellungen anpassen.';
+
+  @override
+  String get onboardingTagline => 'Ernährung, die mitdenkt.';
+
+  @override
+  String get onboardingSubline =>
+      'Live-Coach für Schwangerschaft und Stillzeit. Wissenschaftlich fundiert, datenschutzfreundlich, ohne Kalorien-Zähl-Kram.';
+
+  @override
+  String get onboardingPhaseQuestion => 'In welcher Phase bist du?';
+
+  @override
+  String get onboardingPhaseExplainer =>
+      'Daraus berechnen wir deinen Energie-Aufschlag und das Protein-Ziel.';
+
+  @override
+  String get onboardingPhaseLactation => 'Stillzeit';
+
+  @override
+  String get onboardingPhaseLactationHint =>
+      'Du produzierst Muttermilch (stillend oder pumpend)';
+
+  @override
+  String get onboardingPhasePregnancy => 'Schwangerschaft';
+
+  @override
+  String get onboardingPhasePregnancyHint => 'Aktuell schwanger';
+
+  @override
+  String get onboardingPhaseBothNote =>
+      'Schwangerschafts- und Stillzeit-Aufschlag werden addiert.';
+
+  @override
+  String get onboardingBasicsTitle => 'Deine Basisdaten';
+
+  @override
+  String get onboardingBasicsInfoTopic => 'Basisdaten';
+
+  @override
+  String get onboardingBasicsInfoSummary => 'Brauchen wir für den Grundbedarf';
+
+  @override
+  String get onboardingBasicsInfoDetail =>
+      'Wir berechnen mit der Mifflin-St Jeor Formel deinen täglichen Grundbedarf. Daraus plus Aktivitätsfaktor plus Schwangerschaft/Stillzeit-Aufschlag ergibt sich dein Tagesziel.';
+
+  @override
+  String get onboardingBasicsInfoSource => 'Mifflin-St Jeor 1990, DGE';
+
+  @override
+  String get onboardingActivityHintBaby =>
+      'Bei einem Baby zu Hause meist \"Mäßig\". Anpassen wenn du wieder mehr Sport machst.';
+
+  @override
+  String get onboardingDetailsTitle => 'Details';
+
+  @override
+  String get onboardingVolumeShareQuestionSingular =>
+      'Wie groß ist dein Anteil an der Ernährung?';
+
+  @override
+  String get onboardingVolumeShareQuestionPlural =>
+      'Wie groß ist dein Anteil pro Kind?';
+
+  @override
+  String get onboardingVolumeInfoDetail =>
+      'Die Energiekosten der Milchsynthese liegen bei ~0,84 kcal pro ml Milch. Typische Volumina: einzeln 0-6 Mo ~780 ml/Tag, Zwillinge ~1.500 ml/Tag, 6-12 Mo ~575 ml, >12 Mo ~300 ml. Wenn du abpumpst und dein Volumen kennst, trage es genau ein.';
+
+  @override
+  String get onboardingResultEyebrow => 'BERECHNUNG';
+
+  @override
+  String get onboardingResultMacrosEyebrow => 'MAKRONÄHRSTOFFE · TAGESBEDARF';
+
+  @override
+  String onboardingLedeBase(String kcal) {
+    return 'Grundbedarf + Aktivität: $kcal kcal';
+  }
+
+  @override
+  String onboardingLedePregnancy(String kcal, int trimester) {
+    return '+ $kcal kcal Schwangerschaft (T$trimester)';
+  }
+
+  @override
+  String onboardingLedeLactation(String kcal) {
+    return '+ $kcal kcal für Stillen';
+  }
+
+  @override
+  String get onboardingRemindersDetail =>
+      'Fünf Slots über den Tag verteilt. iOS fragt einmal um Erlaubnis, wenn du \"Tagebuch öffnen\" tippst.';
 }

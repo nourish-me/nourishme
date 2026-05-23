@@ -225,6 +225,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final today = ref.read(todayMealsProvider);
     final profile = ref.read(userProfileProvider).valueOrNull;
     final loadingNotifier = ref.read(insightLoadingProvider.notifier);
+    final locale = Localizations.localeOf(context).languageCode;
 
     if (isEdit) {
       // The meal item is already in the thread. Remove the old coach
@@ -273,6 +274,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       isPregnant: profile?.isPregnant ?? false,
       trimester: profile?.trimester,
       dailyMilkVolumeMl: profile?.dailyMilkVolumeMl ?? 0,
+      locale: locale,
     )
         .then((response) async {
       // Link the coach response to the meal so deleting the meal also

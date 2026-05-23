@@ -76,7 +76,14 @@ class ClaudeClient {
   static bool get _usingProxy =>
       _proxyUrl.isNotEmpty && _appSecret.isNotEmpty;
 
-  static final _parsePrompt = '''
+  // Picks the system prompt and user-message template language. We key on the
+  // BCP-47 primary language tag from the app's active locale: "de" → German,
+  // anything else → English (treating English as the default for the
+  // international audience).
+  static bool _isGerman(String locale) =>
+      locale.toLowerCase().startsWith('de');
+
+  static final _parsePromptDe = '''
 Du bist ein Ernährungs-Assistent für eine Mutter, die Muttermilch produziert (egal ob sie direkt stillt oder ausschließlich abpumpt) oder schwanger ist.
 Parse den beschriebenen Eintrag in strukturierte Nährwerte und prüfe auf Food-Safety-Risiken.
 
@@ -123,7 +130,54 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
 ''';
 
-  static final _perMealPrompt = '''
+  static final _parsePromptEn = '''
+You are a nutrition assistant for a woman who is producing breast milk (whether nursing directly or exclusively pumping) or pregnant.
+Parse the described entry into structured nutrition data and check for food-safety risks.
+
+Avoid the word "breastfeeding" and variations of it in your safety_warnings, because many mothers exclusively pump and don't feel addressed by it. Use neutral phrasing like "while you produce breast milk", "in this phase", "alcohol passes into breast milk", "caffeine reaches the baby".
+
+Accept all kinds of food and drink intake: full meals, snacks, sweets, and drinks like coffee, tea, juice, smoothie, milk, soda, alcohol or water (water may be 0 kcal).
+
+${NutritionFacts.coachContextBlockEn}
+
+Apply these thresholds for safety_warnings. For every entry, concretely check:
+- Estimate the caffeine content. Warn when the daily 200 mg threshold could be exceeded.
+- Alcohol: warn for any amount during pregnancy. While producing milk, mention the waiting time (~2-2.5 h per standard drink).
+- Fish: warn for high-mercury predator fish, suggest a safer alternative.
+- Raw milk / raw meat / sushi: in pregnancy, flag the listeria risk.
+- Liver: warn in T1 pregnancy (vitamin A teratogenic, UL 3,000 µg).
+- Sage tea / peppermint oil: in larger amounts, mention the galactofuge effect.
+
+If amounts aren't given, estimate conservatively based on a typical portion or cup.
+
+If a photo is attached, also analyse the image. Use visible reference objects (cutlery, hand, known packaging, plate, cup) to estimate the portion. If both text and image are provided and the text names a concrete amount, trust the text for the amount and use the image to identify the food.
+
+If the input doesn't describe food intake (e.g. random characters, empty words, non-edible things, a question), set "is_meal" to false and return a short English hint in "rejection_reason", e.g. "Please describe a food or drink." In that case kcal and macros may be 0 and safety_warnings empty.
+
+For each entry also estimate the portion size as a single number with unit ("g" for solid/semi-solid foods, "ml" for drinks). For mixed meals give the total amount.
+
+Respond EXCLUSIVELY with JSON in this schema, no Markdown code fence, no text before or after:
+{
+  "is_meal": bool,
+  "rejection_reason": string or null,
+  "summary": string,
+  "kcal": int,
+  "protein_g": number,
+  "carbs_g": number,
+  "fat_g": number,
+  "portion_amount": number,
+  "portion_unit": string ("g" or "ml"),
+  "portion_alias": string or null,
+  "safety_warnings": [string]
+}
+
+"summary" is a short English description, max 80 characters.
+"portion_amount" and "portion_unit" together must be plausible for the summary. With is_meal=false they may be 0 and "g".
+"portion_alias" is a handy reference size in English, max 25 characters, that helps the user gauge the amount without a scale. Examples: "a handful", "2 tbsp", "a small mug", "1 palm size", "1 heaped tsp", "1 medium bowl". When no useful reference exists (e.g. water, sparkling water): null.
+"safety_warnings" only contains health-relevant notes for the phase, never input problems. Empty when nothing is critical.
+''';
+
+  static final _perMealPromptDe = '''
 Du bist eine Ernährungs-Coach für eine Frau, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
 Antworte auf Deutsch, sachlich, ohne Smalltalk, ohne Anrede. Sei wissenschaftlich fundiert: nenne konkrete Zahlen aus DGE/EFSA/BfR wenn relevant.
 
@@ -152,7 +206,36 @@ Regeln:
 - Die Nutzerdaten (Gewicht, Aktivität, Anzahl Kinder, Milchvolumen, etc.) sind im Profil mitgeliefert. Nutze sie SOFORT und FRAG NIEMALS danach.
 ''';
 
-  static final _chatPromptBase = '''
+  static final _perMealPromptEn = '''
+You are a nutrition coach for a woman who is producing breast milk (nursing directly or exclusively pumping) or pregnant.
+Reply in English, factual, no small talk, no salutation. Be evidence-based: cite concrete numbers from DGE/EFSA/BfR when relevant.
+
+${NutritionFacts.coachContextBlockEn}
+
+Answer strictly in the following Markdown format. No tables, they don't fit on phone screens. No additional sentences before or after.
+
+**Components:** (ONLY when the meal consists of multiple parts. Skip the whole block when there's only one component.)
+- <component>, <amount> — <kcal> kcal · P <g> · C <g> · F <g>
+- ... further components in the same form
+
+**🟢 Strong:** one or two strengths in one sentence
+**🟡 Light:** one or two weaknesses, if relevant
+
+**What's still missing today:** brief, with a kcal split across the next meals
+**Next meal:** recommendation with timing and a concrete food suggestion
+
+Rules:
+- Estimate components from the raw text or description, amounts in g, ml or pieces
+- Each component on its own line, compact with · as separator
+- NO total line, kcal are already on the meal card and macros are counted in the toolbar
+- Do NOT repeat the daily kcal or protein total, it's visible in the toolbar above
+- Mention micronutrients (iron, calcium, folate, omega-3) only when they fit the meal or time of day
+- Maximum 120 words
+- Avoid the word "breastfeeding" and its variations. Use "while you're producing breast milk" or "in this phase", since many mothers exclusively pump
+- User data (weight, activity, number of children, milk volume, etc.) is provided in the profile. Use it IMMEDIATELY and NEVER ask for it.
+''';
+
+  static final _chatPromptBaseDe = '''
 Du bist ein wissenschaftlich fundierter Ernährungs-Coach für eine Mutter, die Muttermilch produziert (direkt stillend oder ausschließlich pumpend) oder schwanger ist.
 Antworte auf Deutsch, präzise und einfühlsam. Halte dich kurz, maximal 4-5 Sätze pro Antwort, außer eine Liste oder Aufzählung ist sinnvoll.
 Zitiere konkrete Zahlen und Quellen (DGE, BfR, EFSA, LactMed, FDA/EPA) wo relevant statt vager Aussagen.
@@ -169,19 +252,55 @@ Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nu
 ${NutritionFacts.coachContextBlock}
 ''';
 
-  static String describeProfile(int numChildren, int sharePercent) {
-    if (numChildren <= 0) return 'Profil: aktuell keine Milchabgabe (z.B. Schwangerschaft oder bereits abgestillt).';
+  static final _chatPromptBaseEn = '''
+You are a science-based nutrition coach for a woman who is producing breast milk (nursing directly or exclusively pumping) or pregnant.
+Reply in English, precise and empathetic. Keep it short, max 4-5 sentences per reply, unless a list or bullet form makes sense.
+Cite concrete numbers and sources (DGE, BfR, EFSA, LactMed, FDA/EPA) where relevant rather than vague statements.
+If the question is open-ended (e.g. for meal ideas), give 2-3 concrete suggestions.
+
+CRITICAL: User data (weight, height, age, activity, phase, number of children, age of children, milk volume, trimester) and today's totals (kcal, protein, etc.) are provided in the profile and daily context. Use them IMMEDIATELY in your replies.
+- NEVER ask for data that's already in the profile or daily context.
+- If someone asks about protein needs, calculate directly using the provided weight and state the concrete number.
+- If someone asks about water intake, calculate using the provided milk volume.
+- Phrases like "if you tell me your weight" are forbidden, the weight is already there.
+
+Avoid the word "breastfeeding" and variations (breastfeeding mother, while breastfeeding). Use instead "while you produce breast milk", "mothers who pump or nurse", "in this phase", since many mothers exclusively pump.
+
+${NutritionFacts.coachContextBlockEn}
+''';
+
+  static String describeProfile(int numChildren, int sharePercent,
+      {String locale = 'en'}) {
+    if (_isGerman(locale)) {
+      if (numChildren <= 0) {
+        return 'Profil: aktuell keine Milchabgabe (z.B. Schwangerschaft oder bereits abgestillt).';
+      }
+      final share = sharePercent == 100
+          ? 'ausschließlich (100%)'
+          : sharePercent >= 75
+              ? 'hauptsächlich ($sharePercent%)'
+              : sharePercent >= 50
+                  ? 'etwa zur Hälfte ($sharePercent%)'
+                  : sharePercent >= 25
+                      ? 'teilweise ($sharePercent%)'
+                      : 'wenig ($sharePercent%)';
+      final kinder = numChildren == 1 ? 'ein Kind' : '$numChildren Kinder';
+      return 'Profil: versorgt $kinder mit eigener Milch, jeweils $share.';
+    }
+    if (numChildren <= 0) {
+      return 'Profile: no current milk supply (e.g. pregnancy or already weaned).';
+    }
     final share = sharePercent == 100
-        ? 'ausschließlich (100%)'
+        ? 'exclusively (100%)'
         : sharePercent >= 75
-            ? 'hauptsächlich ($sharePercent%)'
+            ? 'mostly ($sharePercent%)'
             : sharePercent >= 50
-                ? 'etwa zur Hälfte ($sharePercent%)'
+                ? 'about half ($sharePercent%)'
                 : sharePercent >= 25
-                    ? 'teilweise ($sharePercent%)'
-                    : 'wenig ($sharePercent%)';
-    final kinder = numChildren == 1 ? 'ein Kind' : '$numChildren Kinder';
-    return 'Profil: versorgt $kinder mit eigener Milch, jeweils $share.';
+                    ? 'partly ($sharePercent%)'
+                    : 'a little ($sharePercent%)';
+    final kids = numChildren == 1 ? 'one child' : '$numChildren children';
+    return 'Profile: feeds $kids with own milk, $share each.';
   }
 
   Future<String> _post({
@@ -200,8 +319,8 @@ ${NutritionFacts.coachContextBlock}
     } else {
       if (_legacyApiKey.isEmpty) {
         throw CoachApiException(
-          'App ist nicht konfiguriert. Bitte sag Vanessa Bescheid.',
-          '.env hat weder NOURISHME_API_URL+APP_SECRET noch ANTHROPIC_API_KEY',
+          'App is not configured. Please tell the developer.',
+          '.env has neither NOURISHME_API_URL+APP_SECRET nor ANTHROPIC_API_KEY',
         );
       }
       headers['x-api-key'] = _legacyApiKey;
@@ -223,41 +342,41 @@ ${NutritionFacts.coachContextBlock}
           .timeout(const Duration(seconds: 30));
     } on TimeoutException {
       throw CoachApiException(
-        'Der Coach braucht gerade lange. Probier es gleich nochmal.',
+        'The coach is taking too long. Try again in a moment.',
         'timeout after 30s',
       );
     } on SocketException catch (e) {
       throw CoachApiException(
-        'Keine Internetverbindung. Probier es gleich nochmal.',
+        'No internet connection. Try again in a moment.',
         e.message,
       );
     } on http.ClientException catch (e) {
       throw CoachApiException(
-        'Verbindungsproblem. Probier es gleich nochmal.',
+        'Connection problem. Try again in a moment.',
         e.message,
       );
     }
     if (response.statusCode == 401 || response.statusCode == 403) {
       throw CoachApiException(
-        'Auth-Problem. Bitte sag Vanessa Bescheid.',
+        'Auth problem. Please tell the developer.',
         'HTTP ${response.statusCode}: ${utf8.decode(response.bodyBytes)}',
       );
     }
     if (response.statusCode == 429) {
       throw CoachApiException(
-        'Coach gerade überlastet. Versuch es in einer Minute.',
+        'Coach is overloaded right now. Try again in a minute.',
         'HTTP 429',
       );
     }
     if (response.statusCode >= 500) {
       throw CoachApiException(
-        'Coach gerade nicht erreichbar. Versuch es bald nochmal.',
+        'Coach is unavailable right now. Try again soon.',
         'HTTP ${response.statusCode}',
       );
     }
     if (response.statusCode != 200) {
       throw CoachApiException(
-        'Etwas ist schiefgelaufen. Probier es nochmal.',
+        'Something went wrong. Try again.',
         'HTTP ${response.statusCode}: ${utf8.decode(response.bodyBytes)}',
       );
     }
@@ -270,7 +389,9 @@ ${NutritionFacts.coachContextBlock}
   Future<MealParseResult> parseMeal(
     String userText, {
     Uint8List? imageBytes,
+    String locale = 'en',
   }) async {
+    final isDe = _isGerman(locale);
     final List<Map<String, dynamic>> content = [];
     if (imageBytes != null) {
       content.add({
@@ -285,12 +406,14 @@ ${NutritionFacts.coachContextBlock}
     content.add({
       'type': 'text',
       'text': userText.isEmpty
-          ? 'Schätze diesen Eintrag basierend auf dem Bild.'
+          ? (isDe
+              ? 'Schätze diesen Eintrag basierend auf dem Bild.'
+              : 'Estimate this entry based on the image.')
           : userText,
     });
 
     final text = await _post(
-      systemPrompt: _parsePrompt,
+      systemPrompt: isDe ? _parsePromptDe : _parsePromptEn,
       messages: [
         {'role': 'user', 'content': content},
       ],
@@ -299,7 +422,7 @@ ${NutritionFacts.coachContextBlock}
     final jsonStart = text.indexOf('{');
     final jsonEnd = text.lastIndexOf('}');
     if (jsonStart == -1 || jsonEnd == -1) {
-      throw Exception('Claude hat kein JSON zurückgegeben: $text');
+      throw Exception('Claude returned no JSON: $text');
     }
     final parsed =
         jsonDecode(text.substring(jsonStart, jsonEnd + 1)) as Map<String, dynamic>;
@@ -342,25 +465,108 @@ ${NutritionFacts.coachContextBlock}
     required bool isPregnant,
     required int? trimester,
     required int dailyMilkVolumeMl,
+    String locale = 'en',
   }) async {
+    final isDe = _isGerman(locale);
     final hour = DateTime.now().hour;
     final remaining = targetKcal - totalKcalToday;
+    final userMessage = isDe
+        ? _buildPerMealUserMessageDe(
+            mealRawText: mealRawText,
+            mealSummary: mealSummary,
+            mealKcal: mealKcal,
+            mealProteinG: mealProteinG,
+            mealCarbsG: mealCarbsG,
+            mealFatG: mealFatG,
+            safetyWarnings: safetyWarnings,
+            totalKcalToday: totalKcalToday,
+            targetKcal: targetKcal,
+            totalProteinToday: totalProteinToday,
+            proteinTargetG: proteinTargetG,
+            numChildrenNursing: numChildrenNursing,
+            milkSharePercent: milkSharePercent,
+            weightKg: weightKg,
+            heightCm: heightCm,
+            ageYears: ageYears,
+            activityFactor: activityFactor,
+            isPregnant: isPregnant,
+            trimester: trimester,
+            dailyMilkVolumeMl: dailyMilkVolumeMl,
+            hour: hour,
+            remaining: remaining,
+          )
+        : _buildPerMealUserMessageEn(
+            mealRawText: mealRawText,
+            mealSummary: mealSummary,
+            mealKcal: mealKcal,
+            mealProteinG: mealProteinG,
+            mealCarbsG: mealCarbsG,
+            mealFatG: mealFatG,
+            safetyWarnings: safetyWarnings,
+            totalKcalToday: totalKcalToday,
+            targetKcal: targetKcal,
+            totalProteinToday: totalProteinToday,
+            proteinTargetG: proteinTargetG,
+            numChildrenNursing: numChildrenNursing,
+            milkSharePercent: milkSharePercent,
+            weightKg: weightKg,
+            heightCm: heightCm,
+            ageYears: ageYears,
+            activityFactor: activityFactor,
+            isPregnant: isPregnant,
+            trimester: trimester,
+            dailyMilkVolumeMl: dailyMilkVolumeMl,
+            hour: hour,
+            remaining: remaining,
+          );
+
+    return _post(
+      systemPrompt: isDe ? _perMealPromptDe : _perMealPromptEn,
+      messages: [
+        {'role': 'user', 'content': userMessage},
+      ],
+      maxTokens: 800,
+    );
+  }
+
+  String _buildPerMealUserMessageDe({
+    required String mealRawText,
+    required String mealSummary,
+    required int mealKcal,
+    required double mealProteinG,
+    required double mealCarbsG,
+    required double mealFatG,
+    required List<String> safetyWarnings,
+    required int totalKcalToday,
+    required int targetKcal,
+    required double totalProteinToday,
+    required int proteinTargetG,
+    required int numChildrenNursing,
+    required int milkSharePercent,
+    required double weightKg,
+    required double heightCm,
+    required int ageYears,
+    required double activityFactor,
+    required bool isPregnant,
+    required int? trimester,
+    required int dailyMilkVolumeMl,
+    required int hour,
+    required int remaining,
+  }) {
     final warningLine = safetyWarnings.isEmpty
         ? ''
         : '\nSafety-Hinweise zur Mahlzeit: ${safetyWarnings.join("; ")}.';
-
     final phaseLine = isPregnant
         ? 'Phase: schwanger, ${trimester ?? 1}. Trimester'
         : numChildrenNursing > 0
             ? 'Phase: Stillzeit, $numChildrenNursing Kind(er), Milchvolumen ca. $dailyMilkVolumeMl ml/Tag, Anteil $milkSharePercent%'
             : 'Phase: nicht schwanger, nicht milchproduzierend';
-
-    final userMessage = '''
+    return '''
 === Profil der Nutzerin ===
 Alter: $ageYears Jahre · Größe: ${heightCm.toStringAsFixed(0)} cm · Gewicht: ${weightKg.toStringAsFixed(1)} kg
 Aktivitätsfaktor (PAL): $activityFactor
 $phaseLine
-${describeProfile(numChildrenNursing, milkSharePercent)}
+${describeProfile(numChildrenNursing, milkSharePercent, locale: 'de')}
 
 === Tageskontext ===
 Aktuelle Uhrzeit: $hour Uhr.
@@ -374,28 +580,77 @@ Gesamtwerte dieser Mahlzeit: $mealKcal kcal, Protein ${mealProteinG.toStringAsFi
 
 Gib die strukturierte Coach-Antwort wie im System-Prompt definiert. Nutze die Profildaten oben.
 ''';
+  }
 
-    return _post(
-      systemPrompt: _perMealPrompt,
-      messages: [
-        {'role': 'user', 'content': userMessage},
-      ],
-      maxTokens: 800,
-    );
+  String _buildPerMealUserMessageEn({
+    required String mealRawText,
+    required String mealSummary,
+    required int mealKcal,
+    required double mealProteinG,
+    required double mealCarbsG,
+    required double mealFatG,
+    required List<String> safetyWarnings,
+    required int totalKcalToday,
+    required int targetKcal,
+    required double totalProteinToday,
+    required int proteinTargetG,
+    required int numChildrenNursing,
+    required int milkSharePercent,
+    required double weightKg,
+    required double heightCm,
+    required int ageYears,
+    required double activityFactor,
+    required bool isPregnant,
+    required int? trimester,
+    required int dailyMilkVolumeMl,
+    required int hour,
+    required int remaining,
+  }) {
+    final warningLine = safetyWarnings.isEmpty
+        ? ''
+        : '\nSafety notes for the meal: ${safetyWarnings.join("; ")}.';
+    final phaseLine = isPregnant
+        ? 'Phase: pregnant, trimester ${trimester ?? 1}'
+        : numChildrenNursing > 0
+            ? 'Phase: producing milk, $numChildrenNursing child(ren), milk volume ~$dailyMilkVolumeMl ml/day, share $milkSharePercent%'
+            : 'Phase: not pregnant, not producing milk';
+    return '''
+=== User profile ===
+Age: $ageYears years · Height: ${heightCm.toStringAsFixed(0)} cm · Weight: ${weightKg.toStringAsFixed(1)} kg
+Activity factor (PAL): $activityFactor
+$phaseLine
+${describeProfile(numChildrenNursing, milkSharePercent, locale: 'en')}
+
+=== Daily context ===
+Current time: $hour:00.
+Daily target: $targetKcal kcal. Protein target: ~$proteinTargetG g.
+Today incl. this meal: $totalKcalToday / $targetKcal kcal (remaining $remaining kcal).
+Protein today: ${totalProteinToday.toStringAsFixed(0)} g.
+
+=== Just logged ===
+${mealRawText.isNotEmpty ? 'Original text: $mealRawText\n' : ''}Description: $mealSummary
+Totals for this meal: $mealKcal kcal, protein ${mealProteinG.toStringAsFixed(0)} g, carbs ${mealCarbsG.toStringAsFixed(0)} g, fat ${mealFatG.toStringAsFixed(0)} g.$warningLine
+
+Return the structured coach reply as defined in the system prompt. Use the profile data above.
+''';
   }
 
   Future<String> chat({
     required List<ChatTurn> history,
     required String todayContext,
+    String locale = 'en',
   }) async {
+    final isDe = _isGerman(locale);
     final messages = history
         .map((turn) => {
               'role': turn.isUser ? 'user' : 'assistant',
               'content': turn.text,
             })
         .toList();
+    final base = isDe ? _chatPromptBaseDe : _chatPromptBaseEn;
+    final contextHeader = isDe ? 'Kontext heute:' : 'Context today:';
     return _post(
-      systemPrompt: '$_chatPromptBase\n\nKontext heute:\n$todayContext',
+      systemPrompt: '$base\n\n$contextHeader\n$todayContext',
       messages: messages,
       maxTokens: 600,
     );

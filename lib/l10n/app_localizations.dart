@@ -769,6 +769,726 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications are blocked in iOS Settings.'**
   String get reminderPermissionBlocked;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsSectionProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile'**
+  String get settingsSectionProfile;
+
+  /// No description provided for @settingsSectionPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Current phase'**
+  String get settingsSectionPhase;
+
+  /// No description provided for @settingsSectionMilk.
+  ///
+  /// In en, this message translates to:
+  /// **'Breast milk'**
+  String get settingsSectionMilk;
+
+  /// No description provided for @settingsSectionActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity level'**
+  String get settingsSectionActivity;
+
+  /// No description provided for @settingsSectionMacros.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro split'**
+  String get settingsSectionMacros;
+
+  /// No description provided for @settingsSectionReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsSectionReminders;
+
+  /// No description provided for @settingsSectionTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsSectionTheme;
+
+  /// No description provided for @settingsSectionFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage favourites'**
+  String get settingsSectionFavorites;
+
+  /// No description provided for @settingsFieldBirthdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get settingsFieldBirthdate;
+
+  /// No description provided for @settingsFieldHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get settingsFieldHeight;
+
+  /// No description provided for @settingsFieldWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get settingsFieldWeight;
+
+  /// No description provided for @settingsFieldHeightSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'cm'**
+  String get settingsFieldHeightSuffix;
+
+  /// No description provided for @settingsFieldWeightSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get settingsFieldWeightSuffix;
+
+  /// No description provided for @settingsBirthdatePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your date of birth'**
+  String get settingsBirthdatePickerHelp;
+
+  /// No description provided for @settingsButtonFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get settingsButtonFeedback;
+
+  /// No description provided for @settingsButtonReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset app'**
+  String get settingsButtonReset;
+
+  /// No description provided for @settingsButtonSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get settingsButtonSave;
+
+  /// No description provided for @settingsResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset app?'**
+  String get settingsResetTitle;
+
+  /// No description provided for @settingsResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All entries, favourites and your profile will be deleted. You\'ll start with onboarding again.'**
+  String get settingsResetBody;
+
+  /// No description provided for @settingsResetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get settingsResetConfirm;
+
+  /// No description provided for @settingsSavedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get settingsSavedSnackbar;
+
+  /// No description provided for @settingsPhaseLactating.
+  ///
+  /// In en, this message translates to:
+  /// **'Producing milk'**
+  String get settingsPhaseLactating;
+
+  /// No description provided for @settingsPhaseLactatingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Breastfeeding or pumping'**
+  String get settingsPhaseLactatingHint;
+
+  /// No description provided for @settingsPhasePregnant.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnant'**
+  String get settingsPhasePregnant;
+
+  /// No description provided for @settingsPhasePregnantHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently pregnant'**
+  String get settingsPhasePregnantHint;
+
+  /// No description provided for @settingsPhaseTrimester.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimester'**
+  String get settingsPhaseTrimester;
+
+  /// No description provided for @settingsMilkChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Children you\'re feeding milk to'**
+  String get settingsMilkChildren;
+
+  /// No description provided for @settingsMilkAgeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Age of the children'**
+  String get settingsMilkAgeLabel;
+
+  /// No description provided for @settingsMilkVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated daily volume'**
+  String get settingsMilkVolume;
+
+  /// No description provided for @settingsMilkVolumePerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{volume} ml/day → +{supplement} kcal/day'**
+  String settingsMilkVolumePerDay(int volume, int supplement);
+
+  /// No description provided for @settingsMilkVolumeInfoSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Synthesis cost: ~0.84 kcal per ml of milk.'**
+  String get settingsMilkVolumeInfoSummary;
+
+  /// No description provided for @settingsMilkVolumeInfoDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'If you pump and know your volume, enter it exactly. Otherwise the share slider above gives an estimate.'**
+  String get settingsMilkVolumeInfoDetail;
+
+  /// No description provided for @settingsMilkVolumeInfoSource.
+  ///
+  /// In en, this message translates to:
+  /// **'DGE 2025, EFSA 2017'**
+  String get settingsMilkVolumeInfoSource;
+
+  /// No description provided for @settingsActivityInfoSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Influences daily expenditure (PAL factor)'**
+  String get settingsActivityInfoSummary;
+
+  /// No description provided for @settingsActivityInfoDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Low 1.2: barely moving. Moderate 1.375: walks, light housework. Active 1.55: regular training. High 1.725: intense training or physical labour. With a baby at home, usually \"Moderate\".'**
+  String get settingsActivityInfoDetail;
+
+  /// No description provided for @settingsActivityInfoSource.
+  ///
+  /// In en, this message translates to:
+  /// **'DGE PAL classification'**
+  String get settingsActivityInfoSource;
+
+  /// No description provided for @activityLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get activityLow;
+
+  /// No description provided for @activityLowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Barely any movement'**
+  String get activityLowHint;
+
+  /// No description provided for @activityModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate'**
+  String get activityModerate;
+
+  /// No description provided for @activityModerateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Walks, light housework'**
+  String get activityModerateHint;
+
+  /// No description provided for @activityActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get activityActive;
+
+  /// No description provided for @activityActiveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular training'**
+  String get activityActiveHint;
+
+  /// No description provided for @activityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get activityHigh;
+
+  /// No description provided for @activityHighHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Intense training, physical work'**
+  String get activityHighHint;
+
+  /// No description provided for @childAge0to6.
+  ///
+  /// In en, this message translates to:
+  /// **'0–6 mo'**
+  String get childAge0to6;
+
+  /// No description provided for @childAge0to6Hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Full milk demand'**
+  String get childAge0to6Hint;
+
+  /// No description provided for @childAge6to12.
+  ///
+  /// In en, this message translates to:
+  /// **'6–12 mo'**
+  String get childAge6to12;
+
+  /// No description provided for @childAge6to12Hint.
+  ///
+  /// In en, this message translates to:
+  /// **'With solids'**
+  String get childAge6to12Hint;
+
+  /// No description provided for @childAge12plus.
+  ///
+  /// In en, this message translates to:
+  /// **'12+ mo'**
+  String get childAge12plus;
+
+  /// No description provided for @childAge12plusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Extended breastfeeding'**
+  String get childAge12plusHint;
+
+  /// No description provided for @settingsMacroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro split'**
+  String get settingsMacroTitle;
+
+  /// No description provided for @settingsMacroInfoSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein / fat / carbs as % of daily kcal'**
+  String get settingsMacroInfoSummary;
+
+  /// No description provided for @settingsMacroInfoDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Default split per DGE: protein from your weight (1.2 g/kg in lactation), fat ~30% of kcal, carbs make up the rest. You can adjust protein and fat for a specific diet (low-carb, high-protein). Carbs always rebalance to 100%.'**
+  String get settingsMacroInfoDetail;
+
+  /// No description provided for @settingsMacroProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein'**
+  String get settingsMacroProtein;
+
+  /// No description provided for @settingsMacroFat.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat'**
+  String get settingsMacroFat;
+
+  /// No description provided for @settingsMacroCarbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get settingsMacroCarbs;
+
+  /// No description provided for @settingsMacroCarbsAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'auto'**
+  String get settingsMacroCarbsAuto;
+
+  /// No description provided for @settingsMacroResetAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to auto'**
+  String get settingsMacroResetAuto;
+
+  /// No description provided for @settingsMacroAutoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'(auto {percent} %)'**
+  String settingsMacroAutoLabel(int percent);
+
+  /// No description provided for @settingsOutcomeBase.
+  ///
+  /// In en, this message translates to:
+  /// **'Base + activity'**
+  String get settingsOutcomeBase;
+
+  /// No description provided for @settingsOutcomePregnancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy (T{trimester})'**
+  String settingsOutcomePregnancy(int trimester);
+
+  /// No description provided for @settingsOutcomeLactation.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk supplement'**
+  String get settingsOutcomeLactation;
+
+  /// No description provided for @themeAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows device setting'**
+  String get themeAuto;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @settingsReminderToggleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal reminders'**
+  String get settingsReminderToggleTitle;
+
+  /// No description provided for @settingsReminderToggleOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On. Set what you want to hear and when.'**
+  String get settingsReminderToggleOn;
+
+  /// No description provided for @settingsReminderToggleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off. Turning on will ask iOS for permission once.'**
+  String get settingsReminderToggleOff;
+
+  /// No description provided for @settingsErrorPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {message}'**
+  String settingsErrorPrefix(String message);
+
+  /// No description provided for @settingsMilkChildSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'Age of the child'**
+  String get settingsMilkChildSingular;
+
+  /// No description provided for @settingsMilkChildPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'Ages of the children'**
+  String get settingsMilkChildPlural;
+
+  /// No description provided for @settingsMilkShareSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'Your share: {percent}%'**
+  String settingsMilkShareSingular(int percent);
+
+  /// No description provided for @settingsMilkSharePlural.
+  ///
+  /// In en, this message translates to:
+  /// **'Share per child: {percent}%'**
+  String settingsMilkSharePlural(int percent);
+
+  /// No description provided for @settingsMilkVolumePerDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{volume} ml/day → +{supplement} kcal/day'**
+  String settingsMilkVolumePerDayLabel(int volume, int supplement);
+
+  /// No description provided for @settingsMilkVolumeInfoTopic.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily milk volume'**
+  String get settingsMilkVolumeInfoTopic;
+
+  /// No description provided for @settingsMilkVolumeInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy = volume × 0.84 kcal/ml'**
+  String get settingsMilkVolumeInfoTitle;
+
+  /// No description provided for @settingsTodayTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily target'**
+  String get settingsTodayTarget;
+
+  /// No description provided for @settingsMacroCarbsRemainder.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs (remainder)'**
+  String get settingsMacroCarbsRemainder;
+
+  /// No description provided for @settingsMacroSliderValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent} % · {grams}g · {kcal} kcal'**
+  String settingsMacroSliderValue(int percent, int grams, int kcal);
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeSystemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows device setting'**
+  String get themeSystemHint;
+
+  /// No description provided for @themeLightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Light theme'**
+  String get themeLightHint;
+
+  /// No description provided for @themeDarkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark theme'**
+  String get themeDarkHint;
+
+  /// No description provided for @settingsReminderTimeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{hour}:{minute}'**
+  String settingsReminderTimeFormat(String hour, String minute);
+
+  /// No description provided for @infoBackgroundTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get infoBackgroundTooltip;
+
+  /// No description provided for @infoSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {source}'**
+  String infoSourceLabel(String source);
+
+  /// No description provided for @onboardingRestartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart onboarding?'**
+  String get onboardingRestartTitle;
+
+  /// No description provided for @onboardingRestartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your inputs so far will be discarded.'**
+  String get onboardingRestartBody;
+
+  /// No description provided for @onboardingRestartConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart'**
+  String get onboardingRestartConfirm;
+
+  /// No description provided for @onboardingRestartTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart onboarding'**
+  String get onboardingRestartTooltip;
+
+  /// No description provided for @onboardingStepIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'STEP {step} OF {total}'**
+  String onboardingStepIndicator(int step, int total);
+
+  /// No description provided for @onboardingButtonNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingButtonNext;
+
+  /// No description provided for @onboardingButtonStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardingButtonStart;
+
+  /// No description provided for @onboardingFooterEditLater.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change every value later in settings.'**
+  String get onboardingFooterEditLater;
+
+  /// No description provided for @onboardingTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition that thinks along.'**
+  String get onboardingTagline;
+
+  /// No description provided for @onboardingSubline.
+  ///
+  /// In en, this message translates to:
+  /// **'A live coach for pregnancy and breastfeeding. Evidence-based, privacy-friendly, no calorie-counting fuss.'**
+  String get onboardingSubline;
+
+  /// No description provided for @onboardingPhaseQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Which phase are you in?'**
+  String get onboardingPhaseQuestion;
+
+  /// No description provided for @onboardingPhaseExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'We use this to calculate your energy supplement and protein target.'**
+  String get onboardingPhaseExplainer;
+
+  /// No description provided for @onboardingPhaseLactation.
+  ///
+  /// In en, this message translates to:
+  /// **'Breastfeeding'**
+  String get onboardingPhaseLactation;
+
+  /// No description provided for @onboardingPhaseLactationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re producing breast milk (nursing or pumping)'**
+  String get onboardingPhaseLactationHint;
+
+  /// No description provided for @onboardingPhasePregnancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy'**
+  String get onboardingPhasePregnancy;
+
+  /// No description provided for @onboardingPhasePregnancyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently pregnant'**
+  String get onboardingPhasePregnancyHint;
+
+  /// No description provided for @onboardingPhaseBothNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy and breastfeeding supplements will be added together.'**
+  String get onboardingPhaseBothNote;
+
+  /// No description provided for @onboardingBasicsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your basic data'**
+  String get onboardingBasicsTitle;
+
+  /// No description provided for @onboardingBasicsInfoTopic.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic data'**
+  String get onboardingBasicsInfoTopic;
+
+  /// No description provided for @onboardingBasicsInfoSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed to calculate your basal metabolic rate'**
+  String get onboardingBasicsInfoSummary;
+
+  /// No description provided for @onboardingBasicsInfoDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'We use the Mifflin-St Jeor formula to estimate your daily basal metabolic rate. That plus your activity factor plus the pregnancy/breastfeeding supplement gives your daily target.'**
+  String get onboardingBasicsInfoDetail;
+
+  /// No description provided for @onboardingBasicsInfoSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Mifflin-St Jeor 1990, DGE'**
+  String get onboardingBasicsInfoSource;
+
+  /// No description provided for @onboardingActivityHintBaby.
+  ///
+  /// In en, this message translates to:
+  /// **'With a baby at home, usually \"Moderate\". Adjust when you go back to more sport.'**
+  String get onboardingActivityHintBaby;
+
+  /// No description provided for @onboardingDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get onboardingDetailsTitle;
+
+  /// No description provided for @onboardingVolumeShareQuestionSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your share of the feeding?'**
+  String get onboardingVolumeShareQuestionSingular;
+
+  /// No description provided for @onboardingVolumeShareQuestionPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your share per child?'**
+  String get onboardingVolumeShareQuestionPlural;
+
+  /// No description provided for @onboardingVolumeInfoDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy cost of milk synthesis is ~0.84 kcal per ml. Typical volumes: single 0-6mo ~780 ml/day, twins ~1500 ml/day, 6-12mo ~575 ml, >12mo ~300 ml. If you pump and know your volume, enter it exactly.'**
+  String get onboardingVolumeInfoDetail;
+
+  /// No description provided for @onboardingResultEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'CALCULATION'**
+  String get onboardingResultEyebrow;
+
+  /// No description provided for @onboardingResultMacrosEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'MACRONUTRIENTS · DAILY TARGET'**
+  String get onboardingResultMacrosEyebrow;
+
+  /// No description provided for @onboardingLedeBase.
+  ///
+  /// In en, this message translates to:
+  /// **'Base + activity: {kcal} kcal'**
+  String onboardingLedeBase(String kcal);
+
+  /// No description provided for @onboardingLedePregnancy.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {kcal} kcal pregnancy (T{trimester})'**
+  String onboardingLedePregnancy(String kcal, int trimester);
+
+  /// No description provided for @onboardingLedeLactation.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {kcal} kcal breastfeeding'**
+  String onboardingLedeLactation(String kcal);
+
+  /// No description provided for @onboardingRemindersDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".'**
+  String get onboardingRemindersDetail;
 }
 
 class _AppLocalizationsDelegate

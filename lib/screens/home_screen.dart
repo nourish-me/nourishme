@@ -225,7 +225,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     controller.dispose();
     if (entry == null || entry.text.trim().isEmpty || !mounted) return;
     try {
-      final parsed = await ref.read(claudeClientProvider).parseMeal(entry.text);
+      final parsed = await ref.read(claudeClientProvider).parseMeal(
+            entry.text,
+            locale: Localizations.localeOf(context).languageCode,
+          );
       if (!mounted || !parsed.isMeal) return;
       final createdAt = DateTime(
           day.year, day.month, day.day, entry.time.hour, entry.time.minute);
@@ -1290,7 +1293,8 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     return turns;
   }
 
-  String _buildContext() {
+  String _buildContext({required String locale}) {
+    final isDe = locale.toLowerCase().startsWith('de');
     final meals = ref.read(todayMealsProvider);
     final target = ref.read(calorieTargetProvider);
     final profile = ref.read(userProfileProvider).valueOrNull;
@@ -1302,34 +1306,66 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     final hour = DateTime.now().hour;
     final buffer = StringBuffer();
     if (profile != null) {
-      buffer
-        ..writeln('=== Profil der Nutzerin ===')
-        ..writeln(
-            'Alter: ${profile.currentAge} Jahre · Größe: ${profile.heightCm.toStringAsFixed(0)} cm · Gewicht: ${profile.weightKg.toStringAsFixed(1)} kg')
-        ..writeln('Aktivitätsfaktor: ${profile.activityFactor} (PAL)');
-      if (profile.isPregnant) {
-        buffer.writeln(
-            'Phase: schwanger, ${profile.trimester ?? 1}. Trimester');
-      }
-      if (profile.numChildrenNursing > 0) {
-        final volume = profile.dailyMilkVolumeMl > 0
-            ? '${profile.dailyMilkVolumeMl} ml/Tag'
-            : 'unbekannt';
-        buffer.writeln(
-            'Phase: Stillzeit, ${profile.numChildrenNursing} Kind(er), Milchvolumen ca. $volume, Anteil ${profile.milkSharePercent}%');
+      if (isDe) {
+        buffer
+          ..writeln('=== Profil der Nutzerin ===')
+          ..writeln(
+              'Alter: ${profile.currentAge} Jahre · Größe: ${profile.heightCm.toStringAsFixed(0)} cm · Gewicht: ${profile.weightKg.toStringAsFixed(1)} kg')
+          ..writeln('Aktivitätsfaktor: ${profile.activityFactor} (PAL)');
+        if (profile.isPregnant) {
+          buffer.writeln(
+              'Phase: schwanger, ${profile.trimester ?? 1}. Trimester');
+        }
+        if (profile.numChildrenNursing > 0) {
+          final volume = profile.dailyMilkVolumeMl > 0
+              ? '${profile.dailyMilkVolumeMl} ml/Tag'
+              : 'unbekannt';
+          buffer.writeln(
+              'Phase: Stillzeit, ${profile.numChildrenNursing} Kind(er), Milchvolumen ca. $volume, Anteil ${profile.milkSharePercent}%');
+        }
+      } else {
+        buffer
+          ..writeln('=== User profile ===')
+          ..writeln(
+              'Age: ${profile.currentAge} years · Height: ${profile.heightCm.toStringAsFixed(0)} cm · Weight: ${profile.weightKg.toStringAsFixed(1)} kg')
+          ..writeln('Activity factor: ${profile.activityFactor} (PAL)');
+        if (profile.isPregnant) {
+          buffer.writeln(
+              'Phase: pregnant, trimester ${profile.trimester ?? 1}');
+        }
+        if (profile.numChildrenNursing > 0) {
+          final volume = profile.dailyMilkVolumeMl > 0
+              ? '${profile.dailyMilkVolumeMl} ml/day'
+              : 'unknown';
+          buffer.writeln(
+              'Phase: producing milk, ${profile.numChildrenNursing} child(ren), milk volume ~$volume, share ${profile.milkSharePercent}%');
+        }
       }
       buffer.writeln(ClaudeClient.describeProfile(
-          profile.numChildrenNursing, profile.milkSharePercent));
+        profile.numChildrenNursing,
+        profile.milkSharePercent,
+        locale: locale,
+      ));
     }
-    buffer
-      ..writeln('=== Tageskontext ===')
-      ..writeln('Aktuelle Uhrzeit: $hour Uhr.')
-      ..writeln(
-          'Tagesziel: $target kcal. Bisher heute: $total kcal. Verbleibend: $remaining kcal.')
-      ..writeln(
-          'Makros heute: Protein ${protein.toStringAsFixed(0)} g · KH ${carbs.toStringAsFixed(0)} g · Fett ${fat.toStringAsFixed(0)} g.')
-      ..writeln(
-          'Anzahl Einträge heute: ${meals.length}.');
+    if (isDe) {
+      buffer
+        ..writeln('=== Tageskontext ===')
+        ..writeln('Aktuelle Uhrzeit: $hour Uhr.')
+        ..writeln(
+            'Tagesziel: $target kcal. Bisher heute: $total kcal. Verbleibend: $remaining kcal.')
+        ..writeln(
+            'Makros heute: Protein ${protein.toStringAsFixed(0)} g · KH ${carbs.toStringAsFixed(0)} g · Fett ${fat.toStringAsFixed(0)} g.')
+        ..writeln('Anzahl Einträge heute: ${meals.length}.');
+    } else {
+      buffer
+        ..writeln('=== Daily context ===')
+        ..writeln('Current time: $hour:00.')
+        ..writeln(
+            'Daily target: $target kcal. So far today: $total kcal. Remaining: $remaining kcal.')
+        ..writeln(
+            'Macros today: protein ${protein.toStringAsFixed(0)} g · carbs ${carbs.toStringAsFixed(0)} g · fat ${fat.toStringAsFixed(0)} g.')
+        ..writeln('Entries logged today: ${meals.length}.');
+    }
     return buffer.toString();
   }
 
@@ -1341,9 +1377,10 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     final mealsById = {for (final m in meals) m.id: m};
     final priorThread = ref.read(todayThreadProvider).valueOrNull ?? [];
 
+    final locale = Localizations.localeOf(context).languageCode;
     final history = _buildHistory(priorThread, mealsById)
       ..add(ChatTurn(isUser: true, text: text));
-    final todayContext = _buildContext();
+    final todayContext = _buildContext(locale: locale);
 
     await threadRepo
         .add(ThreadItem.userQuestion(text: text, at: DateTime.now()));
@@ -1353,6 +1390,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       final reply = await client.chat(
         history: history,
         todayContext: todayContext,
+        locale: locale,
       );
       await threadRepo.add(ThreadItem.coachAnswer(
         text: reply.trim(),
@@ -1399,8 +1437,11 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     try {
       final client = ref.read(claudeClientProvider);
 
-      final parsed =
-          await client.parseMeal(text, imageBytes: _imageBytes);
+      final parsed = await client.parseMeal(
+        text,
+        imageBytes: _imageBytes,
+        locale: Localizations.localeOf(context).languageCode,
+      );
       if (!mounted) return;
       if (parsed.isMeal) {
         await showModalBottomSheet<MealEntry>(

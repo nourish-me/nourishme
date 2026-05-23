@@ -151,7 +151,8 @@ class NutritionFacts {
   );
 
   // The compact text block injected into Claude system prompts. Kept tight so
-  // it doesn't blow the context budget — only the values, not full detail.
+  // it doesn't blow the context budget, only the values, not full detail.
+  // German version. Use [coachContextBlockEn] for English-locale users.
   static const String coachContextBlock = '''
 Wissenschaftliche Schwellenwerte (DGE 2025, EFSA, BfR, LactMed, FDA/EPA):
 - Koffein: maximal 200 mg/Tag. Beispiele: Filterkaffee 200ml=90mg, Espresso 30ml=63mg, Schwarztee 250ml=28mg, Cola 330ml=32mg, Dunkle Schokolade 100g=50-80mg.
@@ -166,5 +167,23 @@ Wissenschaftliche Schwellenwerte (DGE 2025, EFSA, BfR, LactMed, FDA/EPA):
 - Omega-3 / DHA: ≥200 mg DHA/Tag aus fettem Seefisch oder Algenöl.
 
 Nutze diese Werte als Referenz, wenn relevant. Zitiere Zahlen statt vage Hinweise zu geben. Erwähne die Quelle wenn der User danach fragt.
+''';
+
+  // English mirror of [coachContextBlock]. Numbers and authorities are the same,
+  // just translated so an EN-speaking user gets EN coach output.
+  static const String coachContextBlockEn = '''
+Scientific thresholds (DGE 2025, EFSA, BfR, LactMed, FDA/EPA):
+- Caffeine: maximum 200 mg/day. Examples: filter coffee 200ml=90mg, espresso 30ml=63mg, black tea 250ml=28mg, cola 330ml=32mg, dark chocolate 100g=50-80mg.
+- Alcohol in pregnancy: 0 (no safe limit, embryotoxic).
+- Alcohol while producing milk: occasional max 0.5 g/kg body weight. Waiting time until milk is alcohol-free ~2-2.5 h per standard drink. Pump-and-dump does NOT help.
+- Avoid high-mercury fish: shark, swordfish, king mackerel, marlin, bigeye tuna. Recommended 1-2x/week: salmon, herring, sardine, mackerel (Atlantic), trout, cod, shrimp.
+- Listeria risk in pregnancy is 17-20x higher: no raw milk / soft cheeses from raw milk, no steak tartare / raw deli meats / raw cured ham, no sushi / cold-smoked salmon / matjes. Safe cooking ≥70 °C / 2 min.
+- Vitamin A upper limit in pregnancy 3,000 µg retinol/day (teratogenic). Avoid liver in T1. β-carotene is safe.
+- Galactofuge in larger amounts: sage (tea), peppermint essential oil, chasteberry. Culinary amounts are fine.
+- Protein target while producing milk: 1.2 g/kg body weight/day (DGE).
+- Hydration while producing milk: ~3.1 L total water, of which ~1.7 L from drinks. Twins +700-1000 ml. Drinking more does NOT increase milk volume (myth debunked). Best practice: "drink to thirst", light-yellow urine. IMPORTANT: do NOT mention hydration proactively in your coach replies. Only when the user asks directly or reports symptoms (heat, fatigue, dark urine).
+- Omega-3 / DHA: ≥200 mg DHA/day from oily sea fish or algae oil.
+
+Use these values as a reference where relevant. Cite numbers rather than vague hints. Mention the source when the user asks for it.
 ''';
 }

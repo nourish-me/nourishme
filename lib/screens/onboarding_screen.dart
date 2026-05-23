@@ -10,6 +10,7 @@ import '../models/reminder_settings.dart';
 import '../services/nutrition_facts.dart';
 import '../services/notification_scheduler.dart';
 import '../utils/number_format.dart';
+import '../utils/profile_labels.dart';
 import '../widgets/info_button.dart';
 import '../widgets/nm_icons.dart';
 import 'main_scaffold.dart';
@@ -113,21 +114,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _restart() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Onboarding neu starten?'),
-        content: const Text(
-          'Deine bisherigen Eingaben werden verworfen.',
-        ),
+        title: Text(l10n.onboardingRestartTitle),
+        content: Text(l10n.onboardingRestartBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Neu starten'),
+            child: Text(l10n.onboardingRestartConfirm),
           ),
         ],
       ),
@@ -303,7 +303,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     children: [
                       if (_step == _totalSteps - 1) ...[
                         Text(
-                          'Du kannst alle Werte später in den Einstellungen anpassen.',
+                          AppLocalizations.of(context)
+                              .onboardingFooterEditLater,
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
@@ -321,7 +322,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           minimumSize: const Size.fromHeight(48),
                         ),
                         child: Text(
-                          _step < _totalSteps - 1 ? 'Weiter' : 'Loslegen',
+                          _step < _totalSteps - 1
+                              ? AppLocalizations.of(context).onboardingButtonNext
+                              : AppLocalizations.of(context).onboardingButtonStart,
                         ),
                       ),
                     ],
@@ -365,7 +368,8 @@ class _ProgressHeader extends StatelessWidget {
               Expanded(
                 child: Center(
                   child: Text(
-                    'SCHRITT ${step + 1} VON $total',
+                    AppLocalizations.of(context)
+                        .onboardingStepIndicator(step + 1, total),
                     style: textTheme.labelSmall?.copyWith(
                       color: scheme.outline,
                       letterSpacing: 1.4,
@@ -376,7 +380,7 @@ class _ProgressHeader extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.refresh),
-                tooltip: 'Onboarding neu starten',
+                tooltip: AppLocalizations.of(context).onboardingRestartTooltip,
                 onPressed: onRestart,
               ),
             ],
@@ -454,7 +458,7 @@ class _WelcomeStep extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 300),
             child: Text(
-              'Ernährung, die mitdenkt.',
+              AppLocalizations.of(context).onboardingTagline,
               textAlign: TextAlign.center,
               style: textTheme.headlineSmall?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -469,9 +473,7 @@ class _WelcomeStep extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 320),
             child: Text(
-              'Live-Coach für Schwangerschaft und Stillzeit. '
-              'Wissenschaftlich fundiert, datenschutzfreundlich, '
-              'ca. 3 Minuten Setup.',
+              AppLocalizations.of(context).onboardingSubline,
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -499,23 +501,24 @@ class _PhaseStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('In welcher Phase bist du?',
+          Text(l10n.onboardingPhaseQuestion,
               style: textTheme.headlineSmall
                   ?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Text(
-            'Daraus berechnen wir deinen Energie-Aufschlag und das Protein-Ziel.',
+            l10n.onboardingPhaseExplainer,
             style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
           ),
           const SizedBox(height: 24),
           _PhaseChoice(
-            label: 'Stillzeit',
-            description: 'Du produzierst Muttermilch (stillend oder pumpend)',
+            label: l10n.onboardingPhaseLactation,
+            description: l10n.onboardingPhaseLactationHint,
             selected: isLactating,
             onTap: () => onChange(isPregnant, !isLactating),
             fact: NutritionFacts.energyLactation,
@@ -523,8 +526,8 @@ class _PhaseStep extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _PhaseChoice(
-            label: 'Schwangerschaft',
-            description: 'Aktuell schwanger',
+            label: l10n.onboardingPhasePregnancy,
+            description: l10n.onboardingPhasePregnancyHint,
             selected: isPregnant,
             onTap: () => onChange(!isPregnant, isLactating),
             fact: NutritionFacts.energyPregnancy,
@@ -545,7 +548,7 @@ class _PhaseStep extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Schwangerschafts- und Stillzeit-Aufschlag werden addiert.',
+                      l10n.onboardingPhaseBothNote,
                       style: textTheme.bodySmall?.copyWith(
                         color: scheme.onTertiaryContainer,
                       ),
@@ -666,7 +669,7 @@ class _BodyStep extends StatelessWidget {
       initialDate: birthdate,
       firstDate: DateTime(now.year - 80),
       lastDate: now,
-      helpText: 'Geburtsdatum wählen',
+      helpText: AppLocalizations.of(context).settingsBirthdatePickerHelp,
     );
     if (picked != null) onBirthdateChanged(picked);
   }
@@ -675,25 +678,24 @@ class _BodyStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final labels = activityLabelsOf(l10n);
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       children: [
         Row(
           children: [
             Expanded(
-              child: Text('Deine Basisdaten',
+              child: Text(l10n.onboardingBasicsTitle,
                   style: textTheme.headlineSmall
                       ?.copyWith(fontWeight: FontWeight.w700)),
             ),
-            const InfoButton(
+            InfoButton(
               fact: NutritionFact(
-                topic: 'Basisdaten',
-                summary: 'Brauchen wir für den Grundbedarf',
-                detail:
-                    'Wir berechnen mit der Mifflin-St Jeor Formel deinen täglichen '
-                    'Grundbedarf. Daraus plus Aktivitätsfaktor plus Schwangerschaft/'
-                    'Stillzeit-Aufschlag ergibt sich dein Tagesziel.',
-                source: 'Mifflin-St Jeor 1990, DGE',
+                topic: l10n.onboardingBasicsInfoTopic,
+                summary: l10n.onboardingBasicsInfoSummary,
+                detail: l10n.onboardingBasicsInfoDetail,
+                source: l10n.onboardingBasicsInfoSource,
               ),
             ),
           ],
@@ -703,10 +705,10 @@ class _BodyStep extends StatelessWidget {
           onTap: () => _pickBirthdate(context),
           borderRadius: BorderRadius.circular(12),
           child: InputDecorator(
-            decoration: const InputDecoration(
-              labelText: 'Geburtsdatum',
-              border: OutlineInputBorder(),
-              suffixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+            decoration: InputDecoration(
+              labelText: l10n.settingsFieldBirthdate,
+              border: const OutlineInputBorder(),
+              suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
             ),
             child: Text(
               _formatBirthdate(birthdate),
@@ -723,10 +725,10 @@ class _BodyStep extends StatelessWidget {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Größe',
-                  border: OutlineInputBorder(),
-                  suffixText: 'cm',
+                decoration: InputDecoration(
+                  labelText: l10n.settingsFieldHeight,
+                  border: const OutlineInputBorder(),
+                  suffixText: l10n.settingsFieldHeightSuffix,
                 ),
               ),
             ),
@@ -737,10 +739,10 @@ class _BodyStep extends StatelessWidget {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'Gewicht',
-                  border: OutlineInputBorder(),
-                  suffixText: 'kg',
+                decoration: InputDecoration(
+                  labelText: l10n.settingsFieldWeight,
+                  border: const OutlineInputBorder(),
+                  suffixText: l10n.settingsFieldWeightSuffix,
                 ),
               ),
             ),
@@ -749,16 +751,17 @@ class _BodyStep extends StatelessWidget {
         const SizedBox(height: 24),
         Row(
           children: [
-            Expanded(child: Text('Aktivitätslevel', style: textTheme.titleSmall)),
+            Expanded(
+              child: Text(l10n.settingsSectionActivity,
+                  style: textTheme.titleSmall),
+            ),
             InfoButton(
-              fact: const NutritionFact(
-                topic: 'Aktivitätslevel',
-                summary: 'Beeinflusst den Tagesumsatz (PAL-Faktor)',
+              fact: NutritionFact(
+                topic: l10n.settingsSectionActivity,
+                summary: l10n.settingsActivityInfoSummary,
                 detail:
-                    'Gering 1,2: kaum Bewegung. Mäßig 1,375: Spaziergänge, leichte Hausarbeit. '
-                    'Aktiv 1,55: regelmäßiges Training. Hoch 1,725: intensives Training oder körperliche Arbeit. '
-                    'Bei einem Baby zu Hause meist "Mäßig". Anpassen wenn du wieder mehr Sport machst.',
-                source: 'DGE PAL-Klassifikation',
+                    '${l10n.settingsActivityInfoDetail} ${l10n.onboardingActivityHintBaby}',
+                source: l10n.settingsActivityInfoSource,
               ),
             ),
           ],
@@ -767,18 +770,18 @@ class _BodyStep extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<double>(
-            segments: ActivityLevel.all
+            segments: ActivityLevel.allFor(labels)
                 .map((l) =>
                     ButtonSegment(value: l.factor, label: Text(l.label)))
                 .toList(),
-            selected: {ActivityLevel.closestTo(activityFactor).factor},
+            selected: {ActivityLevel.closestTo(activityFactor, labels).factor},
             showSelectedIcon: false,
             onSelectionChanged: (s) => onActivityChanged(s.first),
           ),
         ),
         const SizedBox(height: 6),
         Text(
-          ActivityLevel.closestTo(activityFactor).hint,
+          ActivityLevel.closestTo(activityFactor, labels).hint,
           style: textTheme.bodySmall?.copyWith(color: scheme.outline),
         ),
       ],
@@ -819,13 +822,16 @@ class _PhaseDetailsStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final ageLabels = childAgeLabelsOf(l10n);
+    final ageGroups = ChildAgeGroup.allFor(ageLabels);
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       children: [
         Row(
           children: [
             Expanded(
-              child: Text('Details',
+              child: Text(l10n.onboardingDetailsTitle,
                   style: textTheme.headlineSmall
                       ?.copyWith(fontWeight: FontWeight.w700)),
             ),
@@ -840,7 +846,10 @@ class _PhaseDetailsStep extends StatelessWidget {
         if (isPregnant) ...[
           Row(
             children: [
-              Expanded(child: Text('Trimester', style: textTheme.titleSmall)),
+              Expanded(
+                child: Text(l10n.settingsPhaseTrimester,
+                    style: textTheme.titleSmall),
+              ),
               InfoButton(fact: NutritionFacts.energyPregnancy),
             ],
           ),
@@ -864,7 +873,7 @@ class _PhaseDetailsStep extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text('Kinder, die du mit Milch versorgst',
+                child: Text(l10n.settingsMilkChildren,
                     style: textTheme.titleSmall),
               ),
               InfoButton(fact: NutritionFacts.energyLactation),
@@ -880,8 +889,8 @@ class _PhaseDetailsStep extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             numChildren == 1
-                ? 'Alter des Kindes'
-                : 'Alter der Kinder',
+                ? l10n.settingsMilkChildSingular
+                : l10n.settingsMilkChildPlural,
             style: textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
@@ -889,10 +898,10 @@ class _PhaseDetailsStep extends StatelessWidget {
             width: double.infinity,
             child: SegmentedButton<int>(
               segments: List.generate(
-                ChildAgeGroup.all.length,
+                ageGroups.length,
                 (i) => ButtonSegment(
                   value: i,
-                  label: Text(ChildAgeGroup.all[i].label),
+                  label: Text(ageGroups[i].label),
                 ),
               ),
               selected: {childAgeGroup},
@@ -902,14 +911,14 @@ class _PhaseDetailsStep extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            ChildAgeGroup.all[childAgeGroup].hint,
+            ageGroups[childAgeGroup].hint,
             style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           ),
           const SizedBox(height: 20),
           Text(
             numChildren == 1
-                ? 'Wie groß ist dein Anteil an der Ernährung?'
-                : 'Wie groß ist dein Anteil pro Kind?',
+                ? l10n.onboardingVolumeShareQuestionSingular
+                : l10n.onboardingVolumeShareQuestionPlural,
             style: textTheme.titleSmall,
           ),
           Slider(
@@ -921,27 +930,24 @@ class _PhaseDetailsStep extends StatelessWidget {
             onChanged: (v) => onSharePercentChanged(v.round()),
           ),
           Text(
-            '$milkSharePercent% (0% = nur Beikost/Flasche, 100% = ausschließlich)',
+            numChildren == 1
+                ? l10n.settingsMilkShareSingular(milkSharePercent)
+                : l10n.settingsMilkSharePlural(milkSharePercent),
             style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           ),
           const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
-                child: Text('Geschätztes Tagesvolumen',
+                child: Text(l10n.settingsMilkVolume,
                     style: textTheme.titleSmall),
               ),
               InfoButton(
-                fact: const NutritionFact(
-                  topic: 'Tagesvolumen Muttermilch',
-                  summary: 'Energie = Volumen × 0,84 kcal/ml',
-                  detail:
-                      'Die Energiekosten der Milchsynthese liegen bei ~0,84 kcal '
-                      'pro produziertem Milliliter (0,67 kcal/g Energiedichte / '
-                      '80% Synthese-Effizienz). Typisch: Einling 0-6 Mo ~780 ml/Tag, '
-                      'Zwillinge ~1.500 ml/Tag, 6-12 Mo ~575 ml, >12 Mo ~300 ml. '
-                      'Wenn du abpumpst und dein Volumen kennst, trage es genau ein.',
-                  source: 'DGE 2025, EFSA 2017',
+                fact: NutritionFact(
+                  topic: l10n.settingsMilkVolumeInfoTopic,
+                  summary: l10n.settingsMilkVolumeInfoTitle,
+                  detail: l10n.onboardingVolumeInfoDetail,
+                  source: l10n.settingsMilkVolumeInfoSource,
                 ),
               ),
             ],
@@ -955,7 +961,10 @@ class _PhaseDetailsStep extends StatelessWidget {
             onChanged: (v) => onVolumeChanged(v.round()),
           ),
           Text(
-            '$dailyVolumeMl ml/Tag → +${UserProfileSettings.volumeBasedSupplement(dailyVolumeMl)} kcal/Tag',
+            l10n.settingsMilkVolumePerDayLabel(
+              dailyVolumeMl,
+              UserProfileSettings.volumeBasedSupplement(dailyVolumeMl),
+            ),
             style: textTheme.bodySmall?.copyWith(
               color: scheme.outline,
               fontWeight: FontWeight.w500,
@@ -981,6 +990,7 @@ class _SummaryStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final bmrTdee = calculateBmrTdee(profile);
     final pregSupp = calculatePregnancySupplement(profile);
     final lactSupp = calculateLactationSupplement(profile);
@@ -991,7 +1001,7 @@ class _SummaryStep extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       children: [
         Text(
-          'BERECHNUNG',
+          l10n.onboardingResultEyebrow,
           style: textTheme.labelSmall?.copyWith(
             color: scheme.outline,
             letterSpacing: 1.4,
@@ -1000,7 +1010,7 @@ class _SummaryStep extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Dein Tagesziel',
+          l10n.settingsTodayTarget,
           style: textTheme.headlineMedium?.copyWith(
             color: scheme.onSurface,
           ),
@@ -1045,7 +1055,7 @@ class _SummaryStep extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                _buildLede(profile, bmrTdee, pregSupp, lactSupp),
+                _buildLede(context, profile, bmrTdee, pregSupp, lactSupp),
                 style: textTheme.titleLarge?.copyWith(
                   color: scheme.onSurfaceVariant,
                   fontSize: 17,
@@ -1057,7 +1067,7 @@ class _SummaryStep extends StatelessWidget {
               Divider(color: scheme.outlineVariant, height: 1),
               const SizedBox(height: 16),
               Text(
-                'MAKRONÄHRSTOFFE · TAGESBEDARF',
+                l10n.onboardingResultMacrosEyebrow,
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.outline,
                   letterSpacing: 1.2,
@@ -1065,11 +1075,16 @@ class _SummaryStep extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              _MacroRow(label: 'Protein', value: '${macros.proteinG} g'),
+              _MacroRow(
+                  label: l10n.settingsMacroProtein,
+                  value: '${macros.proteinG} g'),
               Divider(color: scheme.outlineVariant, height: 1),
-              _MacroRow(label: 'Kohlenhydrate', value: '${macros.carbsG} g'),
+              _MacroRow(
+                  label: l10n.settingsMacroCarbs,
+                  value: '${macros.carbsG} g'),
               Divider(color: scheme.outlineVariant, height: 1),
-              _MacroRow(label: 'Fett', value: '${macros.fatG} g'),
+              _MacroRow(
+                  label: l10n.settingsMacroFat, value: '${macros.fatG} g'),
             ],
           ),
         ),
@@ -1101,14 +1116,13 @@ class _SummaryStep extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mahlzeit-Erinnerungen',
+                      l10n.settingsReminderToggleTitle,
                       style: textTheme.bodyLarge
                           ?.copyWith(color: scheme.onSurface),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Fünf Slots über den Tag verteilt. iOS fragt einmal '
-                      'um Erlaubnis, wenn du "Tagebuch öffnen" tippst.',
+                      l10n.onboardingRemindersDetail,
                       style: textTheme.bodySmall
                           ?.copyWith(color: scheme.onSurfaceVariant),
                     ),
@@ -1127,10 +1141,14 @@ class _SummaryStep extends StatelessWidget {
     );
   }
 
-  String _buildLede(UserProfileSettings p, int bmr, int preg, int lact) {
-    final parts = <String>['Grundbedarf + Aktivität: ${formatKcal(bmr)} kcal'];
-    if (preg > 0) parts.add('+ ${formatKcal(preg)} kcal Schwangerschaft (T${p.trimester})');
-    if (lact > 0) parts.add('+ ${formatKcal(lact)} kcal für Stillen');
+  String _buildLede(BuildContext context, UserProfileSettings p, int bmr,
+      int preg, int lact) {
+    final l10n = AppLocalizations.of(context);
+    final parts = <String>[l10n.onboardingLedeBase(formatKcal(bmr))];
+    if (preg > 0) {
+      parts.add(l10n.onboardingLedePregnancy(formatKcal(preg), p.trimester ?? 0));
+    }
+    if (lact > 0) parts.add(l10n.onboardingLedeLactation(formatKcal(lact)));
     return parts.join(' · ');
   }
 }
