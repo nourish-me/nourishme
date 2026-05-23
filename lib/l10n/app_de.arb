@@ -8,6 +8,7 @@
   "tabTrends": "Trends",
 
   "todayHeader": "Heute",
+  "yesterdayHeader": "Gestern",
   "settingsTooltip": "Einstellungen",
 
   "emptyTodayHeadline": "Was hast du heute gegessen?",
@@ -208,8 +209,8 @@
 
   "settingsMilkChildSingular": "Alter des Kindes",
   "settingsMilkChildPlural": "Alter der Kinder",
-  "settingsMilkShareSingular": "Dein Anteil: {percent}%",
-  "settingsMilkSharePlural": "Anteil pro Kind: {percent}%",
+  "settingsMilkShareSingular": "Muttermilch-Anteil: {percent}%",
+  "settingsMilkSharePlural": "Muttermilch-Anteil pro Kind: {percent}%",
   "settingsMilkVolumePerDayLabel": "{volume} ml/Tag → +{supplement} kcal/Tag",
   "settingsMilkVolumeInfoTopic": "Tagesvolumen Muttermilch",
   "settingsMilkVolumeInfoTitle": "Energie = Volumen × 0,84 kcal/ml",
@@ -236,7 +237,7 @@
   "onboardingButtonNext": "Weiter",
   "onboardingButtonStart": "Loslegen",
   "onboardingFooterEditLater": "Du kannst alle Werte später in den Einstellungen anpassen.",
-  "onboardingTagline": "Ernährung, die mitdenkt.",
+  "onboardingTagline": "Ernährung, die mitrechnet.",
   "onboardingSubline": "Live-Coach für Schwangerschaft und Stillzeit. Wissenschaftlich fundiert, datenschutzfreundlich, ohne Kalorien-Zähl-Kram.",
 
   "onboardingPhaseQuestion": "In welcher Phase bist du?",

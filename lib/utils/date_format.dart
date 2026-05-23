@@ -1,43 +1,32 @@
-const _weekdays = [
-  'Montag',
-  'Dienstag',
-  'Mittwoch',
-  'Donnerstag',
-  'Freitag',
-  'Samstag',
-  'Sonntag',
-];
+import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart' as intl;
 
-const _months = [
-  'Januar',
-  'Februar',
-  'März',
-  'April',
-  'Mai',
-  'Juni',
-  'Juli',
-  'August',
-  'September',
-  'Oktober',
-  'November',
-  'Dezember',
-];
+import '../l10n/app_localizations.dart';
 
-String formatDayHeader(DateTime day) {
+// Locale-aware day headers used in the history list and the home day
+// jumper. Today / Yesterday are pulled from AppLocalizations (already
+// translated); older days fall back to the intl weekday + day + month
+// pattern for the current locale.
+String formatDayHeader(BuildContext context, DateTime day) {
   final now = DateTime.now();
   final todayStart = DateTime(now.year, now.month, now.day);
   final dayStart = DateTime(day.year, day.month, day.day);
   final diffDays = todayStart.difference(dayStart).inDays;
-  if (diffDays == 0) return 'Heute';
-  if (diffDays == 1) return 'Gestern';
-  return '${_weekdays[day.weekday - 1]}, ${day.day}. ${_months[day.month - 1]}';
+  final l10n = AppLocalizations.of(context);
+  if (diffDays == 0) return l10n.todayHeader;
+  if (diffDays == 1) return l10n.yesterdayHeader;
+  return formatFullDate(context, day);
+}
+
+String formatFullDate(BuildContext context, DateTime day) {
+  final locale = Localizations.localeOf(context).toLanguageTag();
+  // "Monday, 23 May" / "Monday, May 23" — DateFormat picks the locale's
+  // preferred order. EEEE = full weekday, MMMM = full month, d = day.
+  return intl.DateFormat('EEEE, MMMM d', locale).format(day);
 }
 
 String formatTime(DateTime t) =>
     '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-String formatFullDate(DateTime day) =>
-    '${_weekdays[day.weekday - 1]}, ${day.day}. ${_months[day.month - 1]}';
 
 bool isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;

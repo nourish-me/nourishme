@@ -24,6 +24,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get todayHeader => 'Today';
 
   @override
+  String get yesterdayHeader => 'Yesterday';
+
+  @override
   String get settingsTooltip => 'Settings';
 
   @override
@@ -498,7 +501,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityLowHint => 'Barely any movement';
 
   @override
-  String get activityModerate => 'Moderate';
+  String get activityModerate => 'Medium';
 
   @override
   String get activityModerateHint => 'Walks, light housework';
@@ -608,12 +611,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settingsMilkShareSingular(int percent) {
-    return 'Your share: $percent%';
+    return 'Breast milk share: $percent%';
   }
 
   @override
   String settingsMilkSharePlural(int percent) {
-    return 'Share per child: $percent%';
+    return 'Breast milk share per baby: $percent%';
   }
 
   @override
@@ -691,7 +694,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can change every value later in settings.';
 
   @override
-  String get onboardingTagline => 'Nutrition that thinks along.';
+  String get onboardingTagline => 'Nutrition that does the math.';
 
   @override
   String get onboardingSubline =>

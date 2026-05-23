@@ -142,7 +142,7 @@ class _DayCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            formatDayHeader(day),
+                            formatDayHeader(context, day),
                             style: textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),

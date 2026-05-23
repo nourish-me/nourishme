@@ -128,6 +128,12 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get todayHeader;
 
+  /// No description provided for @yesterdayHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterdayHeader;
+
   /// No description provided for @settingsTooltip.
   ///
   /// In en, this message translates to:
@@ -1007,7 +1013,7 @@ abstract class AppLocalizations {
   /// No description provided for @activityModerate.
   ///
   /// In en, this message translates to:
-  /// **'Moderate'**
+  /// **'Medium'**
   String get activityModerate;
 
   /// No description provided for @activityModerateHint.
@@ -1205,13 +1211,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMilkShareSingular.
   ///
   /// In en, this message translates to:
-  /// **'Your share: {percent}%'**
+  /// **'Breast milk share: {percent}%'**
   String settingsMilkShareSingular(int percent);
 
   /// No description provided for @settingsMilkSharePlural.
   ///
   /// In en, this message translates to:
-  /// **'Share per child: {percent}%'**
+  /// **'Breast milk share per baby: {percent}%'**
   String settingsMilkSharePlural(int percent);
 
   /// No description provided for @settingsMilkVolumePerDayLabel.
@@ -1343,7 +1349,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingTagline.
   ///
   /// In en, this message translates to:
-  /// **'Nutrition that thinks along.'**
+  /// **'Nutrition that does the math.'**
   String get onboardingTagline;
 
   /// No description provided for @onboardingSubline.

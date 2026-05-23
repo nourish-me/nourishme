@@ -409,7 +409,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Heute'),
+                Text(AppLocalizations.of(context).todayHeader),
                 const SizedBox(width: 2),
                 Icon(Icons.arrow_drop_down, size: 22, color: scheme.outline),
               ],
@@ -420,7 +420,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Einstellungen',
+            tooltip: AppLocalizations.of(context).settingsTooltip,
             onPressed: () {
               Navigator.push(
                 context,
@@ -674,7 +674,7 @@ class _DaySeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = formatDayHeader(day);
+    final label = formatDayHeader(context, day);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -850,7 +850,7 @@ class _PastDayInputSheetState extends State<_PastDayInputSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.homePastDayHeader(formatDayHeader(widget.day)),
+                l10n.homePastDayHeader(formatDayHeader(context, widget.day)),
                 style: textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),

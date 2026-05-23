@@ -12,6 +12,7 @@
   "tabTrends": "Trends",
 
   "todayHeader": "Today",
+  "yesterdayHeader": "Yesterday",
   "settingsTooltip": "Settings",
 
   "emptyTodayHeadline": "What did you eat today?",
@@ -232,7 +233,7 @@
   "settingsActivityInfoSource": "DGE PAL classification",
   "activityLow": "Low",
   "activityLowHint": "Barely any movement",
-  "activityModerate": "Moderate",
+  "activityModerate": "Medium",
   "activityModerateHint": "Walks, light housework",
   "activityActive": "Active",
   "activityActiveHint": "Regular training",
@@ -285,8 +286,8 @@
 
   "settingsMilkChildSingular": "Age of the child",
   "settingsMilkChildPlural": "Ages of the children",
-  "settingsMilkShareSingular": "Your share: {percent}%",
-  "settingsMilkSharePlural": "Share per child: {percent}%",
+  "settingsMilkShareSingular": "Breast milk share: {percent}%",
+  "settingsMilkSharePlural": "Breast milk share per baby: {percent}%",
   "@settingsMilkShareSingular": {
     "placeholders": {"percent": {"type": "int"}}
   },
@@ -347,7 +348,7 @@
   "onboardingButtonNext": "Next",
   "onboardingButtonStart": "Get started",
   "onboardingFooterEditLater": "You can change every value later in settings.",
-  "onboardingTagline": "Nutrition that thinks along.",
+  "onboardingTagline": "Nutrition that does the math.",
   "onboardingSubline": "A live coach for pregnancy and breastfeeding. Evidence-based, privacy-friendly, no calorie-counting fuss.",
 
   "onboardingPhaseQuestion": "Which phase are you in?",

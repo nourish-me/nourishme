@@ -24,6 +24,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get todayHeader => 'Heute';
 
   @override
+  String get yesterdayHeader => 'Gestern';
+
+  @override
   String get settingsTooltip => 'Einstellungen';
 
   @override
@@ -614,12 +617,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settingsMilkShareSingular(int percent) {
-    return 'Dein Anteil: $percent%';
+    return 'Muttermilch-Anteil: $percent%';
   }
 
   @override
   String settingsMilkSharePlural(int percent) {
-    return 'Anteil pro Kind: $percent%';
+    return 'Muttermilch-Anteil pro Kind: $percent%';
   }
 
   @override
@@ -698,7 +701,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Du kannst alle Werte später in den Einstellungen anpassen.';
 
   @override
-  String get onboardingTagline => 'Ernährung, die mitdenkt.';
+  String get onboardingTagline => 'Ernährung, die mitrechnet.';
 
   @override
   String get onboardingSubline =>
