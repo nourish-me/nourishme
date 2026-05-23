@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
@@ -14,6 +15,12 @@ class NotificationScheduler {
   static bool _initialised = false;
 
   static const _channelId = 'meal_reminders';
+
+  // Bumped whenever a meal-reminder notification is tapped (either while
+  // the app is running or via a cold-launch from the iOS lock screen). The
+  // app root listens and forwards the signal into the Riverpod
+  // mealInputFocusRequestProvider so the home input pulls focus.
+  static final ValueNotifier<int> tapNotifier = ValueNotifier<int>(0);
 
   static Future<void> init() async {
     if (_initialised) return;
@@ -34,7 +41,18 @@ class NotificationScheduler {
     );
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const init = InitializationSettings(iOS: ios, android: android);
-    await _plugin.initialize(init);
+    await _plugin.initialize(
+      init,
+      onDidReceiveNotificationResponse: (_) => tapNotifier.value++,
+    );
+    // If the user tapped a meal reminder while the app was terminated, iOS
+    // queues that response and surfaces it via getNotificationAppLaunchDetails
+    // once init completes. Bump the tap signal so the home input still pulls
+    // focus after the cold launch.
+    final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp == true) {
+      tapNotifier.value++;
+    }
     _initialised = true;
   }
 

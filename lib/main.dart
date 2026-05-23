@@ -37,12 +37,17 @@ Future<void> main() async {
   final favoriteRepo = await FavoriteRepository.open();
   final threadRepo = await ThreadRepository.open();
 
-  // Sync local notifications to the persisted reminder settings — on first
-  // launch this is a no-op (master is off by default), but on subsequent
-  // launches it re-arms any scheduled slot in case iOS dropped them after
-  // OS updates or app reinstall. We load the AppLocalizations for the
-  // device locale so the system notification text matches the app's
-  // language (en / de).
+  // Initialise the notification plugin BEFORE runApp so we don't miss the
+  // cold-launch tap signal: if the user opened the app by tapping a meal
+  // reminder, getNotificationAppLaunchDetails inside init() bumps the
+  // tapNotifier, and NourishMeApp.initState picks it up on first frame.
+  await NotificationScheduler.init();
+
+  // Re-arm scheduled reminders in the background. The first launch is a
+  // no-op (master is off by default); on subsequent launches it restores
+  // any slot iOS dropped after an OS update or reinstall. We load
+  // AppLocalizations for the device locale so the notification copy
+  // matches the app's language (en / de).
   unawaited(() async {
     final deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
     final l10n = await AppLocalizations.delegate.load(
@@ -86,12 +91,43 @@ ThemeMode _parseThemeMode(String s) {
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-class NourishMeApp extends ConsumerWidget {
+class NourishMeApp extends ConsumerStatefulWidget {
   final bool showOnboarding;
   const NourishMeApp({super.key, required this.showOnboarding});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NourishMeApp> createState() => _NourishMeAppState();
+}
+
+class _NourishMeAppState extends ConsumerState<NourishMeApp> {
+  void _onNotificationTap() {
+    // Forward the static signal from NotificationScheduler into Riverpod so
+    // _HomeInput (which reads via ref.watch) can pull focus on the next
+    // build. Wrapped because the notifier may fire before ref is mounted.
+    if (!mounted) return;
+    ref.read(mealInputFocusRequestProvider.notifier).state++;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationScheduler.tapNotifier.addListener(_onNotificationTap);
+    // Cold-launch case: the notifier was bumped during init() before this
+    // widget started listening. Pick that up now so the first frame already
+    // routes through the focus path.
+    if (NotificationScheduler.tapNotifier.value > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _onNotificationTap());
+    }
+  }
+
+  @override
+  void dispose() {
+    NotificationScheduler.tapNotifier.removeListener(_onNotificationTap);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
     return MaterialApp(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
@@ -111,7 +147,9 @@ class NourishMeApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: showOnboarding ? const OnboardingScreen() : const MainScaffold(),
+      home: widget.showOnboarding
+          ? const OnboardingScreen()
+          : const MainScaffold(),
     );
   }
 }

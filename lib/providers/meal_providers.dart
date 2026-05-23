@@ -115,6 +115,14 @@ final macroTargetsProvider = Provider<MacroTargets>((ref) {
 
 final insightLoadingProvider = StateProvider<bool>((ref) => false);
 
+// Bumped whenever something elsewhere in the app has signaled that the
+// user almost certainly wants to type into the meal input next: tapping
+// a meal-reminder notification, picking a photo, finishing onboarding.
+// The home input listens for changes and pulls focus + brings up the
+// keyboard. Using an int counter (rather than a bool) so consecutive
+// requests still trigger a notify even if the value doesn't flip.
+final mealInputFocusRequestProvider = StateProvider<int>((ref) => 0);
+
 final mealsByDayProvider = Provider<Map<DateTime, List<MealEntry>>>((ref) {
   final all = ref.watch(mealsProvider).valueOrNull ?? const [];
   final grouped = <DateTime, List<MealEntry>>{};

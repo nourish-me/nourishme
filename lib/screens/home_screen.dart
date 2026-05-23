@@ -1158,14 +1158,26 @@ class _HomeInput extends ConsumerStatefulWidget {
 
 class _HomeInputState extends ConsumerState<_HomeInput> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   final _picker = ImagePicker();
   Uint8List? _imageBytes;
   bool _sending = false;
+  int _lastFocusRequest = 0;
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _focusAndOpenKeyboard() {
+    // Schedule on the next frame so we don't fight any in-flight unfocus
+    // (e.g. from a route transition). FocusNode.requestFocus on its own
+    // brings the iOS keyboard up.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
   }
 
   String _formatTime(DateTime t) =>
@@ -1182,6 +1194,10 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       final bytes = await picked.readAsBytes();
       if (!mounted) return;
       setState(() => _imageBytes = bytes);
+      // User intent after picking a food photo is almost always to log it.
+      // Pull keyboard up so they can add a quick descriptor without an
+      // extra tap on the input bar.
+      _focusAndOpenKeyboard();
     } catch (_) {}
   }
 
@@ -1492,6 +1508,15 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     final favorites =
         ref.watch(favoritesProvider).valueOrNull ?? const <FavoriteMeal>[];
 
+    // Listen for focus requests from the rest of the app (notification tap,
+    // onboarding finish, photo-picker from elsewhere). The counter pattern
+    // lets repeat requests still trigger focus when the value didn't flip.
+    final focusReq = ref.watch(mealInputFocusRequestProvider);
+    if (focusReq != _lastFocusRequest) {
+      _lastFocusRequest = focusReq;
+      if (focusReq > 0) _focusAndOpenKeyboard();
+    }
+
     return Material(
       color: scheme.surfaceContainer,
       elevation: 0,
@@ -1603,6 +1628,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                     Expanded(
                       child: TextField(
                         controller: _controller,
+                        focusNode: _focusNode,
                         maxLines: 1,
                         textInputAction: TextInputAction.send,
                         onSubmitted: (_) => _send(),

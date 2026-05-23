@@ -194,6 +194,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         reminders, AppLocalizations.of(context));
 
     if (!mounted) return;
+    // First-launch UX: after onboarding the user has just told us their
+    // entire setup, so the next step is almost always logging their first
+    // meal. Bump the focus signal so the home input pulls focus once
+    // MainScaffold renders.
+    ref.read(mealInputFocusRequestProvider.notifier).state++;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const MainScaffold()),
     );
