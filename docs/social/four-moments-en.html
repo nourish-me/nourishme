@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NourishMe — Four moments</title>
+<style>
+  @font-face {
+    font-family: 'Newsreader';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/newsreader-var.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Newsreader';
+    font-style: italic;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/newsreader-var-italic.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/jetbrainsmono-var.woff2') format('woff2');
+  }
+
+  :root {
+    --paper:      #F4EFE6;
+    --paper-hi:   #FBF7EF;
+    --paper-lo:   #EAE2D2;
+    --paper-deep: #DDD3BD;
+    --ink:        #1F1B16;
+    --ink-soft:   #4F4A41;
+    --ink-mute:   #847E72;
+    --pine:       #1E4A45;
+    --pine-deep:  #0F2D2A;
+    --amber:      #C8884A;
+    --amber-warm: #D89A5B;
+    --amber-soft: #FFE0B8;
+    --moss:       #4B5A47;
+    --rule:       #D5CEC0;
+    --serif: "Newsreader", Georgia, serif;
+    --mono:  "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #888; }
+  body {
+    font-family: var(--serif);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    display: flex; justify-content: center;
+    padding: 40px 0;
+  }
+
+  /* LinkedIn portrait 4:5 (1080 × 1350) scaled down a notch so it fits on
+     screen without scrolling; the @media print rule below restores full
+     pixel size for screenshotting via browser print-to-PDF if preferred. */
+  .card {
+    width: 1080px;
+    height: 1350px;
+    background: var(--paper);
+    padding: 72px 72px 60px;
+    display: flex; flex-direction: column;
+    color: var(--ink);
+  }
+
+  .mono {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+
+  .top-eyebrow {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 32px;
+  }
+  .top-eyebrow .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--amber);
+  }
+
+  .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .quadrant {
+    border-radius: 18px;
+    padding: 28px 30px 30px;
+    display: flex; flex-direction: column;
+  }
+
+  .q-eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px;
+  }
+  .q-eyebrow .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--amber);
+  }
+  .q-eyebrow.on-dark .dot { background: var(--amber-warm); }
+  .q-eyebrow.on-dark .mono { color: rgba(244, 239, 230, 0.75); }
+
+  .q-body {
+    font-family: var(--serif);
+    font-size: 26px;
+    line-height: 1.35;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .q-body b { font-weight: 600; }
+  .q-body em { font-style: italic; }
+
+  /* Quadrant 1: amber coach card */
+  .q1 { background: var(--amber-soft); }
+
+  /* Quadrant 2: diary screen mockup */
+  .q2 { background: var(--paper-hi); border: 0.5px solid var(--rule); }
+  .screen {
+    background: var(--paper);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.6) inset,
+      0 14px 28px -10px rgba(15,45,42,0.15),
+      0 0 0 0.5px rgba(31,27,22,0.08);
+    padding: 16px 18px;
+    font-size: 14.5px;
+    color: var(--ink);
+    flex: 0 0 auto;
+  }
+  .screen-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 0.5px solid var(--rule);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+  .screen-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.015em;
+    line-height: 1;
+  }
+  .screen-kcal { font-weight: 600; }
+  .screen-kcal b { color: var(--moss); }
+  .meal {
+    background: var(--paper-lo);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .meal-name { font-size: 14.5px; font-weight: 500; }
+  .meal-kcal { font-weight: 600; font-size: 13.5px; }
+  .coach-bubble {
+    background: var(--amber-soft);
+    border-radius: 10px;
+    padding: 11px 13px;
+    display: flex; gap: 10px; align-items: flex-start;
+    color: #2A1900;
+    font-size: 13.5px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+  .coach-bubble .mark {
+    flex: 0 0 16px; width: 16px; height: 16px;
+  }
+  .coach-bubble b { font-weight: 600; }
+
+  /* Quadrant 3: weekly history */
+  .q3 { background: var(--paper-hi); border: 0.5px solid var(--rule); }
+  .week-list { display: flex; flex-direction: column; gap: 18px; }
+  .week-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 16px;
+  }
+  .week-day {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .week-kcal {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--ink-soft);
+    letter-spacing: -0.01em;
+    font-feature-settings: "tnum" 1;
+  }
+  .week-kcal b { color: var(--ink); font-weight: 600; }
+  .week-kcal.over b { color: var(--amber); }
+  .week-bar {
+    height: 3px;
+    background: var(--paper-deep);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .week-bar span {
+    display: block; height: 100%;
+    background: var(--moss);
+  }
+  .week-bar.over span { background: var(--amber); }
+
+  /* Quadrant 4: emotional pine coach card */
+  .q4 {
+    background: var(--pine);
+    color: var(--paper-hi);
+  }
+  .q4 .q-body { color: var(--paper-hi); }
+  .q4 .q-body em.amber {
+    font-style: italic; color: var(--amber-warm); font-weight: 600;
+  }
+  .q4-footer {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: auto;
+    color: rgba(244, 239, 230, 0.7);
+  }
+  .q4-footer .mark {
+    width: 22px; height: 22px;
+  }
+
+  .bottom {
+    margin-top: 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .wordmark {
+    display: flex; align-items: center; gap: 14px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 36px;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .wordmark svg { display: block; }
+  .wordmark .me { color: var(--pine); }
+  .tagline {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="top-eyebrow">
+    <span class="dot"></span>
+    <span class="mono">Beta · Four moments when the app says: you're doing well</span>
+  </div>
+
+  <div class="grid">
+    <!-- Q1: amber coach card -->
+    <div class="quadrant q1">
+      <div class="q-eyebrow">
+        <span class="dot"></span>
+        <span class="mono">Coach · 2h ago</span>
+      </div>
+      <div class="q-body">
+        Solid day so far: <b>2,100 of 3,400 kcal</b>, protein at <b>78 g</b>. Leo and Carl are well-supplied, your own tank is steady. Keep this pace.
+      </div>
+    </div>
+
+    <!-- Q2: diary screen mockup -->
+    <div class="quadrant q2">
+      <div class="q-eyebrow">
+        <span class="dot"></span>
+        <span class="mono">Diary · Today</span>
+      </div>
+      <div class="screen">
+        <div class="screen-header">
+          <div class="screen-title">Today</div>
+          <div class="screen-kcal"><b>2,100</b> / 3,400 kcal</div>
+        </div>
+        <div class="meal">
+          <div class="meal-name">Cereal with yogurt &amp; berries</div>
+          <div class="meal-kcal">380 kcal</div>
+        </div>
+        <div class="coach-bubble">
+          <svg class="mark" viewBox="0 0 1024 1024" aria-hidden="true">
+            <rect width="1024" height="1024" rx="220" fill="#1E4A45"/>
+            <circle cx="440" cy="600" r="280" fill="#FAF6EE"/>
+            <circle cx="760" cy="360" r="130" fill="#E0A258"/>
+          </svg>
+          <div><b>Solid start.</b> Yogurt brings protein and calcium, both tight while you're producing milk.</div>
+        </div>
+        <div class="meal">
+          <div class="meal-name">Apple &amp; walnuts</div>
+          <div class="meal-kcal">220 kcal</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3: weekly history -->
+    <div class="quadrant q3">
+      <div class="q-eyebrow">
+        <span class="dot"></span>
+        <span class="mono">History · This week</span>
+      </div>
+      <div class="week-list">
+        <div>
+          <div class="week-row">
+            <span class="week-day">Today, May 23</span>
+            <span class="week-kcal"><b>2,840</b> / 3,400 kcal</span>
+          </div>
+          <div class="week-bar"><span style="width:84%"></span></div>
+        </div>
+        <div>
+          <div class="week-row">
+            <span class="week-day">Yesterday</span>
+            <span class="week-kcal"><b>3,380</b> / 3,400 kcal</span>
+          </div>
+          <div class="week-bar"><span style="width:99%"></span></div>
+        </div>
+        <div>
+          <div class="week-row">
+            <span class="week-day">Sunday</span>
+            <span class="week-kcal over"><b>3,520</b> / 3,400 kcal</span>
+          </div>
+          <div class="week-bar over"><span style="width:100%"></span></div>
+        </div>
+        <div>
+          <div class="week-row">
+            <span class="week-day">Saturday</span>
+            <span class="week-kcal"><b>3,180</b> / 3,400 kcal</span>
+          </div>
+          <div class="week-bar"><span style="width:94%"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4: emotional pine coach card -->
+    <div class="quadrant q4">
+      <div class="q-eyebrow on-dark">
+        <span class="dot"></span>
+        <span class="mono">Coach · Just now</span>
+      </div>
+      <div class="q-body">
+        You're feeding <em class="amber">three</em> right now. That's no small thing. And you're doing it really well.
+      </div>
+      <div class="q4-footer">
+        <svg class="mark" viewBox="0 0 1024 1024" aria-hidden="true">
+          <rect width="1024" height="1024" rx="220" fill="#0F2D2A"/>
+          <circle cx="440" cy="600" r="280" fill="#FAF6EE"/>
+          <circle cx="760" cy="360" r="130" fill="#E0A258"/>
+        </svg>
+        <span class="mono" style="color: inherit;">NourishMe coach</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="wordmark">
+      <svg width="44" height="44" viewBox="0 0 1024 1024" aria-hidden="true">
+        <rect width="1024" height="1024" rx="220" fill="#1E4A45"/>
+        <circle cx="440" cy="600" r="280" fill="#FAF6EE"/>
+        <circle cx="760" cy="360" r="130" fill="#E0A258"/>
+      </svg>
+      <span>Nourish<span class="me">Me</span></span>
+    </div>
+    <div class="tagline">Nutrition that does the math.</div>
+  </div>
+</div>
+
+</body>
+</html>
