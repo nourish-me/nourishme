@@ -126,6 +126,20 @@
   .topbar-spacer { flex: 1; }
   .topbar a.nav { color: var(--ink-soft); font-size: 15px; }
   .topbar a.nav:hover { color: var(--ink); text-decoration: none; }
+  /* Language switch: pill-style so it reads as a switch on both desktop
+     and mobile, not another nav link. Visible on all screen sizes. */
+  .topbar a.nav-lang {
+    font-family: var(--mono);
+    font-size: 12px; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border: 0.5px solid var(--rule);
+    border-radius: 999px;
+    color: var(--ink-soft);
+  }
+  .topbar a.nav-lang:hover {
+    border-color: var(--ink-mute); color: var(--ink); text-decoration: none;
+  }
   /* Compact CTA inside the topbar so it shares the brand-text height
      rather than ballooning the bar to fit a hero-size button. */
   .topbar .btn { padding: 7px 14px; font-size: 14px; }
@@ -727,7 +741,7 @@
     </a>
     <div class="topbar-spacer"></div>
     <a href="#wie" class="nav nav-desktop-only">So funktioniert es</a>
-    <a href="index-en.html" class="nav nav-desktop-only">EN</a>
+    <a href="index-en.html" class="nav nav-lang">EN</a>
     <a href="#beta" class="btn">Beta</a>
   </div>
 </header>
