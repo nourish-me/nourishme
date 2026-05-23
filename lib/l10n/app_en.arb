@@ -159,5 +159,28 @@
       "summary": {"type": "String"}
     }
   },
-  "favoriteRemoveConfirm": "Remove"
+  "favoriteRemoveConfirm": "Remove",
+
+  "reminderChannelName": "Meal reminders",
+  "reminderChannelDescription": "Daily reminders to log your meals.",
+  "reminderBreakfastTitle": "Breakfast?",
+  "reminderBreakfastBody": "If you've already had something, type your meal in.",
+  "reminderMidmorningTitle": "Mid-morning snack?",
+  "reminderMidmorningBody": "Apple, yogurt, a bun? Type your meal in.",
+  "reminderLunchTitle": "Lunchtime.",
+  "reminderLunchBody": "The coach is waiting for your meal.",
+  "reminderMidafternoonTitle": "Anything in between?",
+  "reminderMidafternoonBody": "Type your meal in so you've got the day covered.",
+  "reminderDinnerTitle": "Dinner logged?",
+  "reminderDinnerBody": "Last entry today and you're done.",
+  "reminderSlotBreakfast": "Breakfast",
+  "reminderSlotMidmorning": "Mid-morning snack",
+  "reminderSlotLunch": "Lunch",
+  "reminderSlotMidafternoon": "Afternoon snack",
+  "reminderSlotDinner": "Dinner",
+
+  "feedbackMailSubject": "NourishMe feedback",
+  "feedbackMailTriageHint": "Please don't edit below — it helps with triage.",
+  "feedbackMailDeviceLabel": "Device",
+  "reminderPermissionBlocked": "Notifications are blocked in iOS Settings."
 }

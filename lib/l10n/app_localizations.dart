@@ -643,6 +643,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get favoriteRemoveConfirm;
+
+  /// No description provided for @reminderChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal reminders'**
+  String get reminderChannelName;
+
+  /// No description provided for @reminderChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminders to log your meals.'**
+  String get reminderChannelDescription;
+
+  /// No description provided for @reminderBreakfastTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast?'**
+  String get reminderBreakfastTitle;
+
+  /// No description provided for @reminderBreakfastBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you\'ve already had something, type your meal in.'**
+  String get reminderBreakfastBody;
+
+  /// No description provided for @reminderMidmorningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-morning snack?'**
+  String get reminderMidmorningTitle;
+
+  /// No description provided for @reminderMidmorningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple, yogurt, a bun? Type your meal in.'**
+  String get reminderMidmorningBody;
+
+  /// No description provided for @reminderLunchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunchtime.'**
+  String get reminderLunchTitle;
+
+  /// No description provided for @reminderLunchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The coach is waiting for your meal.'**
+  String get reminderLunchBody;
+
+  /// No description provided for @reminderMidafternoonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything in between?'**
+  String get reminderMidafternoonTitle;
+
+  /// No description provided for @reminderMidafternoonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your meal in so you\'ve got the day covered.'**
+  String get reminderMidafternoonBody;
+
+  /// No description provided for @reminderDinnerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner logged?'**
+  String get reminderDinnerTitle;
+
+  /// No description provided for @reminderDinnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Last entry today and you\'re done.'**
+  String get reminderDinnerBody;
+
+  /// No description provided for @reminderSlotBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get reminderSlotBreakfast;
+
+  /// No description provided for @reminderSlotMidmorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-morning snack'**
+  String get reminderSlotMidmorning;
+
+  /// No description provided for @reminderSlotLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get reminderSlotLunch;
+
+  /// No description provided for @reminderSlotMidafternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon snack'**
+  String get reminderSlotMidafternoon;
+
+  /// No description provided for @reminderSlotDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get reminderSlotDinner;
+
+  /// No description provided for @feedbackMailSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'NourishMe feedback'**
+  String get feedbackMailSubject;
+
+  /// No description provided for @feedbackMailTriageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please don\'t edit below — it helps with triage.'**
+  String get feedbackMailTriageHint;
+
+  /// No description provided for @feedbackMailDeviceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get feedbackMailDeviceLabel;
+
+  /// No description provided for @reminderPermissionBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked in iOS Settings.'**
+  String get reminderPermissionBlocked;
 }
 
 class _AppLocalizationsDelegate

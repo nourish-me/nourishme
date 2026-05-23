@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 enum ReminderSlot {
   breakfast,
   midmorning,
@@ -115,50 +117,51 @@ class ReminderSettings {
       );
 }
 
-// Static copy of the notification copy so tests + the scheduler agree.
+// Notification copy proxies to AppLocalizations so the scheduler and the
+// settings UI both speak the user's locale.
 class ReminderCopy {
-  static String titleFor(ReminderSlot s) {
+  static String titleFor(ReminderSlot s, AppLocalizations l10n) {
     switch (s) {
       case ReminderSlot.breakfast:
-        return 'Frühstück?';
+        return l10n.reminderBreakfastTitle;
       case ReminderSlot.midmorning:
-        return 'Kleine Stärkung?';
+        return l10n.reminderMidmorningTitle;
       case ReminderSlot.lunch:
-        return 'Mittagszeit.';
+        return l10n.reminderLunchTitle;
       case ReminderSlot.midafternoon:
-        return 'Zwischendurch was gegessen?';
+        return l10n.reminderMidafternoonTitle;
       case ReminderSlot.dinner:
-        return 'Abendessen geloggt?';
+        return l10n.reminderDinnerTitle;
     }
   }
 
-  static String bodyFor(ReminderSlot s) {
+  static String bodyFor(ReminderSlot s, AppLocalizations l10n) {
     switch (s) {
       case ReminderSlot.breakfast:
-        return 'Falls du schon was hattest, tippe deine Mahlzeit ein.';
+        return l10n.reminderBreakfastBody;
       case ReminderSlot.midmorning:
-        return 'Apfel, Joghurt, Brötchen? Tippe deine Mahlzeit ein.';
+        return l10n.reminderMidmorningBody;
       case ReminderSlot.lunch:
-        return 'Coach wartet auf deine Mahlzeit.';
+        return l10n.reminderLunchBody;
       case ReminderSlot.midafternoon:
-        return 'Tippe deine Mahlzeit ein, dann hast du den Tag im Bild.';
+        return l10n.reminderMidafternoonBody;
       case ReminderSlot.dinner:
-        return 'Letzter Eintrag heute, danach ist Feierabend.';
+        return l10n.reminderDinnerBody;
     }
   }
 
-  static String label(ReminderSlot s) {
+  static String label(ReminderSlot s, AppLocalizations l10n) {
     switch (s) {
       case ReminderSlot.breakfast:
-        return 'Frühstück';
+        return l10n.reminderSlotBreakfast;
       case ReminderSlot.midmorning:
-        return 'Vormittags-Snack';
+        return l10n.reminderSlotMidmorning;
       case ReminderSlot.lunch:
-        return 'Mittagessen';
+        return l10n.reminderSlotLunch;
       case ReminderSlot.midafternoon:
-        return 'Nachmittags-Snack';
+        return l10n.reminderSlotMidafternoon;
       case ReminderSlot.dinner:
-        return 'Abendessen';
+        return l10n.reminderSlotDinner;
     }
   }
 }

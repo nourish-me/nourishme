@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../l10n/app_localizations.dart';
 import '../models/reminder_settings.dart';
 
 // Wraps flutter_local_notifications for the NourishMe meal-reminder slots.
@@ -13,7 +14,6 @@ class NotificationScheduler {
   static bool _initialised = false;
 
   static const _channelId = 'meal_reminders';
-  static const _channelName = 'Mahlzeit-Erinnerungen';
 
   static Future<void> init() async {
     if (_initialised) return;
@@ -83,22 +83,26 @@ class NotificationScheduler {
 
   // Cancels every existing meal-reminder and re-schedules the enabled ones
   // based on the supplied settings. Safe to call after any settings change.
-  static Future<void> rescheduleFor(ReminderSettings settings) async {
+  // l10n is passed so the system notifications match the app's current
+  // language (English / German).
+  static Future<void> rescheduleFor(
+    ReminderSettings settings,
+    AppLocalizations l10n,
+  ) async {
     await init();
     await _plugin.cancelAll();
     if (!settings.masterEnabled) return;
 
-    const details = NotificationDetails(
-      iOS: DarwinNotificationDetails(
+    final details = NotificationDetails(
+      iOS: const DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: false,
         presentSound: true,
       ),
       android: AndroidNotificationDetails(
         _channelId,
-        _channelName,
-        channelDescription:
-            'Tägliche Erinnerungen, deine Mahlzeiten zu loggen.',
+        l10n.reminderChannelName,
+        channelDescription: l10n.reminderChannelDescription,
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
       ),
@@ -109,8 +113,8 @@ class NotificationScheduler {
       final firstFire = _nextOccurrence(entry.hour, entry.minute);
       await _plugin.zonedSchedule(
         entry.slot.index,
-        ReminderCopy.titleFor(entry.slot),
-        ReminderCopy.bodyFor(entry.slot),
+        ReminderCopy.titleFor(entry.slot, l10n),
+        ReminderCopy.bodyFor(entry.slot, l10n),
         firstFire,
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,

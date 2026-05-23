@@ -40,10 +40,22 @@ Future<void> main() async {
   // Sync local notifications to the persisted reminder settings — on first
   // launch this is a no-op (master is off by default), but on subsequent
   // launches it re-arms any scheduled slot in case iOS dropped them after
-  // OS updates or app reinstall.
-  unawaited(
-    NotificationScheduler.rescheduleFor(settingsRepo.getReminders()),
-  );
+  // OS updates or app reinstall. We load the AppLocalizations for the
+  // device locale so the system notification text matches the app's
+  // language (en / de).
+  unawaited(() async {
+    final deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    final l10n = await AppLocalizations.delegate.load(
+      AppLocalizations.supportedLocales.firstWhere(
+        (l) => l.languageCode == deviceLocale.languageCode,
+        orElse: () => AppLocalizations.supportedLocales.first,
+      ),
+    );
+    await NotificationScheduler.rescheduleFor(
+      settingsRepo.getReminders(),
+      l10n,
+    );
+  }());
   final hasProfile = settingsRepo.hasProfile();
   final themeMode = _parseThemeMode(settingsRepo.getThemeMode());
 

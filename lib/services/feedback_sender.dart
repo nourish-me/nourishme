@@ -4,13 +4,15 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_localizations.dart';
+
 // Opens the system mail composer pre-addressed to Vanessa with a body that
 // includes app + device context, so triaging feedback doesn't need an extra
 // back-and-forth on "which version are you on?".
 class FeedbackSender {
   static const _recipient = 'hi.nourishme@gmail.com';
 
-  static Future<void> openFeedbackMail() async {
+  static Future<void> openFeedbackMail(AppLocalizations l10n) async {
     final pkg = await PackageInfo.fromPlatform();
     String deviceLine = '';
     try {
@@ -18,10 +20,11 @@ class FeedbackSender {
       if (Platform.isIOS) {
         final ios = await info.iosInfo;
         deviceLine =
-            'Gerät: ${ios.utsname.machine} · iOS ${ios.systemVersion}';
+            '${l10n.feedbackMailDeviceLabel}: ${ios.utsname.machine} · iOS ${ios.systemVersion}';
       } else if (Platform.isAndroid) {
         final android = await info.androidInfo;
-        deviceLine = 'Gerät: ${android.model} · Android ${android.version.release}';
+        deviceLine =
+            '${l10n.feedbackMailDeviceLabel}: ${android.model} · Android ${android.version.release}';
       }
     } catch (_) {
       // Device info is a nice-to-have; not a blocker.
@@ -31,7 +34,7 @@ class FeedbackSender {
 
 
 --
-Bitte ändere oben drüber nichts — der untere Block hilft beim Triage.
+${l10n.feedbackMailTriageHint}
 App: NourishMe ${pkg.version}+${pkg.buildNumber}
 $deviceLine
 ''';
@@ -40,7 +43,7 @@ $deviceLine
       scheme: 'mailto',
       path: _recipient,
       query: _encode({
-        'subject': 'NourishMe Feedback',
+        'subject': l10n.feedbackMailSubject,
         'body': body,
       }),
     );

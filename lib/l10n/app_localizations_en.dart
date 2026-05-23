@@ -304,4 +304,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favoriteRemoveConfirm => 'Remove';
+
+  @override
+  String get reminderChannelName => 'Meal reminders';
+
+  @override
+  String get reminderChannelDescription => 'Daily reminders to log your meals.';
+
+  @override
+  String get reminderBreakfastTitle => 'Breakfast?';
+
+  @override
+  String get reminderBreakfastBody =>
+      'If you\'ve already had something, type your meal in.';
+
+  @override
+  String get reminderMidmorningTitle => 'Mid-morning snack?';
+
+  @override
+  String get reminderMidmorningBody =>
+      'Apple, yogurt, a bun? Type your meal in.';
+
+  @override
+  String get reminderLunchTitle => 'Lunchtime.';
+
+  @override
+  String get reminderLunchBody => 'The coach is waiting for your meal.';
+
+  @override
+  String get reminderMidafternoonTitle => 'Anything in between?';
+
+  @override
+  String get reminderMidafternoonBody =>
+      'Type your meal in so you\'ve got the day covered.';
+
+  @override
+  String get reminderDinnerTitle => 'Dinner logged?';
+
+  @override
+  String get reminderDinnerBody => 'Last entry today and you\'re done.';
+
+  @override
+  String get reminderSlotBreakfast => 'Breakfast';
+
+  @override
+  String get reminderSlotMidmorning => 'Mid-morning snack';
+
+  @override
+  String get reminderSlotLunch => 'Lunch';
+
+  @override
+  String get reminderSlotMidafternoon => 'Afternoon snack';
+
+  @override
+  String get reminderSlotDinner => 'Dinner';
+
+  @override
+  String get feedbackMailSubject => 'NourishMe feedback';
+
+  @override
+  String get feedbackMailTriageHint =>
+      'Please don\'t edit below — it helps with triage.';
+
+  @override
+  String get feedbackMailDeviceLabel => 'Device';
+
+  @override
+  String get reminderPermissionBlocked =>
+      'Notifications are blocked in iOS Settings.';
 }

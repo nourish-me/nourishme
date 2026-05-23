@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../main.dart';
 import '../models/favorite_meal.dart';
 import '../models/reminder_settings.dart';
@@ -371,7 +372,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _ThemeSection(),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  onPressed: () => FeedbackSender.openFeedbackMail(),
+                  onPressed: () => FeedbackSender.openFeedbackMail(
+                    AppLocalizations.of(context),
+                  ),
                   icon: const Icon(Icons.mail_outline),
                   label: const Text('Feedback senden'),
                   style: OutlinedButton.styleFrom(
@@ -725,7 +728,8 @@ class _RemindersSectionState extends ConsumerState<_RemindersSection> {
   Future<void> _persist() async {
     final s = _settings!;
     await ref.read(settingsRepositoryProvider).saveReminders(s);
-    await NotificationScheduler.rescheduleFor(s);
+    if (!mounted) return;
+    await NotificationScheduler.rescheduleFor(s, AppLocalizations.of(context));
   }
 
   Future<void> _onMasterToggled(bool on) async {
@@ -734,9 +738,9 @@ class _RemindersSectionState extends ConsumerState<_RemindersSection> {
       if (!mounted) return;
       if (!granted) {
         rootScaffoldMessengerKey.currentState?.showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-                'Benachrichtigungen sind in den iOS-Einstellungen blockiert.'),
+                AppLocalizations.of(context).reminderPermissionBlocked),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -757,10 +761,11 @@ class _RemindersSectionState extends ConsumerState<_RemindersSection> {
   }
 
   Future<void> _onTimeTap(ReminderEntry entry) async {
+    final l10n = AppLocalizations.of(context);
     final picked = await showTimePicker(
       context: context,
       initialTime: entry.time,
-      helpText: '${ReminderCopy.label(entry.slot)} um …',
+      helpText: '${ReminderCopy.label(entry.slot, l10n)} um …',
     );
     if (picked == null || !mounted) return;
     setState(() {
@@ -825,7 +830,8 @@ class _RemindersSectionState extends ConsumerState<_RemindersSection> {
                   children: [
                     Expanded(
                       child: Text(
-                        ReminderCopy.label(s.entries[i].slot),
+                        ReminderCopy.label(s.entries[i].slot,
+                            AppLocalizations.of(context)),
                         style: textTheme.bodyLarge?.copyWith(
                           color: s.entries[i].enabled
                               ? scheme.onSurface

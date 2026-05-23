@@ -308,4 +308,74 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get favoriteRemoveConfirm => 'Entfernen';
+
+  @override
+  String get reminderChannelName => 'Mahlzeit-Erinnerungen';
+
+  @override
+  String get reminderChannelDescription =>
+      'Tägliche Erinnerungen, deine Mahlzeiten zu loggen.';
+
+  @override
+  String get reminderBreakfastTitle => 'Frühstück?';
+
+  @override
+  String get reminderBreakfastBody =>
+      'Falls du schon was hattest, tippe deine Mahlzeit ein.';
+
+  @override
+  String get reminderMidmorningTitle => 'Kleine Stärkung?';
+
+  @override
+  String get reminderMidmorningBody =>
+      'Apfel, Joghurt, Brötchen? Tippe deine Mahlzeit ein.';
+
+  @override
+  String get reminderLunchTitle => 'Mittagszeit.';
+
+  @override
+  String get reminderLunchBody => 'Coach wartet auf deine Mahlzeit.';
+
+  @override
+  String get reminderMidafternoonTitle => 'Zwischendurch was gegessen?';
+
+  @override
+  String get reminderMidafternoonBody =>
+      'Tippe deine Mahlzeit ein, dann hast du den Tag im Bild.';
+
+  @override
+  String get reminderDinnerTitle => 'Abendessen geloggt?';
+
+  @override
+  String get reminderDinnerBody =>
+      'Letzter Eintrag heute, danach ist Feierabend.';
+
+  @override
+  String get reminderSlotBreakfast => 'Frühstück';
+
+  @override
+  String get reminderSlotMidmorning => 'Vormittags-Snack';
+
+  @override
+  String get reminderSlotLunch => 'Mittagessen';
+
+  @override
+  String get reminderSlotMidafternoon => 'Nachmittags-Snack';
+
+  @override
+  String get reminderSlotDinner => 'Abendessen';
+
+  @override
+  String get feedbackMailSubject => 'NourishMe Feedback';
+
+  @override
+  String get feedbackMailTriageHint =>
+      'Bitte ändere unten drunter nichts — der Block hilft beim Triage.';
+
+  @override
+  String get feedbackMailDeviceLabel => 'Gerät';
+
+  @override
+  String get reminderPermissionBlocked =>
+      'Benachrichtigungen sind in den iOS-Einstellungen blockiert.';
 }

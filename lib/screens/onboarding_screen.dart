@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
+import '../l10n/app_localizations.dart';
 import '../models/reminder_settings.dart';
 import '../services/nutrition_facts.dart';
 import '../services/notification_scheduler.dart';
@@ -188,7 +189,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       reminders = reminders.copyWith(masterEnabled: granted);
     }
     await settingsRepo.saveReminders(reminders);
-    await NotificationScheduler.rescheduleFor(reminders);
+    if (!mounted) return;
+    await NotificationScheduler.rescheduleFor(
+        reminders, AppLocalizations.of(context));
 
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
