@@ -301,6 +301,35 @@ Danke fürs Testen. Feedback gerne an hi.nourishme@gmail.com.
 - [ ] Build uploaded with the same bundle id (com.vanessaheizmann.nurturetrack)
 - [ ] Privacy Manifest (PrivacyInfo.xcprivacy) in the build
 
+## LinkedIn post (EN, primary)
+
+Vanessa's text, no em-dashes, "Leo and Carl" order. Mirrors the founder
+section on the EN landing.
+
+```
+14 weeks ago I had twins. Leo and Carl.
+
+From week one I kept asking myself: am I actually eating enough, for
+all three of us? Every nutrient goes to the babies first. I needed to
+stay on top of my own intake for the whole thing to work.
+
+And there was just nothing out there that could tell me. Nutrition apps
+are built for weight loss. Pregnancy apps stopped the day you gave
+birth. Breastfeeding apps slapped on a flat +500 kcal, one baby or
+twins, nursing or pumping, didn't matter.
+
+So that's how NourishMe happened.
+
+It tells you after every meal what you and your baby still need, based
+on your actual data, not some generic number. All recommendations
+trace back to real sources: DGE, BfR, EFSA, LactMed.
+
+I'm testing it with a small group right now. If you're pregnant,
+breastfeeding, or pumping and want in, DM me.
+
+More here: nourish-me.github.io/nourishme
+```
+
 ## Screenshot plan
 
 Six storyboards (same shot list per locale, copy localised):
