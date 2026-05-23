@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
+
 import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
@@ -77,16 +79,16 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
 
   Future<bool> _confirmDiscardChanges() async {
     if (!_userTouched) return true;
+    final l10n = AppLocalizations.of(context);
     final result = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Änderungen verwerfen?'),
-        content: const Text(
-            'Du hast deine Eingaben noch nicht gespeichert.'),
+        title: Text(l10n.confirmDiscardTitle),
+        content: Text(l10n.confirmDiscardBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Weiter bearbeiten'),
+            child: Text(l10n.confirmDiscardAbort),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -94,7 +96,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                   Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Verwerfen'),
+            child: Text(l10n.confirmDiscardConfirm),
           ),
         ],
       ),
@@ -289,7 +291,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       // failure. Linked to the meal so deleting the meal cleans it up too.
       final message = error is CoachApiException
           ? error.userMessage
-          : 'Coach-Antwort konnte nicht erstellt werden. Probier es später nochmal.';
+          : (mounted
+              ? AppLocalizations.of(context).confirmCoachErrorFallback
+              : "Coach reply unavailable. Try again later.");
       final coachAt = meal.createdAt.add(const Duration(minutes: 1));
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: meal.id,
@@ -314,6 +318,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final portionUnit = widget.parsed.portionUnit;
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
       shrinkWrap: widget.asSheet,
@@ -338,7 +343,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           maxLines: 3,
           decoration: InputDecoration(
             border: InputBorder.none,
-            hintText: 'Beschreibung',
+            hintText: l10n.confirmDescriptionHint,
             hintStyle: TextStyle(color: scheme.outline),
             contentPadding: EdgeInsets.zero,
             isDense: true,
@@ -350,10 +355,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             Expanded(
               child: _SmallField(
                 controller: _portion,
-                label: 'Portion',
+                label: l10n.confirmFieldPortion,
                 suffix: portionUnit,
                 helper: widget.parsed.portionAlias != null
-                    ? '≈ ${widget.parsed.portionAlias}'
+                    ? l10n.confirmAliasPrefix(widget.parsed.portionAlias!)
                     : null,
                 decimal: true,
                 onSubmit: _save,
@@ -363,8 +368,8 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             Expanded(
               child: _SmallField(
                 controller: _kcal,
-                label: 'Kalorien',
-                suffix: 'kcal',
+                label: l10n.trendsLabelKcal,
+                suffix: l10n.confirmFieldKcal,
                 decimal: false,
                 onSubmit: _save,
               ),
@@ -380,7 +385,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
               _showDetails ? Icons.expand_less : Icons.expand_more,
               size: 18,
             ),
-            label: Text(_showDetails ? 'Weniger' : 'Makros bearbeiten'),
+            label: Text(_showDetails
+                ? l10n.confirmDetailsHide
+                : l10n.confirmDetailsToggle),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               visualDensity: VisualDensity.compact,
@@ -394,7 +401,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
               Expanded(
                 child: _SmallField(
                   controller: _protein,
-                  label: 'Protein',
+                  label: l10n.confirmFieldProtein,
                   suffix: 'g',
                   decimal: true,
                   onSubmit: _save,
@@ -404,7 +411,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
               Expanded(
                 child: _SmallField(
                   controller: _carbs,
-                  label: 'KH',
+                  label: l10n.confirmFieldCarbs,
                   suffix: 'g',
                   decimal: true,
                   onSubmit: _save,
@@ -414,7 +421,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
               Expanded(
                 child: _SmallField(
                   controller: _fat,
-                  label: 'Fett',
+                  label: l10n.confirmFieldFat,
                   suffix: 'g',
                   decimal: true,
                   onSubmit: _save,
@@ -440,7 +447,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                         size: 18, color: scheme.onTertiaryContainer),
                     const SizedBox(width: 6),
                     Text(
-                      'Bitte beachte',
+                      AppLocalizations.of(context).confirmSafetyHeader,
                       style: textTheme.labelLarge?.copyWith(
                         color: scheme.onTertiaryContainer,
                         fontWeight: FontWeight.w600,
@@ -542,15 +549,15 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           appBar: AppBar(
             title: Text(
               widget.existingMealId != null
-                  ? 'Bearbeiten'
-                  : 'Prüfen und speichern',
+                  ? AppLocalizations.of(context).confirmTitleEdit
+                  : AppLocalizations.of(context).confirmTitleNew,
             ),
             centerTitle: false,
           actions: [
             IconButton(
               tooltip: _saveAsFavorite
-                  ? 'Favorit entfernen'
-                  : 'Als Favorit speichern',
+                  ? AppLocalizations.of(context).confirmFavoriteRemove
+                  : AppLocalizations.of(context).confirmFavoriteAdd,
               icon: Icon(
                 _saveAsFavorite ? Icons.star : Icons.star_border,
                 color: _saveAsFavorite
@@ -639,7 +646,9 @@ class _SheetHeaderContent extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              isEditing ? 'Bearbeiten' : 'Prüfen und speichern',
+              isEditing
+                  ? AppLocalizations.of(context).confirmTitleEdit
+                  : AppLocalizations.of(context).confirmTitleNew,
               style: textTheme.titleSmall?.copyWith(
                 color: scheme.outline,
                 fontWeight: FontWeight.w600,
@@ -649,8 +658,8 @@ class _SheetHeaderContent extends StatelessWidget {
           ),
           IconButton(
             tooltip: saveAsFavorite
-                ? 'Favorit entfernen'
-                : 'Als Favorit speichern',
+                ? AppLocalizations.of(context).confirmFavoriteRemove
+                : AppLocalizations.of(context).confirmFavoriteAdd,
             icon: Icon(
               saveAsFavorite ? Icons.star : Icons.star_border,
               color: saveAsFavorite ? scheme.secondary : null,
@@ -687,7 +696,7 @@ class _KeyboardAccessoryBar extends StatelessWidget {
           TextButton(
             onPressed: () => FocusScope.of(context).unfocus(),
             child: Text(
-              'Fertig',
+              AppLocalizations.of(context).commonDone,
               style: TextStyle(color: scheme.outline),
             ),
           ),
@@ -698,7 +707,7 @@ class _KeyboardAccessoryBar extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               padding: const EdgeInsets.symmetric(horizontal: 16),
             ),
-            child: const Text('Speichern'),
+            child: Text(AppLocalizations.of(context).confirmSave),
           ),
         ],
       ),
@@ -713,19 +722,20 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
         Expanded(
           child: OutlinedButton(
             onPressed: onDiscard,
-            child: const Text('Verwerfen'),
+            child: Text(l10n.confirmDiscardConfirm),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: FilledButton(
             onPressed: onSave,
-            child: const Text('Speichern'),
+            child: Text(l10n.confirmSave),
           ),
         ),
       ],

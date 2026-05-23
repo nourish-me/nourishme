@@ -72,5 +72,8 @@
   "confirmDiscardBody": "Deine ungespeicherten Änderungen gehen verloren.",
   "confirmDiscardAbort": "Abbrechen",
   "confirmDiscardConfirm": "Verwerfen",
-  "confirmHintsHeader": "Hinweise zu dieser Mahlzeit"
+  "confirmHintsHeader": "Hinweise zu dieser Mahlzeit",
+  "confirmSafetyHeader": "Bitte beachte",
+  "confirmCoachErrorFallback": "Coach-Antwort konnte nicht erstellt werden. Probier es später nochmal.",
+  "commonDone": "Fertig"
 }

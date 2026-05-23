@@ -210,4 +210,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get confirmHintsHeader => 'Hinweise zu dieser Mahlzeit';
+
+  @override
+  String get confirmSafetyHeader => 'Bitte beachte';
+
+  @override
+  String get confirmCoachErrorFallback =>
+      'Coach-Antwort konnte nicht erstellt werden. Probier es später nochmal.';
+
+  @override
+  String get commonDone => 'Fertig';
 }

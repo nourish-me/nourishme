@@ -103,5 +103,8 @@
   "confirmDiscardBody": "Your unsaved changes will be lost.",
   "confirmDiscardAbort": "Cancel",
   "confirmDiscardConfirm": "Discard",
-  "confirmHintsHeader": "Notes for this meal"
+  "confirmHintsHeader": "Notes for this meal",
+  "confirmSafetyHeader": "Please note",
+  "confirmCoachErrorFallback": "Couldn't get a coach reply. Try again later.",
+  "commonDone": "Done"
 }

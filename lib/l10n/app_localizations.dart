@@ -475,6 +475,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes for this meal'**
   String get confirmHintsHeader;
+
+  /// No description provided for @confirmSafetyHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Please note'**
+  String get confirmSafetyHeader;
+
+  /// No description provided for @confirmCoachErrorFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get a coach reply. Try again later.'**
+  String get confirmCoachErrorFallback;
+
+  /// No description provided for @commonDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get commonDone;
 }
 
 class _AppLocalizationsDelegate

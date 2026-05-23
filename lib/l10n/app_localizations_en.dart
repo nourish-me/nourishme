@@ -208,4 +208,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmHintsHeader => 'Notes for this meal';
+
+  @override
+  String get confirmSafetyHeader => 'Please note';
+
+  @override
+  String get confirmCoachErrorFallback =>
+      'Couldn\'t get a coach reply. Try again later.';
+
+  @override
+  String get commonDone => 'Done';
 }
