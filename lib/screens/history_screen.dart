@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../utils/date_format.dart';
@@ -36,14 +37,15 @@ class HistoryScreen extends ConsumerWidget {
       ref.read(selectedTabProvider.notifier).state = 0;
     }
 
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verlauf'),
+        title: Text(l10n.tabHistory),
         centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Einstellungen',
+            tooltip: l10n.settingsTooltip,
             onPressed: () {
               Navigator.push(
                 context,

@@ -1,0 +1,107 @@
+{
+  "@@locale": "en",
+  "@@x-comment": "Template ARB. Keep keys alphabetically grouped by feature. The German app_de.arb mirrors this file 1:1.",
+
+  "appTitle": "NourishMe",
+  "@appTitle": {
+    "description": "Used as MaterialApp.title and visible in the iOS multitasking switcher."
+  },
+
+  "tabDiary": "Diary",
+  "tabHistory": "History",
+  "tabTrends": "Trends",
+
+  "todayHeader": "Today",
+  "settingsTooltip": "Settings",
+
+  "emptyTodayHeadline": "What did you eat today?",
+  "emptyTodayBody": "Type away — the coach takes it from there.",
+
+  "emptyHistoryHeadline": "Your history starts today.",
+
+  "emptyFavoritesHeadline": "No favourites yet.",
+  "emptyFavoritesBody": "When logging a meal, tap the star to save it as a favourite.",
+  "emptyFavoritesExample": "Yogurt with berries",
+
+  "emptySafetyEyebrow": "FOOD SAFETY · BFR",
+  "emptySafetyHeadline": "All clear.",
+  "emptySafetyMercury": "Mercury",
+  "emptySafetyMercuryNote": "ok",
+  "emptySafetyListeria": "Listeria risk",
+  "emptySafetyListeriaNote": "pasteurised ok",
+  "emptySafetyCaffeine": "Caffeine",
+  "emptySafetyCaffeineNote": "< 200 mg",
+
+  "trendsTitle": "Trends",
+  "trendsWeekEyebrow": "LAST 7 DAYS",
+  "trendsWeekTitle": "Calorie pattern",
+  "trendsWeekSummary": "{inRange} of 7 days in target range · avg {avgKcal} kcal",
+  "@trendsWeekSummary": {
+    "placeholders": {
+      "inRange": {"type": "int"},
+      "avgKcal": {"type": "String"}
+    }
+  },
+  "trendsStreakEyebrow": "STREAK",
+  "trendsStreakZero": "Today can be your first sweet-spot day.",
+  "trendsStreakOne": "1 day in the sweet spot.",
+  "trendsStreakMany": "{count} days in the sweet spot in a row.",
+  "@trendsStreakMany": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "trendsAveragesEyebrow": "WEEKLY AVERAGE",
+  "trendsAveragesTitle": "Per logged day",
+  "trendsLabelKcal": "Calories",
+  "trendsLabelProtein": "Protein",
+  "trendsLabelCarbs": "Carbohydrates",
+  "trendsLabelFat": "Fat",
+  "trendsTargetPrefix": "Target {target}",
+  "@trendsTargetPrefix": {
+    "placeholders": {
+      "target": {"type": "String"}
+    }
+  },
+  "trendsConsistencyEyebrow": "CONSISTENCY",
+  "trendsConsistencyTitle": "Tracking days",
+  "trendsConsistencyEmpty": "Once you log your first meal, your tracking journey begins here.",
+  "trendsConsistencyBody": "You've been using NourishMe for {days} days, with entries on {trackedDays} days.",
+  "@trendsConsistencyBody": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "trackedDays": {"type": "int"}
+    }
+  },
+  "trendsTopMealsEyebrow": "MOST FREQUENT MEALS",
+  "trendsTopMealsTitle": "Last 7 days",
+
+  "historyNoEntries": "No entries yet",
+  "historyKcalSeparator": "·",
+
+  "confirmTitleNew": "Review and save",
+  "confirmTitleEdit": "Edit",
+  "confirmSave": "Save",
+  "confirmCancel": "Cancel",
+  "confirmFieldPortion": "Portion",
+  "confirmFieldKcal": "kcal",
+  "confirmFieldProtein": "Protein",
+  "confirmFieldCarbs": "Carbs",
+  "confirmFieldFat": "Fat",
+  "confirmAliasPrefix": "≈ {alias}",
+  "@confirmAliasPrefix": {
+    "placeholders": {
+      "alias": {"type": "String"}
+    }
+  },
+  "confirmFavoriteAdd": "Save as favourite",
+  "confirmFavoriteRemove": "Remove favourite",
+  "confirmDescriptionHint": "Description",
+  "confirmDetailsToggle": "Show details",
+  "confirmDetailsHide": "Hide details",
+  "confirmDiscardTitle": "Discard changes?",
+  "confirmDiscardBody": "Your unsaved changes will be lost.",
+  "confirmDiscardAbort": "Cancel",
+  "confirmDiscardConfirm": "Discard",
+  "confirmHintsHeader": "Notes for this meal"
+}

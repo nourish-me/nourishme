@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/meal_entry.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
@@ -23,6 +24,7 @@ class TrendsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final mealsAll = ref.watch(mealsProvider).valueOrNull ?? const <MealEntry>[];
     final targetKcal = ref.watch(calorieTargetProvider);
     final macroTargets = ref.watch(macroTargetsProvider);
@@ -31,12 +33,12 @@ class TrendsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trends'),
+        title: Text(l10n.trendsTitle),
         centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Einstellungen',
+            tooltip: l10n.settingsTooltip,
             onPressed: () {
               Navigator.push(
                 context,
@@ -293,16 +295,19 @@ class _WeekChartCard extends StatelessWidget {
         .map((d) => d.kcal)
         .fold<int>(0, (a, b) => a > b ? a : b);
     final scale = maxKcal == 0 ? 1.0 : maxKcal.toDouble();
+    final l10n = AppLocalizations.of(context);
     return _Card(
       scheme: scheme,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Eyebrow(
-              text: 'LETZTE 7 TAGE', scheme: scheme, textTheme: textTheme),
+              text: l10n.trendsWeekEyebrow,
+              scheme: scheme,
+              textTheme: textTheme),
           const SizedBox(height: 6),
           Text(
-            'Kalorien-Verlauf',
+            l10n.trendsWeekTitle,
             style: textTheme.titleLarge?.copyWith(
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w600,
@@ -311,8 +316,10 @@ class _WeekChartCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${stats.daysInSweetSpot} von 7 Tagen im Zielbereich · '
-            'Ø ${formatKcal(stats.weekAvgKcal)} kcal',
+            l10n.trendsWeekSummary(
+              stats.daysInSweetSpot,
+              formatKcal(stats.weekAvgKcal),
+            ),
             style: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 18),
@@ -449,16 +456,17 @@ class _StreakCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _Eyebrow(
-                    text: 'STREAK',
+                    text: AppLocalizations.of(context).trendsStreakEyebrow,
                     scheme: scheme,
                     textTheme: textTheme),
                 const SizedBox(height: 4),
                 Text(
                   stats.streak == 0
-                      ? 'Heute ist dein erster Sweet-Spot-Tag.'
+                      ? AppLocalizations.of(context).trendsStreakZero
                       : stats.streak == 1
-                          ? '1 Tag im Sweet-Spot.'
-                          : '${stats.streak} Tage im Sweet-Spot in Folge.',
+                          ? AppLocalizations.of(context).trendsStreakOne
+                          : AppLocalizations.of(context)
+                              .trendsStreakMany(stats.streak),
                   style: textTheme.titleMedium?.copyWith(
                     color: scheme.onSurface,
                     fontStyle: FontStyle.italic,
@@ -485,16 +493,19 @@ class _MacroAveragesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return _Card(
       scheme: scheme,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Eyebrow(
-              text: 'WOCHENSCHNITT', scheme: scheme, textTheme: textTheme),
+              text: l10n.trendsAveragesEyebrow,
+              scheme: scheme,
+              textTheme: textTheme),
           const SizedBox(height: 6),
           Text(
-            'Pro Tag mit Eintrag',
+            l10n.trendsAveragesTitle,
             style: textTheme.titleLarge?.copyWith(
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w600,
@@ -503,28 +514,28 @@ class _MacroAveragesCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _StatRow(
-              label: 'Kalorien',
+              label: l10n.trendsLabelKcal,
               value: '${formatKcal(stats.weekAvgKcal)} kcal',
               target: '${formatKcal(stats.targetKcal)} kcal',
               scheme: scheme,
               textTheme: textTheme),
           Divider(color: scheme.outlineVariant, height: 18),
           _StatRow(
-              label: 'Protein',
+              label: l10n.trendsLabelProtein,
               value: '${stats.weekAvgProtein} g',
               target: '${stats.macroTargets.proteinG} g',
               scheme: scheme,
               textTheme: textTheme),
           Divider(color: scheme.outlineVariant, height: 18),
           _StatRow(
-              label: 'Kohlenhydrate',
+              label: l10n.trendsLabelCarbs,
               value: '${stats.weekAvgCarbs} g',
               target: '${stats.macroTargets.carbsG} g',
               scheme: scheme,
               textTheme: textTheme),
           Divider(color: scheme.outlineVariant, height: 18),
           _StatRow(
-              label: 'Fett',
+              label: l10n.trendsLabelFat,
               value: '${stats.weekAvgFat} g',
               target: '${stats.macroTargets.fatG} g',
               scheme: scheme,
@@ -568,7 +579,7 @@ class _StatRow extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          'Ziel $target',
+          AppLocalizations.of(context).trendsTargetPrefix(target),
           style: textTheme.labelSmall?.copyWith(
             color: scheme.outline,
           ),
@@ -590,10 +601,11 @@ class _ConsistencyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final body = stats.totalDaysSinceStart == 0
-        ? 'Sobald du deine erste Mahlzeit loggst, beginnt deine Tracking-Reise hier.'
-        : 'Du nutzt NourishMe seit ${stats.totalDaysSinceStart} Tagen, '
-            'mit Einträgen an ${stats.totalTrackedDays} Tagen.';
+        ? l10n.trendsConsistencyEmpty
+        : l10n.trendsConsistencyBody(
+            stats.totalDaysSinceStart, stats.totalTrackedDays);
     final ratio = stats.totalDaysSinceStart > 0
         ? stats.totalTrackedDays / stats.totalDaysSinceStart
         : 0.0;
@@ -603,10 +615,12 @@ class _ConsistencyCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Eyebrow(
-              text: 'KONSISTENZ', scheme: scheme, textTheme: textTheme),
+              text: l10n.trendsConsistencyEyebrow,
+              scheme: scheme,
+              textTheme: textTheme),
           const SizedBox(height: 6),
           Text(
-            'Tracking-Tage',
+            l10n.trendsConsistencyTitle,
             style: textTheme.titleLarge?.copyWith(
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w600,
@@ -654,12 +668,12 @@ class _TopMealsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Eyebrow(
-              text: 'HÄUFIGSTE MAHLZEITEN',
+              text: AppLocalizations.of(context).trendsTopMealsEyebrow,
               scheme: scheme,
               textTheme: textTheme),
           const SizedBox(height: 6),
           Text(
-            'Letzte 7 Tage',
+            AppLocalizations.of(context).trendsTopMealsTitle,
             style: textTheme.titleLarge?.copyWith(
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w600,

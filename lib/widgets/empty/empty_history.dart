@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../nm_icons.dart';
 
 // Empty state for the Verlauf tab when no day has data yet.
@@ -30,7 +31,7 @@ class EmptyHistory extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Der Verlauf beginnt heute.',
+              AppLocalizations.of(context).emptyHistoryHeadline,
               textAlign: TextAlign.center,
               style: textTheme.titleLarge?.copyWith(
                 fontStyle: FontStyle.italic,

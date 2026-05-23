@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../nm_icons.dart';
 
 // First-meal-of-the-day empty state for the Tagebuch.
@@ -11,6 +12,7 @@ class EmptyToday extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
       child: _DottedBorderBox(
@@ -33,7 +35,7 @@ class EmptyToday extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Was hast du heute gegessen?',
+                l10n.emptyTodayHeadline,
                 textAlign: TextAlign.center,
                 style: textTheme.titleLarge?.copyWith(
                   fontStyle: FontStyle.italic,
@@ -43,7 +45,7 @@ class EmptyToday extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Tipp einfach drauf los, der Coach erkennt den Rest.',
+                l10n.emptyTodayBody,
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium?.copyWith(
                   color: scheme.onSurfaceVariant,

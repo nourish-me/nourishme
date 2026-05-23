@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'l10n/app_localizations.dart';
 import 'providers/meal_providers.dart';
 import 'screens/main_scaffold.dart';
 import 'screens/onboarding_screen.dart';
@@ -88,16 +89,16 @@ class NourishMeApp extends ConsumerWidget {
       theme: buildLightTheme(),
       darkTheme: buildDarkTheme(),
       themeMode: themeMode,
-      // App-UI is German, including the system date picker, weekday names,
-      // and the back-button tooltip. English fallback covers any rare
-      // unlocalised string from third-party packages.
+      // English primary, German for users whose device is set to de/at/ch.
+      // No explicit locale override — MaterialApp picks from device locale,
+      // falls back to AppLocalizations.supportedLocales (en first).
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('de'), Locale('en')],
-      locale: const Locale('de'),
+      supportedLocales: AppLocalizations.supportedLocales,
       home: showOnboarding ? const OnboardingScreen() : const MainScaffold(),
     );
   }

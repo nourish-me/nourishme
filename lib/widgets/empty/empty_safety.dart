@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/nourishme_colors.dart';
 import '../nm_icons.dart';
 
@@ -13,7 +14,8 @@ class EmptySafety extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final rows = checks.isEmpty ? _defaultChecks : checks;
+    final l10n = AppLocalizations.of(context);
+    final rows = checks.isEmpty ? _defaultChecksFor(l10n) : checks;
     // Moss stays as the semantic "ok" colour token; on dark backgrounds we
     // brighten it via the colorScheme outline-variant blend so it remains
     // legible against the dark surface.
@@ -27,7 +29,7 @@ class EmptySafety extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'FOOD SAFETY · BFR',
+            l10n.emptySafetyEyebrow,
             textAlign: TextAlign.center,
             style: textTheme.labelSmall?.copyWith(
               color: scheme.outline,
@@ -51,7 +53,7 @@ class EmptySafety extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Alles unauffällig.',
+            l10n.emptySafetyHeadline,
             textAlign: TextAlign.center,
             style: textTheme.titleLarge?.copyWith(
               fontStyle: FontStyle.italic,
@@ -107,8 +109,11 @@ class SafetyCheckRow {
   const SafetyCheckRow({required this.name, required this.note});
 }
 
-const _defaultChecks = [
-  SafetyCheckRow(name: 'Quecksilber', note: 'ok'),
-  SafetyCheckRow(name: 'Listeria-Risiko', note: 'pasteurisiert ok'),
-  SafetyCheckRow(name: 'Koffein', note: '< 200 mg'),
-];
+List<SafetyCheckRow> _defaultChecksFor(AppLocalizations l10n) => [
+      SafetyCheckRow(
+          name: l10n.emptySafetyMercury, note: l10n.emptySafetyMercuryNote),
+      SafetyCheckRow(
+          name: l10n.emptySafetyListeria, note: l10n.emptySafetyListeriaNote),
+      SafetyCheckRow(
+          name: l10n.emptySafetyCaffeine, note: l10n.emptySafetyCaffeineNote),
+    ];

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 // Empty state for the Favoriten section in Settings.
 // Spec: handoff/testflight_1_1/README.md "Favoriten (leer)".
 class EmptyFavorites extends StatelessWidget {
@@ -9,6 +11,7 @@ class EmptyFavorites extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       child: Column(
@@ -31,7 +34,7 @@ class EmptyFavorites extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Noch keine Favoriten.',
+            l10n.emptyFavoritesHeadline,
             textAlign: TextAlign.center,
             style: textTheme.titleLarge?.copyWith(
               fontStyle: FontStyle.italic,
@@ -43,8 +46,7 @@ class EmptyFavorites extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              'Tippe beim Mahlzeit-Loggen auf den Stern, um eine '
-              'Mahlzeit als Favorit zu speichern.',
+              l10n.emptyFavoritesBody,
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -74,7 +76,7 @@ class EmptyFavorites extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Müsli mit Beeren',
+                    l10n.emptyFavoritesExample,
                     style: textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurface,
                     ),
