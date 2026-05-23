@@ -31,69 +31,69 @@ Alternatives:
 
 ### Promotional Text (max 170 characters, editable without review)
 
-> Live nutrition coach for pregnancy and breastfeeding. Log a meal, get a concrete next-step suggestion. Evidence-based, privacy-friendly, no calorie-counting fuss.
+> Real-time nutrition coach for pregnancy and breastfeeding. Log a meal, get a specific next-step. Evidence-based, privacy-friendly, no calorie-counting fuss.
 
-(168 chars)
+(160 chars)
 
 ### Description (max 4000 characters)
 
 ```
 NourishMe is your evidence-based nutrition coach for pregnancy and
-breastfeeding. Log a meal, get a concrete suggestion for what would fit
+breastfeeding. Log a meal, get a specific suggestion for what to eat
 next. No calorie-counting busywork, no diet logic, no cloud account.
 
 What makes NourishMe different
-• Live coaching: every meal you log triggers an instant analysis of how
-  it fits your day, plus a concrete suggestion for what to eat next so
-  you and your little ones stay well-supplied.
-• Calculated for you, not for averages: daily targets derived from your
-  weight, height, activity, trimester, number of children, breastfeeding
-  share and actual milk volume. Twins exclusively breastfed get +1,260
-  kcal, not a flat +500.
+• Real-time coaching: every meal you log triggers an instant analysis
+  of how it fits your day, plus a specific suggestion for what to eat
+  next so you and your babies have what you need.
+• Built for you, not for an average: daily targets are calculated from
+  your weight, height, activity, trimester, number of babies,
+  breastfeeding share and actual milk volume. Twins exclusively
+  breastfed get +1,260 kcal, not a flat +500.
 • Science open, data with you: every threshold traces back to the
   German Nutrition Society (DGE 2025), BfR, EFSA, LactMed (NIH), FDA/EPA
   and WHO. Tap any number to see the source.
-• Privacy-first: no cloud, no login, no tracking, no ads. All entries
-  stay on your device.
+• Privacy-first: no cloud, no login, no tracking, no ads. Everything
+  stays on your device.
 
 What you can do
 • Log meals by text, photo or saved favorite. "Cereal with yogurt, one
   bowl" is enough.
-• Per-meal coach response with strengths, gaps and a next-meal idea
-  tuned to your remaining target.
+• After every meal, get a coach response with strengths, gaps and a
+  next-meal idea tuned to your remaining target.
 • Ask the coach anything ("How much protein do I need today?", "What
   helps with fatigue while pumping?").
-• Scroll back day by day to see your chronological diary.
-• Food-safety hints built in: caffeine thresholds, alcohol wait times,
+• Scroll back through every day you've logged.
+• Food-safety built in: caffeine thresholds, alcohol wait times,
   mercury-fish guidance, listeria risks in pregnancy.
 • Trends tab: weekly calorie chart, sweet-spot streak, weekly averages,
   most frequent meals.
 • Configurable meal reminders, scheduled locally on your device.
-• Customisable macro split (low-carb, high-protein) when you follow a
+• Customizable macro split (low-carb, high-protein) when you follow a
   specific eating style.
 • Light and dark theme, English and German.
 
 Who NourishMe is built for
 • Pregnant women in any trimester, including multiples
-• Breastfeeding mothers nursing directly
-• Exclusively pumping mothers, using your real daily volume
-• Tandem nursing mothers (pregnant while breastfeeding)
+• Breastfeeding moms nursing directly
+• Moms who pump exclusively, using your real daily volume
+• Tandem nursing (pregnant while breastfeeding)
 
-Not a medical device. NourishMe is a personal wellness tool and does
-not replace medical advice. For medical questions, please consult your
-physician or midwife.
+Not a medical device. NourishMe is a personal wellness tool, not a
+substitute for medical advice. For medical questions, please consult
+your physician or midwife.
 
 Privacy in plain language
-Your entries are stored locally on your device. Meal text and optional
-photos are sent anonymously to Anthropic's Claude AI for the coaching
-analysis through a secure proxy. No third-party trackers, no ads, no
-accounts. Full policy in the app and on our website.
+Your entries stay on your device. Meal text and optional photos go
+anonymously to Anthropic's Claude AI through a secure proxy, for the
+coaching analysis only. No third-party trackers, no ads, no accounts.
+Full policy in the app and on our website.
 
 Scientific basis
-Thresholds and recommendations follow the current reference values from
-DGE 2025, BfR statements, EFSA Scientific Opinions, WHO Antenatal Care
-Guidelines, LactMed (NIH) and FDA/EPA Fish Advice. Sources are linked
-inline behind every ⓘ icon in the app.
+Thresholds and recommendations follow the current reference values
+from DGE 2025, BfR statements, EFSA Scientific Opinions, WHO Antenatal
+Care Guidelines, LactMed (NIH) and FDA/EPA Fish Advice. Every ⓘ icon
+in the app links the source.
 ```
 
 (approx. 2,800 characters, well under the 4,000 limit)
@@ -111,15 +111,15 @@ pregnancy,breastfeeding,nutrition,pumping,coach,maternal,mom,milk,DGE,EFSA
 ```
 First public release of NourishMe.
 
-• Live coach for pregnancy and breastfeeding nutrition
-• Meal logging by text or photo, with instant nutrient parsing
-• Daily target calculation tuned to your actual situation, including
+• Real-time coach for pregnancy and breastfeeding nutrition
+• Log meals by text or photo, get the nutrient breakdown instantly
+• Daily targets calculated for your actual situation, including
   exclusive pumping and multiples
-• Food-safety hints from DGE, BfR, EFSA, LactMed and FDA/EPA
+• Food-safety built in, from DGE, BfR, EFSA, LactMed and FDA/EPA
 • Configurable local meal reminders
-• English and German, switches automatically with your device locale
+• English and German, follows your device locale automatically
 
-Thank you for testing. Feedback is very welcome at hi.nourishme@gmail.com.
+Thanks for testing. Feedback is very welcome at hi.nourishme@gmail.com.
 ```
 
 ### App Category
