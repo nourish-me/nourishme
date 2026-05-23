@@ -1,254 +1,316 @@
 # App Store Listing — NourishMe
 
-Vorschlag für den deutschen Markt (Primary Locale = de_DE). Für späteren
-US-Launch englische Version unten.
+Primary locale **en-US** (after the EN-first switch on 2026-05-23).
+German remains a fully localised secondary locale (de-DE).
+
+Support and Privacy live on GitHub Pages:
+- https://nourish-me.github.io/nourishme/support-en.html
+- https://nourish-me.github.io/nourishme/privacy-en.html
+- Marketing site: https://nourish-me.github.io/nourishme/
+
+Contact for the listing: `hi.nourishme@gmail.com`.
 
 ---
 
-## Deutsch (de_DE)
+## English (en-US, primary)
 
-### App Name (max 30 Zeichen)
+### App Name (max 30 characters)
 
 `NourishMe`
 
-### Subtitle (max 30 Zeichen)
+### Subtitle (max 30 characters)
 
-> Coaching für Stillzeit & SS
+> Nutrition that does the math.
 
-Alternativen:
-- "Ernährung in Stillzeit & SS"  (28 Zeichen)
-- "Coach für dich & dein Baby"  (26 Zeichen)
-- "Wissenschaft trifft Stillen"  (28 Zeichen)
+(29 chars)
 
-### Promotional Text (max 170 Zeichen, jederzeit updatebar ohne Review)
+Alternatives:
+- "Pregnancy & breastfeeding coach" (30 chars)
+- "Live coach for mom and baby"     (27 chars)
+- "Science-grounded mom nutrition"  (30 chars)
 
-> Wissenschaftlich fundierte Ernährungs-Coachin für Schwangerschaft und
-> Stillzeit. Logge deine Mahlzeiten, erhalte Live-Feedback. Daten bleiben
-> lokal auf deinem Gerät.
+### Promotional Text (max 170 characters, editable without review)
 
-(168 Zeichen)
+> Live nutrition coach for pregnancy and breastfeeding. Log a meal, get a concrete next-step suggestion. Evidence-based, privacy-friendly, no calorie-counting fuss.
 
-### Description (max 4000 Zeichen)
+(168 chars)
 
-```
-NourishMe ist deine wissenschaftlich fundierte Ernährungs-Coachin für
-Schwangerschaft und Stillzeit.
-
-Was NourishMe anders macht
-• Live-Coaching: Du loggst eine Mahlzeit, der Coach analysiert sie sofort
-  und sagt dir konkret, was dir noch zum Tagesziel fehlt und was du als
-  Nächstes essen kannst, um perfekt rauszukommen.
-• Wissenschaftlich fundiert: Alle Empfehlungen basieren auf offiziellen
-  Werten von DGE (Deutsche Gesellschaft für Ernährung), BfR, EFSA,
-  LactMed (NIH) und FDA/EPA.
-• Individuell: Berechnung deines Tagesbedarfs aus deinen Daten (Gewicht,
-  Größe, Aktivität, Phase, Anzahl der versorgten Kinder, Milchvolumen).
-  Mehrlinge und Tandemstillen werden berücksichtigt.
-• Datenschutz first: Keine Cloud, kein Login, kein Tracking. Alle Daten
-  bleiben auf deinem Gerät.
-
-Was du in NourishMe tun kannst
-• Mahlzeiten per Text, Foto oder Favorit loggen
-• Coach-Antwort zu jeder Mahlzeit mit konkretem Vorschlag für die nächste
-• Frei Fragen stellen ("Wie viel Protein brauche ich? Was hilft bei
-  Müdigkeit?")
-• Tagebuch mit chronologischem Verlauf, Tag-für-Tag zurück scrollen
-• Food-Safety-Hinweise: Koffein-Schwellen, Alkohol-Wartezeit,
-  Quecksilberfisch, Rohmilch-Risiken in der Schwangerschaft
-• Color-Coding: grün wenn du im Ziel-Bereich bist, orange wenn drüber
-• Makro-Split anpassbar (Low-Carb, High-Protein, etc.)
-• Hell-/Dunkel-Theme
-
-Für wen NourishMe gemacht ist
-• Schwangere in jedem Trimester
-• Stillende und ausschließlich pumpende Mütter
-• Mütter von Mehrlingen
-• Mütter die tandem stillen (gleichzeitig schwanger und stillend)
-
-Was NourishMe NICHT ist
-NourishMe ist kein medizinisches Produkt und ersetzt keine ärztliche
-Beratung. Bei medizinischen Fragen sprich mit deiner Ärztin oder
-Hebamme.
-
-Datenschutz
-NourishMe speichert deine Daten ausschließlich lokal auf deinem Gerät.
-Eingaben werden zur Coaching-Analyse anonym an die Claude AI von
-Anthropic gesendet (über einen sicheren Proxy). Keine Drittanbieter-
-Tracker, keine Werbung, keine Konten. Volle Datenschutzerklärung in der
-App und auf [URL].
-
-Wissenschaftliche Basis
-Schwellenwerte und Empfehlungen entsprechen den jeweils aktuellen
-Referenzwerten von DGE 2025, BfR-Stellungnahmen, EFSA Scientific Opinions,
-WHO Antenatal Care Guidelines, LactMed (NIH) und FDA/EPA Fish Advice.
-Quellen werden in der App über das ⓘ-Icon zu jedem Feld eingeblendet.
-```
-
-(ca. 2700 Zeichen, gut unter dem 4000er Limit)
-
-### Keywords (max 100 Zeichen, kommasepariert)
+### Description (max 4000 characters)
 
 ```
-Stillzeit,Schwangerschaft,Ernährung,Stillen,Tracker,Coaching,DGE,Mama,
-Baby,Kalorien
+NourishMe is your evidence-based nutrition coach for pregnancy and
+breastfeeding. Log a meal, get a concrete suggestion for what would fit
+next. No calorie-counting busywork, no diet logic, no cloud account.
+
+What makes NourishMe different
+• Live coaching: every meal you log triggers an instant analysis of how
+  it fits your day, plus a concrete suggestion for what to eat next so
+  you and your little ones stay well-supplied.
+• Calculated for you, not for averages: daily targets derived from your
+  weight, height, activity, trimester, number of children, breastfeeding
+  share and actual milk volume. Twins exclusively breastfed get +1,260
+  kcal, not a flat +500.
+• Science open, data with you: every threshold traces back to the
+  German Nutrition Society (DGE 2025), BfR, EFSA, LactMed (NIH), FDA/EPA
+  and WHO. Tap any number to see the source.
+• Privacy-first: no cloud, no login, no tracking, no ads. All entries
+  stay on your device.
+
+What you can do
+• Log meals by text, photo or saved favorite. "Cereal with yogurt, one
+  bowl" is enough.
+• Per-meal coach response with strengths, gaps and a next-meal idea
+  tuned to your remaining target.
+• Ask the coach anything ("How much protein do I need today?", "What
+  helps with fatigue while pumping?").
+• Scroll back day by day to see your chronological diary.
+• Food-safety hints built in: caffeine thresholds, alcohol wait times,
+  mercury-fish guidance, listeria risks in pregnancy.
+• Trends tab: weekly calorie chart, sweet-spot streak, weekly averages,
+  most frequent meals.
+• Configurable meal reminders, scheduled locally on your device.
+• Customisable macro split (low-carb, high-protein) when you follow a
+  specific eating style.
+• Light and dark theme, English and German.
+
+Who NourishMe is built for
+• Pregnant women in any trimester, including multiples
+• Breastfeeding mothers nursing directly
+• Exclusively pumping mothers, using your real daily volume
+• Tandem nursing mothers (pregnant while breastfeeding)
+
+Not a medical device. NourishMe is a personal wellness tool and does
+not replace medical advice. For medical questions, please consult your
+physician or midwife.
+
+Privacy in plain language
+Your entries are stored locally on your device. Meal text and optional
+photos are sent anonymously to Anthropic's Claude AI for the coaching
+analysis through a secure proxy. No third-party trackers, no ads, no
+accounts. Full policy in the app and on our website.
+
+Scientific basis
+Thresholds and recommendations follow the current reference values from
+DGE 2025, BfR statements, EFSA Scientific Opinions, WHO Antenatal Care
+Guidelines, LactMed (NIH) and FDA/EPA Fish Advice. Sources are linked
+inline behind every ⓘ icon in the app.
 ```
 
-(98 Zeichen)
+(approx. 2,800 characters, well under the 4,000 limit)
 
-### What's New (max 4000 Zeichen, pro Version)
+### Keywords (max 100 characters, comma-separated)
 
 ```
-Erste Version von NourishMe. Wir freuen uns über dein Feedback!
+pregnancy,breastfeeding,nutrition,pumping,coach,maternal,mom,milk,DGE,EFSA
+```
 
-Hauptfeatures:
-• Mahlzeiten per Text oder Foto loggen
-• Live-Coaching zu jeder Mahlzeit
-• Wissenschaftlich fundierte Tagesziel-Berechnung
-• Food-Safety-Hinweise (Koffein, Alkohol, Quecksilber, etc.)
-• Lokale Datenspeicherung, kein Account erforderlich
+(95 chars)
+
+### What's New (max 4000 characters, per version)
+
+```
+First public release of NourishMe.
+
+• Live coach for pregnancy and breastfeeding nutrition
+• Meal logging by text or photo, with instant nutrient parsing
+• Daily target calculation tuned to your actual situation, including
+  exclusive pumping and multiples
+• Food-safety hints from DGE, BfR, EFSA, LactMed and FDA/EPA
+• Configurable local meal reminders
+• English and German, switches automatically with your device locale
+
+Thank you for testing. Feedback is very welcome at hi.nourishme@gmail.com.
 ```
 
 ### App Category
 
-- Primary: `Health & Fitness` (Gesundheit und Fitness)
+- Primary: `Health & Fitness`
 - Secondary: `Food & Drink` (optional)
 
 ### Age Rating
 
-`4+` — keine bedenklichen Inhalte, alle Themen jugendfrei.
+`4+`, no objectionable content.
 
-Anthropic-AI-Anteil sollte bei "Unrestricted Web Access" erfragt werden:
-NEIN, weil AI nur über kontrollierten Proxy mit festem System-Prompt.
+Apple's AI content questionnaire: the app uses Anthropic's Claude API
+through a controlled proxy with fixed system prompts. Output is
+restricted to nutrition coaching in the user's locale.
 
-### App Privacy (App Privacy Details in App Store Connect)
+### App Privacy
 
-Was du in App Store Connect angeben musst:
+Declared in App Store Connect:
+- **Data Linked to You:** None
+- **Data Not Linked to You:** None
+- **Data Used to Track You:** None
 
-**Data Linked to You:** None
-**Data Not Linked to You:** None
-**Data Used to Track You:** None
-
-(Alles lokal, keine Identifikation. Anthropic ist Subprozessor unter
-unserer Datenschutzerklärung, kein direktes Tracking durch uns.)
+(All data lives on-device. Anthropic is a sub-processor under our
+privacy policy. We do not run any analytics or tracking SDKs.)
 
 ### Support URL
 
-`https://[deine-website-oder-github-pages]/support`
+`https://nourish-me.github.io/nourishme/support-en.html`
 
-Schnelle Lösung: GitHub Pages mit einer simplen Markdown-Seite
-"Bei Fragen schreib mir an vanessa.heizmann5@gmail.com".
+### Marketing URL
 
-### Marketing URL (optional)
+`https://nourish-me.github.io/nourishme/index-en.html`
 
-`https://[deine-website]`
+### Privacy Policy URL (required)
 
-### Privacy Policy URL (PFLICHT)
-
-`https://[deine-website]/privacy`
-
-Schnelle Lösung: Privacy Policy als GitHub Pages oder Notion Public Page
-hosten.
+`https://nourish-me.github.io/nourishme/privacy-en.html`
 
 ---
 
-## English (en_US) — für späteren Launch
+## Deutsch (de-DE, sekundär)
 
-### App Name
+### App-Name (max 30 Zeichen)
 
 `NourishMe`
 
-### Subtitle (max 30 chars)
+### Untertitel (max 30 Zeichen)
 
-> Coaching for pregnancy & milk
+> Ernährung, die mitrechnet.
 
-### Promotional Text (max 170 chars)
+(26 Zeichen)
 
-> Evidence-based nutrition coach for pregnancy and breastfeeding. Log
-> meals, get live feedback. Your data stays on your device.
+Alternativen:
+- "Live-Coach für Mama & Baby"      (26 Zeichen)
+- "Wissen für Stillzeit & SS"       (25 Zeichen)
+- "Ernährung für Stillen & SS"      (27 Zeichen)
 
-### Description (kürzer für ersten Wurf, später ausbauen)
+### Werbetext (max 170 Zeichen, jederzeit ohne Review änderbar)
 
-```
-NourishMe is your evidence-based nutrition coach for pregnancy and
-breastfeeding.
+> Live-Ernährungs-Coach für Schwangerschaft und Stillzeit. Logge eine Mahlzeit, hol dir den konkreten Vorschlag für die nächste. Wissenschaftlich, datenschutzfreundlich.
 
-What makes NourishMe different
-• Live coaching: log a meal, get an instant analysis of how it fits
-  your day and a concrete next-meal suggestion.
-• Science-grounded: recommendations based on official guidelines from
-  the German DGE, BfR, EFSA, LactMed (NIH) and FDA/EPA.
-• Personal: daily targets calculated from your weight, height,
-  activity, pregnancy or lactation phase, number of children and milk
-  volume.
-• Privacy-first: no cloud, no login, no tracking. All data stays on
-  your device.
+(168 Zeichen)
 
-What you can do
-• Log meals by text, photo or favorite
-• Per-meal coach response with a concrete next-meal suggestion
-• Ask the coach anything ("How much protein do I need? What helps
-  fatigue?")
-• Chronological journal — scroll back day by day
-• Food-safety hints: caffeine thresholds, alcohol wait times,
-  mercury-fish list, raw-milk risks in pregnancy
-• Color-coded targets, customizable macro split
-• Light / dark theme
-
-For
-• Pregnant women in any trimester
-• Breastfeeding and exclusively pumping mothers
-• Mothers of multiples
-• Tandem nursing (pregnant while breastfeeding)
-
-Not a medical device. NourishMe is a personal wellness tool, not a
-substitute for medical advice. For medical questions, talk to your
-doctor or midwife.
-
-Privacy
-Your data is stored locally on your device. Meal text and (optional)
-photos are sent anonymously to Anthropic's Claude AI for coaching
-analysis via a secure proxy. No third-party trackers, no ads, no
-accounts. Full policy in-app and at [URL].
-```
-
-### Keywords (en)
+### Beschreibung (max 4000 Zeichen)
 
 ```
-pregnancy,breastfeeding,nutrition,meal,tracker,coaching,maternal,
-mother,baby,milk
+NourishMe ist dein wissenschaftlich fundierter Ernährungs-Coach für
+Schwangerschaft und Stillzeit. Logge eine Mahlzeit, bekomm einen
+konkreten Vorschlag, was als Nächstes passen würde. Keine Kalorien-
+Zähl-Bürokratie, keine Diät-Logik, kein Cloud-Konto.
+
+Was NourishMe anders macht
+• Live-Coaching: Jede geloggte Mahlzeit wird sofort analysiert. Du
+  bekommst einen konkreten Vorschlag für die nächste Mahlzeit, damit
+  du und der Nachwuchs gut versorgt bleibt.
+• Auf dich gerechnet, nicht pauschal: Tagesziel aus deinem Gewicht,
+  Größe, Aktivität, Trimester, Anzahl Kindern, Stillanteil und
+  tatsächlichem Milchvolumen. Zwillinge exklusiv gestillt erhalten
+  +1.260 kcal, nicht pauschal +500.
+• Wissenschaft offen, Daten bei dir: Jede Schwelle führt zurück auf
+  DGE 2025, BfR, EFSA, LactMed (NIH), FDA/EPA und WHO. Tippe auf jede
+  Zahl, sieh die Quelle.
+• Privacy first: Kein Cloud-Konto, kein Login, kein Tracking, keine
+  Werbung. Alle Einträge bleiben lokal.
+
+Was du in NourishMe tun kannst
+• Mahlzeiten per Text, Foto oder Favorit loggen
+• Coach-Antwort zu jeder Mahlzeit mit Stärken, Schwächen und einer
+  konkreten Idee für die nächste
+• Frei Fragen stellen ("Wie viel Protein brauche ich? Was hilft bei
+  Müdigkeit?")
+• Tagebuch mit chronologischem Verlauf, Tag-für-Tag zurück scrollen
+• Food-Safety-Hinweise: Koffein-Schwellen, Alkohol-Wartezeit,
+  Quecksilberfisch, Listerien in der Schwangerschaft
+• Trends-Tab: Wochenchart, Sweet-Spot-Streak, Wochenschnitt, häufigste
+  Mahlzeiten
+• Konfigurierbare Mahlzeit-Erinnerungen, lokal geplant
+• Makro-Split anpassbar (Low-Carb, High-Protein)
+• Hell- und Dunkel-Theme, Deutsch und Englisch
+
+Für wen NourishMe gemacht ist
+• Schwangere in jedem Trimester, auch Mehrlinge
+• Stillende Mütter
+• Ausschließlich pumpende Mütter (mit deinem realen Tagesvolumen)
+• Mütter im Tandem-Stillen (gleichzeitig schwanger und stillend)
+
+Kein medizinisches Produkt. NourishMe ist ein Wellness-Werkzeug und
+ersetzt keine ärztliche Beratung. Bei medizinischen Fragen sprich
+mit deiner Ärztin oder Hebamme.
+
+Datenschutz in einfacher Sprache
+Deine Einträge bleiben lokal auf deinem Gerät. Mahlzeit-Texte und
+optionale Fotos werden anonym über einen sicheren Proxy an Anthropics
+Claude AI gesendet, ausschließlich für die Coach-Analyse. Keine
+Drittanbieter-Tracker, keine Werbung, keine Konten. Volle
+Datenschutzerklärung in der App und auf der Webseite.
+
+Wissenschaftliche Basis
+Schwellenwerte und Empfehlungen folgen den aktuellen Referenzwerten
+von DGE 2025, BfR-Stellungnahmen, EFSA Scientific Opinions, WHO
+Antenatal Care Guidelines, LactMed (NIH) und FDA/EPA Fish Advice.
+Quellen sind hinter dem ⓘ-Icon zu jedem Feld in der App verlinkt.
 ```
+
+(ca. 2.900 Zeichen)
+
+### Stichwörter (max 100 Zeichen, kommagetrennt)
+
+```
+Stillzeit,Schwangerschaft,Ernährung,Pumpen,Coach,Mama,Baby,Tracker,DGE,EFSA
+```
+
+(94 Zeichen)
+
+### Neue Funktionen (max 4000 Zeichen, pro Version)
+
+```
+Erste öffentliche Version von NourishMe.
+
+• Live-Coach für Ernährung in Schwangerschaft und Stillzeit
+• Mahlzeiten per Text oder Foto loggen, sofortige Nährstoff-Analyse
+• Tagesziel auf deine echte Situation gerechnet, inkl. exklusivem
+  Pumpen und Mehrlingen
+• Food-Safety-Hinweise aus DGE, BfR, EFSA, LactMed und FDA/EPA
+• Konfigurierbare lokale Mahlzeit-Erinnerungen
+• Deutsch und Englisch, schaltet automatisch mit deinem Gerät
+
+Danke fürs Testen. Feedback gerne an hi.nourishme@gmail.com.
+```
+
+### Support-URL
+
+`https://nourish-me.github.io/nourishme/support.html`
+
+### Marketing-URL
+
+`https://nourish-me.github.io/nourishme/index.html`
+
+### Datenschutz-URL (Pflicht)
+
+`https://nourish-me.github.io/nourishme/privacy.html`
 
 ---
 
-## Checklist für App Store Connect
+## Checklist for App Store Connect
 
-- [ ] App Name, Subtitle, Description, Keywords eingegeben
-- [ ] Privacy Policy URL gesetzt
-- [ ] Support URL gesetzt
-- [ ] Age Rating beantwortet (4+)
-- [ ] App Privacy Questionnaire ausgefüllt
-- [ ] Screenshots (6.7" iPhone Pro + 6.1" iPhone) hochgeladen — 3-10 pro Größe
-- [ ] App Preview Video (optional, max 30 s)
+- [ ] App Name, Subtitle, Description, Keywords entered for both locales
+- [ ] Privacy Policy URL set per locale (EN: privacy-en.html, DE: privacy.html)
+- [ ] Support URL set per locale
+- [ ] Marketing URL set per locale
+- [ ] Age Rating questionnaire answered (4+)
+- [ ] App Privacy questionnaire filled in (everything "None")
+- [ ] Screenshots uploaded for 6.7" and 6.1" iPhone, 3-10 per size, per locale
+- [ ] App Preview video (optional, max 30 s, per locale)
 - [ ] In-App Purchases: None
-- [ ] Sign-In: None
-- [ ] Export Compliance: Standard encryption (HTTPS), kein ECCN nötig
-- [ ] Content Rights: bestätigen dass du alle Rechte hast
-- [ ] Advertising Identifier: NEIN, kein IDFA
+- [ ] Sign-In Required: No
+- [ ] Export Compliance: Standard encryption (HTTPS only), no ECCN required
+- [ ] Content Rights: confirm all rights held
+- [ ] Advertising Identifier (IDFA): No
+- [ ] Build uploaded with the same bundle id (com.vanessaheizmann.nurturetrack)
+- [ ] Privacy Manifest (PrivacyInfo.xcprivacy) in the build
 
-## Tipps für Screenshots
+## Screenshot plan
 
-Sechs starke Screenshots (in dieser Reihenfolge):
+Six storyboards (same shot list per locale, copy localised):
 
-1. **Hero / Tagebuch mit Coach-Antwort** — der "Wow"-Moment. Mahlzeit
-   geloggt + Coach gibt sofort konkreten Tipp.
-2. **Foto-Eingabe** — User fotografiert Mahlzeit, App erkennt automatisch.
-3. **Toolbar mit Color-Coding** — kcal/Makros mit grün/orange Status.
-4. **Onboarding Welcome Screen** — USP-Pitch + "Wissenschaftlich fundiert"
-   Badge.
-5. **Food-Safety-Hinweis** — Cappuccino mit Koffein-Warnung, Tap auf das
-   Icon zeigt Quelle.
-6. **Settings mit ⓘ** — zeigt die wissenschaftliche Tiefe / Transparenz.
+1. **Hero diary** with a coach reply visible. The "wow" moment: meal logged + concrete next-meal tip.
+2. **Photo logging**. Phone showing the food photo and the parsed result.
+3. **Toolbar with macro colour coding**. Highlight the per-day target headline.
+4. **Onboarding outcome screen**. Big kcal number plus the lede ("base + lactation + ..."). Sells the "calculated for you" angle.
+5. **Food-safety detail**. Caffeine meal with the warning row visible and the ⓘ source tooltip open.
+6. **Trends week chart**. Sweet-spot streak callout.
 
-Tools: Screenshot Studio (Mac App Store, kostet ~30 €) oder kostenlos via
-shotbot.io / mockuphone.com. Adde Text-Overlays ("Live-Coaching", "DGE-
-fundiert", "Daten bleiben lokal").
+Tooling: Screenshot Studio on macOS or the free shotbot.io / mockuphone.com.
+Add a one-line overlay per screenshot (English on the EN screenshots, German on the DE screenshots).
