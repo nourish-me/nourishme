@@ -88,6 +88,8 @@
   "homeEmptyRangeMulti": "{from} — {to} · {count} Tage leer",
   "homeEmptyDayText": "Keine Einträge",
   "homeEmptyDayAdd": "hinzufügen",
+  "homeEmptyRangePickerTitle": "Welcher Tag?",
+  "homeEmptyRangePickerHint": "Wähle den Tag, in den du einen Eintrag schreiben willst. Die Uhrzeit kommt im nächsten Schritt.",
   "homeTimePickerHelp": "Uhrzeit wählen",
   "homeTimeSuffix": " Uhr",
   "homePastDayHeader": "Eintrag für {day}",

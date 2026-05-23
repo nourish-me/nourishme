@@ -257,6 +257,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeEmptyDayAdd => 'add';
 
   @override
+  String get homeEmptyRangePickerTitle => 'Which day?';
+
+  @override
+  String get homeEmptyRangePickerHint =>
+      'Pick the day you want to log into. You\'ll choose the time next.';
+
+  @override
   String get homeTimePickerHelp => 'Pick a time';
 
   @override

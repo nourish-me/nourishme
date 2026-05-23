@@ -131,6 +131,8 @@
   },
   "homeEmptyDayText": "No entries",
   "homeEmptyDayAdd": "add",
+  "homeEmptyRangePickerTitle": "Which day?",
+  "homeEmptyRangePickerHint": "Pick the day you want to log into. You'll choose the time next.",
   "homeTimePickerHelp": "Pick a time",
   "homeTimeSuffix": "",
   "homePastDayHeader": "Entry for {day}",

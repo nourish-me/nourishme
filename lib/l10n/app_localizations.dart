@@ -560,6 +560,18 @@ abstract class AppLocalizations {
   /// **'add'**
   String get homeEmptyDayAdd;
 
+  /// No description provided for @homeEmptyRangePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which day?'**
+  String get homeEmptyRangePickerTitle;
+
+  /// No description provided for @homeEmptyRangePickerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the day you want to log into. You\'ll choose the time next.'**
+  String get homeEmptyRangePickerHint;
+
   /// No description provided for @homeTimePickerHelp.
   ///
   /// In en, this message translates to:

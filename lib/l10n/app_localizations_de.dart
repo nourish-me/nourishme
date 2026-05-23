@@ -261,6 +261,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeEmptyDayAdd => 'hinzufügen';
 
   @override
+  String get homeEmptyRangePickerTitle => 'Welcher Tag?';
+
+  @override
+  String get homeEmptyRangePickerHint =>
+      'Wähle den Tag, in den du einen Eintrag schreiben willst. Die Uhrzeit kommt im nächsten Schritt.';
+
+  @override
   String get homeTimePickerHelp => 'Uhrzeit wählen';
 
   @override

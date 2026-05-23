@@ -205,6 +205,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     await _scrollKeyToTop(key);
   }
 
+  // Bottom sheet listing every day in a collapsed empty-day range. Tapping
+  // a day routes through the normal _logForDay path (past-day input sheet
+  // with a time picker), so the user lands on the meal entry with the
+  // correct day + time without going through the global calendar.
+  Future<void> _pickDayInRange(DateTime start, DateTime end) async {
+    final days = <DateTime>[];
+    var cursor = start;
+    while (!cursor.isAfter(end)) {
+      days.add(cursor);
+      cursor = cursor.add(const Duration(days: 1));
+    }
+    final picked = await showModalBottomSheet<DateTime>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => _EmptyRangePickerSheet(days: days),
+    );
+    if (picked != null && mounted) {
+      await _logForDay(picked);
+    }
+  }
+
   // Opens a small input sheet to log a meal for a specific (past) day.
   // The created meal's createdAt is overridden to noon of that day.
   Future<void> _logForDay(DateTime day) async {
@@ -550,11 +573,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     void flushEmptyRun() {
       if (emptyRunStart == null) return;
+      final rangeStart = emptyRunStart!;
+      final rangeEnd = emptyRunEnd!;
       widgets.add(_EmptyDayRange(
-        start: emptyRunStart!,
-        end: emptyRunEnd!,
+        start: rangeStart,
+        end: rangeEnd,
         scheme: scheme,
         textTheme: textTheme,
+        onTap: () => _pickDayInRange(rangeStart, rangeEnd),
       ));
       widgets.add(const SizedBox(height: 4));
       emptyRunStart = null;
@@ -710,11 +736,13 @@ class _EmptyDayRange extends StatelessWidget {
   final DateTime end;
   final ColorScheme scheme;
   final TextTheme textTheme;
+  final VoidCallback? onTap;
   const _EmptyDayRange({
     required this.start,
     required this.end,
     required this.scheme,
     required this.textTheme,
+    this.onTap,
   });
 
   String _format(DateTime d, BuildContext context) {
@@ -732,28 +760,32 @@ class _EmptyDayRange extends StatelessWidget {
     final fromLabel = _format(start, context);
     final toLabel = _format(end, context);
     final label = dayCount == 1 ? fromLabel : null;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(height: 1, color: scheme.outlineVariant),
+    final inner = Row(
+      children: [
+        Expanded(
+          child: Container(height: 1, color: scheme.outlineVariant),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          dayCount == 1
+              ? l10n.homeEmptyRangeSingle(label!)
+              : l10n.homeEmptyRangeMulti(fromLabel, toLabel, dayCount),
+          style: textTheme.labelSmall?.copyWith(
+            color: scheme.outline,
+            letterSpacing: 0.6,
           ),
-          const SizedBox(width: 10),
-          Text(
-            dayCount == 1
-                ? l10n.homeEmptyRangeSingle(label!)
-                : l10n.homeEmptyRangeMulti(fromLabel, toLabel, dayCount),
-            style: textTheme.labelSmall?.copyWith(
-              color: scheme.outline,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Container(height: 1, color: scheme.outlineVariant),
-          ),
-        ],
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Container(height: 1, color: scheme.outlineVariant),
+        ),
+      ],
+    );
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: inner,
       ),
     );
   }
@@ -794,6 +826,76 @@ class _EmptyDay extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Picker shown when the user taps a collapsed empty-day range. Lists
+// each day in the range so the user can choose which one to log into,
+// then the parent routes to the regular past-day input sheet.
+class _EmptyRangePickerSheet extends StatelessWidget {
+  final List<DateTime> days;
+  const _EmptyRangePickerSheet({required this.days});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final weekdayFmt = DateFormat('EEEE', locale);
+    final dayFmt = DateFormat('d MMM', locale);
+    return SafeArea(
+      top: false,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.6,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.homeEmptyRangePickerTitle,
+                style: textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.homeEmptyRangePickerHint,
+                style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: days.length,
+                  separatorBuilder: (_, _) =>
+                      Divider(color: scheme.outlineVariant, height: 1),
+                  itemBuilder: (_, i) {
+                    final day = days[i];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        weekdayFmt.format(day),
+                        style: textTheme.bodyLarge,
+                      ),
+                      trailing: Text(
+                        dayFmt.format(day),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: scheme.outline),
+                      ),
+                      onTap: () => Navigator.pop(context, day),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1163,6 +1265,10 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
   Uint8List? _imageBytes;
   bool _sending = false;
   int _lastFocusRequest = 0;
+  // Override timestamp for the next meal save. Null = use DateTime.now()
+  // at send time. Used when the user logs e.g. breakfast in the evening.
+  // Resets to null after each successful send.
+  TimeOfDay? _customTime;
 
   @override
   void dispose() {
@@ -1182,6 +1288,21 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
 
   String _formatTime(DateTime t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  String _formatTimeOfDay(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  Future<void> _pickCustomTime() async {
+    final initial = _customTime ?? TimeOfDay.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initial,
+      helpText: AppLocalizations.of(context).homeTimePickerHelp,
+    );
+    if (picked != null && mounted) {
+      setState(() => _customTime = picked);
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -1460,6 +1581,13 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       );
       if (!mounted) return;
       if (parsed.isMeal) {
+        // If the user picked a custom time, override createdAt to today at
+        // that time. Otherwise let ConfirmScreen default to DateTime.now().
+        final now = DateTime.now();
+        final createdAt = _customTime == null
+            ? null
+            : DateTime(now.year, now.month, now.day,
+                _customTime!.hour, _customTime!.minute);
         await showModalBottomSheet<MealEntry>(
           context: context,
           isScrollControlled: true,
@@ -1469,6 +1597,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
             rawText: text,
             parsed: parsed,
             imageBytes: _imageBytes,
+            existingCreatedAt: createdAt,
             asSheet: true,
           ),
         );
@@ -1489,7 +1618,12 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         await _askAsQuestion(text);
       }
       _controller.clear();
-      if (mounted) setState(() => _imageBytes = null);
+      if (mounted) {
+        setState(() {
+          _imageBytes = null;
+          _customTime = null;
+        });
+      }
     } on CoachApiException catch (e) {
       // Backend complained for a specific reason: surface as system snackbar,
       // not as a coach bubble (those should feel like dialogue, not errors).
@@ -1625,6 +1759,53 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                       visualDensity: VisualDensity.compact,
                       color: scheme.onSurfaceVariant,
                     ),
+                    // Time-override chip. Default state = clock icon, meal
+                    // saves with DateTime.now(). When the user taps and picks
+                    // a time, the chip turns primary-tinted with HH:MM and
+                    // the next meal save uses today at that time. Resets
+                    // after each send.
+                    Material(
+                      color: _customTime != null
+                          ? scheme.primaryContainer
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(18),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: _sending ? null : _pickCustomTime,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: _customTime != null ? 10 : 6,
+                            vertical: 6,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                size: 20,
+                                color: _customTime != null
+                                    ? scheme.onPrimaryContainer
+                                    : scheme.onSurfaceVariant,
+                              ),
+                              if (_customTime != null) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  _formatTimeOfDay(_customTime!),
+                                  style: textTheme.labelMedium?.copyWith(
+                                    color: scheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.w600,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: TextField(
                         controller: _controller,

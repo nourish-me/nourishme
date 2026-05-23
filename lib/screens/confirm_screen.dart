@@ -353,6 +353,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         ),
         const SizedBox(height: 12),
         Row(
+          // crossAxisAlignment.start keeps both input boxes at the same Y
+          // when only one of them has helper text (the portion alias).
+          // Without this, Row.center shifts both boxes off-axis whenever
+          // a portion_alias comes back from Claude.
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: _SmallField(
