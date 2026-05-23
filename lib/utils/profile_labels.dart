@@ -1,5 +1,6 @@
 import '../l10n/app_localizations.dart';
 import '../models/user_profile_settings.dart';
+import '../services/nutrition_facts.dart';
 
 // Bridges AppLocalizations into the language-agnostic label value types
 // that ActivityLevel / ChildAgeGroup factories expect. Keeps the model
@@ -23,4 +24,29 @@ ChildAgeLabels childAgeLabelsOf(AppLocalizations l10n) => ChildAgeLabels(
       sixToTwelveHint: l10n.childAge6to12Hint,
       twelvePlus: l10n.childAge12plus,
       twelvePlusHint: l10n.childAge12plusHint,
+    );
+
+// Localized NutritionFact constructors for the three facts that surface
+// in the UI as InfoButton bottom sheets. The remaining static facts in
+// NutritionFacts are only consumed by the coachContextBlock, which is
+// already split DE/EN inside the LLM-prompt path.
+NutritionFact energyLactationFact(AppLocalizations l10n) => NutritionFact(
+      topic: l10n.factEnergyLactationTopic,
+      summary: l10n.factEnergyLactationSummary,
+      detail: l10n.factEnergyLactationDetail,
+      source: l10n.factEnergyLactationSource,
+    );
+
+NutritionFact energyPregnancyFact(AppLocalizations l10n) => NutritionFact(
+      topic: l10n.factEnergyPregnancyTopic,
+      summary: l10n.factEnergyPregnancySummary,
+      detail: l10n.factEnergyPregnancyDetail,
+      source: l10n.factEnergyPregnancySource,
+    );
+
+NutritionFact proteinLactationFact(AppLocalizations l10n) => NutritionFact(
+      topic: l10n.factProteinLactationTopic,
+      summary: l10n.factProteinLactationSummary,
+      detail: l10n.factProteinLactationDetail,
+      source: l10n.factProteinLactationSource,
     );

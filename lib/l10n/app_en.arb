@@ -388,5 +388,20 @@
     "placeholders": {"kcal": {"type": "String"}}
   },
 
-  "onboardingRemindersDetail": "Five slots across the day. iOS will ask once for permission when you tap \"Open diary\"."
+  "onboardingRemindersDetail": "Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".",
+
+  "factEnergyLactationTopic": "Energy supplement, breastfeeding phase",
+  "factEnergyLactationSummary": "~84 kcal per 100 ml of milk",
+  "factEnergyLactationDetail": "Energy density of breast milk 0.67 kcal/g × synthesis efficiency 80% = ~84 kcal per 100 ml. Typical volumes: exclusive 0-6 mo ~780 ml/day, 6-12 mo ~550 ml, >12 mo ~200-400 ml. Twins exclusive: ~1,500 ml (+~1,100 kcal). DGE flat rate: +500 kcal for one child 0-6 mo.",
+  "factEnergyLactationSource": "DGE 2025, EFSA 2017, WHO/FAO 2004",
+
+  "factEnergyPregnancyTopic": "Energy supplement, pregnancy",
+  "factEnergyPregnancySummary": "T1: 0, T2: +250, T3: +500 kcal/day",
+  "factEnergyPregnancyDetail": "Assumes pre-pregnancy BMI 18.5-24.9 and unchanged activity. With multiples: +300 kcal per additional fetus (ACOG rule of thumb), so twins in T3 about +800 kcal.",
+  "factEnergyPregnancySource": "DGE 2025, EFSA, ACOG",
+
+  "factProteinLactationTopic": "Protein requirement",
+  "factProteinLactationSummary": "Lactation: 1.2 g/kg body weight/day (DGE)",
+  "factProteinLactationDetail": "Non-pregnant baseline: 0.8 g/kg. Pregnancy T2: 0.9 g/kg, T3: 1.0 g/kg. Lactation 0-6 mo: 1.2 g/kg (about +23 g/day above baseline). Good sources: lean meat, fish, legumes, eggs, dairy, tofu.",
+  "factProteinLactationSource": "DGE 2025, EFSA 2012"
 }

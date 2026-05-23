@@ -787,4 +787,43 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get onboardingRemindersDetail =>
       'Fünf Slots über den Tag verteilt. iOS fragt einmal um Erlaubnis, wenn du \"Tagebuch öffnen\" tippst.';
+
+  @override
+  String get factEnergyLactationTopic => 'Energie-Aufschlag Stillzeit';
+
+  @override
+  String get factEnergyLactationSummary => 'Pro 100 ml Milch ~84 kcal';
+
+  @override
+  String get factEnergyLactationDetail =>
+      'Energiedichte Muttermilch 0,67 kcal/g × Synthese-Effizienz 80 % = ~84 kcal pro 100 ml. Typische Volumina: exklusiv 0-6 Mo ~780 ml/Tag, 6-12 Mo ~550 ml, >12 Mo ~200-400 ml. Zwillinge exklusiv: ~1.500 ml (+~1.100 kcal). DGE-Pauschal +500 kcal bei einem Kind 0-6 Mo.';
+
+  @override
+  String get factEnergyLactationSource => 'DGE 2025, EFSA 2017, WHO/FAO 2004';
+
+  @override
+  String get factEnergyPregnancyTopic => 'Energie-Aufschlag Schwangerschaft';
+
+  @override
+  String get factEnergyPregnancySummary => 'T1: 0, T2: +250, T3: +500 kcal/Tag';
+
+  @override
+  String get factEnergyPregnancyDetail =>
+      'Voraussetzung: Vor-SS-BMI 18,5-24,9, unveränderte Aktivität. Bei Mehrlingen: +300 kcal pro zusätzlichem Fetus (ACOG-Faustformel), also Zwillinge T3 etwa +800 kcal.';
+
+  @override
+  String get factEnergyPregnancySource => 'DGE 2025, EFSA, ACOG';
+
+  @override
+  String get factProteinLactationTopic => 'Protein-Bedarf';
+
+  @override
+  String get factProteinLactationSummary => 'Stillzeit: 1,2 g/kg KG/Tag (DGE)';
+
+  @override
+  String get factProteinLactationDetail =>
+      'Nicht-schwangere Frau Basis: 0,8 g/kg. Schwangerschaft T2: 0,9 g/kg, T3: 1,0 g/kg. Stillzeit 0-6 Mo: 1,2 g/kg (+~23 g/Tag über Basis). Gut: mageres Fleisch, Fisch, Hülsenfrüchte, Eier, Milchprodukte, Tofu.';
+
+  @override
+  String get factProteinLactationSource => 'DGE 2025, EFSA 2012';
 }

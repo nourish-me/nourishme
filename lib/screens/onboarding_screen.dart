@@ -521,7 +521,7 @@ class _PhaseStep extends StatelessWidget {
             description: l10n.onboardingPhaseLactationHint,
             selected: isLactating,
             onTap: () => onChange(isPregnant, !isLactating),
-            fact: NutritionFacts.energyLactation,
+            fact: energyLactationFact(l10n),
             leading: NMIcons.nursing(size: 28),
           ),
           const SizedBox(height: 12),
@@ -530,7 +530,7 @@ class _PhaseStep extends StatelessWidget {
             description: l10n.onboardingPhasePregnancyHint,
             selected: isPregnant,
             onTap: () => onChange(!isPregnant, isLactating),
-            fact: NutritionFacts.energyPregnancy,
+            fact: energyPregnancyFact(l10n),
             leading: NMIcons.pregnancy(size: 28),
           ),
           const SizedBox(height: 16),
@@ -837,8 +837,8 @@ class _PhaseDetailsStep extends StatelessWidget {
             ),
             InfoButton(
               fact: isPregnant
-                  ? NutritionFacts.energyPregnancy
-                  : NutritionFacts.energyLactation,
+                  ? energyPregnancyFact(l10n)
+                  : energyLactationFact(l10n),
             ),
           ],
         ),
@@ -850,7 +850,7 @@ class _PhaseDetailsStep extends StatelessWidget {
                 child: Text(l10n.settingsPhaseTrimester,
                     style: textTheme.titleSmall),
               ),
-              InfoButton(fact: NutritionFacts.energyPregnancy),
+              InfoButton(fact: energyPregnancyFact(l10n)),
             ],
           ),
           const SizedBox(height: 8),
@@ -876,7 +876,7 @@ class _PhaseDetailsStep extends StatelessWidget {
                 child: Text(l10n.settingsMilkChildren,
                     style: textTheme.titleSmall),
               ),
-              InfoButton(fact: NutritionFacts.energyLactation),
+              InfoButton(fact: energyLactationFact(l10n)),
             ],
           ),
           const SizedBox(height: 8),
@@ -1092,7 +1092,7 @@ class _SummaryStep extends StatelessWidget {
         Row(
           children: [
             const Spacer(),
-            InfoButton(fact: NutritionFacts.proteinLactation),
+            InfoButton(fact: proteinLactationFact(l10n)),
           ],
         ),
         const SizedBox(height: 16),

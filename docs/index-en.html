@@ -1,175 +1,1126 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NourishMe — Nutrition that thinks with you</title>
-<meta name="description" content="Evidence-based live coach for nutrition during pregnancy and breastfeeding. Personal, privacy-friendly, grounded in DGE, BfR, EFSA, LactMed.">
-<link rel="icon" type="image/svg+xml" href="logo/bowl-light.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="logo/bowl-light-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="logo/bowl-light-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="logo/apple-touch-icon-180.png">
-<meta name="theme-color" content="#1E4A45">
-<meta property="og:title" content="NourishMe — Nutrition that thinks with you">
-<meta property="og:description" content="Live nutrition coach for pregnancy and breastfeeding.">
-<meta property="og:image" content="https://nourish-me.github.io/nourishme/logo/bowl-light-512.png">
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NourishMe — Nutrition that does the math.</title>
+<style>
+  /* Self-hosted variable fonts (latin subset). No external requests. */
+  @font-face {
+    font-family: 'Newsreader';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('fonts/newsreader-var.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Newsreader';
+    font-style: italic;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('fonts/newsreader-var-italic.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('fonts/jetbrainsmono-var.woff2') format('woff2');
+  }
+</style>
+<style>
+  :root {
+    --paper:      #F4EFE6;
+    --paper-hi:   #FBF7EF;
+    --paper-lo:   #EAE2D2;
+    --paper-deep: #DDD3BD;
+    --ink:        #1F1B16;
+    --ink-soft:   #4F4A41;
+    --ink-mute:   #847E72;
+    --pine:       #1E4A45;
+    --pine-deep:  #0F2D2A;
+    --pine-soft:  #C6E2DC;
+    --amber:      #C8884A;
+    --amber-warm: #D89A5B;
+    --amber-soft: #FFE0B8;
+    --rust:       #9C4623;
+    --moss:       #4B5A47;
+    --plum:       #6B4554;
+    --plum-soft:  #F4D9E3;
+    --rule:       #D5CEC0;
+    --serif: "Newsreader", Georgia, serif;
+    --mono:  "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); }
+  html { -webkit-text-size-adjust: 100%; }
+  body { overflow-x: hidden; } /* belt + braces against the hero glow & wide chip wraps */
+  body {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--pine); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+  .wrap-narrow { max-width: 760px; margin: 0 auto; padding: 0 32px; }
+
+  /* ─────────── Type ─────────── */
+  .mono {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--ink-mute);
+  }
+  .display {
+    font-family: var(--serif);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+    color: var(--ink);
+    margin: 0;
+  }
+  .display em { font-style: italic; font-weight: 600; }
+  .section-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 32px;
+    letter-spacing: -0.012em;
+    line-height: 1.15;
+    color: var(--ink);
+    margin: 0;
+  }
+  .section-title em { font-style: italic; font-weight: 600; }
+  .lede {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* ─────────── Top bar ─────────── */
+  .topbar {
+    border-bottom: 0.5px solid var(--rule);
+    background: var(--paper);
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(8px);
+  }
+  .topbar-inner {
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 32px;
+    max-width: 1180px; margin: 0 auto;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--serif);
+    font-style: italic; font-weight: 700;
+    font-size: 22px; color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .brand svg { display: block; }
+  .topbar-spacer { flex: 1; }
+  .topbar a.nav { color: var(--ink-soft); font-size: 15px; }
+  .topbar a.nav:hover { color: var(--ink); text-decoration: none; }
+  /* Compact CTA inside the topbar so it shares the brand-text height
+     rather than ballooning the bar to fit a hero-size button. */
+  .topbar .btn { padding: 7px 14px; font-size: 14px; }
+
+  /* ─────────── Buttons ─────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-family: var(--serif);
+    font-size: 16px; font-weight: 600;
+    border: 1.5px solid var(--pine);
+    background: var(--pine); color: var(--paper-hi);
+    cursor: pointer;
+    transition: transform .12s ease, background .12s ease;
+    text-decoration: none;
+  }
+  .btn:hover { background: var(--pine-deep); border-color: var(--pine-deep); text-decoration: none; }
+  .btn.ghost {
+    background: transparent; color: var(--pine); border-color: transparent;
+    padding-left: 8px; padding-right: 8px;
+  }
+  .btn.ghost:hover { background: transparent; color: var(--pine-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ─────────── Hero ─────────── */
+  .hero {
+    padding: 56px 0 72px;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-bottom: 22px;
+  }
+  .hero-eyebrow .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--amber);
+  }
+  .hero h1.display {
+    font-size: clamp(40px, 5.4vw, 64px);
+  }
+  .hero-sub {
+    margin: 22px 0 32px;
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 540px;
+  }
+  .hero-cta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .hero-meta {
+    margin-top: 28px;
+    display: flex; gap: 28px;
+    color: var(--ink-mute);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .hero-meta .item { display: flex; align-items: center; gap: 8px; }
+  .hero-meta .check {
+    color: var(--moss); font-weight: 600;
+  }
+
+  /* App mockup container */
+  .mockup-stage {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px;
+  }
+  .mockup-stage::before {
+    content: "";
+    position: absolute; inset: -20px -10px -20px -10px;
+    background: radial-gradient(60% 70% at 50% 50%, rgba(30,74,69,0.06), rgba(30,74,69,0));
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ─────────── Mini-screen (CSS-recreated Tagebuch) ─────────── */
+  .screen {
+    width: 360px;
+    background: var(--paper);
+    border-radius: 32px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.6) inset,
+      0 24px 48px -16px rgba(15,45,42,0.22),
+      0 6px 14px -6px rgba(15,45,42,0.18),
+      0 0 0 1px rgba(31,27,22,0.06);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    font-size: 14px;
+  }
+  .screen-bar {
+    background: var(--paper-hi);
+    padding: 18px 18px 14px;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .screen-bar-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .screen-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    line-height: 1;
+  }
+  .screen-kcal-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .screen-kcal {
+    font-weight: 700; font-size: 15px; color: var(--moss);
+    letter-spacing: -0.01em;
+  }
+  .screen-kcal-sub {
+    font-size: 12.5px; color: var(--ink-mute); margin-top: 2px;
+  }
+  .screen-macros {
+    display: flex; flex-direction: column; gap: 2px;
+    text-align: right; font-size: 12px; color: var(--ink-mute);
+  }
+  .screen-macros b { color: var(--moss); font-weight: 600; }
+  .screen-progress {
+    margin-top: 10px; height: 4px;
+    background: var(--paper-deep); border-radius: 2px; overflow: hidden;
+  }
+  .screen-progress span {
+    display: block; height: 100%; background: var(--moss); width: 52%;
+  }
+  .screen-body {
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .screen-sep {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--ink-mute); font-family: var(--serif); font-style: italic;
+    font-size: 13px;
+    margin: 4px 0 2px;
+  }
+  .screen-sep::before, .screen-sep::after {
+    content: ""; flex: 1; height: 0.5px; background: var(--rule);
+  }
+  .meal {
+    background: var(--paper-lo);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; align-items: center;
+  }
+  .meal-text { flex: 1; min-width: 0; }
+  .meal-name { font-size: 14.5px; color: var(--ink); font-weight: 500; }
+  .meal-time { font-size: 12px; color: var(--ink-mute); margin-top: 1px; }
+  .meal-kcal { font-size: 13.5px; color: var(--ink); font-weight: 600; }
+  .coach {
+    background: var(--amber-soft);
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex; gap: 10px; align-items: flex-start;
+    color: #2A1900;
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .coach .coach-mark {
+    flex-shrink: 0;
+  }
+  .coach b { font-weight: 600; }
+
+  /* ─────────── Trust strip ─────────── */
+  .trust {
+    padding: 24px 0;
+    border-bottom: 0.5px solid var(--rule);
+    background: var(--paper-hi);
+  }
+  .trust-inner {
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+    justify-content: center;
+    color: var(--ink-mute);
+  }
+  .trust .label { color: var(--ink-soft); }
+  .trust .source {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em;
+    text-transform: uppercase; font-weight: 500; color: var(--ink-soft);
+  }
+  .trust .sep { color: var(--paper-deep); }
+
+  /* ─────────── USPs ─────────── */
+  .usps {
+    padding: 64px 0 56px;
+  }
+  .usp-head { text-align: center; margin-bottom: 56px; }
+  .usp-head .eyebrow { display: block; margin-bottom: 12px; }
+  .usp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 0.5px solid var(--rule);
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .usp {
+    padding: 36px 28px 32px;
+    border-right: 0.5px solid var(--rule);
+    display: flex; flex-direction: column; gap: 14px;
+    position: relative;
+  }
+  .usp:last-child { border-right: none; }
+  .usp-num {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em;
+    color: var(--amber); font-weight: 500;
+  }
+  .usp-title {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 22px; line-height: 1.2; color: var(--ink);
+    margin: 0; letter-spacing: -0.005em;
+  }
+  .usp-title em { font-style: italic; font-weight: 600; }
+  .usp-body {
+    color: var(--ink-soft); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  .usp-example {
+    margin-top: auto;
+    padding: 14px 16px;
+    background: var(--paper-hi);
+    border: 0.5px solid var(--rule);
+    border-radius: 10px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px; color: var(--ink-soft); line-height: 1.45;
+  }
+  .usp-example b { font-style: normal; font-weight: 600; color: var(--ink); }
+
+  /* ─────────── Audience selector ─────────── */
+  .audience {
+    padding: 64px 0;
+    background: var(--paper-hi);
+    border-top: 0.5px solid var(--rule);
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .audience-head { text-align: center; margin-bottom: 44px; }
+  .audience-head .lede { margin: 16px auto 0; max-width: 560px; }
+  .selector {
+    max-width: 820px; margin: 0 auto;
+    background: var(--paper);
+    border: 0.5px solid var(--rule);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .selector-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .selector-row:last-of-type { border-bottom: none; }
+  .selector-label {
+    padding: 18px 22px;
+    background: var(--paper-hi);
+    border-right: 0.5px solid var(--rule);
+    font-family: var(--serif); font-style: italic; color: var(--ink-soft);
+    font-size: 16px;
+    display: flex; align-items: center;
+  }
+  .selector-options {
+    padding: 14px 18px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .chip {
+    appearance: none; cursor: pointer;
+    padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--paper-hi);
+    font-family: var(--serif); font-size: 15px; color: var(--ink-soft);
+    transition: all .15s ease;
+  }
+  .chip:hover { border-color: var(--ink-mute); color: var(--ink); }
+  .chip[aria-pressed="true"] {
+    background: var(--pine); color: var(--paper-hi); border-color: var(--pine);
+  }
+  .selector-output {
+    padding: 26px 28px 28px;
+    background: var(--paper);
+    border-top: 0.5px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 18px 32px;
+    align-items: start;
+  }
+  .selector-output-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-mute); margin-bottom: 8px;
+  }
+  .selector-output-headline {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 22px; line-height: 1.25; color: var(--ink);
+    letter-spacing: -0.005em; margin: 0 0 10px;
+  }
+  .selector-output-headline em { font-style: italic; font-weight: 600; color: var(--pine); }
+  .selector-output-body {
+    color: var(--ink-soft); font-size: 16px; line-height: 1.5; margin: 0;
+  }
+  .selector-output-numbers {
+    text-align: right;
+    border-left: 0.5px solid var(--rule);
+    padding-left: 28px;
+    min-width: 160px;
+  }
+  .selector-output-numbers .num {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 30px; color: var(--pine); letter-spacing: -0.02em;
+    line-height: 1; display: block;
+  }
+  .selector-output-numbers .num-label {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-mute); margin-top: 6px;
+    display: block;
+  }
+  .selector-output-numbers .row + .row { margin-top: 16px; }
+
+  /* ─────────── How it works ─────────── */
+  .how {
+    padding: 64px 0;
+  }
+  .how-head { text-align: center; margin-bottom: 40px; }
+  .how-steps {
+    max-width: 720px; margin: 0 auto;
+    display: flex; flex-direction: column;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 24px;
+    padding: 26px 0;
+    border-top: 0.5px solid var(--rule);
+  }
+  .step:last-child { border-bottom: 0.5px solid var(--rule); }
+  .step-num {
+    font-family: var(--serif); font-style: italic; font-weight: 600;
+    font-size: 36px; color: var(--amber); line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .step-title {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 19px; color: var(--ink); margin: 0 0 6px;
+    letter-spacing: -0.005em;
+  }
+  .step-body {
+    color: var(--ink-soft); font-size: 16px; line-height: 1.5; margin: 0;
+  }
+
+  /* ─────────── Story ─────────── */
+  .story {
+    padding: 72px 0;
+    background: var(--paper-hi);
+    border-top: 0.5px solid var(--rule);
+    border-bottom: 0.5px solid var(--rule);
+  }
+  /* Centered editorial: portrait on top, text below, everything aligned
+     on the page's central axis. Was a 2-column grid before. */
+  .story-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    max-width: 680px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .story-photo {
+    width: 200px; height: 250px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--paper-lo);
+    box-shadow: 0 8px 24px -10px rgba(15,45,42,0.18);
+  }
+  .story-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .story-content { width: 100%; }
+  .story-content .mono { display: block; margin-bottom: 12px; }
+  .story-content h2 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 28px; line-height: 1.2; color: var(--ink);
+    letter-spacing: -0.01em; margin: 0 0 18px;
+  }
+  .story-content h2 em { font-style: italic; }
+  .story-content p {
+    color: var(--ink-soft); font-size: 17px; line-height: 1.55; margin: 0 0 14px;
+  }
+  .story-content p:last-child { margin-bottom: 0; }
+  .story-sign {
+    margin-top: 18px;
+    font-family: var(--serif); font-style: italic;
+    color: var(--ink-soft); font-size: 16px;
+  }
+
+  /* ─────────── Wissenschaftliche Basis ─────────── */
+  .basis {
+    padding: 64px 0;
+  }
+  .basis-head { text-align: center; margin-bottom: 36px; }
+  .basis-list {
+    max-width: 720px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 32px;
+    padding: 0;
+    list-style: none;
+  }
+  .basis-list li {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 10px;
+    color: var(--ink-soft);
+    font-size: 16px;
+    padding: 6px 0;
+  }
+  .basis-list li::before {
+    content: "✓"; color: var(--moss); font-weight: 700;
+  }
+  .basis-list li b { color: var(--ink); font-weight: 600; }
+  .disclaimer {
+    max-width: 720px; margin: 32px auto 0;
+    padding: 18px 22px;
+    background: var(--paper-hi);
+    border: 0.5px solid var(--rule);
+    border-radius: 10px;
+    font-size: 14.5px; color: var(--ink-mute); line-height: 1.5;
+    font-family: var(--serif); font-style: italic;
+    text-align: center;
+  }
+
+  /* ─────────── Beta CTA ─────────── */
+  .beta {
+    padding: 64px 0;
+    background: var(--pine);
+    color: var(--paper-hi);
+    text-align: center;
+  }
+  .beta .mono { color: rgba(255,255,255,0.6); margin-bottom: 18px; display: block; }
+  .beta h2 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 40px; line-height: 1.1; color: var(--paper-hi);
+    letter-spacing: -0.015em; margin: 0 0 18px;
+  }
+  .beta h2 em { font-style: italic; }
+  .beta p {
+    max-width: 540px; margin: 0 auto 32px;
+    font-size: 18px; line-height: 1.55;
+    color: rgba(244,239,230,0.85);
+  }
+  .beta .btn {
+    background: var(--paper-hi); color: var(--pine);
+    border-color: var(--paper-hi);
+    padding: 14px 26px; font-size: 17px;
+  }
+  .beta .btn:hover { background: #fff; border-color: #fff; }
+  .beta-foot {
+    margin-top: 32px;
+    font-size: 14.5px;
+    color: rgba(244,239,230,0.65);
+    line-height: 1.6;
+  }
+
+  /* ─────────── Footer ─────────── */
+  footer {
+    padding: 36px 0 44px;
+    background: var(--paper);
+    color: var(--ink-mute);
+    font-size: 14px;
+  }
+  .footer-inner {
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .footer-inner a { color: var(--ink-soft); }
+  .footer-inner .sep-dot { color: var(--paper-deep); }
+  .footer-inner .grow { flex: 1; }
+
+  /* ─────────── Layout responsive ─────────── */
+  @media (max-width: 880px) {
+    .hero { padding: 36px 0 48px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+    .mockup-stage { order: -1; }
+    .screen { width: min(340px, 86vw); }
+    .section-title { font-size: 26px; }
+    .topbar-inner { padding: 14px 20px; }
+    .wrap, .wrap-narrow { padding: 0 20px; }
+    .usps, .audience, .how, .story, .basis, .beta { padding-top: 52px; padding-bottom: 48px; }
+    .usp-grid { grid-template-columns: 1fr; }
+    .usp { border-right: none; border-bottom: 0.5px solid var(--rule); }
+    .usp:last-child { border-bottom: none; }
+    .selector-row { grid-template-columns: 1fr; }
+    .selector-label { border-right: none; border-bottom: 0.5px solid var(--rule); padding: 14px 18px 6px; }
+    .selector-output { grid-template-columns: 1fr; }
+    .selector-output-numbers { border-left: none; border-top: 0.5px solid var(--rule); padding-left: 0; padding-top: 18px; text-align: left; }
+    .story-grid { grid-template-columns: 1fr; gap: 28px; }
+    .story-photo { width: 180px; height: 220px; }
+    .basis-list { grid-template-columns: 1fr; }
+    .beta h2 { font-size: 30px; }
+  }
+
+  /* ─────────── Phones (≤600px) ─────────── */
+  @media (max-width: 600px) {
+    body { font-size: 17px; }
+    .wrap, .wrap-narrow { padding: 0 18px; }
+
+    /* Topbar: tighter, brand smaller, hide the "So funktioniert es" nav
+       link entirely — the Beta button stays for the only CTA. */
+    .topbar-inner { padding: 12px 18px; gap: 10px; }
+    .brand { font-size: 19px; }
+    .nav-desktop-only { display: none; }
+    .topbar a.nav { font-size: 14px; }
+
+    /* Hero */
+    .hero { padding: 24px 0 40px; }
+    .hero-grid { gap: 28px; text-align: center; }
+    .hero h1.display { font-size: clamp(32px, 8vw, 40px); line-height: 1.08; }
+    .hero-sub { font-size: 17px; margin: 18px auto 24px; }
+    .hero-cta { gap: 6px; justify-content: center; }
+    .hero-cta .btn { padding: 12px 18px; font-size: 15px; }
+    .hero-meta { gap: 18px; flex-wrap: wrap; font-size: 13.5px; justify-content: center; }
+    .hero-eyebrow { justify-content: center; }
+
+    /* Mockup centered explicitly and the glow can't bleed past the viewport */
+    .mockup-stage { margin: 0 auto; }
+    .mockup-stage::before { inset: -8px 0 -8px 0; }
+    .screen { width: min(320px, 88vw); border-radius: 28px; }
+
+    /* Trust strip: stack source pills tighter, allow wraps */
+    .trust { padding: 18px 0; }
+    .trust-inner { gap: 12px 16px; }
+
+    /* Section vertical rhythm */
+    .usps, .audience, .how, .story, .basis, .beta { padding-top: 40px; padding-bottom: 40px; }
+    .section-title { font-size: 24px; }
+
+    /* USPs cards */
+    .usp { padding: 28px 22px; }
+    .usp-title { font-size: 20px; }
+    .usp-body { font-size: 15.5px; }
+    .usp-example { font-size: 14.5px; padding: 12px 14px; }
+
+    /* Selector chips a bit smaller so they wrap less often */
+    .audience-head { margin-bottom: 32px; }
+    .selector-label { font-size: 15px; padding: 12px 16px 4px; }
+    .selector-options { padding: 12px 14px; gap: 6px; }
+    .chip { padding: 7px 12px; font-size: 14px; }
+    .selector-output { padding: 22px 18px 22px; gap: 14px; }
+    .selector-output-headline { font-size: 20px; }
+    .selector-output-body { font-size: 15.5px; }
+    .selector-output-numbers { padding-top: 14px; min-width: 0; }
+    .selector-output-numbers .num { font-size: 26px; }
+
+    /* How steps */
+    .how-head { margin-bottom: 36px; }
+    .step { grid-template-columns: 44px 1fr; gap: 16px; padding: 22px 0; }
+    .step-num { font-size: 30px; }
+    .step-title { font-size: 17px; }
+    .step-body { font-size: 15.5px; }
+
+    /* Story */
+    .story-grid { gap: 22px; }
+    .story-photo { width: 140px; height: 180px; }
+    .story-content h2 { font-size: 24px; }
+    .story-content p { font-size: 16px; }
+
+    /* Wissenschaftliche Basis */
+    .basis-head { margin-bottom: 28px; }
+    .basis-list { gap: 8px; }
+    .basis-list li { font-size: 15.5px; }
+    .disclaimer { font-size: 13.5px; padding: 14px 16px; margin-top: 24px; }
+
+    /* Beta CTA */
+    .beta h2 { font-size: 26px; line-height: 1.15; }
+    .beta p { font-size: 16px; margin-bottom: 24px; }
+    .beta .btn { padding: 13px 22px; font-size: 16px; }
+    .beta-foot { font-size: 13.5px; margin-top: 24px; padding: 0 12px; }
+
+    /* Footer: stack vertically on phones */
+    footer { padding: 28px 0 32px; font-size: 13.5px; }
+    .footer-inner { gap: 6px 12px; }
+    .footer-inner .grow { flex-basis: 100%; margin-bottom: 8px; }
+  }
+</style>
 </head>
-<body class="landing">
+<body>
 
-<a class="site-logo" href="#" aria-label="NourishMe">
-  <img src="logo/bowl-mark.svg" alt="">
-</a>
-
-<div class="lang-switch">
-  <a href="index.html">DE</a> · <strong>EN</strong>
-</div>
-
-<div class="banner-soon">
-  ⚙️ The app currently launches in German. The English version is in the works for the coming weeks. Sign up for the beta and you'll be notified once it's ready.
-</div>
-
-<header class="hero">
-  <div class="hero-text">
-    <span class="eyebrow">Beta · June 2026</span>
-    <h1>Nutrition <em>that thinks with you.</em> Even when you can't.</h1>
-    <p class="lede">In pregnancy and breastfeeding, you're nourishing more than yourself. NourishMe tells you live what you need so you and your little ones stay well-supplied. No calorie counting, no diet logic.</p>
-    <p class="cta-row">
-      <a class="btn btn-primary" href="mailto:hi.nourishme@gmail.com?subject=NourishMe%20beta%20access&body=Hi%20Vanessa%2C%0A%0AI%27d%20love%20to%20test%20the%20NourishMe%20beta.%0A%0AA%20few%20quick%20things%20about%20me%3A%0A%E2%80%A2%20Phase%20%28pregnant%20%2F%20breastfeeding%20%2F%20pumping%29%3A%0A%E2%80%A2%20Number%20of%20children%3A%0A%E2%80%A2%20How%20we%20know%20each%20other%3A%0A%0ABest%2C">Request beta access</a>
-      <a class="secondary-link" href="#how">How it works →</a>
-    </p>
-    <blockquote class="pullquote">
-      „Already during pregnancy I noticed: I was nourishing more than just me. Every nutrient goes to your little ones first. But no app told me, live, how to feed all of us well. NourishMe grew out of that gap."
-      <span class="attribution">Vanessa, mom to Carl and Leo</span>
-    </blockquote>
-  </div>
-  <div class="hero-photo">
-    <img src="hero.jpg" alt="Vanessa with her twins">
+<!-- ─────────── Top bar ─────────── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#top" class="brand" aria-label="NourishMe">
+      <svg width="28" height="28" viewBox="0 0 1024 1024" aria-hidden="true">
+        <rect width="1024" height="1024" rx="220" fill="#1E4A45"/>
+        <circle cx="440" cy="600" r="280" fill="#FAF6EE"/>
+        <circle cx="760" cy="360" r="130" fill="#E0A258"/>
+      </svg>
+      NourishMe
+    </a>
+    <div class="topbar-spacer"></div>
+    <a href="#wie" class="nav nav-desktop-only">How it works</a>
+    <a href="index.html" class="nav nav-desktop-only">DE</a>
+    <a href="#beta" class="btn">Beta</a>
   </div>
 </header>
 
-<section class="story">
-  <h2>Why <em>NourishMe</em> exists</h2>
-  <p class="lead-line">14 weeks ago I was in bed, postpartum, two babies on my chest, a hunger in my head that wasn't only mine. But it had started already during pregnancy.</p>
-  <p>From the first trimester it was clear: I was nourishing more than just me. Every nutrient goes to the little ones first, through the placenta during pregnancy, through milk afterwards. I have to be well-supplied myself so the whole system runs, and „skipping a meal" isn't really an option. What I needed: an app that tells me live what nourishes all of us. What I found: calorie counters built for weight-loss. Pregnancy apps that ended the day of birth. Breastfeeding apps with a flat „+500 kcal", regardless of one baby or twins.</p>
-  <p>So I started building. Grounded in DGE, BfR, EFSA and LactMed. Calculated for my exact situation. With a coach that says, after every meal, what would make sense next. It helped me, and it's built to fit every mom and mom-to-be in this phase.</p>
-  <p class="signature">— Vanessa</p>
-</section>
+<!-- ─────────── Hero ─────────── -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="hero-eyebrow">
+        <span class="dot"></span>
+        <span class="mono">Beta · June 2026 · TestFlight</span>
+      </div>
+      <h1 class="display">Nutrition<br><em>that does the math.</em></h1>
+      <p class="hero-sub">
+        NourishMe tells you live, after every meal, what you and your little ones still need today. Evidence-based, tuned to your phase. Pregnancy, breastfeeding, and everything in between.
+      </p>
+      <div class="hero-cta">
+        <a href="#beta" class="btn">Request beta access</a>
+        <a href="#wie" class="btn ghost">How it works →</a>
+      </div>
+      <div class="hero-meta">
+        <span class="item"><span class="check">✓</span> No account required</span>
+        <span class="item"><span class="check">✓</span> Data stays on your device</span>
+        <span class="item"><span class="check">✓</span> English and German</span>
+      </div>
+    </div>
 
-<section class="audience">
-  <h2>Who NourishMe is for</h2>
-  <div class="audience-grid">
-    <div class="audience-item">
-      <span class="audience-icon">🤰</span>
-      <div>
-        <strong>Pregnant moms</strong>
-        <span>Every trimester, with science-based adjustments</span>
-      </div>
-    </div>
-    <div class="audience-item">
-      <span class="audience-icon">🤱</span>
-      <div>
-        <strong>Breastfeeding moms</strong>
-        <span>Direct nursing, exact calculation of your needs</span>
-      </div>
-    </div>
-    <div class="audience-item">
-      <span class="audience-icon">🍼</span>
-      <div>
-        <strong>Pumping moms</strong>
-        <span>Exclusive or mixed, using your actual daily volume</span>
-      </div>
-    </div>
-    <div class="audience-item">
-      <span class="audience-icon">👶</span>
-      <div>
-        <strong>Moms of one</strong>
-        <span>Tailored to your child and phase</span>
-      </div>
-    </div>
-    <div class="audience-item">
-      <span class="audience-icon">👶👶</span>
-      <div>
-        <strong>Moms of multiples</strong>
-        <span>Twins, triplets, calculated correctly, not as a flat add-on</span>
+    <div class="mockup-stage">
+      <div class="screen" role="img" aria-label="Preview of the NourishMe app: diary screen with daily target and coach reply">
+        <div class="screen-bar">
+          <div class="screen-bar-top">
+            <div class="screen-title">Today<span style="color: var(--ink-mute); font-style: normal; font-weight: 400; font-size: 18px;">  ⌄</span></div>
+            <div style="width: 22px; height: 22px; border: 1.5px solid var(--pine); border-radius: 50%; opacity: 0.55;"></div>
+          </div>
+          <div class="screen-kcal-row">
+            <div>
+              <div class="screen-kcal">1,247 / 2,400 kcal</div>
+              <div class="screen-kcal-sub">1,153 kcal left</div>
+            </div>
+            <div class="screen-macros">
+              <div>P&nbsp;<b>58 g</b></div>
+              <div>C&nbsp;<b>142 g</b></div>
+              <div>F&nbsp;<b>42 g</b></div>
+            </div>
+          </div>
+          <div class="screen-progress"><span></span></div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-sep">Today</div>
+          <div class="meal">
+            <div class="meal-text">
+              <div class="meal-name">Cereal with yogurt &amp; berries</div>
+              <div class="meal-time">08:24</div>
+            </div>
+            <div class="meal-kcal">380 kcal</div>
+          </div>
+          <div class="coach">
+            <svg class="coach-mark" width="18" height="18" viewBox="0 0 1024 1024" aria-hidden="true">
+              <rect width="1024" height="1024" rx="220" fill="#1E4A45"/>
+              <circle cx="440" cy="600" r="280" fill="#FAF6EE"/>
+              <circle cx="760" cy="360" r="130" fill="#E0A258"/>
+            </svg>
+            <div>You still need 30&nbsp;g protein and 250&nbsp;mg calcium today. A salmon bowl at lunch would fit.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <p class="audience-note">NourishMe calculates your needs from your actual data, not from a generic table.</p>
 </section>
 
-<section id="usps" class="usps">
-  <h2>Three things <em>that really differ</em></h2>
-  <div class="card-grid">
-    <article class="card">
-      <h3>Real-time nourishment</h3>
-      <p>You're feeding more than yourself in this phase. After every meal a concrete hint of what keeps you and your little ones well-supplied: „You still need 30 g of protein today, a salmon bowl at lunch would fit." No mental math, no Googling.</p>
-    </article>
-    <article class="card">
-      <h3>Calculated for you, not averages</h3>
-      <p>Trimester, children being nursed, exclusive pumping, your actual milk volume. Twins exclusively breastfed? +1,260 kcal, not „+500".</p>
-    </article>
-    <article class="card">
-      <h3>Science open, data with you</h3>
-      <p>Every recommendation has a source: DGE 2025, BfR, EFSA, LactMed, FDA/EPA. One tap shows it. No account, no cloud sync, everything stays local.</p>
-    </article>
-  </div>
-</section>
-
-<section id="how" class="how">
-  <h2>How it works</h2>
-  <ol class="steps">
-    <li>
-      <strong>Three-minute onboarding</strong>
-      <span>Trimester, height, weight, activity, number of children, estimated milk volume. NourishMe derives your energy and macro needs from those.</span>
-    </li>
-    <li>
-      <strong>Log meals by text or photo</strong>
-      <span>„Cereal with yogurt, one bowl." Done. The coach parses nutrients and portion size. For photos it auto-detects the content.</span>
-    </li>
-    <li>
-      <strong>Get a coach hint immediately</strong>
-      <span>Per meal, one concrete suggestion for what's next, based on today's progress and your individual daily target.</span>
-    </li>
-    <li>
-      <strong>Food-safety built in</strong>
-      <span>Caffeine, alcohol wait times, mercury fish lists, listeria risks. All from official sources, no searching required.</span>
-    </li>
-  </ol>
-</section>
-
-<section id="beta" class="beta">
-  <h2>Request beta access</h2>
-  <p>NourishMe is available as a TestFlight beta. One baby or multiples, pregnant or postpartum, breastfeeding or pumping, if you're in one of these situations and want to test, please sign up.</p>
-  <p class="small"><strong>Heads up:</strong> the app launches in German first. English version is in the works. Sign up below and you'll be notified once it's ready.</p>
-  <p class="cta-row">
-    <a class="btn btn-primary" href="mailto:hi.nourishme@gmail.com?subject=NourishMe%20beta%20access&body=Hi%20Vanessa%2C%0A%0AI%27d%20love%20to%20test%20the%20NourishMe%20beta.%0A%0AA%20few%20quick%20things%20about%20me%3A%0A%E2%80%A2%20Phase%20%28pregnant%20%2F%20breastfeeding%20%2F%20pumping%29%3A%0A%E2%80%A2%20Number%20of%20children%3A%0A%E2%80%A2%20How%20we%20know%20each%20other%3A%0A%0ABest%2C">Sign up for the beta</a>
-  </p>
-  <p class="small">You'll get an invite by email once the beta is live. No spam, no newsletter, just this one invite and occasionally a request for feedback.</p>
-</section>
-
+<!-- ─────────── Trust strip ─────────── -->
 <section class="trust">
-  <h2>Scientific basis</h2>
-  <p>All thresholds and recommendations are based on:</p>
-  <ul class="trust-list">
-    <li>German Nutrition Society (DGE 2025)</li>
-    <li>German Federal Institute for Risk Assessment (BfR)</li>
-    <li>European Food Safety Authority (EFSA)</li>
-    <li>LactMed / National Institutes of Health (NIH)</li>
-    <li>U.S. Food and Drug Administration / EPA</li>
-    <li>WHO Antenatal Care Guidelines</li>
-  </ul>
-  <p class="small">NourishMe is not a medical device. It does not replace medical or midwife advice. For medical questions, consult your physician or midwife.</p>
+  <div class="wrap trust-inner">
+    <span class="mono label">Sources</span>
+    <span class="source">DGE 2025</span><span class="sep">·</span>
+    <span class="source">BfR</span><span class="sep">·</span>
+    <span class="source">EFSA</span><span class="sep">·</span>
+    <span class="source">LactMed / NIH</span><span class="sep">·</span>
+    <span class="source">FDA / EPA</span><span class="sep">·</span>
+    <span class="source">WHO</span>
+  </div>
 </section>
 
-<footer class="footer">
-  <ul class="footer-links">
-    <li><a href="privacy-en.html">Privacy Policy</a></li>
-    <li><a href="support-en.html">Support</a></li>
-    <li><a href="index.html">Deutsch</a></li>
-  </ul>
-  <p class="small">© 2026 Vanessa Heizmann · <a href="mailto:hi.nourishme@gmail.com">hi.nourishme@gmail.com</a></p>
+<!-- ─────────── USPs ─────────── -->
+<section class="usps">
+  <div class="wrap">
+    <div class="usp-head">
+      <span class="mono eyebrow">Three things that really differ</span>
+      <h2 class="section-title">An app built for <em>your phase</em>.</h2>
+    </div>
+    <div class="usp-grid">
+      <div class="usp">
+        <span class="usp-num">01</span>
+        <h3 class="usp-title">Real-time <em>nourishment</em></h3>
+        <p class="usp-body">
+          After every meal NourishMe tells you live what you and your little ones still need. One tap, one concrete recommendation. No daily plan, no Googling.
+        </p>
+        <div class="usp-example">
+          "You still need <b>30&nbsp;g protein</b> and <b>250&nbsp;mg calcium</b>. A salmon bowl at lunch would fit."
+        </div>
+      </div>
+      <div class="usp">
+        <span class="usp-num">02</span>
+        <h3 class="usp-title">Science open, <em>data with you</em></h3>
+        <p class="usp-body">
+          Every recommendation traces back to DGE, BfR, EFSA, LactMed, FDA/EPA and WHO. Tap any number to see the source. Data stays local, no account, no cloud sync.
+        </p>
+        <div class="usp-example">
+          "<b>Caffeine while breastfeeding:</b> max 200&nbsp;mg/day <span style="opacity:.6">— BfR 2024 recommendation</span>"
+        </div>
+      </div>
+      <div class="usp">
+        <span class="usp-num">03</span>
+        <h3 class="usp-title">Calculated for you, <em>not a flat rate</em></h3>
+        <p class="usp-body">
+          Each trimester, exclusive or mixed breastfeeding, pumped volume, number of children. NourishMe runs the math on your actual data, not on a generic table.
+        </p>
+        <div class="usp-example">
+          Instead of a flat "+500&nbsp;kcal while breastfeeding": <b>your</b> need, from <b>your</b> numbers.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Audience selector (interactive) ─────────── -->
+<section class="audience">
+  <div class="wrap">
+    <div class="audience-head">
+      <span class="mono">What does the app calculate for you?</span>
+      <h2 class="section-title" style="margin-top:12px;">Pick <em>your situation</em>.</h2>
+      <p class="lede">NourishMe covers every phase, and combines them when they overlap.</p>
+    </div>
+
+    <div class="selector" id="selector">
+      <div class="selector-row">
+        <div class="selector-label">You're currently…</div>
+        <div class="selector-options" role="group" aria-label="Phase">
+          <button class="chip" data-axis="phase" data-value="schwanger">pregnant</button>
+          <button class="chip" data-axis="phase" data-value="stillend" aria-pressed="true">breastfeeding</button>
+          <button class="chip" data-axis="phase" data-value="pumpend">pumping</button>
+          <button class="chip" data-axis="phase" data-value="gemischt">nursing + pumping</button>
+        </div>
+      </div>
+      <div class="selector-row">
+        <div class="selector-label">…feeding</div>
+        <div class="selector-options" role="group" aria-label="Number of children">
+          <button class="chip" data-axis="count" data-value="einling" aria-pressed="true">one child</button>
+          <button class="chip" data-axis="count" data-value="mehrlinge">multiples</button>
+        </div>
+      </div>
+      <div class="selector-output" id="selector-output">
+        <div>
+          <div class="selector-output-label">What NourishMe calculates for you</div>
+          <h3 class="selector-output-headline" id="out-headline">Breastfeeding, one child, exclusive</h3>
+          <p class="selector-output-body" id="out-body">
+            Energy need is calculated from your actual nursed volume, not from the flat "+500 kcal" assumption. Protein and micronutrient needs follow the DGE lactation recommendation. Listeria, mercury and caffeine warnings are active.
+          </p>
+        </div>
+        <div class="selector-output-numbers">
+          <div class="row">
+            <span class="num" id="out-kcal">+580</span>
+            <span class="num-label">extra kcal / day</span>
+          </div>
+          <div class="row">
+            <span class="num" id="out-protein">+15</span>
+            <span class="num-label">g protein extra</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── How it works ─────────── -->
+<section class="how" id="wie">
+  <div class="wrap">
+    <div class="how-head">
+      <span class="mono">Set up in 3 minutes</span>
+      <h2 class="section-title" style="margin-top:12px;">How it works.</h2>
+    </div>
+    <ol class="how-steps" style="list-style:none; padding:0; margin:0;">
+      <li class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h3 class="step-title">Three-minute onboarding</h3>
+          <p class="step-body">Phase, trimester, height, weight, activity, number of children, estimated milk volume. NourishMe derives your energy and macro needs from those.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h3 class="step-title">Log meals by text or photo</h3>
+          <p class="step-body">"Cereal with yogurt, one bowl." Done. For photos, content and portion size are auto-detected.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h3 class="step-title">Get a coach hint immediately</h3>
+          <p class="step-body">Per meal, one concrete suggestion for the next, based on today's progress and your daily target.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">4</div>
+        <div>
+          <h3 class="step-title">Food-safety built in</h3>
+          <p class="step-body">Caffeine, alcohol wait times, mercury fish, listeria. All from official sources, no searching required.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">5</div>
+        <div>
+          <h3 class="step-title">Trends at a glance</h3>
+          <p class="step-body">A dedicated tab shows a weekly chart, sweet-spot streak and weekly averages for calories and macros. You see at a glance when your nourishment was on target.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">6</div>
+        <div>
+          <h3 class="step-title">Reminders, only if you want them</h3>
+          <p class="step-body">Five configurable slots for breakfast, mid-morning, lunch, afternoon and dinner. Off by default, on with one tap. Scheduled locally on your device, no cloud.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ─────────── Story (Vanessa) ─────────── -->
+<section class="story">
+  <div class="wrap">
+    <div class="story-grid">
+      <div class="story-photo">
+        <img src="vanessa-portrait.jpg" alt="Vanessa, founder of NourishMe">
+      </div>
+      <div class="story-content">
+        <span class="mono">Why NourishMe exists</span>
+        <h2>14 weeks ago I had twins. <em>Carl and Leo.</em></h2>
+        <p>
+          From the very first week of pregnancy a question was on my mind: am I eating enough for the three of us? Every nutrient goes to the little ones first. I have to be well-supplied myself so the whole system runs.
+        </p>
+        <p>
+          There was no app that could answer that for me. Nutrition apps are built for diets. Pregnancy apps end on the day of birth. Breastfeeding apps used a flat "+500 kcal", whether one child or twins, whether nursing or pumping.
+        </p>
+        <p>
+          That's how <b>NourishMe</b> came to be.
+        </p>
+        <p>
+          After every meal it tells me what I and my little ones still need today, calculated from my actual data, not a generic table. And it pulls its numbers from real sources: DGE, BfR, EFSA, LactMed.
+        </p>
+        <div class="story-sign">— Vanessa, mom to Carl and Leo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Wissenschaftliche Basis ─────────── -->
+<section class="basis">
+  <div class="wrap">
+    <div class="basis-head">
+      <span class="mono">Scientific basis</span>
+      <h2 class="section-title" style="margin-top:12px;">Every number from official <em>sources</em>.</h2>
+    </div>
+    <ul class="basis-list">
+      <li><span><b>DGE 2025</b>, German Nutrition Society</span></li>
+      <li><span><b>BfR</b>, German Federal Institute for Risk Assessment</span></li>
+      <li><span><b>EFSA</b>, European Food Safety Authority</span></li>
+      <li><span><b>LactMed</b>, National Institutes of Health</span></li>
+      <li><span><b>FDA / EPA</b>, U.S. Food and Drug Administration</span></li>
+      <li><span><b>WHO</b>, Antenatal Care Guidelines</span></li>
+    </ul>
+    <p class="disclaimer">
+      NourishMe is not a medical device and does not replace medical or midwife advice. For medical questions, consult your physician or midwife.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── Beta CTA ─────────── -->
+<section class="beta" id="beta">
+  <div class="wrap-narrow">
+    <span class="mono">Beta · June 2026 · TestFlight</span>
+    <h2>Into the <em>beta</em>.</h2>
+    <p>
+      NourishMe is on TestFlight beta. Whatever phase or situation you're in, if you'd like to test, sign up.
+    </p>
+    <a href="mailto:hi.nourishme@gmail.com?subject=NourishMe%20beta%20access" class="btn">Sign up for the beta</a>
+    <div class="beta-foot">
+      You'll get an invite by email once a beta seat opens. No newsletter, no spam.
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Footer ─────────── -->
+<footer>
+  <div class="wrap footer-inner">
+    <span class="grow">© 2026 Vanessa · <a href="mailto:hi.nourishme@gmail.com">hi.nourishme@gmail.com</a></span>
+    <a href="privacy-en.html">Privacy</a>
+    <span class="sep-dot">·</span>
+    <a href="support-en.html">Support</a>
+    <span class="sep-dot">·</span>
+    <a href="impressum.html">Imprint</a>
+    <span class="sep-dot">·</span>
+    <a href="index.html">DE</a>
+  </div>
 </footer>
+
+<script>
+(function(){
+  // Selector data
+  const data = {
+    schwanger: {
+      einling: {
+        headline: "Pregnancy, one child",
+        body: "Needs scale per trimester: barely more in T1, around +250 kcal in T2, around +500 kcal in T3. Folate, iron and iodine needs are tracked separately. Mercury fish, listeria (raw-milk cheese, smoked salmon) and alcohol warnings are active.",
+        kcal: "+250", kcalLabel: "extra kcal (T2)",
+        protein: "+9", proteinLabel: "g protein extra"
+      },
+      mehrlinge: {
+        headline: "Pregnancy, multiples",
+        body: "From T2 onward, the extra need is added per additional fetus. Protein, iron and folate needs rise accordingly. Same food-safety warnings as for singletons.",
+        kcal: "+450", kcalLabel: "extra kcal (T2)",
+        protein: "+18", proteinLabel: "g protein extra"
+      }
+    },
+    stillend: {
+      einling: {
+        headline: "Breastfeeding, one child, exclusive",
+        body: "Energy need is calculated from your actual nursed volume, not from the flat +500 kcal assumption. Protein and micronutrient needs follow the DGE lactation recommendation. Listeria, mercury and caffeine warnings are active.",
+        kcal: "+580", kcalLabel: "extra kcal / day",
+        protein: "+15", proteinLabel: "g protein extra"
+      },
+      mehrlinge: {
+        headline: "Breastfeeding, multiples, exclusive",
+        body: "Energy need is calculated per child, for twins typically around +1,260 kcal/day instead of a flat +500. Protein and calcium needs rise accordingly. Medication check via LactMed.",
+        kcal: "+1,260", kcalLabel: "extra kcal / day",
+        protein: "+30", proteinLabel: "g protein extra"
+      }
+    },
+    pumpend: {
+      einling: {
+        headline: "Pumping, one child",
+        body: "Instead of an estimate, your real daily volume is captured. Exclusive pumping without nursing often produces more milk than expected. Energy need adapts daily.",
+        kcal: "+620", kcalLabel: "kcal from real volume",
+        protein: "+16", proteinLabel: "g protein extra"
+      },
+      mehrlinge: {
+        headline: "Pumping, multiples",
+        body: "Daily volume is captured cumulatively. With exclusive pumping for twins many moms reach 1,500-2,000 ml/day. Energy and fluid needs scale accordingly.",
+        kcal: "+1,380", kcalLabel: "kcal from real volume",
+        protein: "+34", proteinLabel: "g protein extra"
+      }
+    },
+    gemischt: {
+      einling: {
+        headline: "Nursing + pumping, one child",
+        body: "Mixed nursing and pumping. NourishMe sums both into a realistic daily volume. Top-up formula is also accounted for and subtracted from the extra need.",
+        kcal: "+520", kcalLabel: "kcal from actual volume",
+        protein: "+14", proteinLabel: "g protein extra"
+      },
+      mehrlinge: {
+        headline: "Nursing + pumping, multiples",
+        body: "With multiples, mixed feeding is the rule, one child on the breast, the other on pumped milk or formula. NourishMe calculates per child and per source. Formula is subtracted from the extra need.",
+        kcal: "+1,080", kcalLabel: "kcal from actual volume",
+        protein: "+26", proteinLabel: "g protein extra"
+      }
+    }
+  };
+
+  const state = { phase: "stillend", count: "einling" };
+
+  function render() {
+    const d = data[state.phase][state.count];
+    document.getElementById("out-headline").textContent = d.headline;
+    document.getElementById("out-body").textContent = d.body;
+    document.getElementById("out-kcal").textContent = d.kcal;
+    document.getElementById("out-protein").textContent = d.protein;
+    document.querySelector("#out-kcal").nextElementSibling.textContent = d.kcalLabel;
+    document.querySelector("#out-protein").nextElementSibling.textContent = d.proteinLabel;
+  }
+
+  document.querySelectorAll(".chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const axis = btn.dataset.axis;
+      const val = btn.dataset.value;
+      state[axis] = val;
+      document.querySelectorAll(`.chip[data-axis="${axis}"]`).forEach(b => {
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      render();
+    });
+  });
+})();
+</script>
 
 </body>
 </html>

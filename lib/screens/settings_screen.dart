@@ -489,8 +489,8 @@ class _PhaseSection extends StatelessWidget {
       title: l10n.settingsSectionPhase,
       info: InfoButton(
         fact: phase == 'pregnant'
-            ? NutritionFacts.energyPregnancy
-            : NutritionFacts.energyLactation,
+            ? energyPregnancyFact(l10n)
+            : energyLactationFact(l10n),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -995,7 +995,7 @@ class _MilkSection extends StatelessWidget {
     final ageGroups = ChildAgeGroup.allFor(ageLabels);
     return _Section(
       title: l10n.settingsSectionMilk,
-      info: InfoButton(fact: NutritionFacts.energyLactation),
+      info: InfoButton(fact: energyLactationFact(l10n)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

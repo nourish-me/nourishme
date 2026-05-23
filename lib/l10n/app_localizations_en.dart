@@ -781,4 +781,45 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingRemindersDetail =>
       'Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".';
+
+  @override
+  String get factEnergyLactationTopic =>
+      'Energy supplement, breastfeeding phase';
+
+  @override
+  String get factEnergyLactationSummary => '~84 kcal per 100 ml of milk';
+
+  @override
+  String get factEnergyLactationDetail =>
+      'Energy density of breast milk 0.67 kcal/g × synthesis efficiency 80% = ~84 kcal per 100 ml. Typical volumes: exclusive 0-6 mo ~780 ml/day, 6-12 mo ~550 ml, >12 mo ~200-400 ml. Twins exclusive: ~1,500 ml (+~1,100 kcal). DGE flat rate: +500 kcal for one child 0-6 mo.';
+
+  @override
+  String get factEnergyLactationSource => 'DGE 2025, EFSA 2017, WHO/FAO 2004';
+
+  @override
+  String get factEnergyPregnancyTopic => 'Energy supplement, pregnancy';
+
+  @override
+  String get factEnergyPregnancySummary => 'T1: 0, T2: +250, T3: +500 kcal/day';
+
+  @override
+  String get factEnergyPregnancyDetail =>
+      'Assumes pre-pregnancy BMI 18.5-24.9 and unchanged activity. With multiples: +300 kcal per additional fetus (ACOG rule of thumb), so twins in T3 about +800 kcal.';
+
+  @override
+  String get factEnergyPregnancySource => 'DGE 2025, EFSA, ACOG';
+
+  @override
+  String get factProteinLactationTopic => 'Protein requirement';
+
+  @override
+  String get factProteinLactationSummary =>
+      'Lactation: 1.2 g/kg body weight/day (DGE)';
+
+  @override
+  String get factProteinLactationDetail =>
+      'Non-pregnant baseline: 0.8 g/kg. Pregnancy T2: 0.9 g/kg, T3: 1.0 g/kg. Lactation 0-6 mo: 1.2 g/kg (about +23 g/day above baseline). Good sources: lean meat, fish, legumes, eggs, dairy, tofu.';
+
+  @override
+  String get factProteinLactationSource => 'DGE 2025, EFSA 2012';
 }
