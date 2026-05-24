@@ -466,9 +466,14 @@ ${NutritionFacts.coachContextBlockEn}
     required int? trimester,
     required int dailyMilkVolumeMl,
     String locale = 'en',
+    DateTime? loggedAt,
   }) async {
     final isDe = _isGerman(locale);
-    final hour = DateTime.now().hour;
+    // The coach reasons about meal timing ("breakfast", "next meal") from
+    // this hour. Use the meal's logged-at timestamp when available (e.g.
+    // the user logs breakfast in the evening with a custom time), and fall
+    // back to wall-clock now for the standard same-moment case.
+    final hour = (loggedAt ?? DateTime.now()).hour;
     final remaining = targetKcal - totalKcalToday;
     final userMessage = isDe
         ? _buildPerMealUserMessageDe(

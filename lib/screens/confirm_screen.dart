@@ -275,6 +275,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       trimester: profile?.trimester,
       dailyMilkVolumeMl: profile?.dailyMilkVolumeMl ?? 0,
       locale: locale,
+      loggedAt: meal.createdAt,
     )
         .then((response) async {
       // Link the coach response to the meal so deleting the meal also
