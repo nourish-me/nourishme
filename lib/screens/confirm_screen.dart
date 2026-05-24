@@ -684,12 +684,21 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ],
         ),
           body: _buildBody(context),
-          bottomNavigationBar: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: _buildActionRow(),
-            ),
-          ),
+          // Edit-mode (full Scaffold) used to show only the full action row in
+          // the bottomNavigationBar. iOS keyboard kept it above the keys but
+          // occluded the Save button visually for some users when the
+          // description field was focused. Switch to the same accessory-bar
+          // pattern as sheet mode: compact "Done + Save" bar while the
+          // keyboard is up, full Discard + Save action row otherwise.
+          bottomNavigationBar:
+              MediaQuery.of(context).viewInsets.bottom > 0
+                  ? _KeyboardAccessoryBar(onSave: _save)
+                  : SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: _buildActionRow(),
+                      ),
+                    ),
         ),
       ),
     );
