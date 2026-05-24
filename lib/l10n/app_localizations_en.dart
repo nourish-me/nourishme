@@ -195,6 +195,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get confirmAliasLoading => '≈ estimating…';
+
+  @override
   String get confirmFavoriteAdd => 'Save as favourite';
 
   @override

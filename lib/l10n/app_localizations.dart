@@ -440,6 +440,12 @@ abstract class AppLocalizations {
   /// **'≈ {alias}'**
   String confirmAliasPrefix(String alias);
 
+  /// No description provided for @confirmAliasLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'≈ estimating…'**
+  String get confirmAliasLoading;
+
   /// No description provided for @confirmFavoriteAdd.
   ///
   /// In en, this message translates to:

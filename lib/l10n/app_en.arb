@@ -101,6 +101,7 @@
       "alias": {"type": "String"}
     }
   },
+  "confirmAliasLoading": "≈ estimating…",
   "confirmFavoriteAdd": "Save as favourite",
   "confirmFavoriteRemove": "Remove favourite",
   "confirmDescriptionHint": "Description",

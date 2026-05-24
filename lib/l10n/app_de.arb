@@ -67,6 +67,7 @@
   "confirmFieldCarbs": "KH",
   "confirmFieldFat": "Fett",
   "confirmAliasPrefix": "≈ {alias}",
+  "confirmAliasLoading": "≈ wird geschätzt…",
   "confirmFavoriteAdd": "Als Favorit speichern",
   "confirmFavoriteRemove": "Favorit entfernen",
   "confirmDescriptionHint": "Beschreibung",
