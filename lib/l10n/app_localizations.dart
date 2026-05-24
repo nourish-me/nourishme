@@ -1550,6 +1550,108 @@ abstract class AppLocalizations {
   /// **'More details'**
   String get onboardingDisclaimerLink;
 
+  /// No description provided for @settingsSectionDiet.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet & allergies'**
+  String get settingsSectionDiet;
+
+  /// No description provided for @settingsDietStyleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet style'**
+  String get settingsDietStyleLabel;
+
+  /// No description provided for @dietStyleOmnivore.
+  ///
+  /// In en, this message translates to:
+  /// **'Omnivore'**
+  String get dietStyleOmnivore;
+
+  /// No description provided for @dietStyleVegetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetarian'**
+  String get dietStyleVegetarian;
+
+  /// No description provided for @dietStyleVegan.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegan'**
+  String get dietStyleVegan;
+
+  /// No description provided for @dietStylePescatarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Pescatarian'**
+  String get dietStylePescatarian;
+
+  /// No description provided for @settingsDietRestrictionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid'**
+  String get settingsDietRestrictionsLabel;
+
+  /// No description provided for @settingsDietRestrictionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap any that apply. The coach won\'t suggest these.'**
+  String get settingsDietRestrictionsHint;
+
+  /// No description provided for @restrictionLactose.
+  ///
+  /// In en, this message translates to:
+  /// **'Lactose'**
+  String get restrictionLactose;
+
+  /// No description provided for @restrictionGluten.
+  ///
+  /// In en, this message translates to:
+  /// **'Gluten'**
+  String get restrictionGluten;
+
+  /// No description provided for @restrictionEggs.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggs'**
+  String get restrictionEggs;
+
+  /// No description provided for @restrictionNuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Nuts'**
+  String get restrictionNuts;
+
+  /// No description provided for @restrictionFish.
+  ///
+  /// In en, this message translates to:
+  /// **'Fish'**
+  String get restrictionFish;
+
+  /// No description provided for @restrictionShellfish.
+  ///
+  /// In en, this message translates to:
+  /// **'Shellfish'**
+  String get restrictionShellfish;
+
+  /// No description provided for @restrictionSoy.
+  ///
+  /// In en, this message translates to:
+  /// **'Soy'**
+  String get restrictionSoy;
+
+  /// No description provided for @settingsDietNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Other notes'**
+  String get settingsDietNotesLabel;
+
+  /// No description provided for @settingsDietNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. histamine sensitive, no spicy food'**
+  String get settingsDietNotesHint;
+
   /// No description provided for @factEnergyLactationTopic.
   ///
   /// In en, this message translates to:

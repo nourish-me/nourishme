@@ -204,6 +204,7 @@ Regeln:
 - Maximal 120 Wörter
 - Vermeide das Wort "Stillen" und seine Varianten. Nutze "während du Muttermilch produzierst" oder "in dieser Phase", weil viele Mütter ausschließlich pumpen
 - Die Nutzerdaten (Gewicht, Aktivität, Anzahl Kinder, Milchvolumen, etc.) sind im Profil mitgeliefert. Nutze sie SOFORT und FRAG NIEMALS danach.
+- Wenn ein Ernährungsprofil (Vegetarisch, Vegan, Allergien etc.) im Kontext steht, RESPEKTIERE es absolut: schlage keine vermiedenen Lebensmittel vor, halte Vorschläge im Stil (z.B. nur Pflanzliches bei vegan).
 ''';
 
   static final _perMealPromptEn = '''
@@ -233,6 +234,7 @@ Rules:
 - Maximum 120 words
 - Avoid the word "breastfeeding" and its variations. Use "while you're producing breast milk" or "in this phase", since many mothers exclusively pump
 - User data (weight, activity, number of children, milk volume, etc.) is provided in the profile. Use it IMMEDIATELY and NEVER ask for it.
+- If a dietary profile (vegetarian, vegan, allergies, etc.) is in the context, RESPECT it absolutely: never suggest avoided foods, keep suggestions in the listed style (e.g. plant-only for vegan).
 ''';
 
   static final _chatPromptBaseDe = '''
@@ -465,6 +467,9 @@ ${NutritionFacts.coachContextBlockEn}
     required bool isPregnant,
     required int? trimester,
     required int dailyMilkVolumeMl,
+    String dietStyle = 'omnivore',
+    Set<String> restrictions = const {},
+    String dietaryNotes = '',
     String locale = 'en',
     DateTime? loggedAt,
   }) async {
@@ -499,6 +504,11 @@ ${NutritionFacts.coachContextBlockEn}
             dailyMilkVolumeMl: dailyMilkVolumeMl,
             hour: hour,
             remaining: remaining,
+            dietLine: _dietLine(
+                isDe: true,
+                dietStyle: dietStyle,
+                restrictions: restrictions,
+                dietaryNotes: dietaryNotes),
           )
         : _buildPerMealUserMessageEn(
             mealRawText: mealRawText,
@@ -523,6 +533,11 @@ ${NutritionFacts.coachContextBlockEn}
             dailyMilkVolumeMl: dailyMilkVolumeMl,
             hour: hour,
             remaining: remaining,
+            dietLine: _dietLine(
+                isDe: false,
+                dietStyle: dietStyle,
+                restrictions: restrictions,
+                dietaryNotes: dietaryNotes),
           );
 
     return _post(
@@ -532,6 +547,33 @@ ${NutritionFacts.coachContextBlockEn}
       ],
       maxTokens: 800,
     );
+  }
+
+  // Single-line summary of diet style + avoid-list + free-text notes, ready
+  // to drop into the user-message profile block. Returns an empty string
+  // when nothing is set so omnivores without restrictions don't get a
+  // confusing "Diet: omnivore" line in their context.
+  static String _dietLine({
+    required bool isDe,
+    required String dietStyle,
+    required Set<String> restrictions,
+    required String dietaryNotes,
+  }) {
+    final hasStyle = dietStyle.isNotEmpty && dietStyle != 'omnivore';
+    final hasRestrictions = restrictions.isNotEmpty;
+    final hasNotes = dietaryNotes.trim().isNotEmpty;
+    if (!hasStyle && !hasRestrictions && !hasNotes) return '';
+    final parts = <String>[];
+    if (isDe) {
+      if (hasStyle) parts.add('Ernährung: $dietStyle');
+      if (hasRestrictions) parts.add('Vermeidet: ${restrictions.join(", ")}');
+      if (hasNotes) parts.add('Hinweis: ${dietaryNotes.trim()}');
+      return '\nErnährungsprofil: ${parts.join(" · ")}';
+    }
+    if (hasStyle) parts.add('Diet: $dietStyle');
+    if (hasRestrictions) parts.add('Avoids: ${restrictions.join(", ")}');
+    if (hasNotes) parts.add('Note: ${dietaryNotes.trim()}');
+    return '\nDietary profile: ${parts.join(" · ")}';
   }
 
   String _buildPerMealUserMessageDe({
@@ -557,6 +599,7 @@ ${NutritionFacts.coachContextBlockEn}
     required int dailyMilkVolumeMl,
     required int hour,
     required int remaining,
+    String dietLine = '',
   }) {
     final warningLine = safetyWarnings.isEmpty
         ? ''
@@ -571,7 +614,7 @@ ${NutritionFacts.coachContextBlockEn}
 Alter: $ageYears Jahre · Größe: ${heightCm.toStringAsFixed(0)} cm · Gewicht: ${weightKg.toStringAsFixed(1)} kg
 Aktivitätsfaktor (PAL): $activityFactor
 $phaseLine
-${describeProfile(numChildrenNursing, milkSharePercent, locale: 'de')}
+${describeProfile(numChildrenNursing, milkSharePercent, locale: 'de')}$dietLine
 
 === Tageskontext ===
 Aktuelle Uhrzeit: $hour Uhr.
@@ -610,6 +653,7 @@ Gib die strukturierte Coach-Antwort wie im System-Prompt definiert. Nutze die Pr
     required int dailyMilkVolumeMl,
     required int hour,
     required int remaining,
+    String dietLine = '',
   }) {
     final warningLine = safetyWarnings.isEmpty
         ? ''
@@ -624,7 +668,7 @@ Gib die strukturierte Coach-Antwort wie im System-Prompt definiert. Nutze die Pr
 Age: $ageYears years · Height: ${heightCm.toStringAsFixed(0)} cm · Weight: ${weightKg.toStringAsFixed(1)} kg
 Activity factor (PAL): $activityFactor
 $phaseLine
-${describeProfile(numChildrenNursing, milkSharePercent, locale: 'en')}
+${describeProfile(numChildrenNursing, milkSharePercent, locale: 'en')}$dietLine
 
 === Daily context ===
 Current time: $hour:00.

@@ -349,6 +349,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       isPregnant: profile?.isPregnant ?? false,
       trimester: profile?.trimester,
       dailyMilkVolumeMl: profile?.dailyMilkVolumeMl ?? 0,
+      dietStyle: profile?.dietStyle ?? 'omnivore',
+      restrictions: profile?.restrictions ?? const {},
+      dietaryNotes: profile?.dietaryNotes ?? '',
       locale: locale,
       loggedAt: meal.createdAt,
     )

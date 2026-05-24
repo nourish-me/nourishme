@@ -1546,6 +1546,34 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         profile.milkSharePercent,
         locale: locale,
       ));
+      // Diet preferences threaded into the chat context too so free-form
+      // coach questions ("what should I eat tonight") respect avoid-list.
+      final hasDietInfo = profile.dietStyle != 'omnivore' ||
+          profile.restrictions.isNotEmpty ||
+          profile.dietaryNotes.trim().isNotEmpty;
+      if (hasDietInfo) {
+        if (isDe) {
+          if (profile.dietStyle != 'omnivore') {
+            buffer.writeln('Ernährung: ${profile.dietStyle}');
+          }
+          if (profile.restrictions.isNotEmpty) {
+            buffer.writeln('Vermeidet: ${profile.restrictions.join(", ")}');
+          }
+          if (profile.dietaryNotes.trim().isNotEmpty) {
+            buffer.writeln('Hinweis: ${profile.dietaryNotes.trim()}');
+          }
+        } else {
+          if (profile.dietStyle != 'omnivore') {
+            buffer.writeln('Diet: ${profile.dietStyle}');
+          }
+          if (profile.restrictions.isNotEmpty) {
+            buffer.writeln('Avoids: ${profile.restrictions.join(", ")}');
+          }
+          if (profile.dietaryNotes.trim().isNotEmpty) {
+            buffer.writeln('Note: ${profile.dietaryNotes.trim()}');
+          }
+        }
+      }
     }
     if (isDe) {
       buffer

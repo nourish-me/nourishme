@@ -26,6 +26,16 @@ class UserProfileSettings {
   final int customProteinPct;
   final int customFatPct;
 
+  // Diet style + allergy/intolerance markers shared with the coach so it
+  // doesn't suggest off-limit food. dietStyle is one of the values in
+  // [DietStyle] (omnivore | vegetarian | vegan | pescatarian). restrictions
+  // is a set of canonical avoid-tags (see [DietRestrictions]). dietaryNotes
+  // captures anything that doesn't fit the chip list (e.g. "no spicy
+  // food", "histamine intolerance", "stomach can't handle dairy").
+  final String dietStyle;
+  final Set<String> restrictions;
+  final String dietaryNotes;
+
   const UserProfileSettings({
     required this.ageYears,
     this.birthdate,
@@ -41,6 +51,9 @@ class UserProfileSettings {
     this.milkSupplementKcal = 0,
     this.customProteinPct = 0,
     this.customFatPct = 0,
+    this.dietStyle = DietStyle.omnivore,
+    this.restrictions = const {},
+    this.dietaryNotes = '',
   });
 
   // Age in completed years, computed from birthdate if available, otherwise
@@ -130,6 +143,9 @@ class UserProfileSettings {
     int? milkSupplementKcal,
     int? customProteinPct,
     int? customFatPct,
+    String? dietStyle,
+    Set<String>? restrictions,
+    String? dietaryNotes,
   }) =>
       UserProfileSettings(
         ageYears: ageYears ?? this.ageYears,
@@ -146,6 +162,9 @@ class UserProfileSettings {
         milkSupplementKcal: milkSupplementKcal ?? this.milkSupplementKcal,
         customProteinPct: customProteinPct ?? this.customProteinPct,
         customFatPct: customFatPct ?? this.customFatPct,
+        dietStyle: dietStyle ?? this.dietStyle,
+        restrictions: restrictions ?? this.restrictions,
+        dietaryNotes: dietaryNotes ?? this.dietaryNotes,
       );
 
   Map<String, dynamic> toJson() => {
@@ -163,6 +182,9 @@ class UserProfileSettings {
         'milkSupplementKcal': milkSupplementKcal,
         'customProteinPct': customProteinPct,
         'customFatPct': customFatPct,
+        'dietStyle': dietStyle,
+        'restrictions': restrictions.toList(),
+        'dietaryNotes': dietaryNotes,
       };
 
   factory UserProfileSettings.fromJson(Map<String, dynamic> json) {
@@ -185,8 +207,40 @@ class UserProfileSettings {
       milkSupplementKcal: json['milkSupplementKcal'] as int? ?? 0,
       customProteinPct: json['customProteinPct'] as int? ?? 0,
       customFatPct: json['customFatPct'] as int? ?? 0,
+      dietStyle: json['dietStyle'] as String? ?? DietStyle.omnivore,
+      restrictions: (json['restrictions'] as List?)
+              ?.whereType<String>()
+              .toSet() ??
+          const {},
+      dietaryNotes: json['dietaryNotes'] as String? ?? '',
     );
   }
+}
+
+// Canonical strings for the user's diet style. Stored in
+// UserProfileSettings.dietStyle and threaded into the Coach prompts so
+// suggestions match. Free-form alternatives go into dietaryNotes.
+class DietStyle {
+  static const omnivore = 'omnivore';
+  static const vegetarian = 'vegetarian';
+  static const vegan = 'vegan';
+  static const pescatarian = 'pescatarian';
+
+  static const all = [omnivore, vegetarian, vegan, pescatarian];
+}
+
+// Canonical avoid-tag IDs for the Settings restriction chips. Coach
+// prompts treat these as hard avoids ("never suggest").
+class DietRestrictions {
+  static const lactose = 'lactose';
+  static const gluten = 'gluten';
+  static const eggs = 'eggs';
+  static const nuts = 'nuts';
+  static const fish = 'fish';
+  static const shellfish = 'shellfish';
+  static const soy = 'soy';
+
+  static const all = [lactose, gluten, eggs, nuts, fish, shellfish, soy];
 }
 
 // Activity level + age-group labels live as static `factors` lists for the

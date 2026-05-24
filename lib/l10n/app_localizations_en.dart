@@ -815,6 +815,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingDisclaimerLink => 'More details';
 
   @override
+  String get settingsSectionDiet => 'Diet & allergies';
+
+  @override
+  String get settingsDietStyleLabel => 'Diet style';
+
+  @override
+  String get dietStyleOmnivore => 'Omnivore';
+
+  @override
+  String get dietStyleVegetarian => 'Vegetarian';
+
+  @override
+  String get dietStyleVegan => 'Vegan';
+
+  @override
+  String get dietStylePescatarian => 'Pescatarian';
+
+  @override
+  String get settingsDietRestrictionsLabel => 'Avoid';
+
+  @override
+  String get settingsDietRestrictionsHint =>
+      'Tap any that apply. The coach won\'t suggest these.';
+
+  @override
+  String get restrictionLactose => 'Lactose';
+
+  @override
+  String get restrictionGluten => 'Gluten';
+
+  @override
+  String get restrictionEggs => 'Eggs';
+
+  @override
+  String get restrictionNuts => 'Nuts';
+
+  @override
+  String get restrictionFish => 'Fish';
+
+  @override
+  String get restrictionShellfish => 'Shellfish';
+
+  @override
+  String get restrictionSoy => 'Soy';
+
+  @override
+  String get settingsDietNotesLabel => 'Other notes';
+
+  @override
+  String get settingsDietNotesHint => 'e.g. histamine sensitive, no spicy food';
+
+  @override
   String get factEnergyLactationTopic =>
       'Energy supplement, breastfeeding phase';
 

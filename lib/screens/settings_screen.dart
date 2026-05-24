@@ -35,6 +35,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // Macro split as percentages. 0 = follow auto-default, otherwise overridden.
   late int _customProteinPct;
   late int _customFatPct;
+  // Diet + allergy state. Sourced from UserProfileSettings.dietStyle /
+  // restrictions / dietaryNotes and threaded into the coach prompts on
+  // save so the suggestions match.
+  late String _dietStyle;
+  late Set<String> _restrictions;
+  late TextEditingController _dietaryNotes;
   late double _activityFactor;
   // Radio: 'lactating' or 'pregnant'. We treat them as mutually exclusive in
   // settings (covers >99% of cases). Tandem can be modelled via onboarding
@@ -56,6 +62,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (_initialized) {
       _height.dispose();
       _weight.dispose();
+      _dietaryNotes.dispose();
     }
     super.dispose();
   }
@@ -80,9 +87,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           );
     _customProteinPct = p.customProteinPct;
     _customFatPct = p.customFatPct;
+    _dietStyle = p.dietStyle;
+    _restrictions = {...p.restrictions};
+    _dietaryNotes = TextEditingController(text: p.dietaryNotes);
     _initialProfileJson = jsonEncode(p.toJson());
 
-    for (final c in [_height, _weight]) {
+    for (final c in [_height, _weight, _dietaryNotes]) {
       c.addListener(() {
         if (mounted) setState(() {});
       });
@@ -132,6 +142,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         milkSupplementKcal: 0,
         customProteinPct: _customProteinPct,
         customFatPct: _customFatPct,
+        dietStyle: _dietStyle,
+        restrictions: _restrictions,
+        dietaryNotes: _dietaryNotes.text.trim(),
       );
 
   void _onSharePercentChanged(int v) {
@@ -367,6 +380,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     _customProteinPct = 0;
                     _customFatPct = 0;
                   }),
+                ),
+                const SizedBox(height: 12),
+                _DietSection(
+                  dietStyle: _dietStyle,
+                  onDietStyleChanged: (v) => setState(() => _dietStyle = v),
+                  restrictions: _restrictions,
+                  onRestrictionToggled: (tag, picked) {
+                    setState(() {
+                      if (picked) {
+                        _restrictions = {..._restrictions, tag};
+                      } else {
+                        _restrictions = {..._restrictions}..remove(tag);
+                      }
+                    });
+                  },
+                  notesController: _dietaryNotes,
                 ),
                 const SizedBox(height: 12),
                 const _FavoritesSection(),
@@ -1392,6 +1421,121 @@ class _MacroSlider extends StatelessWidget {
           onChanged: (v) => onChanged(v.round()),
         ),
       ],
+    );
+  }
+}
+
+// Maps a canonical DietStyle / DietRestrictions ID to its localized label.
+String _dietStyleLabel(AppLocalizations l10n, String id) {
+  switch (id) {
+    case DietStyle.vegetarian:
+      return l10n.dietStyleVegetarian;
+    case DietStyle.vegan:
+      return l10n.dietStyleVegan;
+    case DietStyle.pescatarian:
+      return l10n.dietStylePescatarian;
+    case DietStyle.omnivore:
+    default:
+      return l10n.dietStyleOmnivore;
+  }
+}
+
+String _restrictionLabel(AppLocalizations l10n, String id) {
+  switch (id) {
+    case DietRestrictions.lactose:
+      return l10n.restrictionLactose;
+    case DietRestrictions.gluten:
+      return l10n.restrictionGluten;
+    case DietRestrictions.eggs:
+      return l10n.restrictionEggs;
+    case DietRestrictions.nuts:
+      return l10n.restrictionNuts;
+    case DietRestrictions.fish:
+      return l10n.restrictionFish;
+    case DietRestrictions.shellfish:
+      return l10n.restrictionShellfish;
+    case DietRestrictions.soy:
+      return l10n.restrictionSoy;
+    default:
+      return id;
+  }
+}
+
+class _DietSection extends StatelessWidget {
+  final String dietStyle;
+  final ValueChanged<String> onDietStyleChanged;
+  final Set<String> restrictions;
+  final void Function(String tag, bool picked) onRestrictionToggled;
+  final TextEditingController notesController;
+  const _DietSection({
+    required this.dietStyle,
+    required this.onDietStyleChanged,
+    required this.restrictions,
+    required this.onRestrictionToggled,
+    required this.notesController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    return _Section(
+      title: l10n.settingsSectionDiet,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.settingsDietStyleLabel, style: textTheme.bodyMedium),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final id in DietStyle.all)
+                ChoiceChip(
+                  label: Text(_dietStyleLabel(l10n, id)),
+                  selected: dietStyle == id,
+                  onSelected: (_) => onDietStyleChanged(id),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(l10n.settingsDietRestrictionsLabel,
+              style: textTheme.bodyMedium),
+          const SizedBox(height: 2),
+          Text(l10n.settingsDietRestrictionsHint,
+              style: textTheme.bodySmall?.copyWith(color: scheme.outline)),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final tag in DietRestrictions.all)
+                FilterChip(
+                  label: Text(_restrictionLabel(l10n, tag)),
+                  selected: restrictions.contains(tag),
+                  onSelected: (picked) => onRestrictionToggled(tag, picked),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: notesController,
+            minLines: 1,
+            maxLines: 3,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              labelText: l10n.settingsDietNotesLabel,
+              hintText: l10n.settingsDietNotesHint,
+              hintStyle: TextStyle(color: scheme.outline),
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

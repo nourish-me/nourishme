@@ -821,6 +821,59 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingDisclaimerLink => 'Mehr dazu';
 
   @override
+  String get settingsSectionDiet => 'Ernährung & Allergien';
+
+  @override
+  String get settingsDietStyleLabel => 'Ernährungsweise';
+
+  @override
+  String get dietStyleOmnivore => 'Omnivor';
+
+  @override
+  String get dietStyleVegetarian => 'Vegetarisch';
+
+  @override
+  String get dietStyleVegan => 'Vegan';
+
+  @override
+  String get dietStylePescatarian => 'Pescetarisch';
+
+  @override
+  String get settingsDietRestrictionsLabel => 'Vermeiden';
+
+  @override
+  String get settingsDietRestrictionsHint =>
+      'Tippe an was zutrifft. Der Coach schlägt diese nicht vor.';
+
+  @override
+  String get restrictionLactose => 'Laktose';
+
+  @override
+  String get restrictionGluten => 'Gluten';
+
+  @override
+  String get restrictionEggs => 'Eier';
+
+  @override
+  String get restrictionNuts => 'Nüsse';
+
+  @override
+  String get restrictionFish => 'Fisch';
+
+  @override
+  String get restrictionShellfish => 'Schalentiere';
+
+  @override
+  String get restrictionSoy => 'Soja';
+
+  @override
+  String get settingsDietNotesLabel => 'Weitere Notizen';
+
+  @override
+  String get settingsDietNotesHint =>
+      'z.B. histaminempfindlich, kein scharfes Essen';
+
+  @override
   String get factEnergyLactationTopic => 'Energie-Aufschlag Stillzeit';
 
   @override
