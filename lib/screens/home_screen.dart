@@ -1765,7 +1765,11 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       // Backend complained for a specific reason: surface as system snackbar,
       // not as a coach bubble (those should feel like dialogue, not errors).
       _showSnack(e.userMessage);
-    } catch (_) {
+    } catch (e, st) {
+      // Anything that isn't a CoachApiException reaches here. Log the real
+      // error + stack so an otherwise-invisible failure is diagnosable in
+      // the device console instead of just showing a generic snackbar.
+      debugPrint('Send failed: $e\n$st');
       if (mounted) _showSnack(AppLocalizations.of(context).commonSendError);
     } finally {
       if (mounted) setState(() => _sending = false);

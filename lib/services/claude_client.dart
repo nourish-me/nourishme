@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -51,6 +51,22 @@ class MealParseResult {
     required this.portionAlias,
     required this.safetyWarnings,
   });
+
+  // Neutral non-meal result. Used as a graceful fallback when the model's
+  // reply can't be parsed into nutrition JSON: the input was never a
+  // loggable meal, so the caller routes it to the coach chat instead.
+  const MealParseResult.nonMeal()
+      : isMeal = false,
+        rejectionReason = null,
+        summary = '',
+        kcal = 0,
+        proteinG = 0,
+        carbsG = 0,
+        fatG = 0,
+        portionAmount = 0,
+        portionUnit = 'g',
+        portionAlias = null,
+        safetyWarnings = const [];
 }
 
 class ChatTurn {
@@ -382,10 +398,21 @@ ${NutritionFacts.coachContextBlockEn}
         'HTTP ${response.statusCode}: ${utf8.decode(response.bodyBytes)}',
       );
     }
-    final body =
-        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-    final responseContent = body['content'] as List;
-    return (responseContent.first as Map)['text'] as String;
+    final raw = utf8.decode(response.bodyBytes);
+    try {
+      final body = jsonDecode(raw) as Map<String, dynamic>;
+      final content = body['content'] as List;
+      return (content.first as Map)['text'] as String;
+    } catch (e) {
+      // 200 OK but the body isn't the Anthropic {content:[{text}]} shape we
+      // expect, e.g. a proxy/edge error page served with a 200. Surface a
+      // real CoachApiException (visible message + raw body for logs) instead
+      // of letting a CastError bubble up as a generic "Couldn't send".
+      throw CoachApiException(
+        'Something went wrong. Try again.',
+        'unexpected 200 body: ${raw.substring(0, raw.length.clamp(0, 300))}',
+      );
+    }
   }
 
   Future<MealParseResult> parseMeal(
@@ -424,10 +451,21 @@ ${NutritionFacts.coachContextBlockEn}
     final jsonStart = text.indexOf('{');
     final jsonEnd = text.lastIndexOf('}');
     if (jsonStart == -1 || jsonEnd == -1) {
-      throw Exception('Claude returned no JSON: $text');
+      // No JSON at all means the model answered in prose, which only happens
+      // for inputs that aren't a loggable meal (typically a question). Fall
+      // back to a non-meal result so the send routes to the coach chat
+      // instead of dying with a generic "Couldn't send".
+      debugPrint('parseMeal: no JSON in reply, treating as non-meal. Raw: $text');
+      return const MealParseResult.nonMeal();
     }
-    final parsed =
-        jsonDecode(text.substring(jsonStart, jsonEnd + 1)) as Map<String, dynamic>;
+    final Map<String, dynamic> parsed;
+    try {
+      parsed = jsonDecode(text.substring(jsonStart, jsonEnd + 1))
+          as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('parseMeal: JSON decode failed ($e), treating as non-meal. Raw: $text');
+      return const MealParseResult.nonMeal();
+    }
 
     return MealParseResult(
       isMeal: parsed['is_meal'] as bool? ?? true,
