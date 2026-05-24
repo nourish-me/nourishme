@@ -440,6 +440,12 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get confirmDescriptionHint;
 
+  /// No description provided for @confirmReparse.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-estimate'**
+  String get confirmReparse;
+
   /// No description provided for @confirmDetailsToggle.
   ///
   /// In en, this message translates to:

@@ -192,6 +192,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmDescriptionHint => 'Description';
 
   @override
+  String get confirmReparse => 'Re-estimate';
+
+  @override
   String get confirmDetailsToggle => 'Show details';
 
   @override

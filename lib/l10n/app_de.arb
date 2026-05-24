@@ -67,6 +67,7 @@
   "confirmFavoriteAdd": "Als Favorit speichern",
   "confirmFavoriteRemove": "Favorit entfernen",
   "confirmDescriptionHint": "Beschreibung",
+  "confirmReparse": "Neu schätzen",
   "confirmDetailsToggle": "Details anzeigen",
   "confirmDetailsHide": "Details ausblenden",
   "confirmDiscardTitle": "Änderungen verwerfen?",

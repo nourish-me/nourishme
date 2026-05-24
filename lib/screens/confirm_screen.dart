@@ -41,16 +41,24 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   late final TextEditingController _fat;
   late final TextEditingController _portion;
 
-  late final int _origKcal;
-  late final double _origProtein;
-  late final double _origCarbs;
-  late final double _origFat;
-  late final double _origPortion;
+  // Numeric baseline used by the portion scaler. Updated when the user
+  // re-parses the description (see _reparseFromSummary), so portion changes
+  // after a re-parse scale off the new values.
+  late int _origKcal;
+  late double _origProtein;
+  late double _origCarbs;
+  late double _origFat;
+  late double _origPortion;
+  // The current summary text we treat as the "canonical" parse. Used to
+  // decide when to show the re-parse affordance. Starts as the value
+  // Claude returned, gets bumped after a successful re-parse.
+  late String _origSummary;
   bool _scaling = false;
   bool _saveAsFavorite = false;
   // Makros (P/KH/F) are hidden by default; user taps Details to reveal them.
   bool _showDetails = false;
   bool _userTouched = false; // set when the user edits any field
+  bool _reparsing = false; // true while a re-parse Claude call is in flight
 
   @override
   void initState() {
@@ -60,6 +68,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _origCarbs = widget.parsed.carbsG;
     _origFat = widget.parsed.fatG;
     _origPortion = widget.parsed.portionAmount;
+    _origSummary = widget.parsed.summary;
 
     _summary = TextEditingController(text: widget.parsed.summary);
     _kcal = TextEditingController(text: _origKcal.toString());
@@ -69,11 +78,70 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _portion = TextEditingController(
         text: _origPortion > 0 ? _origPortion.toStringAsFixed(0) : '');
     _portion.addListener(_onPortionChanged);
+    // Re-parse button visibility flips when the summary diverges from the
+    // last parsed value, so rebuild on every keystroke in that field.
+    _summary.addListener(() => setState(() {}));
     // Track any change so back-navigation can warn about unsaved edits.
     for (final c in [_summary, _kcal, _protein, _carbs, _fat, _portion]) {
       c.addListener(() {
         if (!_userTouched) _userTouched = true;
       });
+    }
+  }
+
+  // Calls Claude with the (edited) summary text and replaces the numeric
+  // fields with the fresh estimate. Triggered by the "re-estimate" button
+  // next to the description field, which only appears when the user has
+  // changed the text from what Claude originally returned.
+  Future<void> _reparseFromSummary() async {
+    final newText = _summary.text.trim();
+    if (newText.isEmpty || newText == _origSummary || _reparsing) return;
+    setState(() => _reparsing = true);
+    try {
+      final parsed = await ref.read(claudeClientProvider).parseMeal(
+            newText,
+            locale: Localizations.localeOf(context).languageCode,
+          );
+      if (!mounted) return;
+      if (!parsed.isMeal) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(parsed.rejectionReason ??
+                AppLocalizations.of(context).commonGenericError),
+          ),
+        );
+        return;
+      }
+      setState(() {
+        _origKcal = parsed.kcal;
+        _origProtein = parsed.proteinG;
+        _origCarbs = parsed.carbsG;
+        _origFat = parsed.fatG;
+        _origPortion = parsed.portionAmount;
+        _origSummary = parsed.summary;
+        _summary.text = parsed.summary;
+        _kcal.text = parsed.kcal.toString();
+        _protein.text = parsed.proteinG.toStringAsFixed(1);
+        _carbs.text = parsed.carbsG.toStringAsFixed(1);
+        _fat.text = parsed.fatG.toStringAsFixed(1);
+        _portion.text = parsed.portionAmount > 0
+            ? parsed.portionAmount.toStringAsFixed(0)
+            : '';
+      });
+    } on CoachApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.userMessage)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).commonGenericError),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _reparsing = false);
     }
   }
 
@@ -345,19 +413,50 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ),
           const SizedBox(height: 12),
         ],
-        TextField(
-          controller: _summary,
-          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          // Wrap long titles (e.g. multi-component meals from a photo).
-          minLines: 1,
-          maxLines: 3,
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: l10n.confirmDescriptionHint,
-            hintStyle: TextStyle(color: scheme.outline),
-            contentPadding: EdgeInsets.zero,
-            isDense: true,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _summary,
+                style: textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+                // Wrap long titles (multi-component meals from a photo).
+                minLines: 1,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: l10n.confirmDescriptionHint,
+                  hintStyle: TextStyle(color: scheme.outline),
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
+                ),
+              ),
+            ),
+            // Re-estimate affordance: only shown once the user has edited
+            // the description away from the original Claude parse. Tap
+            // refreshes kcal / macros / portion to match the new text.
+            if (_summary.text.trim() != _origSummary &&
+                _summary.text.trim().isNotEmpty) ...[
+              const SizedBox(width: 4),
+              TextButton.icon(
+                onPressed: _reparsing ? null : _reparseFromSummary,
+                icon: _reparsing
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh, size: 16),
+                label: Text(l10n.confirmReparse),
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 12),
         Row(

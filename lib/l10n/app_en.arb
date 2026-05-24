@@ -98,6 +98,7 @@
   "confirmFavoriteAdd": "Save as favourite",
   "confirmFavoriteRemove": "Remove favourite",
   "confirmDescriptionHint": "Description",
+  "confirmReparse": "Re-estimate",
   "confirmDetailsToggle": "Show details",
   "confirmDetailsHide": "Hide details",
   "confirmDiscardTitle": "Discard changes?",
