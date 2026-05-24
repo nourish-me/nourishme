@@ -222,7 +222,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final threadRepo = ref.read(threadRepositoryProvider);
     final client = ref.read(claudeClientProvider);
     final target = ref.read(calorieTargetProvider);
-    final today = ref.read(todayMealsProvider);
+    final byDay = ref.read(mealsByDayProvider);
     final profile = ref.read(userProfileProvider).valueOrNull;
     final loadingNotifier = ref.read(insightLoadingProvider.notifier);
     final locale = Localizations.localeOf(context).languageCode;
@@ -237,10 +237,17 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
     }
 
-    // Compose the running total including the just-saved meal. The
-    // todayMealsProvider stream may not have ticked yet.
-    final hadAlready = today.any((m) => m.id == meal.id);
-    final mealsForTotal = hadAlready ? today : [...today, meal];
+    // Compose the running total for the meal's OWN day (not always today).
+    // When the user logs a past-day meal via the empty-range picker or the
+    // calendar, the coach should reason about that day's progress against
+    // the daily target, not against today's running total.
+    final mealDayKey = DateTime(
+        meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
+    final sameDay = byDay[mealDayKey] ?? const <MealEntry>[];
+    // The provider stream may not have ticked yet, so include the new meal
+    // ourselves if it isn't already in the bucket.
+    final hadAlready = sameDay.any((m) => m.id == meal.id);
+    final mealsForTotal = hadAlready ? sameDay : [...sameDay, meal];
     final totalKcalToday =
         mealsForTotal.fold<int>(0, (sum, m) => sum + m.kcal);
     final totalProteinToday =

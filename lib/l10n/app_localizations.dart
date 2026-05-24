@@ -572,6 +572,18 @@ abstract class AppLocalizations {
   /// **'Pick the day you want to log into. You\'ll choose the time next.'**
   String get homeEmptyRangePickerHint;
 
+  /// No description provided for @homeScrollToTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to top'**
+  String get homeScrollToTop;
+
+  /// No description provided for @homeScrollToBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to today'**
+  String get homeScrollToBottom;
+
   /// No description provided for @homeTimePickerHelp.
   ///
   /// In en, this message translates to:

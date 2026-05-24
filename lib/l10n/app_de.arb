@@ -90,6 +90,8 @@
   "homeEmptyDayAdd": "hinzufügen",
   "homeEmptyRangePickerTitle": "Welcher Tag?",
   "homeEmptyRangePickerHint": "Wähle den Tag, in den du einen Eintrag schreiben willst. Die Uhrzeit kommt im nächsten Schritt.",
+  "homeScrollToTop": "Nach ganz oben",
+  "homeScrollToBottom": "Zu heute",
   "homeTimePickerHelp": "Uhrzeit wählen",
   "homeTimeSuffix": " Uhr",
   "homePastDayHeader": "Eintrag für {day}",

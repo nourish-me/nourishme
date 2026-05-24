@@ -133,6 +133,8 @@
   "homeEmptyDayAdd": "add",
   "homeEmptyRangePickerTitle": "Which day?",
   "homeEmptyRangePickerHint": "Pick the day you want to log into. You'll choose the time next.",
+  "homeScrollToTop": "Jump to top",
+  "homeScrollToBottom": "Jump to today",
   "homeTimePickerHelp": "Pick a time",
   "homeTimeSuffix": "",
   "homePastDayHeader": "Entry for {day}",

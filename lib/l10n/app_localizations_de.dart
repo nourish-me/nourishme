@@ -268,6 +268,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wähle den Tag, in den du einen Eintrag schreiben willst. Die Uhrzeit kommt im nächsten Schritt.';
 
   @override
+  String get homeScrollToTop => 'Nach ganz oben';
+
+  @override
+  String get homeScrollToBottom => 'Zu heute';
+
+  @override
   String get homeTimePickerHelp => 'Uhrzeit wählen';
 
   @override

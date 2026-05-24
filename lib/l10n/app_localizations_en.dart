@@ -264,6 +264,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Pick the day you want to log into. You\'ll choose the time next.';
 
   @override
+  String get homeScrollToTop => 'Jump to top';
+
+  @override
+  String get homeScrollToBottom => 'Jump to today';
+
+  @override
   String get homeTimePickerHelp => 'Pick a time';
 
   @override

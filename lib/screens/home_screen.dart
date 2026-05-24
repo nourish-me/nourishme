@@ -45,9 +45,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Last scroll-to-day target we already scheduled a scroll for; prevents
   // double-firing when the provider value bounces through rebuilds.
   DateTime? _handledScrollToDay;
-  // Whether the user is scrolled away from the bottom enough that a
-  // scroll-down FAB should show.
-  bool _showScrollDown = false;
+  // Direction-aware jump FAB. Tracks the last meaningful scroll direction
+  // so the FAB matches the user's intent: scrolling down → offer "jump to
+  // bottom", scrolling up → offer "jump to top". Hidden when at the edge
+  // in the same direction (already at top / already at bottom).
+  // null = no FAB visible.
+  _ScrollDir? _scrollDir;
+  double _lastScrollPixels = 0;
 
   @override
   void initState() {
@@ -85,10 +89,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         !_programmaticScroll) {
       _loadPreviousDay();
     }
-    // Show scroll-down FAB when user is far from bottom.
-    final newShow = pos.maxScrollExtent - pos.pixels > 400;
-    if (newShow != _showScrollDown) {
-      setState(() => _showScrollDown = newShow);
+    // Direction-aware FAB. Use a small dead zone (8px) so micro-jitter
+    // doesn't flip the icon. Hide when there isn't enough room to scroll
+    // in that direction (already near the edge).
+    final delta = pos.pixels - _lastScrollPixels;
+    _ScrollDir? next = _scrollDir;
+    if (delta > 8) {
+      // Scrolling down (toward bottom / today). Offer jump-to-bottom.
+      next = pos.maxScrollExtent - pos.pixels > 400 ? _ScrollDir.down : null;
+    } else if (delta < -8) {
+      // Scrolling up (away from today, into history). Offer jump-to-top.
+      next = pos.pixels > 400 ? _ScrollDir.up : null;
+    }
+    _lastScrollPixels = pos.pixels;
+    if (next != _scrollDir) {
+      setState(() => _scrollDir = next);
     }
   }
 
@@ -141,6 +156,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (mounted) _loadingPreviousDay = false;
       });
     });
+  }
+
+  void _scrollToTop({bool animate = true}) {
+    if (!_scroll.hasClients) return;
+    if (animate) {
+      _scroll.animateTo(
+        0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    } else {
+      _scroll.jumpTo(0);
+    }
   }
 
   void _scrollToBottom({bool animate = true}) {
@@ -511,16 +539,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                 ),
-                if (_showScrollDown)
+                if (_scrollDir != null)
                   Positioned(
                     right: 16,
                     bottom: 16,
                     child: FloatingActionButton.small(
-                      heroTag: 'scroll-down',
-                      onPressed: () => _scrollToBottom(),
-                      tooltip: 'Nach unten',
+                      // Stable heroTag per direction so the swap doesn't
+                      // throw a duplicate-tag exception during the rebuild.
+                      heroTag: _scrollDir == _ScrollDir.up
+                          ? 'scroll-top'
+                          : 'scroll-bottom',
+                      onPressed: _scrollDir == _ScrollDir.up
+                          ? () => _scrollToTop()
+                          : () => _scrollToBottom(),
+                      tooltip: _scrollDir == _ScrollDir.up
+                          ? AppLocalizations.of(context).homeScrollToTop
+                          : AppLocalizations.of(context).homeScrollToBottom,
                       elevation: 2,
-                      child: const Icon(Icons.arrow_downward),
+                      child: Icon(_scrollDir == _ScrollDir.up
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward),
                     ),
                   ),
               ],
@@ -649,6 +687,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return widgets;
   }
 }
+
+enum _ScrollDir { up, down }
 
 class _CoachLoadingBanner extends StatelessWidget {
   final ColorScheme scheme;
