@@ -868,7 +868,13 @@ class _RemindersSectionState extends ConsumerState<_RemindersSection> {
                       child: Text(
                         ReminderCopy.label(s.entries[i].slot,
                             AppLocalizations.of(context)),
-                        style: textTheme.bodyLarge?.copyWith(
+                        // Align with the rest of Settings: row labels for
+                        // tappable choices (phase, theme, reminders, diet)
+                        // are bodyMedium w600. Was bodyLarge here, which
+                        // made the meal-reminder rows visually mismatch the
+                        // phase/theme choice rows.
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
                           color: s.entries[i].enabled
                               ? scheme.onSurface
                               : scheme.outline,
