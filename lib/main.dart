@@ -18,6 +18,7 @@ import 'services/meal_repository.dart';
 import 'services/notification_scheduler.dart';
 import 'services/settings_repository.dart';
 import 'services/thread_repository.dart';
+import 'services/weight_repository.dart';
 import 'theme/nourishme_colors.dart';
 
 Future<void> main() async {
@@ -46,6 +47,7 @@ Future<void> main() async {
   final settingsRepo = await SettingsRepository.open();
   final favoriteRepo = await FavoriteRepository.open();
   final threadRepo = await ThreadRepository.open();
+  final weightRepo = await WeightRepository.open();
 
   // Initialise the notification plugin BEFORE runApp so we don't miss the
   // cold-launch tap signal: if the user opened the app by tapping a meal
@@ -81,6 +83,7 @@ Future<void> main() async {
         settingsRepositoryProvider.overrideWithValue(settingsRepo),
         favoriteRepositoryProvider.overrideWithValue(favoriteRepo),
         threadRepositoryProvider.overrideWithValue(threadRepo),
+        weightRepositoryProvider.overrideWithValue(weightRepo),
         themeModeProvider.overrideWith((ref) => themeMode),
       ],
       child: NourishMeApp(showOnboarding: !hasProfile),

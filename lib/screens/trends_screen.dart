@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../l10n/app_localizations.dart';
 import '../models/meal_entry.dart';
+import '../models/weight_entry.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../theme/nourishme_colors.dart';
@@ -60,6 +62,8 @@ class TrendsScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           _ConsistencyCard(
               stats: stats, scheme: scheme, textTheme: textTheme),
+          const SizedBox(height: 12),
+          _WeightCard(scheme: scheme, textTheme: textTheme),
           if (stats.topMeals.isNotEmpty) ...[
             const SizedBox(height: 12),
             _TopMealsCard(
@@ -727,4 +731,166 @@ class _TopMealsCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// Weight history card. Visualization only, no interpretation: a sparkline
+// of all entries, the latest value, and the delta against the earliest
+// entry in the window. The user adds entries implicitly by editing their
+// weight in Settings, which appends to weightHistoryProvider on save.
+class _WeightCard extends ConsumerWidget {
+  final ColorScheme scheme;
+  final TextTheme textTheme;
+  const _WeightCard({required this.scheme, required this.textTheme});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entries = ref.watch(weightHistoryProvider).valueOrNull ??
+        const <WeightEntry>[];
+    final l10n = AppLocalizations.of(context);
+    final dateFmt = intl.DateFormat.yMMMd();
+
+    return _Card(
+      scheme: scheme,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Eyebrow(
+              text: l10n.trendsWeightEyebrow,
+              scheme: scheme,
+              textTheme: textTheme),
+          const SizedBox(height: 8),
+          if (entries.length < 2)
+            Text(
+              l10n.trendsWeightEmpty,
+              style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
+            )
+          else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '${entries.last.weightKg.toStringAsFixed(1)} kg',
+                  style: textTheme.headlineMedium?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  _formatDelta(
+                      entries.last.weightKg - entries.first.weightKg),
+                  style: textTheme.titleMedium?.copyWith(
+                    color: scheme.outline,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.trendsWeightSince(dateFmt.format(entries.first.recordedAt)),
+              style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 72,
+              child: CustomPaint(
+                size: const Size(double.infinity, 72),
+                painter: _SparklinePainter(
+                  entries: entries,
+                  lineColor: NMColors.pine,
+                  dotColor: NMColors.amber,
+                  gridColor: scheme.outlineVariant,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatDelta(double delta) {
+    if (delta.abs() < 0.05) return '±0.0 kg';
+    final sign = delta > 0 ? '+' : '';
+    return '$sign${delta.toStringAsFixed(1)} kg';
+  }
+}
+
+// Plain sparkline painter for the weight history card. Connects the
+// entries with a line and dots each entry. Y range auto-scales to the
+// min/max of the data with a small padding so a flat trajectory still
+// has visible vertical room.
+class _SparklinePainter extends CustomPainter {
+  final List<WeightEntry> entries;
+  final Color lineColor;
+  final Color dotColor;
+  final Color gridColor;
+
+  _SparklinePainter({
+    required this.entries,
+    required this.lineColor,
+    required this.dotColor,
+    required this.gridColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (entries.length < 2) return;
+    final minW =
+        entries.map((e) => e.weightKg).reduce((a, b) => a < b ? a : b);
+    final maxW =
+        entries.map((e) => e.weightKg).reduce((a, b) => a > b ? a : b);
+    final range = (maxW - minW).abs() < 0.001 ? 1.0 : (maxW - minW);
+
+    final minMs = entries.first.recordedAt.millisecondsSinceEpoch.toDouble();
+    final maxMs = entries.last.recordedAt.millisecondsSinceEpoch.toDouble();
+    final tRange = (maxMs - minMs).abs() < 1 ? 1.0 : (maxMs - minMs);
+
+    const padding = EdgeInsets.fromLTRB(6, 10, 6, 10);
+    final w = size.width - padding.horizontal;
+    final h = size.height - padding.vertical;
+
+    final points = <Offset>[];
+    for (final e in entries) {
+      final x = padding.left +
+          ((e.recordedAt.millisecondsSinceEpoch - minMs) / tRange) * w;
+      final y = padding.top + (1 - (e.weightKg - minW) / range) * h;
+      points.add(Offset(x, y));
+    }
+
+    final gridPaint = Paint()
+      ..color = gridColor
+      ..strokeWidth = 0.5;
+    canvas.drawLine(
+      Offset(padding.left, size.height - padding.bottom),
+      Offset(size.width - padding.right, size.height - padding.bottom),
+      gridPaint,
+    );
+
+    final linePaint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final p in points.skip(1)) {
+      path.lineTo(p.dx, p.dy);
+    }
+    canvas.drawPath(path, linePaint);
+
+    final dotPaint = Paint()..color = dotColor;
+    for (final p in points) {
+      canvas.drawCircle(p, 3, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparklinePainter old) =>
+      old.entries != entries ||
+      old.lineColor != lineColor ||
+      old.dotColor != dotColor;
 }

@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../main.dart';
 import '../models/favorite_meal.dart';
 import '../models/reminder_settings.dart';
+import '../models/weight_entry.dart';
 import '../services/feedback_sender.dart';
 import '../services/notification_scheduler.dart';
 import '../models/user_profile_settings.dart';
@@ -244,7 +245,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
-    await ref.read(settingsRepositoryProvider).saveProfile(_currentProfile());
+    final newProfile = _currentProfile();
+    await ref.read(settingsRepositoryProvider).saveProfile(newProfile);
+    // Record a weight history entry whenever the value differs from the
+    // last save. profile.weightKg keeps driving BMR; this log accumulates
+    // for the Trends-tab line chart.
+    final initial = _initialProfileJson;
+    final prevWeight = initial == null
+        ? null
+        : (jsonDecode(initial) as Map<String, dynamic>)['weightKg'] as num?;
+    if (prevWeight == null || prevWeight.toDouble() != newProfile.weightKg) {
+      await ref.read(weightRepositoryProvider).save(WeightEntry(
+            id: 'w-${DateTime.now().microsecondsSinceEpoch}',
+            weightKg: newProfile.weightKg,
+            recordedAt: DateTime.now(),
+          ));
+    }
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
     _justSaved = true;
@@ -288,6 +304,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await ref.read(favoriteRepositoryProvider).clearAll();
     await ref.read(threadRepositoryProvider).clearAll();
     await ref.read(settingsRepositoryProvider).clearAll();
+    await ref.read(weightRepositoryProvider).clearAll();
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
     Navigator.of(context).pushAndRemoveUntil(

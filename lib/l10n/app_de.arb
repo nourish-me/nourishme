@@ -50,6 +50,9 @@
   "trendsConsistencyBody": "Du nutzt NourishMe seit {days} Tagen, mit Einträgen an {trackedDays} Tagen.",
   "trendsTopMealsEyebrow": "HÄUFIGSTE MAHLZEITEN",
   "trendsTopMealsTitle": "Letzte 7 Tage",
+  "trendsWeightEyebrow": "GEWICHT",
+  "trendsWeightEmpty": "Aktualisiere dein Gewicht in den Einstellungen, um deinen Verlauf hier zu sehen.",
+  "trendsWeightSince": "Seit {firstDate}",
 
   "historyNoEntries": "Noch keine Einträge",
   "historyKcalSeparator": "·",

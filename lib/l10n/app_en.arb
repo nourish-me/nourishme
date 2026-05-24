@@ -76,6 +76,12 @@
   },
   "trendsTopMealsEyebrow": "MOST FREQUENT MEALS",
   "trendsTopMealsTitle": "Last 7 days",
+  "trendsWeightEyebrow": "WEIGHT",
+  "trendsWeightEmpty": "Update your weight in Settings to see the trajectory here.",
+  "trendsWeightSince": "Since {firstDate}",
+  "@trendsWeightSince": {
+    "placeholders": {"firstDate": {"type": "String"}}
+  },
 
   "historyNoEntries": "No entries yet",
   "historyKcalSeparator": "·",

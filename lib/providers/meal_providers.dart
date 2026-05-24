@@ -5,12 +5,14 @@ import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
 import '../models/user_profile_settings.dart';
+import '../models/weight_entry.dart';
 import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
 import '../services/favorite_repository.dart';
 import '../services/meal_repository.dart';
 import '../services/settings_repository.dart';
 import '../services/thread_repository.dart';
+import '../services/weight_repository.dart';
 
 final mealRepositoryProvider = Provider<MealRepository>((ref) {
   throw UnimplementedError('Override in main() with the opened box');
@@ -30,6 +32,16 @@ final favoritesProvider = StreamProvider<List<FavoriteMeal>>((ref) {
 
 final threadRepositoryProvider = Provider<ThreadRepository>((ref) {
   throw UnimplementedError('Override in main() with the opened box');
+});
+
+final weightRepositoryProvider = Provider<WeightRepository>((ref) {
+  throw UnimplementedError('Override in main() with the opened box');
+});
+
+// Stream of all weight entries the user has recorded, sorted by date
+// ascending so the Trends chart reads left-to-right time-naturally.
+final weightHistoryProvider = StreamProvider<List<WeightEntry>>((ref) {
+  return ref.watch(weightRepositoryProvider).watch();
 });
 
 final todayThreadProvider = StreamProvider<List<ThreadItem>>((ref) {

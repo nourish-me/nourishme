@@ -145,6 +145,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trendsTopMealsTitle => 'Last 7 days';
 
   @override
+  String get trendsWeightEyebrow => 'WEIGHT';
+
+  @override
+  String get trendsWeightEmpty =>
+      'Update your weight in Settings to see the trajectory here.';
+
+  @override
+  String trendsWeightSince(String firstDate) {
+    return 'Since $firstDate';
+  }
+
+  @override
   String get historyNoEntries => 'No entries yet';
 
   @override

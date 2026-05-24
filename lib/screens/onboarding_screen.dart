@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../models/user_profile_settings.dart';
+import '../models/weight_entry.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../l10n/app_localizations.dart';
@@ -190,6 +191,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // The CTA guard (_canAdvance case 4) means this can only fire after the
     // user has explicitly ticked the checkbox.
     await settingsRepo.setDisclaimerAcceptedAt(DateTime.now());
+    // Seed the weight history with the onboarding value so the Trends-tab
+    // chart has a starting point. Subsequent edits in Settings append.
+    await ref.read(weightRepositoryProvider).save(WeightEntry(
+          id: 'w-${DateTime.now().microsecondsSinceEpoch}',
+          weightKg: profile.weightKg,
+          recordedAt: DateTime.now(),
+        ));
     ref.invalidate(userProfileProvider);
 
     // If the user kept the meal-reminders opt-in on, request iOS permission

@@ -350,6 +350,24 @@ abstract class AppLocalizations {
   /// **'Last 7 days'**
   String get trendsTopMealsTitle;
 
+  /// No description provided for @trendsWeightEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'WEIGHT'**
+  String get trendsWeightEyebrow;
+
+  /// No description provided for @trendsWeightEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your weight in Settings to see the trajectory here.'**
+  String get trendsWeightEmpty;
+
+  /// No description provided for @trendsWeightSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {firstDate}'**
+  String trendsWeightSince(String firstDate);
+
   /// No description provided for @historyNoEntries.
   ///
   /// In en, this message translates to:
