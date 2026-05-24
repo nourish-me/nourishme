@@ -432,6 +432,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionTheme => 'Appearance';
 
   @override
+  String get settingsSectionPrivacy => 'Privacy';
+
+  @override
+  String get settingsAnalyticsToggle => 'Anonymous usage statistics';
+
+  @override
+  String get settingsAnalyticsHint =>
+      'Helps us improve the app. Fully anonymous, no personal data or meal contents, can be turned off anytime.';
+
+  @override
   String get settingsSectionFavorites => 'Manage favourites';
 
   @override

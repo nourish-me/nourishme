@@ -878,6 +878,24 @@ abstract class AppLocalizations {
   /// **'Appearance'**
   String get settingsSectionTheme;
 
+  /// No description provided for @settingsSectionPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get settingsSectionPrivacy;
+
+  /// No description provided for @settingsAnalyticsToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymous usage statistics'**
+  String get settingsAnalyticsToggle;
+
+  /// No description provided for @settingsAnalyticsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Helps us improve the app. Fully anonymous, no personal data or meal contents, can be turned off anytime.'**
+  String get settingsAnalyticsHint;
+
   /// No description provided for @settingsSectionFavorites.
   ///
   /// In en, this message translates to:

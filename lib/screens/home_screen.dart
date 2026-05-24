@@ -1318,6 +1318,8 @@ class _CoachBubble extends ConsumerWidget {
                         ref
                             .read(mealInputFocusRequestProvider.notifier)
                             .state++;
+                        ref.read(analyticsServiceProvider).capture(
+                            'coach_chip_tapped');
                       },
                     ),
                 ],
@@ -1658,6 +1660,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
 
     await threadRepo
         .add(ThreadItem.userQuestion(text: text, at: DateTime.now()));
+    ref.read(analyticsServiceProvider).capture('coach_chat_sent');
     loadingNotifier.state = true;
 
     try {

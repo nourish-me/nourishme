@@ -6,6 +6,7 @@ import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
 import '../models/user_profile_settings.dart';
 import '../models/weight_entry.dart';
+import '../services/analytics_service.dart';
 import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
 import '../services/favorite_repository.dart';
@@ -83,6 +84,10 @@ final loadedThreadProvider =
 });
 
 final claudeClientProvider = Provider<ClaudeClient>((ref) => ClaudeClient());
+
+final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
+  return AnalyticsService(ref.watch(settingsRepositoryProvider));
+});
 
 final mealsProvider = StreamProvider<List<MealEntry>>((ref) {
   final repo = ref.watch(mealRepositoryProvider);

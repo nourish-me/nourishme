@@ -260,6 +260,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             weightKg: newProfile.weightKg,
             recordedAt: DateTime.now(),
           ));
+      ref.read(analyticsServiceProvider).capture('weight_logged',
+          properties: {'source': 'settings'});
     }
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
@@ -420,6 +422,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const _RemindersSection(),
                 const SizedBox(height: 16),
                 _ThemeSection(),
+                const SizedBox(height: 16),
+                const _PrivacySection(),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () => FeedbackSender.openFeedbackMail(
@@ -1012,6 +1016,51 @@ class _ThemeSection extends ConsumerWidget {
           choice(l10n.themeSystem, l10n.themeSystemHint, ThemeMode.system),
           choice(l10n.themeLight, l10n.themeLightHint, ThemeMode.light),
           choice(l10n.themeDark, l10n.themeDarkHint, ThemeMode.dark),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrivacySection extends ConsumerStatefulWidget {
+  const _PrivacySection();
+
+  @override
+  ConsumerState<_PrivacySection> createState() => _PrivacySectionState();
+}
+
+class _PrivacySectionState extends ConsumerState<_PrivacySection> {
+  late bool _enabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _enabled = !ref.read(settingsRepositoryProvider).getAnalyticsOptOut();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return _Section(
+      title: l10n.settingsSectionPrivacy,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.settingsAnalyticsToggle),
+            value: _enabled,
+            onChanged: (v) {
+              setState(() => _enabled = v);
+              ref.read(settingsRepositoryProvider).setAnalyticsOptOut(!v);
+            },
+          ),
+          Text(
+            l10n.settingsAnalyticsHint,
+            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+          ),
         ],
       ),
     );

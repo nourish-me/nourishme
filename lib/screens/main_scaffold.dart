@@ -36,6 +36,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         selectedIndex: index,
         onDestinationSelected: (i) {
           ref.read(selectedTabProvider.notifier).state = i;
+          const names = ['diary', 'history', 'trends'];
+          ref.read(analyticsServiceProvider).screen(names[i]);
         },
         destinations: [
           NavigationDestination(

@@ -198,6 +198,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           weightKg: profile.weightKg,
           recordedAt: DateTime.now(),
         ));
+    ref.read(analyticsServiceProvider).capture('onboarding_completed');
+    ref.read(analyticsServiceProvider).capture('weight_logged',
+        properties: {'source': 'onboarding'});
     ref.invalidate(userProfileProvider);
 
     // If the user kept the meal-reminders opt-in on, request iOS permission

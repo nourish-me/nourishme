@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:hive/hive.dart';
 
@@ -13,6 +14,8 @@ class SettingsRepository {
   static const _themeModeKey = 'theme_mode';
   static const _remindersKey = 'meal_reminders';
   static const _disclaimerKey = 'disclaimer_accepted_at';
+  static const _analyticsIdKey = 'analytics_distinct_id';
+  static const _analyticsOptOutKey = 'analytics_opt_out';
 
   final Box<String> _box;
 
@@ -51,6 +54,26 @@ class SettingsRepository {
 
   Future<void> setDisclaimerAcceptedAt(DateTime at) =>
       _box.put(_disclaimerKey, at.toIso8601String());
+
+  // Stable, anonymous identifier for product analytics. Generated once and
+  // persisted; carries no personal data, just lets PostHog group events from
+  // the same install. Survives until the app data is cleared.
+  String getOrCreateAnalyticsId() {
+    final existing = _box.get(_analyticsIdKey);
+    if (existing != null && existing.isNotEmpty) return existing;
+    final r = Random.secure();
+    final id = List<int>.generate(16, (_) => r.nextInt(256))
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
+    _box.put(_analyticsIdKey, id);
+    return id;
+  }
+
+  // Analytics is on by default (anonymous). The user can opt out in Settings.
+  bool getAnalyticsOptOut() => _box.get(_analyticsOptOutKey) == 'true';
+
+  Future<void> setAnalyticsOptOut(bool optOut) =>
+      _box.put(_analyticsOptOutKey, optOut.toString());
 
   Future<void> clearAll() => _box.clear();
 

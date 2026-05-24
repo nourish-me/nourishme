@@ -292,6 +292,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       safetyWarnings: widget.parsed.safetyWarnings,
     );
     await ref.read(mealRepositoryProvider).save(meal);
+    ref.read(analyticsServiceProvider).capture('meal_logged', properties: {
+      'edited': widget.existingMealId != null,
+      'has_image': widget.imageBytes != null,
+    });
 
     if (_saveAsFavorite) {
       // Dedupe by trimmed lowercase summary: if a favorite with the same
