@@ -437,9 +437,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scrollTarget = ref.watch(scrollToDayProvider);
     if (scrollTarget != null && scrollTarget != _handledScrollToDay) {
       _handledScrollToDay = scrollTarget;
+      // Prefer scrolling to the EARLIEST meal of the tapped day (so the
+      // user lands on breakfast, not dinner). thread items are already
+      // sorted ascending by timestamp in the repository, so the first
+      // ThreadItemType.meal entry is the day's earliest. Fall back to
+      // the day-separator key when the day has no logged meals yet.
+      final dayItems = threadByDay[scrollTarget] ?? const <ThreadItem>[];
+      final firstMealId = dayItems
+          .firstWhere(
+            (i) => i.type == ThreadItemType.meal,
+            orElse: () => ThreadItem.userQuestion(text: '', at: DateTime(0)),
+          )
+          .mealId;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        await _scrollToDay(scrollTarget);
+        if (firstMealId != null && _mealKeys.containsKey(firstMealId)) {
+          await _scrollToNewMeal(firstMealId);
+        } else {
+          await _scrollToDay(scrollTarget);
+        }
         if (mounted) {
           ref.read(scrollToDayProvider.notifier).state = null;
           _handledScrollToDay = null;
@@ -509,10 +525,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       body: Column(
         children: [
-          // Sticky banner so the user sees the Coach is working even if she
-          // has scrolled away from the bottom of the thread.
-          if (coachLoading)
-            _CoachLoadingBanner(scheme: scheme, textTheme: textTheme),
           Expanded(
             child: Stack(
               children: [
@@ -566,7 +578,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const _HomeInput(),
+      // Coach-thinking banner sits directly above the input bar so the
+       // cause / effect chain is visible: user taps send, banner appears
+       // right next to where their finger was. Sticky so even if she
+       // scrolls away in the diary the signal stays in view.
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (coachLoading)
+            _CoachLoadingBanner(scheme: scheme, textTheme: textTheme),
+          const _HomeInput(),
+        ],
+      ),
     );
   }
 
