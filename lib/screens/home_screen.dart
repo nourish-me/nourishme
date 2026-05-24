@@ -14,6 +14,7 @@ import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
+import '../utils/coach_followups.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
 import '../widgets/empty/empty_today.dart';
@@ -1229,13 +1230,13 @@ class _WarningIconButton extends StatelessWidget {
   }
 }
 
-class _CoachBubble extends StatelessWidget {
+class _CoachBubble extends ConsumerWidget {
   final String text;
   final bool isAnswer;
   const _CoachBubble({required this.text, required this.isAnswer});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // Light mode keeps the warm amber-container chip look. Dark mode uses
@@ -1245,6 +1246,7 @@ class _CoachBubble extends StatelessWidget {
     final bg = isDark ? scheme.surfaceContainerLow : scheme.secondaryContainer;
     final fg = isDark ? scheme.onSurface : scheme.onSecondaryContainer;
     final iconColor = scheme.secondary;
+    final split = splitCoachResponse(text);
     return Container(
       decoration: BoxDecoration(
         color: bg,
@@ -1254,31 +1256,74 @@ class _CoachBubble extends StatelessWidget {
             : null,
       ),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              Icons.tips_and_updates_outlined,
-              size: 16,
-              color: iconColor,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  Icons.tips_and_updates_outlined,
+                  size: 16,
+                  color: iconColor,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: MarkdownBody(
+                  data: split.body,
+                  styleSheet:
+                      MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                    p: TextStyle(color: fg, height: 1.35),
+                    strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
+                    em: TextStyle(color: fg, fontStyle: FontStyle.italic),
+                    listBullet: TextStyle(color: fg),
+                    blockSpacing: 6,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: MarkdownBody(
-              data: text,
-              styleSheet:
-                  MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                p: TextStyle(color: fg, height: 1.35),
-                strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
-                em: TextStyle(color: fg, fontStyle: FontStyle.italic),
-                listBullet: TextStyle(color: fg),
-                blockSpacing: 6,
+          if (split.followUps.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 26),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final chip in split.followUps)
+                    ActionChip(
+                      label: Text(chip),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize:
+                          MaterialTapTargetSize.shrinkWrap,
+                      labelStyle: TextStyle(
+                        color: fg,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      backgroundColor: bg,
+                      side: BorderSide(
+                        color: scheme.secondary.withValues(alpha: 0.5),
+                        width: 0.8,
+                      ),
+                      onPressed: () {
+                        final next = ref.read(
+                                mealInputPrefillProvider.notifier).state?.version ?? 0;
+                        ref.read(mealInputPrefillProvider.notifier).state =
+                            MealInputPrefill(text: chip, version: next + 1);
+                        ref
+                            .read(mealInputFocusRequestProvider.notifier)
+                            .state++;
+                      },
+                    ),
+                ],
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -1328,6 +1373,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
   Uint8List? _imageBytes;
   bool _sending = false;
   int _lastFocusRequest = 0;
+  int _lastPrefillVersion = 0;
   // Override timestamp for the next meal save. Null = use DateTime.now()
   // at send time. Used when the user logs e.g. breakfast in the evening.
   // Resets to null after each successful send.
@@ -1740,6 +1786,24 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     if (focusReq != _lastFocusRequest) {
       _lastFocusRequest = focusReq;
       if (focusReq > 0) _focusAndOpenKeyboard();
+    }
+
+    // Tap on a coach follow-up chip writes a payload here. Pull it into the
+    // text field, place the cursor at the end, then clear the provider so a
+    // repeat tap with the same label still fires (version counter handles
+    // the case where the user wipes the field and taps the same chip again).
+    final prefill = ref.watch(mealInputPrefillProvider);
+    if (prefill != null && prefill.version != _lastPrefillVersion) {
+      _lastPrefillVersion = prefill.version;
+      _controller.text = prefill.text;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: _controller.text.length),
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(mealInputPrefillProvider.notifier).state = null;
+        }
+      });
     }
 
     return Material(

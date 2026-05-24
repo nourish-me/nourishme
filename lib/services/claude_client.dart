@@ -472,6 +472,7 @@ ${NutritionFacts.coachContextBlockEn}
     String dietaryNotes = '',
     String locale = 'en',
     DateTime? loggedAt,
+    bool requestFollowUps = false,
   }) async {
     final isDe = _isGerman(locale);
     // The coach reasons about meal timing ("breakfast", "next meal") from
@@ -540,10 +541,23 @@ ${NutritionFacts.coachContextBlockEn}
                 dietaryNotes: dietaryNotes),
           );
 
+    // Every Nth meal the coach gets primed to surface engagement-questions
+    // the user can tap, which then prefill the meal-input field. Threading
+    // this through the user-message (not the system prompt) keeps the
+    // baseline format identical for the common case.
+    final followUpInstructionDe =
+        '\nFüge AM ENDE der Antwort eine Sektion **Fragen:** an mit 2-3 kurzen Bullets (je max 8 Wörter), die als ANTWORT-Vorlagen für die Nutzerin formuliert sind. Beispiele: "Ich esse selten Fisch", "Ich brauche Vorschläge für unterwegs", "Mir fehlt heute Energie". Format: `- <Bullet>`. Keine Fragezeichen.';
+    final followUpInstructionEn =
+        '\nAppend a section **Follow-ups:** AT THE END with 2-3 short bullets (max 8 words each), phrased as REPLY templates from the user. Examples: "I rarely eat fish", "I need on-the-go ideas", "I feel low energy today". Format: `- <bullet>`. No question marks.';
+
+    final finalUserMessage = requestFollowUps
+        ? '$userMessage${isDe ? followUpInstructionDe : followUpInstructionEn}'
+        : userMessage;
+
     return _post(
       systemPrompt: isDe ? _perMealPromptDe : _perMealPromptEn,
       messages: [
-        {'role': 'user', 'content': userMessage},
+        {'role': 'user', 'content': finalUserMessage},
       ],
       maxTokens: 800,
     );

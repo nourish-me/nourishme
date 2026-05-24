@@ -135,6 +135,19 @@ final insightLoadingProvider = StateProvider<bool>((ref) => false);
 // requests still trigger a notify even if the value doesn't flip.
 final mealInputFocusRequestProvider = StateProvider<int>((ref) => 0);
 
+// One-shot prefill payload for the home meal input. Other parts of the app
+// (e.g. coach-response follow-up chips) push a question here and clear it
+// to null after the input pulls the value. Bundles a payload + a version
+// counter so a repeated tap with the same text still re-fires the prefill.
+class MealInputPrefill {
+  final String text;
+  final int version;
+  const MealInputPrefill({required this.text, required this.version});
+}
+
+final mealInputPrefillProvider =
+    StateProvider<MealInputPrefill?>((ref) => null);
+
 final mealsByDayProvider = Provider<Map<DateTime, List<MealEntry>>>((ref) {
   final all = ref.watch(mealsProvider).valueOrNull ?? const [];
   final grouped = <DateTime, List<MealEntry>>{};

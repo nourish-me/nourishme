@@ -354,6 +354,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       dietaryNotes: profile?.dietaryNotes ?? '',
       locale: locale,
       loggedAt: meal.createdAt,
+      // Every 3rd meal of the day (3, 6, 9, ...) the coach surfaces chip
+      // questions the user can tap to share preferences/context. Only on
+      // first-time logging, not on edits (those reuse the established
+      // conversation rhythm).
+      requestFollowUps: !isEdit && mealsForTotal.length % 3 == 0,
     )
         .then((response) async {
       // Link the coach response to the meal so deleting the meal also
