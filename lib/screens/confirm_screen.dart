@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -55,12 +54,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   // Claude returned, gets bumped after a successful re-parse.
   late String _origSummary;
   // Portion alias is free text Claude returns ("1 mittlere Schüssel") that
-  // can't be scaled arithmetically. _origAlias is the alias for _origPortion;
-  // _currentAlias is what we display/save for the amount currently entered.
+  // can't be scaled arithmetically, so we hide it once the user changes the
+  // amount and restore it if they return to the parsed value. _origAlias is
+  // the alias for _origPortion; _currentAlias is what we display/save now.
   late String? _origAlias;
   String? _currentAlias;
-  bool _aliasLoading = false;
-  Timer? _aliasDebounce;
   bool _scaling = false;
   bool _saveAsFavorite = false;
   // Makros (P/KH/F) are hidden by default; user taps Details to reveal them.
@@ -107,7 +105,6 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final newText = _summary.text.trim();
     if (newText.isEmpty || newText == _origSummary || _reparsing) return;
     setState(() => _reparsing = true);
-    _aliasDebounce?.cancel();
     try {
       final parsed = await ref.read(claudeClientProvider).parseMeal(
             newText,
@@ -132,7 +129,6 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         _origSummary = parsed.summary;
         _origAlias = parsed.portionAlias;
         _currentAlias = parsed.portionAlias;
-        _aliasLoading = false;
         _summary.text = parsed.summary;
         _kcal.text = parsed.kcal.toString();
         _protein.text = parsed.proteinG.toStringAsFixed(1);
@@ -194,7 +190,6 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _carbs.dispose();
     _fat.dispose();
     _portion.dispose();
-    _aliasDebounce?.cancel();
     super.dispose();
   }
 
@@ -212,57 +207,12 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _carbs.text = (_origCarbs * scale).toStringAsFixed(1);
     _fat.text = (_origFat * scale).toStringAsFixed(1);
     _scaling = false;
-    _scheduleAliasReestimate(newPortion);
-  }
-
-  // The alias can't be scaled arithmetically, so when the amount moves we ask
-  // Claude for a fresh reference. Debounced so dragging/typing fires one call
-  // when the user settles, not one per keystroke.
-  void _scheduleAliasReestimate(double newPortion) {
-    if (_reparsing) return; // reparse sets the alias itself
-    _aliasDebounce?.cancel();
-    // Back at the original parse amount: restore its alias, no call needed.
-    if ((newPortion - _origPortion).abs() < 0.5) {
-      if (_aliasLoading || _currentAlias != _origAlias) {
-        setState(() {
-          _currentAlias = _origAlias;
-          _aliasLoading = false;
-        });
-      }
-      return;
-    }
-    setState(() => _aliasLoading = true);
-    _aliasDebounce = Timer(
-      const Duration(milliseconds: 700),
-      () => _reestimateAlias(newPortion),
-    );
-  }
-
-  Future<void> _reestimateAlias(double amount) async {
-    final summary = _summary.text.trim().isEmpty
-        ? widget.parsed.summary
-        : _summary.text.trim();
-    final locale = Localizations.localeOf(context).languageCode;
-    try {
-      final alias = await ref.read(claudeClientProvider).estimatePortionAlias(
-            summary: summary,
-            amount: amount,
-            unit: widget.parsed.portionUnit,
-            locale: locale,
-          );
-      if (!mounted) return;
-      // Drop a stale reply: if the amount moved again while this was in
-      // flight, a newer request owns the field.
-      final current = _parseDouble(_portion.text, 0);
-      if ((current - amount).abs() > 0.5) return;
-      setState(() {
-        _currentAlias = alias;
-        _aliasLoading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      // Leave the previous alias in place, just stop the spinner.
-      setState(() => _aliasLoading = false);
+    // The alias is free text that can't be scaled arithmetically, and a stale
+    // reference misleads about magnitude. So hide it once the amount diverges
+    // from the parsed value, and restore it if the amount returns.
+    final alias = (newPortion - _origPortion).abs() < 0.5 ? _origAlias : null;
+    if (alias != _currentAlias) {
+      setState(() => _currentAlias = alias);
     }
   }
 
@@ -550,11 +500,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                 controller: _portion,
                 label: l10n.confirmFieldPortion,
                 suffix: portionUnit,
-                helper: _aliasLoading
-                    ? l10n.confirmAliasLoading
-                    : (_currentAlias != null
-                        ? l10n.confirmAliasPrefix(_currentAlias!)
-                        : null),
+                helper: _currentAlias != null
+                    ? l10n.confirmAliasPrefix(_currentAlias!)
+                    : null,
                 decimal: true,
                 onSubmit: _save,
               ),

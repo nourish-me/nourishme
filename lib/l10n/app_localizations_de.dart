@@ -196,9 +196,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get confirmAliasLoading => '≈ wird geschätzt…';
-
-  @override
   String get confirmFavoriteAdd => 'Als Favorit speichern';
 
   @override

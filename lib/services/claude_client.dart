@@ -484,36 +484,6 @@ ${NutritionFacts.coachContextBlockEn}
     );
   }
 
-  // Lightweight follow-up call for the confirm screen: when the user edits the
-  // portion amount, re-estimates ONLY the human-friendly reference size (e.g.
-  // "1 mittlere Schüssel" -> "eine kleine Schüssel") for the new amount,
-  // without re-running the full nutrition parse. Returns null when no sensible
-  // reference exists (e.g. water) or the reply is malformed.
-  Future<String?> estimatePortionAlias({
-    required String summary,
-    required double amount,
-    required String unit,
-    String locale = 'en',
-  }) async {
-    final isDe = _isGerman(locale);
-    final system = isDe
-        ? 'Gib eine handliche Bezugsgröße (max 25 Zeichen) für die genannte Speise und Menge an, mit der man die Portion ohne Waage abschätzen kann. Beispiele: "eine Handvoll", "2 EL", "ein kleiner Becher", "1 mittlere Schüssel", "zwei Handvoll", "1 Handfläche". Antworte NUR mit der Bezugsgröße, ohne Anführungszeichen, ohne ganzen Satz. Wenn keine sinnvolle Bezugsgröße existiert (z.B. Wasser), antworte ausschließlich mit NONE.'
-        : 'Give a handy reference size (max 25 chars) for the named food and amount, so the portion can be judged without a scale. Examples: "a handful", "2 tbsp", "a small mug", "1 medium bowl", "two handfuls", "1 palm size". Reply with ONLY the reference size, no quotes, no full sentence. If no sensible reference exists (e.g. water), reply with exactly NONE.';
-    final raw = (await _post(
-      systemPrompt: system,
-      messages: [
-        {'role': 'user', 'content': '$summary, ${amount.toStringAsFixed(0)} $unit'},
-      ],
-      maxTokens: 30,
-    ))
-        .trim();
-    if (raw.isEmpty || raw.toUpperCase() == 'NONE') return null;
-    // A well-behaved reply is a short phrase. Anything long means the model
-    // ignored the format, so drop it rather than show a sentence as an alias.
-    if (raw.length > 40) return null;
-    return raw;
-  }
-
   Future<String> generatePerMealResponse({
     required String mealRawText,
     required String mealSummary,
