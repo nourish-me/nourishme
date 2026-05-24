@@ -396,6 +396,11 @@
 
   "onboardingRemindersDetail": "Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".",
 
+  "onboardingDisclaimerTitle": "Briefly: not medical advice.",
+  "onboardingDisclaimerBody": "NourishMe is a personal wellness tool, not a medical device. For medical questions, talk to your doctor or midwife. For allergies or pre-existing conditions, double-check coach suggestions yourself.",
+  "onboardingDisclaimerCheckbox": "I understand.",
+  "onboardingDisclaimerLink": "More details",
+
   "factEnergyLactationTopic": "Energy supplement, breastfeeding phase",
   "factEnergyLactationSummary": "~84 kcal per 100 ml of milk",
   "factEnergyLactationDetail": "Energy density of breast milk 0.67 kcal/g × synthesis efficiency 80% = ~84 kcal per 100 ml. Typical volumes: exclusive 0-6 mo ~780 ml/day, 6-12 mo ~550 ml, >12 mo ~200-400 ml. Twins exclusive: ~1,500 ml (+~1,100 kcal). DGE flat rate: +500 kcal for one child 0-6 mo.",

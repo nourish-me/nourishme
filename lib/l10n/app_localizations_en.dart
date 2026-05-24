@@ -802,6 +802,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".';
 
   @override
+  String get onboardingDisclaimerTitle => 'Briefly: not medical advice.';
+
+  @override
+  String get onboardingDisclaimerBody =>
+      'NourishMe is a personal wellness tool, not a medical device. For medical questions, talk to your doctor or midwife. For allergies or pre-existing conditions, double-check coach suggestions yourself.';
+
+  @override
+  String get onboardingDisclaimerCheckbox => 'I understand.';
+
+  @override
+  String get onboardingDisclaimerLink => 'More details';
+
+  @override
   String get factEnergyLactationTopic =>
       'Energy supplement, breastfeeding phase';
 

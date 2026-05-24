@@ -12,6 +12,7 @@ class SettingsRepository {
   static const _insightDateKey = 'insight_last_generated_day';
   static const _themeModeKey = 'theme_mode';
   static const _remindersKey = 'meal_reminders';
+  static const _disclaimerKey = 'disclaimer_accepted_at';
 
   final Box<String> _box;
 
@@ -39,6 +40,17 @@ class SettingsRepository {
 
   Future<void> setThemeMode(String mode) =>
       _box.put(_themeModeKey, mode);
+
+  // Audit trail of the medical-disclaimer acceptance during onboarding.
+  // Null until the user ticks the checkbox + finishes onboarding.
+  DateTime? getDisclaimerAcceptedAt() {
+    final raw = _box.get(_disclaimerKey);
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<void> setDisclaimerAcceptedAt(DateTime at) =>
+      _box.put(_disclaimerKey, at.toIso8601String());
 
   Future<void> clearAll() => _box.clear();
 

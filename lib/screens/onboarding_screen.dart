@@ -53,6 +53,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // users land in the app with reminders set up; if iOS denies the system
   // permission we honestly flip the persisted master flag back to off.
   bool _remindersOptIn = true;
+  // Medical-disclaimer checkbox state on the Summary step. The Loslegen /
+  // Get-started CTA stays disabled until the user explicitly ticks this.
+  // Persisted as a timestamp via SettingsRepository.setDisclaimerAcceptedAt
+  // in _finish so we have an audit trail of the acceptance.
+  bool _disclaimerAccepted = false;
   int _dailyVolumeMl =
       UserProfileSettings.estimatedDailyVolumeMl(
           numChildren: 1, ageGroup: 0, sharePercent: 100);
@@ -77,6 +82,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         // advanceable. User can still adjust before continuing.
         return double.tryParse(_height.text.replaceAll(',', '.')) != null &&
             double.tryParse(_weight.text.replaceAll(',', '.')) != null;
+      case 4:
+        // Summary step also hosts the medical-disclaimer checkbox. The
+        // primary CTA stays disabled until the user explicitly ticks it.
+        return _disclaimerAccepted;
       default:
         return true;
     }
@@ -177,6 +186,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final profile = _buildProfile();
     final settingsRepo = ref.read(settingsRepositoryProvider);
     await settingsRepo.saveProfile(profile);
+    // Persist the disclaimer acceptance with the actual tap-through time.
+    // The CTA guard (_canAdvance case 4) means this can only fire after the
+    // user has explicitly ticked the checkbox.
+    await settingsRepo.setDisclaimerAcceptedAt(DateTime.now());
     ref.invalidate(userProfileProvider);
 
     // If the user kept the meal-reminders opt-in on, request iOS permission
@@ -296,6 +309,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       remindersOptIn: _remindersOptIn,
                       onRemindersToggled: (v) =>
                           setState(() => _remindersOptIn = v),
+                      disclaimerAccepted: _disclaimerAccepted,
+                      onDisclaimerToggled: (v) =>
+                          setState(() => _disclaimerAccepted = v),
                     ),
                   ],
                 ),
@@ -986,10 +1002,14 @@ class _SummaryStep extends StatelessWidget {
   final UserProfileSettings profile;
   final bool remindersOptIn;
   final ValueChanged<bool> onRemindersToggled;
+  final bool disclaimerAccepted;
+  final ValueChanged<bool> onDisclaimerToggled;
   const _SummaryStep({
     required this.profile,
     required this.remindersOptIn,
     required this.onRemindersToggled,
+    required this.disclaimerAccepted,
+    required this.onDisclaimerToggled,
   });
 
   @override
@@ -1139,6 +1159,75 @@ class _SummaryStep extends StatelessWidget {
               Switch(
                 value: remindersOptIn,
                 onChanged: onRemindersToggled,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Medical disclaimer: required tick before the Get-started CTA
+        // enables. Kept short and inline (not a separate full-page step
+        // like other apps) so it doesn't feel like a contract gate.
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: disclaimerAccepted
+                  ? scheme.primary.withValues(alpha: 0.5)
+                  : scheme.outlineVariant,
+              width: disclaimerAccepted ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.info_outline,
+                      size: 20, color: scheme.onSurfaceVariant),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.onboardingDisclaimerTitle,
+                    style: textTheme.bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.onboardingDisclaimerBody,
+                style: textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 4),
+              InkWell(
+                onTap: () => onDisclaimerToggled(!disclaimerAccepted),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      // Manual checkbox so the tap-target spans the row
+                      // and the label visually anchors to the Loslegen CTA.
+                      Checkbox(
+                        value: disclaimerAccepted,
+                        onChanged: (v) => onDisclaimerToggled(v ?? false),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n.onboardingDisclaimerCheckbox,
+                        style: textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

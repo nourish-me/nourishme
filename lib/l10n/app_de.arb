@@ -273,6 +273,11 @@
 
   "onboardingRemindersDetail": "Fünf Slots über den Tag verteilt. iOS fragt einmal um Erlaubnis, wenn du \"Tagebuch öffnen\" tippst.",
 
+  "onboardingDisclaimerTitle": "Kurz: keine medizinische Beratung.",
+  "onboardingDisclaimerBody": "NourishMe ist ein persönliches Wellness-Tool, kein medizinisches Produkt. Bei medizinischen Fragen sprich mit deiner Ärztin oder Hebamme. Bei Allergien oder Vorerkrankungen prüfe Coach-Vorschläge selbst.",
+  "onboardingDisclaimerCheckbox": "Verstanden.",
+  "onboardingDisclaimerLink": "Mehr dazu",
+
   "factEnergyLactationTopic": "Energie-Aufschlag Stillzeit",
   "factEnergyLactationSummary": "Pro 100 ml Milch ~84 kcal",
   "factEnergyLactationDetail": "Energiedichte Muttermilch 0,67 kcal/g × Synthese-Effizienz 80 % = ~84 kcal pro 100 ml. Typische Volumina: exklusiv 0-6 Mo ~780 ml/Tag, 6-12 Mo ~550 ml, >12 Mo ~200-400 ml. Zwillinge exklusiv: ~1.500 ml (+~1.100 kcal). DGE-Pauschal +500 kcal bei einem Kind 0-6 Mo.",

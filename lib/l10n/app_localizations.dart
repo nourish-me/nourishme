@@ -1526,6 +1526,30 @@ abstract class AppLocalizations {
   /// **'Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".'**
   String get onboardingRemindersDetail;
 
+  /// No description provided for @onboardingDisclaimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Briefly: not medical advice.'**
+  String get onboardingDisclaimerTitle;
+
+  /// No description provided for @onboardingDisclaimerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'NourishMe is a personal wellness tool, not a medical device. For medical questions, talk to your doctor or midwife. For allergies or pre-existing conditions, double-check coach suggestions yourself.'**
+  String get onboardingDisclaimerBody;
+
+  /// No description provided for @onboardingDisclaimerCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand.'**
+  String get onboardingDisclaimerCheckbox;
+
+  /// No description provided for @onboardingDisclaimerLink.
+  ///
+  /// In en, this message translates to:
+  /// **'More details'**
+  String get onboardingDisclaimerLink;
+
   /// No description provided for @factEnergyLactationTopic.
   ///
   /// In en, this message translates to:
