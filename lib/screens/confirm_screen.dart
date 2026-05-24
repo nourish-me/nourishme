@@ -215,7 +215,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   Future<void> _appendToThread(MealEntry meal) async {
     final isEdit = widget.existingMealId != null;
     if (isEdit && !_mealValuesChanged(meal)) {
-      // No actual changes — keep the existing coach response, don't spend a
+      // No actual changes, keep the existing coach response, don't spend a
       // Claude call on a no-op.
       return;
     }

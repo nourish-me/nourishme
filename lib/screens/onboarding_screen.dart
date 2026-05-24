@@ -73,7 +73,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         // At least one of pregnant/lactating must be picked.
         return _isPregnant || _isLactating;
       case 2:
-        // Birthdate is pre-filled, height/weight have defaults — always
+        // Birthdate is pre-filled, height/weight have defaults, always
         // advanceable. User can still adjust before continuing.
         return double.tryParse(_height.text.replaceAll(',', '.')) != null &&
             double.tryParse(_weight.text.replaceAll(',', '.')) != null;

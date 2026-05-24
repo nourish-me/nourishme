@@ -113,7 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (days.isEmpty) return;
 
     // Stop auto-loading once we've walked back past the user's earliest
-    // logged meal — the empty-day collapse means the new days don't push
+    // logged meal: the empty-day collapse means the new days don't push
     // the viewport down much, so the near-top trigger would re-fire in a
     // tight loop and the list visibly flickers.
     final mealsAll = ref.read(mealsProvider).valueOrNull ?? const [];
@@ -587,7 +587,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final widgets = <Widget>[];
 
     // Auto-load happens within a frame or two from Hive, so the spinner
-    // just flickers briefly the first time the user pulls up — removed
+    // just flickers briefly the first time the user pulls up, removed
     // for less visual noise. The empty-day-collapse divider already
     // signals the boundary.
 
@@ -769,7 +769,7 @@ class _DaySeparator extends StatelessWidget {
 }
 
 // Compact summary line for a run of consecutive empty days when scrolling
-// back through history. Shows "9. — 18. Mai · keine Einträge" instead of
+// back through history. Shows "9. bis 18. Mai · keine Einträge" instead of
 // stacking individual day separators with empty rows.
 class _EmptyDayRange extends StatelessWidget {
   final DateTime start;
@@ -1646,7 +1646,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         // the keyboard shown and the new entry view is half the screen.
         FocusManager.instance.primaryFocus?.unfocus();
       } else if (text.isEmpty && hasImage) {
-        // Image-only input that didn't parse as a meal — almost always a
+        // Image-only input that didn't parse as a meal, almost always a
         // non-food photo. Surface as a snackbar so it's clearly a system
         // hint, not a coach response.
         _showSnack(
@@ -1654,7 +1654,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
               AppLocalizations.of(context).homePhotoNotFoodError,
         );
       } else {
-        // Text input that didn't parse as a meal — treat as a coach question.
+        // Text input that didn't parse as a meal, treat as a coach question.
         await _askAsQuestion(text);
       }
       _controller.clear();

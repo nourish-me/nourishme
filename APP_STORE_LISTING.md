@@ -1,4 +1,4 @@
-# App Store Listing — NourishMe
+# App Store Listing · NourishMe
 
 Primary locale **en-US** (after the EN-first switch on 2026-05-23).
 German remains a fully localised secondary locale (de-DE).

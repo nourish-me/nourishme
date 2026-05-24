@@ -33,7 +33,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyTodayHeadline => 'What did you eat today?';
 
   @override
-  String get emptyTodayBody => 'Type away — the coach takes it from there.';
+  String get emptyTodayBody => 'Type away, the coach takes it from there.';
 
   @override
   String get emptyHistoryHeadline => 'Your history starts today.';
@@ -247,7 +247,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeEmptyRangeMulti(String from, String to, int count) {
-    return '$from — $to · $count days without entries';
+    return '$from to $to · $count days without entries';
   }
 
   @override
@@ -380,7 +380,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackMailTriageHint =>
-      'Please don\'t edit below — it helps with triage.';
+      'Please don\'t edit below, it helps with triage.';
 
   @override
   String get feedbackMailDeviceLabel => 'Device';

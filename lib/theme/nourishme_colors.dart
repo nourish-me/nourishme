@@ -1,4 +1,4 @@
-// NourishMe / NurtureTrack — Field Manual palette.
+// NourishMe / NurtureTrack, Field Manual palette.
 // Source of truth: handoff/nourishme_logo_bowl/brand-tokens.dart.
 // Mirrored in docs/style.css :root so app and landing stay in sync.
 // Do NOT regenerate via ColorScheme.fromSeed.
@@ -35,7 +35,7 @@ class NMColors {
   static const rule       = Color(0xFFD5CEC0);
 }
 
-// Legacy aliases — kept so existing callsites keep working.
+// Legacy aliases, kept so existing callsites keep working.
 // Prefer NMColors.* in new code.
 const nmMoss      = NMColors.moss;
 const nmAmberWarm = NMColors.amber;

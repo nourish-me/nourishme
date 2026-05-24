@@ -85,7 +85,7 @@
   "homeOpenDayHelp": "Tag öffnen",
   "homeCoachThinking": "Coach denkt nach…",
   "homeEmptyRangeSingle": "{label} · keine Einträge",
-  "homeEmptyRangeMulti": "{from} — {to} · {count} Tage leer",
+  "homeEmptyRangeMulti": "{from} bis {to} · {count} Tage leer",
   "homeEmptyDayText": "Keine Einträge",
   "homeEmptyDayAdd": "hinzufügen",
   "homeEmptyRangePickerTitle": "Welcher Tag?",
@@ -127,7 +127,7 @@
   "reminderSlotDinner": "Abendessen",
 
   "feedbackMailSubject": "NourishMe Feedback",
-  "feedbackMailTriageHint": "Bitte ändere unten drunter nichts — der Block hilft beim Triage.",
+  "feedbackMailTriageHint": "Bitte ändere unten drunter nichts, der Block hilft beim Triage.",
   "feedbackMailDeviceLabel": "Gerät",
   "reminderPermissionBlocked": "Benachrichtigungen sind in den iOS-Einstellungen blockiert.",
 

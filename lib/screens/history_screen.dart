@@ -86,7 +86,7 @@ class HistoryScreen extends ConsumerWidget {
   }
 }
 
-// _EmptyHistory removed — replaced by EmptyHistory widget per TestFlight 1.1
+// _EmptyHistory removed, replaced by EmptyHistory widget per TestFlight 1.1
 // design pass (see widgets/empty/empty_history.dart).
 
 // Each day shows a compact tap-target card: the day header + the same

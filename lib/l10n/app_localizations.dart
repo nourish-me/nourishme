@@ -149,7 +149,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyTodayBody.
   ///
   /// In en, this message translates to:
-  /// **'Type away — the coach takes it from there.'**
+  /// **'Type away, the coach takes it from there.'**
   String get emptyTodayBody;
 
   /// No description provided for @emptyHistoryHeadline.
@@ -545,7 +545,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeEmptyRangeMulti.
   ///
   /// In en, this message translates to:
-  /// **'{from} — {to} · {count} days without entries'**
+  /// **'{from} to {to} · {count} days without entries'**
   String homeEmptyRangeMulti(String from, String to, int count);
 
   /// No description provided for @homeEmptyDayText.
@@ -785,7 +785,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedbackMailTriageHint.
   ///
   /// In en, this message translates to:
-  /// **'Please don\'t edit below — it helps with triage.'**
+  /// **'Please don\'t edit below, it helps with triage.'**
   String get feedbackMailTriageHint;
 
   /// No description provided for @feedbackMailDeviceLabel.

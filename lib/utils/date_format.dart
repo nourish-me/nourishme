@@ -20,7 +20,7 @@ String formatDayHeader(BuildContext context, DateTime day) {
 
 String formatFullDate(BuildContext context, DateTime day) {
   final locale = Localizations.localeOf(context).toLanguageTag();
-  // "Monday, 23 May" / "Monday, May 23" — DateFormat picks the locale's
+  // "Monday, 23 May" / "Monday, May 23". DateFormat picks the locale's
   // preferred order. EEEE = full weekday, MMMM = full month, d = day.
   return intl.DateFormat('EEEE, MMMM d', locale).format(day);
 }

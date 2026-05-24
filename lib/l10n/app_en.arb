@@ -16,7 +16,7 @@
   "settingsTooltip": "Settings",
 
   "emptyTodayHeadline": "What did you eat today?",
-  "emptyTodayBody": "Type away — the coach takes it from there.",
+  "emptyTodayBody": "Type away, the coach takes it from there.",
 
   "emptyHistoryHeadline": "Your history starts today.",
 
@@ -121,7 +121,7 @@
       "label": {"type": "String"}
     }
   },
-  "homeEmptyRangeMulti": "{from} — {to} · {count} days without entries",
+  "homeEmptyRangeMulti": "{from} to {to} · {count} days without entries",
   "@homeEmptyRangeMulti": {
     "placeholders": {
       "from": {"type": "String"},
@@ -185,7 +185,7 @@
   "reminderSlotDinner": "Dinner",
 
   "feedbackMailSubject": "NourishMe feedback",
-  "feedbackMailTriageHint": "Please don't edit below — it helps with triage.",
+  "feedbackMailTriageHint": "Please don't edit below, it helps with triage.",
   "feedbackMailDeviceLabel": "Device",
   "reminderPermissionBlocked": "Notifications are blocked in iOS Settings.",
 

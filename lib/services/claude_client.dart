@@ -186,7 +186,7 @@ ${NutritionFacts.coachContextBlock}
 Antworte strikt in folgendem Markdown-Format. Keine Tabellen, sie passen auf Handy-Bildschirmen nicht. Keine zusätzlichen Sätze davor oder danach.
 
 **Bestandteile:** (NUR wenn die Mahlzeit aus mehreren Komponenten besteht. Bei einer Komponente diesen Block komplett weglassen.)
-- <Bestandteil>, <Menge> — <kcal> kcal · P <g> · KH <g> · F <g>
+- <Bestandteil>, <Menge>: <kcal> kcal · P <g> · KH <g> · F <g>
 - ... weitere Bestandteile in derselben Form
 
 **🟢 Stark:** ein bis zwei Stärken in einem Satz
@@ -215,7 +215,7 @@ ${NutritionFacts.coachContextBlockEn}
 Answer strictly in the following Markdown format. No tables, they don't fit on phone screens. No additional sentences before or after.
 
 **Components:** (ONLY when the meal consists of multiple parts. Skip the whole block when there's only one component.)
-- <component>, <amount> — <kcal> kcal · P <g> · C <g> · F <g>
+- <component>, <amount>: <kcal> kcal · P <g> · C <g> · F <g>
 - ... further components in the same form
 
 **🟢 Strong:** one or two strengths in one sentence

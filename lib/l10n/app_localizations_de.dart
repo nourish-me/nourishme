@@ -251,7 +251,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String homeEmptyRangeMulti(String from, String to, int count) {
-    return '$from — $to · $count Tage leer';
+    return '$from bis $to · $count Tage leer';
   }
 
   @override
@@ -386,7 +386,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get feedbackMailTriageHint =>
-      'Bitte ändere unten drunter nichts — der Block hilft beim Triage.';
+      'Bitte ändere unten drunter nichts, der Block hilft beim Triage.';
 
   @override
   String get feedbackMailDeviceLabel => 'Gerät';

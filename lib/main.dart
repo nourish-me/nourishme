@@ -148,7 +148,7 @@ class _NourishMeAppState extends ConsumerState<NourishMeApp> {
       darkTheme: buildDarkTheme(),
       themeMode: themeMode,
       // English primary, German for users whose device is set to de/at/ch.
-      // No explicit locale override — MaterialApp picks from device locale,
+      // No explicit locale override, MaterialApp picks from device locale,
       // falls back to AppLocalizations.supportedLocales (en first).
       localizationsDelegates: const [
         AppLocalizations.delegate,

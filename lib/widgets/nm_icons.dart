@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 // NourishMe custom icon set from the TestFlight 1.1 design pass.
 // Two-tone (pine + amber, food-safety is plum + amber). 24 pt base.
-// Renders flat SVG, no tint — selected/unselected states should rely on
+// Renders flat SVG, no tint. Selected/unselected states should rely on
 // surrounding container chrome, not icon recolor.
 class NMIcons {
   NMIcons._();

@@ -387,7 +387,7 @@ class _ChartBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Text(
-          day.kcal > 0 ? formatKcal(day.kcal) : '—',
+          day.kcal > 0 ? formatKcal(day.kcal) : '-',
           style: textTheme.labelSmall?.copyWith(
             color: scheme.outline,
             fontSize: 9.5,
