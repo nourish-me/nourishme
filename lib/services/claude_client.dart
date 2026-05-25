@@ -221,6 +221,7 @@ Regeln:
 - Vermeide das Wort "Stillen" und seine Varianten. Nutze "während du Muttermilch produzierst" oder "in dieser Phase", weil viele Mütter ausschließlich pumpen
 - Die Nutzerdaten (Gewicht, Aktivität, Anzahl Kinder, Milchvolumen, etc.) sind im Profil mitgeliefert. Nutze sie SOFORT und FRAG NIEMALS danach.
 - Wenn ein Ernährungsprofil (Vegetarisch, Vegan, Allergien etc.) im Kontext steht, RESPEKTIERE es absolut: schlage keine vermiedenen Lebensmittel vor, halte Vorschläge im Stil (z.B. nur Pflanzliches bei vegan).
+- Wenn ein "Gewichtstrend" im Kontext steht (wird nur bei auffällig schnellem Verlust/Zunahme mitgegeben), baue einen kurzen sachlichen Hinweis in die 🟡 Knapp-Zeile ein: ca. 0,5 kg/Woche Abnahme ist in dieser Phase die Obergrenze (DGE), bei schnellerem Verlust zu ausreichender Energiezufuhr ermutigen. Ohne Alarm, ein Satz. Wenn kein Gewichtstrend dasteht, erwähne Gewicht NICHT.
 ''';
 
   static final _perMealPromptEn = '''
@@ -251,6 +252,7 @@ Rules:
 - Avoid the word "breastfeeding" and its variations. Use "while you're producing breast milk" or "in this phase", since many mothers exclusively pump
 - User data (weight, activity, number of children, milk volume, etc.) is provided in the profile. Use it IMMEDIATELY and NEVER ask for it.
 - If a dietary profile (vegetarian, vegan, allergies, etc.) is in the context, RESPECT it absolutely: never suggest avoided foods, keep suggestions in the listed style (e.g. plant-only for vegan).
+- If a "Weight trend" appears in the context (only passed when loss/gain is notably fast), weave a brief factual note into the 🟡 Light line: ~0.5 kg/week loss is the ceiling in this phase (DGE), on faster loss encourage adequate energy intake. No alarm, one sentence. If no weight trend is present, do NOT mention weight.
 ''';
 
   static final _chatPromptBaseDe = '''
@@ -264,6 +266,7 @@ KRITISCH: Die Nutzerdaten (Gewicht, Größe, Alter, Aktivität, Phase, Anzahl Ki
 - Wenn jemand nach Protein-Bedarf fragt, rechne ihn direkt mit dem mitgelieferten Gewicht und nenne die konkrete Zahl.
 - Wenn jemand nach Wasser-Bedarf fragt, rechne mit dem mitgelieferten Milchvolumen.
 - Sätze wie "wenn du mir dein Gewicht sagst" sind verboten, das Gewicht ist schon da.
+- Wenn ein "Gewichtstrend" im Tageskontext steht, beziehe ihn ein: eine allmähliche Abnahme bis ca. 0,5 kg/Woche gilt in dieser Phase als unbedenklich (DGE/LactMed), schnellere Abnahme kann die Milchproduktion senken. Bei zu schnellem Verlust ermutige zu ausreichender Energiezufuhr statt weiterer Reduktion, ohne Alarm.
 
 Vermeide das Wort "Stillen" und Variationen (stillende Mutter, beim Stillen). Nutze stattdessen "während du Muttermilch produzierst", "Mütter, die pumpen oder anlegen", "in dieser Phase", weil viele Mütter ausschließlich pumpen.
 
@@ -281,6 +284,7 @@ CRITICAL: User data (weight, height, age, activity, phase, number of children, a
 - If someone asks about protein needs, calculate directly using the provided weight and state the concrete number.
 - If someone asks about water intake, calculate using the provided milk volume.
 - Phrases like "if you tell me your weight" are forbidden, the weight is already there.
+- If a "Weight trend" appears in the daily context, factor it in: gradual loss up to ~0.5 kg/week is considered safe in this phase (DGE/LactMed), faster loss can reduce milk supply. On too-rapid loss, encourage adequate energy intake rather than further restriction, without alarm.
 
 Avoid the word "breastfeeding" and variations (breastfeeding mother, while breastfeeding). Use instead "while you produce breast milk", "mothers who pump or nurse", "in this phase", since many mothers exclusively pump.
 
@@ -511,6 +515,7 @@ ${NutritionFacts.coachContextBlockEn}
     String locale = 'en',
     DateTime? loggedAt,
     bool requestFollowUps = false,
+    String? weightTrend,
   }) async {
     final isDe = _isGerman(locale);
     // The coach reasons about meal timing ("breakfast", "next meal") from
@@ -588,9 +593,15 @@ ${NutritionFacts.coachContextBlockEn}
     final followUpInstructionEn =
         '\nAppend a section **Follow-ups:** AT THE END with 2-3 short bullets (max 8 words each), phrased as REPLY templates from the user. Examples: "I rarely eat fish", "I need on-the-go ideas", "I feel low energy today". Format: `- <bullet>`. No question marks.';
 
-    final finalUserMessage = requestFollowUps
-        ? '$userMessage${isDe ? followUpInstructionDe : followUpInstructionEn}'
-        : userMessage;
+    var finalUserMessage = userMessage;
+    // Only passed (by the caller) when the trend is notably fast, so the coach
+    // doesn't bring up weight on every ordinary meal.
+    if (weightTrend != null && weightTrend.isNotEmpty) {
+      finalUserMessage += '\n\n$weightTrend';
+    }
+    if (requestFollowUps) {
+      finalUserMessage += isDe ? followUpInstructionDe : followUpInstructionEn;
+    }
 
     return _post(
       systemPrompt: isDe ? _perMealPromptDe : _perMealPromptEn,

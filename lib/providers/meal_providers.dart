@@ -15,6 +15,7 @@ import '../services/meal_repository.dart';
 import '../services/settings_repository.dart';
 import '../services/thread_repository.dart';
 import '../services/weight_repository.dart';
+import '../utils/weight_trend.dart';
 
 final mealRepositoryProvider = Provider<MealRepository>((ref) {
   throw UnimplementedError('Override in main() with the opened box');
@@ -44,6 +45,13 @@ final weightRepositoryProvider = Provider<WeightRepository>((ref) {
 // ascending so the Trends chart reads left-to-right time-naturally.
 final weightHistoryProvider = StreamProvider<List<WeightEntry>>((ref) {
   return ref.watch(weightRepositoryProvider).watch();
+});
+
+// Recent weight trajectory fed to the coach so it can judge whether loss/gain
+// is in a safe range while producing milk. Null until there's enough history.
+final weightTrendProvider = Provider<WeightTrend?>((ref) {
+  final entries = ref.watch(weightHistoryProvider).valueOrNull ?? const [];
+  return computeWeightTrend(entries);
 });
 
 final todayThreadProvider = StreamProvider<List<ThreadItem>>((ref) {

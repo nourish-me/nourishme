@@ -17,6 +17,7 @@ import '../services/claude_client.dart';
 import '../utils/coach_followups.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
+import '../utils/weight_trend.dart';
 import '../widgets/empty/empty_today.dart';
 import '../widgets/kcal_summary.dart';
 import 'barcode_scanner_screen.dart';
@@ -1642,6 +1643,10 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         ..writeln(
             'Macros today: protein ${protein.toStringAsFixed(0)} g · carbs ${carbs.toStringAsFixed(0)} g · fat ${fat.toStringAsFixed(0)} g.')
         ..writeln('Entries logged today: ${meals.length}.');
+    }
+    final trend = ref.read(weightTrendProvider);
+    if (trend != null) {
+      buffer.writeln(formatWeightTrendForCoach(trend, isDe: isDe));
     }
     return buffer.toString();
   }

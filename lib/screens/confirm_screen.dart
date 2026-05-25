@@ -10,6 +10,7 @@ import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
+import '../utils/weight_trend.dart';
 
 class ConfirmScreen extends ConsumerStatefulWidget {
   final String rawText;
@@ -315,6 +316,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final profile = ref.read(userProfileProvider).valueOrNull;
     final loadingNotifier = ref.read(insightLoadingProvider.notifier);
     final locale = Localizations.localeOf(context).languageCode;
+    // Pass the weight trend to the coach only when it's notably fast, so an
+    // ordinary meal reply doesn't bring up weight every time.
+    final trend = ref.read(weightTrendProvider);
+    final notableTrend = (trend != null && trend.isNotable)
+        ? formatWeightTrendForCoach(trend,
+            isDe: locale.toLowerCase().startsWith('de'))
+        : null;
 
     if (isEdit) {
       // The meal item is already in the thread. Remove the old coach
@@ -380,6 +388,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       // first-time logging, not on edits (those reuse the established
       // conversation rhythm).
       requestFollowUps: !isEdit && mealsForTotal.length % 3 == 0,
+      weightTrend: notableTrend,
     )
         .then((response) async {
       // Link the coach response to the meal so deleting the meal also
