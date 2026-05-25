@@ -488,6 +488,59 @@ ${NutritionFacts.coachContextBlockEn}
     );
   }
 
+  // Safety-only check for a known product (e.g. one scanned via Open Food
+  // Facts, which has no safety data). Returns phase-relevant warnings
+  // (caffeine, alcohol, mercury fish, raw dairy/meat, etc.) or an empty list
+  // on "nothing critical" or any failure, so the scan flow degrades quietly.
+  Future<List<String>> safetyCheck({
+    required String productName,
+    required bool isPregnant,
+    int? trimester,
+    required bool isLactating,
+    String locale = 'en',
+  }) async {
+    final isDe = _isGerman(locale);
+    final phaseDe = isPregnant
+        ? 'schwanger, ${trimester ?? 1}. Trimester'
+        : isLactating
+            ? 'produziert Muttermilch'
+            : 'weder schwanger noch milchproduzierend';
+    final phaseEn = isPregnant
+        ? 'pregnant, trimester ${trimester ?? 1}'
+        : isLactating
+            ? 'producing breast milk'
+            : 'neither pregnant nor producing milk';
+    final system = isDe
+        ? '''Du bist ein Food-Safety-Prüfer. Die Nutzerin ist: $phaseDe.
+Prüfe das genannte Produkt auf gesundheitsrelevante Risiken in dieser Phase: Koffein (Tagesgrenze 200 mg), Alkohol (in der Schwangerschaft meiden, beim Milchproduzieren Wartezeit ca. 2-2,5 h pro Standarddrink), Quecksilber-Großraubfisch, rohe Milch / rohes Fleisch / roher Fisch (Listeria), Leber im 1. Trimester (Vitamin A), milchhemmende Kräuter (Salbei, Pfefferminze in größeren Mengen).
+Antworte AUSSCHLIESSLICH mit einem JSON-Array kurzer deutscher Warn-Strings, z.B. ["Koffein: ca. 80 mg pro Dose, achte auf die Tagesgrenze von 200 mg"]. Wenn nichts kritisch ist, antworte mit []. Vermeide das Wort "Stillen", nutze "während du Muttermilch produzierst".'''
+        : '''You are a food-safety checker. The user is: $phaseEn.
+Check the named product for health-relevant risks in this phase: caffeine (200 mg daily limit), alcohol (avoid in pregnancy, ~2-2.5 h wait per standard drink while producing milk), high-mercury predatory fish, raw milk / raw meat / raw fish (listeria), liver in the first trimester (vitamin A), lactation-suppressing herbs (sage, peppermint in larger amounts).
+Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: ~80 mg per can, mind the 200 mg daily limit"]. If nothing is critical, reply with []. Avoid the word "breastfeeding"; use "while you're producing breast milk".''';
+    try {
+      final raw = (await _post(
+        systemPrompt: system,
+        messages: [
+          {'role': 'user', 'content': productName},
+        ],
+        maxTokens: 200,
+      ))
+          .trim();
+      final start = raw.indexOf('[');
+      final end = raw.lastIndexOf(']');
+      if (start == -1 || end == -1) return const [];
+      final list = jsonDecode(raw.substring(start, end + 1)) as List;
+      return list
+          .whereType<String>()
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    } catch (e) {
+      debugPrint('safetyCheck failed for "$productName": $e');
+      return const [];
+    }
+  }
+
   Future<String> generatePerMealResponse({
     required String mealRawText,
     required String mealSummary,

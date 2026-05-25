@@ -1744,6 +1744,18 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         _showSnack(AppLocalizations.of(context).scanNotFound);
         return;
       }
+      // OFF has accurate macros but no safety data, which is core to this app.
+      // Run a phase-aware safety-only check on the product name and merge it in
+      // (degrades to no warnings if the call fails).
+      final profile = ref.read(userProfileProvider).valueOrNull;
+      final warnings = await ref.read(claudeClientProvider).safetyCheck(
+            productName: product.displaySummary,
+            isPregnant: profile?.isPregnant ?? false,
+            trimester: profile?.trimester,
+            isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+            locale: Localizations.localeOf(context).languageCode,
+          );
+      if (!mounted) return;
       // OFF stores nutrition per 100 g/ml; scale to the default serving so the
       // confirm sheet opens on a sensible amount. The user can adjust it there
       // and the macros rescale locally.
@@ -1760,7 +1772,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         portionAmount: amount,
         portionUnit: product.unit,
         portionAlias: null,
-        safetyWarnings: const [],
+        safetyWarnings: warnings,
       );
       await showModalBottomSheet<MealEntry>(
         context: context,
