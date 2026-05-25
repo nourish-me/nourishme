@@ -493,12 +493,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         actions: [
           IconButton(
             icon: Icon(_mealsOnly
-                ? Icons.filter_list_off
-                : Icons.filter_list),
+                ? Icons.filter_alt
+                : Icons.filter_alt_outlined),
             tooltip: _mealsOnly
                 ? AppLocalizations.of(context).diaryFilterShowAll
                 : AppLocalizations.of(context).diaryFilterMealsOnly,
-            onPressed: () => setState(() => _mealsOnly = !_mealsOnly),
+            onPressed: () {
+              setState(() => _mealsOnly = !_mealsOnly);
+              final l10n = AppLocalizations.of(context);
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(
+                  content: Text(_mealsOnly
+                      ? l10n.diaryFilterOnMsg
+                      : l10n.diaryFilterOffMsg),
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ));
+            },
           ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -2015,7 +2027,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                     ),
                     IconButton(
                       onPressed: _sending ? null : _scanBarcode,
-                      icon: const Icon(Icons.barcode_reader),
+                      icon: const Icon(Icons.qr_code_scanner),
                       tooltip: AppLocalizations.of(context).scanButton,
                       iconSize: 22,
                       padding: const EdgeInsets.all(8),

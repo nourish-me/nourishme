@@ -30,6 +30,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diaryFilterShowAll => 'Alle anzeigen';
 
   @override
+  String get diaryFilterOnMsg => 'Nur Mahlzeiten, Coach-Antworten ausgeblendet';
+
+  @override
+  String get diaryFilterOffMsg => 'Coach-Antworten wieder eingeblendet';
+
+  @override
   String get yesterdayHeader => 'Gestern';
 
   @override

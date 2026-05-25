@@ -30,6 +30,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryFilterShowAll => 'Show all';
 
   @override
+  String get diaryFilterOnMsg => 'Meals only, coach replies hidden';
+
+  @override
+  String get diaryFilterOffMsg => 'Coach replies shown again';
+
+  @override
   String get yesterdayHeader => 'Yesterday';
 
   @override

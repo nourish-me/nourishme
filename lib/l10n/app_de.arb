@@ -10,6 +10,8 @@
   "todayHeader": "Heute",
   "diaryFilterMealsOnly": "Nur Mahlzeiten",
   "diaryFilterShowAll": "Alle anzeigen",
+  "diaryFilterOnMsg": "Nur Mahlzeiten, Coach-Antworten ausgeblendet",
+  "diaryFilterOffMsg": "Coach-Antworten wieder eingeblendet",
   "yesterdayHeader": "Gestern",
   "settingsTooltip": "Einstellungen",
 

@@ -140,6 +140,18 @@ abstract class AppLocalizations {
   /// **'Show all'**
   String get diaryFilterShowAll;
 
+  /// No description provided for @diaryFilterOnMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals only, coach replies hidden'**
+  String get diaryFilterOnMsg;
+
+  /// No description provided for @diaryFilterOffMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach replies shown again'**
+  String get diaryFilterOffMsg;
+
   /// No description provided for @yesterdayHeader.
   ///
   /// In en, this message translates to:

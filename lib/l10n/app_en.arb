@@ -14,6 +14,8 @@
   "todayHeader": "Today",
   "diaryFilterMealsOnly": "Meals only",
   "diaryFilterShowAll": "Show all",
+  "diaryFilterOnMsg": "Meals only, coach replies hidden",
+  "diaryFilterOffMsg": "Coach replies shown again",
   "yesterdayHeader": "Yesterday",
   "settingsTooltip": "Settings",
 
