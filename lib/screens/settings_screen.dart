@@ -745,9 +745,19 @@ class _ActivitySection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: SegmentedButton<double>(
+              // Tighter padding + single-line labels so the longest label
+              // ("Medium" / "Mäßig") fits one segment on narrow phones
+              // instead of wrapping mid-word.
+              style: SegmentedButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              ),
               segments: ActivityLevel.allFor(labels)
-                  .map((l) =>
-                      ButtonSegment(value: l.factor, label: Text(l.label)))
+                  .map((l) => ButtonSegment(
+                        value: l.factor,
+                        label: Text(l.label,
+                            maxLines: 1, softWrap: false, overflow: TextOverflow.visible),
+                      ))
                   .toList(),
               selected: {ActivityLevel.closestTo(activityFactor, labels).factor},
               showSelectedIcon: false,
