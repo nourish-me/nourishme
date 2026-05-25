@@ -314,6 +314,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePhotoButton => 'Add a photo';
 
   @override
+  String get scanButton => 'Scan barcode';
+
+  @override
+  String get scanTitle => 'Scan barcode';
+
+  @override
+  String get scanHint => 'Point the camera at the product\'s barcode';
+
+  @override
+  String get scanNotFound => 'Product not found. Just type the meal instead.';
+
+  @override
   String get homeMainInputHint => 'Log a meal / ask the coach';
 
   @override

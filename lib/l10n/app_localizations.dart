@@ -662,6 +662,30 @@ abstract class AppLocalizations {
   /// **'Add a photo'**
   String get homePhotoButton;
 
+  /// No description provided for @scanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan barcode'**
+  String get scanButton;
+
+  /// No description provided for @scanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan barcode'**
+  String get scanTitle;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the product\'s barcode'**
+  String get scanHint;
+
+  /// No description provided for @scanNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Product not found. Just type the meal instead.'**
+  String get scanNotFound;
+
   /// No description provided for @homeMainInputHint.
   ///
   /// In en, this message translates to:

@@ -9,6 +9,7 @@ import '../models/weight_entry.dart';
 import '../services/analytics_service.dart';
 import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
+import '../services/open_food_facts_client.dart';
 import '../services/favorite_repository.dart';
 import '../services/meal_repository.dart';
 import '../services/settings_repository.dart';
@@ -88,6 +89,9 @@ final claudeClientProvider = Provider<ClaudeClient>((ref) => ClaudeClient());
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
   return AnalyticsService(ref.watch(settingsRepositoryProvider));
 });
+
+final openFoodFactsClientProvider =
+    Provider<OpenFoodFactsClient>((ref) => OpenFoodFactsClient());
 
 final mealsProvider = StreamProvider<List<MealEntry>>((ref) {
   final repo = ref.watch(mealRepositoryProvider);

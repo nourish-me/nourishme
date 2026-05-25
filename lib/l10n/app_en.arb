@@ -156,6 +156,10 @@
   "homePhotoCamera": "Camera",
   "homePhotoGallery": "Photo Library",
   "homePhotoButton": "Add a photo",
+  "scanButton": "Scan barcode",
+  "scanTitle": "Scan barcode",
+  "scanHint": "Point the camera at the product's barcode",
+  "scanNotFound": "Product not found. Just type the meal instead.",
   "homeMainInputHint": "Log a meal / ask the coach",
   "homeMealDeleteTitle": "Delete \"{summary}\"?",
   "@homeMealDeleteTitle": {
