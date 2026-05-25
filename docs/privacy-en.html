@@ -11,7 +11,7 @@
 <nav class="crumb"><a href="index-en.html">Nourish<span style="color:var(--accent)">Me</span></a> · Privacy</nav>
 <header>
   <h1>Privacy Policy</h1>
-  <p>Effective: 19 May 2026</p>
+  <p>Effective: 25 May 2026</p>
 </header>
 <main>
 
@@ -57,9 +57,16 @@ stores API requests for up to 30 days for safety review
 <p>The proxy forwards without storing payloads. Cloudflare retains
 connection metadata (IP, timestamp) for abuse prevention only.</p>
 
-<h3>3.3 No third-party trackers</h3>
-<p>No analytics SDKs (Firebase, Google Analytics, Sentry, Mixpanel etc.).
-No advertising IDs. No crash-reporting services.</p>
+<h3>3.3 Anonymous usage statistics</h3>
+<p>To improve the app we collect anonymous usage events via PostHog
+(servers in the EU). We record only technical events such as "meal logged",
+"coach question sent" or screen views, each <strong>without personal data and
+without the contents of your meals or coach messages</strong>. A random,
+anonymous per-install identifier is used, <strong>no advertising ID (IDFA)</strong>
+and no cross-app tracking. You can turn statistics off anytime in Settings
+under "Privacy".</p>
+<p>Beyond that, no other trackers: no Firebase, no Google Analytics, no
+crash reporting, no ad networks.</p>
 
 <h3>3.4 No user accounts</h3>
 <p>NourishMe has no login. No email, no password. All data is anonymous
@@ -76,6 +83,8 @@ NourishMe does <strong>not</strong> provide medical diagnosis or treatment.</p>
   <li><strong>Local data:</strong> until uninstall or "Reset App" in Settings.</li>
   <li><strong>Anthropic API:</strong> up to 30 days.</li>
   <li><strong>Cloudflare:</strong> connection metadata typically 24 h.</li>
+  <li><strong>PostHog (anonymous stats):</strong> aggregated events, no personal
+    identity. Can be disabled anytime via the opt-out in Settings.</li>
 </ul>
 
 <h2>6. Your rights</h2>
