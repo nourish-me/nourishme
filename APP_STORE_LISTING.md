@@ -53,12 +53,12 @@ What makes NourishMe different
 • Science open, data with you: every threshold traces back to the
   German Nutrition Society (DGE 2025), BfR, EFSA, LactMed (NIH), FDA/EPA
   and WHO. Tap any number to see the source.
-• Privacy-first: no cloud, no login, no tracking, no ads. Everything
-  stays on your device.
+• Privacy-first: no login, no ads, no cross-app tracking. Entries stay
+  on your device; only anonymous usage stats you can switch off.
 
 What you can do
-• Log meals by text, photo or saved favorite. "Cereal with yogurt, one
-  bowl" is enough.
+• Log meals by text, photo, barcode scan or saved favorite. "Cereal
+  with yogurt, one bowl" is enough, or scan a product for exact values.
 • After every meal, get a coach response with strengths, gaps and a
   next-meal idea tuned to your remaining target.
 • Ask the coach anything ("How much protein do I need today?", "What
@@ -86,8 +86,9 @@ your physician or midwife.
 Privacy in plain language
 Your entries stay on your device. Meal text and optional photos go
 anonymously to Anthropic's Claude AI through a secure proxy, for the
-coaching analysis only. No third-party trackers, no ads, no accounts.
-Full policy in the app and on our website.
+coaching analysis only. Anonymous usage statistics (PostHog, EU servers)
+help us improve the app and can be turned off in Settings. No ads, no
+cross-app tracking, no accounts. Full policy in the app and on our website.
 
 Scientific basis
 Thresholds and recommendations follow the current reference values
@@ -112,7 +113,7 @@ pregnancy,breastfeeding,nutrition,pumping,coach,maternal,mom,milk,DGE,EFSA
 First public release of NourishMe.
 
 • Real-time coach for pregnancy and breastfeeding nutrition
-• Log meals by text or photo, get the nutrient breakdown instantly
+• Log meals by text, photo or barcode scan, nutrient breakdown instantly
 • Daily targets calculated for your actual situation, including
   exclusive pumping and multiples
 • Food-safety built in, from DGE, BfR, EFSA, LactMed and FDA/EPA
@@ -129,7 +130,11 @@ Thanks for testing. Feedback is very welcome at hi.nourishme@gmail.com.
 
 ### Age Rating
 
-`4+`, no objectionable content.
+`4+` is defensible (informational content only). OPEN DECISION: the
+food-safety guidance references alcohol (wait times while producing
+milk). Apple's "Alcohol, Tobacco, or Drug Use or References" item is
+informational here, not a depiction, so 4+ is arguable; answering
+"Infrequent/Mild" to be safe lands at 12+. Pick one before submitting.
 
 Apple's AI content questionnaire: the app uses Anthropic's Claude API
 through a controlled proxy with fixed system prompts. Output is
@@ -138,12 +143,17 @@ restricted to nutrition coaching in the user's locale.
 ### App Privacy
 
 Declared in App Store Connect:
-- **Data Linked to You:** None
-- **Data Not Linked to You:** None
-- **Data Used to Track You:** None
+- **Data Linked to You:** None (no account, no identifiers tied to you)
+- **Data Not Linked to You:**
+  - Health & Fitness — meal text/photos and profile (weight, phase) sent to
+    the Claude API to generate coaching. Purpose: App Functionality.
+  - Usage Data (Product Interaction) — anonymous PostHog events
+    (meal_logged, coach_chat_sent, screen views). Purpose: Analytics.
+- **Data Used to Track You:** None (no IDFA, no cross-app tracking)
 
-(All data lives on-device. Anthropic is a sub-processor under our
-privacy policy. We do not run any analytics or tracking SDKs.)
+Anonymous usage analytics (PostHog, EU servers) can be turned off in
+Settings > Privacy. Anthropic is a sub-processor under our privacy policy.
+No ad SDKs, no crash reporting.
 
 ### Support URL
 
@@ -201,11 +211,12 @@ Was NourishMe anders macht
 • Wissenschaft offen, Daten bei dir: Jede Schwelle führt zurück auf
   DGE 2025, BfR, EFSA, LactMed (NIH), FDA/EPA und WHO. Tippe auf jede
   Zahl, sieh die Quelle.
-• Privacy first: Kein Cloud-Konto, kein Login, kein Tracking, keine
-  Werbung. Alle Einträge bleiben lokal.
+• Privacy first: Kein Login, keine Werbung, kein geräteübergreifendes
+  Tracking. Einträge bleiben lokal; nur anonyme, abschaltbare
+  Nutzungsstatistik.
 
 Was du in NourishMe tun kannst
-• Mahlzeiten per Text, Foto oder Favorit loggen
+• Mahlzeiten per Text, Foto, Barcode-Scan oder Favorit loggen
 • Coach-Antwort zu jeder Mahlzeit mit Stärken, Schwächen und einer
   konkreten Idee für die nächste
 • Frei Fragen stellen ("Wie viel Protein brauche ich? Was hilft bei
@@ -232,9 +243,11 @@ mit deiner Ärztin oder Hebamme.
 Datenschutz in einfacher Sprache
 Deine Einträge bleiben lokal auf deinem Gerät. Mahlzeit-Texte und
 optionale Fotos werden anonym über einen sicheren Proxy an Anthropics
-Claude AI gesendet, ausschließlich für die Coach-Analyse. Keine
-Drittanbieter-Tracker, keine Werbung, keine Konten. Volle
-Datenschutzerklärung in der App und auf der Webseite.
+Claude AI gesendet, ausschließlich für die Coach-Analyse. Eine anonyme
+Nutzungsstatistik (PostHog, EU-Server) hilft uns die App zu verbessern
+und lässt sich in den Einstellungen abschalten. Keine Werbung, kein
+geräteübergreifendes Tracking, keine Konten. Volle Datenschutzerklärung
+in der App und auf der Webseite.
 
 Wissenschaftliche Basis
 Schwellenwerte und Empfehlungen folgen den aktuellen Referenzwerten
@@ -259,7 +272,7 @@ Stillzeit,Schwangerschaft,Ernährung,Pumpen,Coach,Mama,Baby,Tracker,DGE,EFSA
 Erste öffentliche Version von NourishMe.
 
 • Live-Coach für Ernährung in Schwangerschaft und Stillzeit
-• Mahlzeiten per Text oder Foto loggen, sofortige Nährstoff-Analyse
+• Mahlzeiten per Text, Foto oder Barcode-Scan loggen, sofortige Analyse
 • Tagesziel auf deine echte Situation gerechnet, inkl. exklusivem
   Pumpen und Mehrlingen
 • Food-Safety-Hinweise aus DGE, BfR, EFSA, LactMed und FDA/EPA
@@ -289,13 +302,13 @@ Danke fürs Testen. Feedback gerne an hi.nourishme@gmail.com.
 - [ ] Privacy Policy URL set per locale (EN: privacy-en.html, DE: privacy.html)
 - [ ] Support URL set per locale
 - [ ] Marketing URL set per locale
-- [ ] Age Rating questionnaire answered (4+)
-- [ ] App Privacy questionnaire filled in (everything "None")
+- [ ] Age Rating questionnaire answered (see Age Rating note: 4+ vs 12+ on alcohol references)
+- [ ] App Privacy questionnaire filled in (anonymous analytics disclosed, see App Privacy section)
 - [ ] Screenshots uploaded for 6.7" and 6.1" iPhone, 3-10 per size, per locale
 - [ ] App Preview video (optional, max 30 s, per locale)
 - [ ] In-App Purchases: None
 - [ ] Sign-In Required: No
-- [ ] Export Compliance: Standard encryption (HTTPS only), no ECCN required
+- [x] Export Compliance: ITSAppUsesNonExemptEncryption=false set in Info.plist (HTTPS only)
 - [ ] Content Rights: confirm all rights held
 - [ ] Advertising Identifier (IDFA): No
 - [ ] Build uploaded with the same bundle id (com.vanessaheizmann.nurturetrack)
