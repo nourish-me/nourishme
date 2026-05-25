@@ -402,7 +402,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         at: coachAt,
       ));
       loadingNotifier.state = false;
-    }).catchError((error) async {
+    }).catchError((Object error, StackTrace stack) async {
+      // Log the real error so an intermittent coach failure is diagnosable
+      // (these have shown up sporadically; the bubble below only carries a
+      // human-friendly message).
+      debugPrint('Per-meal coach failed: $error\n$stack');
       // Surface a human-readable hint instead of silently swallowing the
       // failure. Linked to the meal so deleting the meal cleans it up too.
       final message = error is CoachApiException
