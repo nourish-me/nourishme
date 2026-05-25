@@ -24,6 +24,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get todayHeader => 'Heute';
 
   @override
+  String get diaryFilterMealsOnly => 'Nur Mahlzeiten';
+
+  @override
+  String get diaryFilterShowAll => 'Alle anzeigen';
+
+  @override
   String get yesterdayHeader => 'Gestern';
 
   @override

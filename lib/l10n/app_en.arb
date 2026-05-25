@@ -12,6 +12,8 @@
   "tabTrends": "Trends",
 
   "todayHeader": "Today",
+  "diaryFilterMealsOnly": "Meals only",
+  "diaryFilterShowAll": "Show all",
   "yesterdayHeader": "Yesterday",
   "settingsTooltip": "Settings",
 

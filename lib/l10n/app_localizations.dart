@@ -128,6 +128,18 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get todayHeader;
 
+  /// No description provided for @diaryFilterMealsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals only'**
+  String get diaryFilterMealsOnly;
+
+  /// No description provided for @diaryFilterShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get diaryFilterShowAll;
+
   /// No description provided for @yesterdayHeader.
   ///
   /// In en, this message translates to:

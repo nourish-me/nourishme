@@ -40,6 +40,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // so a Verlauf-tap or post-save scroll lands cleanly.
   bool _programmaticScroll = false;
   bool _loadingPreviousDay = false;
+  // When true the diary hides coach bubbles, user questions and answers, so
+  // the day reads as a plain list of what was eaten.
+  bool _mealsOnly = false;
   int _lastTotalItemCount = 0;
   // Snapshot of meal IDs we last saw in the rendered thread; used to detect
   // genuinely-new meals (just saved) versus older meals appearing because the
@@ -489,6 +492,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         centerTitle: false,
         actions: [
           IconButton(
+            icon: Icon(_mealsOnly
+                ? Icons.filter_list_off
+                : Icons.filter_list),
+            tooltip: _mealsOnly
+                ? AppLocalizations.of(context).diaryFilterShowAll
+                : AppLocalizations.of(context).diaryFilterMealsOnly,
+            onPressed: () => setState(() => _mealsOnly = !_mealsOnly),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: AppLocalizations.of(context).settingsTooltip,
             onPressed: () {
@@ -546,6 +558,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       coachLoading: coachLoading,
                       scheme: scheme,
                       textTheme: textTheme,
+                      mealsOnly: _mealsOnly,
                       // A day jumped-to from Verlauf / DatePicker stays
                       // expanded as its own day separator + empty row even
                       // if it has no entries, so the user can land on it
@@ -605,6 +618,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required bool coachLoading,
     required ColorScheme scheme,
     required TextTheme textTheme,
+    bool mealsOnly = false,
     DateTime? expandedEmptyDay,
   }) {
     // Loaded days are stored newest-last (today at the end). Render top-down
@@ -684,6 +698,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         continue;
       }
       for (final item in items) {
+        // Meals-only filter: skip coach bubbles, questions and answers so the
+        // day reads as a plain log of what was eaten.
+        if (mealsOnly && item.type != ThreadItemType.meal) continue;
         switch (item.type) {
           case ThreadItemType.meal:
             final meal = mealsById[item.mealId];

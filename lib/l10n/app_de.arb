@@ -8,6 +8,8 @@
   "tabTrends": "Trends",
 
   "todayHeader": "Heute",
+  "diaryFilterMealsOnly": "Nur Mahlzeiten",
+  "diaryFilterShowAll": "Alle anzeigen",
   "yesterdayHeader": "Gestern",
   "settingsTooltip": "Einstellungen",
 
