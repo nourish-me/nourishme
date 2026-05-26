@@ -876,6 +876,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingDisclaimerCheckbox => 'Verstanden.';
 
   @override
+  String get onboardingDisclaimerHint =>
+      'Bitte oben bestätigen, um fortzufahren.';
+
+  @override
   String get onboardingDisclaimerLink => 'Mehr dazu';
 
   @override

@@ -224,6 +224,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // meal. Bump the focus signal so the home input pulls focus once
     // MainScaffold renders.
     ref.read(mealInputFocusRequestProvider.notifier).state++;
+    // Always land on the Diary tab after onboarding. The tab index is
+    // in-memory Riverpod state that survives an app reset, so without this a
+    // reset + re-onboarding would reopen whatever tab was last active.
+    ref.read(selectedTabProvider.notifier).state = 0;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const MainScaffold()),
     );
@@ -348,6 +352,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 10),
+                      ],
+                      // On the last step the CTA is disabled until the medical
+                      // disclaimer is ticked. Without this hint the grayed-out
+                      // button looks broken rather than gated.
+                      if (_step == _totalSteps - 1 && !_disclaimerAccepted) ...[
+                        Text(
+                          AppLocalizations.of(context).onboardingDisclaimerHint,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
                       ],
                       FilledButton(
                         onPressed: _canAdvance ? _next : null,

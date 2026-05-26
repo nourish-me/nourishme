@@ -1634,6 +1634,12 @@ abstract class AppLocalizations {
   /// **'I understand.'**
   String get onboardingDisclaimerCheckbox;
 
+  /// No description provided for @onboardingDisclaimerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm above to continue.'**
+  String get onboardingDisclaimerHint;
+
   /// No description provided for @onboardingDisclaimerLink.
   ///
   /// In en, this message translates to:
