@@ -461,6 +461,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           .mealId;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
+        debugPrint('scrollToDay: target=$scrollTarget firstMealId=$firstMealId '
+            'mealKeyKnown=${firstMealId != null && _mealKeys.containsKey(firstMealId)} '
+            'dayKeyCtx=${_keyForDay(scrollTarget).currentContext != null}');
         if (firstMealId != null && _mealKeys.containsKey(firstMealId)) {
           await _scrollToNewMeal(firstMealId);
         } else {
