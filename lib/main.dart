@@ -118,6 +118,10 @@ class _NourishMeAppState extends ConsumerState<NourishMeApp> {
     // _HomeInput (which reads via ref.watch) can pull focus on the next
     // build. Wrapped because the notifier may fire before ref is mounted.
     if (!mounted) return;
+    // Switch to the Diary tab first so the meal input is the visible field,
+    // otherwise the focus request lands on a screen the user can't see (e.g.
+    // when the reminder is tapped while History/Trends was last open).
+    ref.read(selectedTabProvider.notifier).state = 0;
     ref.read(mealInputFocusRequestProvider.notifier).state++;
   }
 
