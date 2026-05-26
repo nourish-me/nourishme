@@ -1422,10 +1422,6 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
   bool _sending = false;
   int _lastFocusRequest = 0;
   int _lastPrefillVersion = 0;
-  // Override timestamp for the next meal save. Null = use DateTime.now()
-  // at send time. Used when the user logs e.g. breakfast in the evening.
-  // Resets to null after each successful send.
-  TimeOfDay? _customTime;
 
   @override
   void dispose() {
@@ -1445,21 +1441,6 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
 
   String _formatTime(DateTime t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-  String _formatTimeOfDay(TimeOfDay t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-  Future<void> _pickCustomTime() async {
-    final initial = _customTime ?? TimeOfDay.now();
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initial,
-      helpText: AppLocalizations.of(context).homeTimePickerHelp,
-    );
-    if (picked != null && mounted) {
-      setState(() => _customTime = picked);
-    }
-  }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -1844,13 +1825,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       );
       if (!mounted) return;
       if (parsed.isMeal) {
-        // If the user picked a custom time, override createdAt to today at
-        // that time. Otherwise let ConfirmScreen default to DateTime.now().
-        final now = DateTime.now();
-        final createdAt = _customTime == null
-            ? null
-            : DateTime(now.year, now.month, now.day,
-                _customTime!.hour, _customTime!.minute);
+        // Time defaults to now; the user can adjust it in the confirm sheet.
         await showModalBottomSheet<MealEntry>(
           context: context,
           isScrollControlled: true,
@@ -1860,7 +1835,6 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
             rawText: text,
             parsed: parsed,
             imageBytes: _imageBytes,
-            existingCreatedAt: createdAt,
             asSheet: true,
           ),
         );
@@ -1884,7 +1858,6 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
       if (mounted) {
         setState(() {
           _imageBytes = null;
-          _customTime = null;
         });
       }
     } on CoachApiException catch (e) {
@@ -2056,52 +2029,6 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                       ),
                       visualDensity: VisualDensity.compact,
                       color: scheme.onSurfaceVariant,
-                    ),
-                    // Time-override chip. Default state = clock icon, meal
-                    // saves with DateTime.now(). When the user taps and picks
-                    // a time, the chip turns primary-tinted with HH:MM and
-                    // the next meal save uses today at that time. Resets
-                    // after each send.
-                    Material(
-                      color: _customTime != null
-                          ? scheme.primaryContainer
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(18),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(18),
-                        onTap: _sending ? null : _pickCustomTime,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: _customTime != null ? 10 : 6,
-                            vertical: 6,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.schedule,
-                                size: 20,
-                                color: _customTime != null
-                                    ? scheme.onPrimaryContainer
-                                    : scheme.onSurfaceVariant,
-                              ),
-                              if (_customTime != null) ...[
-                                const SizedBox(width: 4),
-                                Text(
-                                  _formatTimeOfDay(_customTime!),
-                                  style: textTheme.labelMedium?.copyWith(
-                                    color: scheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.w600,
-                                    fontFeatures: const [
-                                      FontFeature.tabularFigures(),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
                     ),
                     const SizedBox(width: 4),
                     Expanded(

@@ -62,6 +62,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   String? _currentAlias;
   bool _scaling = false;
   bool _saveAsFavorite = false;
+  // When this meal is logged. Defaults to the existing time (edit / past-day)
+  // or now (fresh entry). Editable here via a time chip, which replaces the
+  // old time-override that cluttered the home input row.
+  late DateTime _mealTime;
   // Makros (P/KH/F) are hidden by default; user taps Details to reveal them.
   bool _showDetails = false;
   bool _userTouched = false; // set when the user edits any field
@@ -78,6 +82,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _origSummary = widget.parsed.summary;
     _origAlias = widget.parsed.portionAlias;
     _currentAlias = _origAlias;
+    _mealTime = widget.existingCreatedAt ?? DateTime.now();
 
     _summary = TextEditingController(text: widget.parsed.summary);
     _kcal = TextEditingController(text: _origKcal.toString());
@@ -234,7 +239,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final meal = MealEntry(
       id: widget.existingMealId ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      createdAt: widget.existingCreatedAt ?? DateTime.now(),
+      createdAt: _mealTime,
       rawText: widget.rawText,
       summary: summary,
       kcal: kcal,
@@ -437,6 +442,31 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
   }
 
+  Future<void> _pickMealTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_mealTime),
+      helpText: AppLocalizations.of(context).homeTimePickerHelp,
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _mealTime = DateTime(_mealTime.year, _mealTime.month, _mealTime.day,
+            picked.hour, picked.minute);
+        _userTouched = true;
+      });
+    }
+  }
+
+  String _formatMealTime() {
+    final hh = _mealTime.hour.toString().padLeft(2, '0');
+    final mm = _mealTime.minute.toString().padLeft(2, '0');
+    final now = DateTime.now();
+    final isToday = _mealTime.year == now.year &&
+        _mealTime.month == now.month &&
+        _mealTime.day == now.day;
+    return isToday ? '$hh:$mm' : '${_mealTime.day}.${_mealTime.month}. · $hh:$mm';
+  }
+
   Widget _buildBody(BuildContext context) {
     final warnings = widget.parsed.safetyWarnings;
     final portionUnit = widget.parsed.portionUnit;
@@ -503,6 +533,34 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
               ),
             ],
           ],
+        ),
+        const SizedBox(height: 12),
+        // Meal time, editable here (moved out of the cramped home input row).
+        // Defaults to now for fresh entries, or the entry's day for past-day
+        // / edit flows.
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Material(
+            color: scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(18),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: _pickMealTime,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.schedule,
+                        size: 16, color: scheme.onSurfaceVariant),
+                    const SizedBox(width: 6),
+                    Text(_formatMealTime(), style: textTheme.labelLarge),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 12),
         Row(
