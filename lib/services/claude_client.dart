@@ -122,6 +122,7 @@ Wenn Mengen nicht angegeben sind, schätze konservativ auf Basis einer normalen 
 Wenn ein Bild beigefügt ist, analysiere zusätzlich das Foto. Nutze sichtbare Referenzobjekte (Besteck, Hand, bekannte Verpackungen, Teller, Tasse) für die Portionsschätzung. Wenn Text und Bild vorhanden sind und der Text eine konkrete Menge nennt, vertraue dem Text bei der Menge und nutze das Bild zur Identifikation der Speise.
 
 Wenn die Eingabe keine Nahrungsaufnahme beschreibt (z.B. Zufallszeichen, leere Wörter, nicht-essbare Dinge, eine Frage), setze "is_meal" auf false und gib in "rejection_reason" einen kurzen deutschen Hinweis zurück, z.B. "Bitte beschreibe ein Essen oder Getränk." In dem Fall dürfen kcal und Makros 0 sein und safety_warnings leer bleiben.
+WICHTIG: Auch sehr kurze oder vage Lebensmittel-Nennungen (z.B. "Fisch", "Muffin", "Apfel", "Kaffee", "Brot", "Nudeln") sind gültige Mahlzeiten: setze dann is_meal=true und schätze eine typische Standardportion. Setze is_meal NIEMALS auf false, nur weil die Eingabe kurz, unspezifisch ist oder eine Mengenangabe fehlt. is_meal=false ist ausschließlich für Nicht-Essbares, Unsinn oder echte Fragen.
 
 Schätze für jeden Eintrag auch die Portionsgröße als einzelne Zahl mit Einheit ("g" für feste/breiige Speisen, "ml" für Getränke). Für Mischmahlzeiten gib die Gesamtmenge an.
 
@@ -169,6 +170,7 @@ If amounts aren't given, estimate conservatively based on a typical portion or c
 If a photo is attached, also analyse the image. Use visible reference objects (cutlery, hand, known packaging, plate, cup) to estimate the portion. If both text and image are provided and the text names a concrete amount, trust the text for the amount and use the image to identify the food.
 
 If the input doesn't describe food intake (e.g. random characters, empty words, non-edible things, a question), set "is_meal" to false and return a short English hint in "rejection_reason", e.g. "Please describe a food or drink." In that case kcal and macros may be 0 and safety_warnings empty.
+IMPORTANT: Even very short or vague food names (e.g. "fish", "muffin", "apple", "coffee", "bread", "pasta") are valid meals: set is_meal=true and estimate a typical standard portion. NEVER set is_meal=false just because the input is short, unspecific or lacks an amount. is_meal=false is only for non-edible things, nonsense, or genuine questions.
 
 For each entry also estimate the portion size as a single number with unit ("g" for solid/semi-solid foods, "ml" for drinks). For mixed meals give the total amount.
 
