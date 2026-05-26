@@ -476,6 +476,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    // The meals-only filter only helps once there's something to filter: at
+    // least one meal AND at least one coach bubble / question / answer.
+    final allThreadItems = threadByDay.values.expand((l) => l);
+    final canFilter =
+        allThreadItems.any((i) => i.type == ThreadItemType.meal) &&
+            allThreadItems.any((i) => i.type != ThreadItemType.meal);
+
     return Scaffold(
       appBar: AppBar(
         title: InkWell(
@@ -495,6 +502,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         centerTitle: false,
         actions: [
+          if (canFilter)
           IconButton(
             icon: Icon(_mealsOnly
                 ? Icons.filter_alt
