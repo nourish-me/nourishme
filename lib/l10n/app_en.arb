@@ -440,7 +440,7 @@
   "restrictionFish": "Fish",
   "restrictionShellfish": "Shellfish",
   "restrictionSoy": "Soy",
-  "settingsDietNotesLabel": "Other notes",
+  "settingsDietNotesLabel": "Note for the coach (optional)",
   "settingsDietNotesHint": "e.g. histamine sensitive, no spicy food",
 
   "factEnergyLactationTopic": "Energy supplement, breastfeeding phase",

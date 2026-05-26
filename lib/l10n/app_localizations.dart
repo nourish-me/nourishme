@@ -1739,7 +1739,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDietNotesLabel.
   ///
   /// In en, this message translates to:
-  /// **'Other notes'**
+  /// **'Note for the coach (optional)'**
   String get settingsDietNotesLabel;
 
   /// No description provided for @settingsDietNotesHint.

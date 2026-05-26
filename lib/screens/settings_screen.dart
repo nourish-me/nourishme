@@ -17,7 +17,6 @@ import '../services/calorie_target.dart';
 import '../services/nutrition_facts.dart';
 import '../utils/number_format.dart';
 import '../utils/profile_labels.dart';
-import '../widgets/empty/empty_favorites.dart';
 import '../widgets/info_button.dart';
 import 'favorite_edit_sheet.dart';
 import 'onboarding_screen.dart';
@@ -498,10 +497,12 @@ class _Section extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: textTheme.titleSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.4,
+                    // Section heading is the largest text in each card so the
+                    // hierarchy reads clearly (was titleSmall, which competed
+                    // with the body labels below it).
+                    style: textTheme.titleMedium?.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -1567,8 +1568,8 @@ class _DietSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.settingsDietStyleLabel, style: textTheme.bodyMedium),
-          const SizedBox(height: 6),
+          // No "Diet style" label here: the section heading already says
+          // "Diet & allergies" and the style chips are self-explanatory.
           Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -1635,7 +1636,22 @@ class _FavoritesSection extends ConsumerWidget {
     return _Section(
       title: AppLocalizations.of(context).settingsSectionFavorites,
       child: favorites.isEmpty
-          ? const EmptyFavorites()
+          // Compact one-line hint instead of the large illustrated empty
+          // state, which took too much room inside this settings card.
+          ? Row(
+              children: [
+                Icon(Icons.star_outline_rounded,
+                    size: 18, color: scheme.secondary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context).emptyFavoritesBody,
+                    style: textTheme.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            )
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

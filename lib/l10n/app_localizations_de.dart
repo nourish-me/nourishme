@@ -929,7 +929,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get restrictionSoy => 'Soja';
 
   @override
-  String get settingsDietNotesLabel => 'Weitere Notizen';
+  String get settingsDietNotesLabel => 'Notiz an den Coach (optional)';
 
   @override
   String get settingsDietNotesHint =>

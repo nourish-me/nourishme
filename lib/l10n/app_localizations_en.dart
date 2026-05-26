@@ -921,7 +921,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restrictionSoy => 'Soy';
 
   @override
-  String get settingsDietNotesLabel => 'Other notes';
+  String get settingsDietNotesLabel => 'Note for the coach (optional)';
 
   @override
   String get settingsDietNotesHint => 'e.g. histamine sensitive, no spicy food';
