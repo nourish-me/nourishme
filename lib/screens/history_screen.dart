@@ -148,7 +148,8 @@ class _DayCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '$mealCount Eintr${mealCount == 1 ? 'ag' : 'äge'}',
+                            AppLocalizations.of(context)
+                                .historyEntryCount(mealCount),
                             style: textTheme.bodySmall
                                 ?.copyWith(color: scheme.outline),
                           ),

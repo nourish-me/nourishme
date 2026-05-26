@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Trends'**
   String get tabTrends;
 
+  /// No description provided for @historyEntryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 entry} other{{count} entries}}'**
+  String historyEntryCount(int count);
+
   /// No description provided for @todayHeader.
   ///
   /// In en, this message translates to:

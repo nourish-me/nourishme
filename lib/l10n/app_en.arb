@@ -10,6 +10,12 @@
   "tabDiary": "Diary",
   "tabHistory": "History",
   "tabTrends": "Trends",
+  "historyEntryCount": "{count, plural, =1{1 entry} other{{count} entries}}",
+  "@historyEntryCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
 
   "todayHeader": "Today",
   "diaryFilterMealsOnly": "Meals only",

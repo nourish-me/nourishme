@@ -21,6 +21,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tabTrends => 'Trends';
 
   @override
+  String historyEntryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge',
+      one: '1 Eintrag',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get todayHeader => 'Heute';
 
   @override
