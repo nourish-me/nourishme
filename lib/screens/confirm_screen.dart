@@ -107,9 +107,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     if (newText.isEmpty || newText == _origSummary || _reparsing) return;
     setState(() => _reparsing = true);
     try {
+      final profile = ref.read(userProfileProvider).valueOrNull;
       final parsed = await ref.read(claudeClientProvider).parseMeal(
             newText,
             locale: Localizations.localeOf(context).languageCode,
+            isPregnant: profile?.isPregnant ?? false,
+            trimester: profile?.trimester,
+            isLactating: (profile?.numChildrenNursing ?? 0) > 0,
           );
       if (!mounted) return;
       if (!parsed.isMeal) {

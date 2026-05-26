@@ -425,8 +425,27 @@ ${NutritionFacts.coachContextBlockEn}
     String userText, {
     Uint8List? imageBytes,
     String locale = 'en',
+    bool isPregnant = false,
+    int? trimester,
+    bool isLactating = false,
   }) async {
     final isDe = _isGerman(locale);
+    // Phase context so safety_warnings stay relevant: a not-pregnant user
+    // shouldn't get pregnancy-specific warnings (e.g. on an alcohol photo).
+    final phaseDe = isPregnant
+        ? 'schwanger (${trimester ?? 1}. Trimester)'
+        : isLactating
+            ? 'produziert Muttermilch (stillt oder pumpt)'
+            : 'nicht schwanger und produziert keine Muttermilch';
+    final phaseEn = isPregnant
+        ? 'pregnant (trimester ${trimester ?? 1})'
+        : isLactating
+            ? 'producing breast milk (nursing or pumping)'
+            : 'not pregnant and not producing breast milk';
+    final phaseLine = isDe
+        ? 'Phase der Nutzerin: $phaseDe. Gib NUR safety_warnings, die zu DIESER Phase passen, keine für andere Phasen.'
+        : 'User phase: $phaseEn. Give ONLY safety_warnings relevant to THIS phase, none for other phases.';
+
     final List<Map<String, dynamic>> content = [];
     if (imageBytes != null) {
       content.add({
@@ -438,13 +457,14 @@ ${NutritionFacts.coachContextBlockEn}
         },
       });
     }
+    final entryText = userText.isEmpty
+        ? (isDe
+            ? 'Schätze diesen Eintrag basierend auf dem Bild.'
+            : 'Estimate this entry based on the image.')
+        : userText;
     content.add({
       'type': 'text',
-      'text': userText.isEmpty
-          ? (isDe
-              ? 'Schätze diesen Eintrag basierend auf dem Bild.'
-              : 'Estimate this entry based on the image.')
-          : userText,
+      'text': '$phaseLine\n\n$entryText',
     });
 
     final text = await _post(

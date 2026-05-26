@@ -282,9 +282,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     controller.dispose();
     if (entry == null || entry.text.trim().isEmpty || !mounted) return;
     try {
+      final profile = ref.read(userProfileProvider).valueOrNull;
       final parsed = await ref.read(claudeClientProvider).parseMeal(
             entry.text,
             locale: Localizations.localeOf(context).languageCode,
+            isPregnant: profile?.isPregnant ?? false,
+            trimester: profile?.trimester,
+            isLactating: (profile?.numChildrenNursing ?? 0) > 0,
           );
       if (!mounted || !parsed.isMeal) return;
       final createdAt = DateTime(
@@ -1817,11 +1821,15 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
 
     try {
       final client = ref.read(claudeClientProvider);
+      final profile = ref.read(userProfileProvider).valueOrNull;
 
       final parsed = await client.parseMeal(
         text,
         imageBytes: _imageBytes,
         locale: Localizations.localeOf(context).languageCode,
+        isPregnant: profile?.isPregnant ?? false,
+        trimester: profile?.trimester,
+        isLactating: (profile?.numChildrenNursing ?? 0) > 0,
       );
       if (!mounted) return;
       if (parsed.isMeal) {
