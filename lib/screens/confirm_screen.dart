@@ -19,6 +19,9 @@ class ConfirmScreen extends ConsumerStatefulWidget {
   final String? existingMealId;
   final DateTime? existingCreatedAt;
   final bool asSheet;
+  // How this entry reached the confirm sheet, for the meal_logged analytics
+  // event: 'text', 'photo', 'barcode', 'favorite', 'quick_add', or 'edit'.
+  final String source;
 
   const ConfirmScreen({
     super.key,
@@ -28,6 +31,7 @@ class ConfirmScreen extends ConsumerStatefulWidget {
     this.existingMealId,
     this.existingCreatedAt,
     this.asSheet = false,
+    this.source = 'text',
   });
 
   @override
@@ -252,10 +256,17 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       safetyWarnings: widget.parsed.safetyWarnings,
     );
     await ref.read(mealRepositoryProvider).save(meal);
-    ref.read(analyticsServiceProvider).capture('meal_logged', properties: {
+    final analytics = ref.read(analyticsServiceProvider);
+    analytics.capture('meal_logged', properties: {
+      'method': widget.source,
       'edited': widget.existingMealId != null,
-      'has_image': widget.imageBytes != null,
     });
+    // Track how often the food-safety feature actually surfaces a warning, so
+    // we can tell whether it earns its keep.
+    if (meal.safetyWarnings.isNotEmpty) {
+      analytics.capture('safety_warning_shown',
+          properties: {'count': meal.safetyWarnings.length});
+    }
 
     if (_saveAsFavorite) {
       // Dedupe by trimmed lowercase summary: if a favorite with the same
@@ -410,12 +421,16 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         text: response.trim(),
         at: coachAt,
       ));
+      ref.read(analyticsServiceProvider).capture('coach_reply',
+          properties: {'kind': 'per_meal', 'ok': true});
       loadingNotifier.state = false;
     }).catchError((Object error, StackTrace stack) async {
       // Log the real error so an intermittent coach failure is diagnosable
       // (these have shown up sporadically; the bubble below only carries a
-      // human-friendly message).
+      // human-friendly message). Also track the failure rate in analytics.
       debugPrint('Per-meal coach failed: $error\n$stack');
+      ref.read(analyticsServiceProvider).capture('coach_reply',
+          properties: {'kind': 'per_meal', 'ok': false});
       // Surface a human-readable hint instead of silently swallowing the
       // failure. Linked to the meal so deleting the meal cleans it up too.
       final message = error is CoachApiException

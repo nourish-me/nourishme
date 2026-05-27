@@ -304,6 +304,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           parsed: parsed,
           existingCreatedAt: createdAt,
           asSheet: true,
+          source: 'quick_add',
         ),
       );
     } on CoachApiException catch (e) {
@@ -1514,6 +1515,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         rawText: '',
         parsed: parsed,
         asSheet: true,
+        source: 'favorite',
       ),
     );
   }
@@ -1693,6 +1695,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         .add(ThreadItem.userQuestion(text: text, at: DateTime.now()));
     ref.read(analyticsServiceProvider).capture('coach_chat_sent');
     loadingNotifier.state = true;
+    var replyOk = true;
 
     try {
       final reply = await client.chat(
@@ -1705,11 +1708,13 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         at: DateTime.now(),
       ));
     } on CoachApiException catch (e) {
+      replyOk = false;
       await threadRepo.add(ThreadItem.coachAnswer(
         text: e.userMessage,
         at: DateTime.now(),
       ));
     } catch (e) {
+      replyOk = false;
       await threadRepo.add(ThreadItem.coachAnswer(
         text: mounted
             ? AppLocalizations.of(context).commonGenericError
@@ -1717,6 +1722,9 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         at: DateTime.now(),
       ));
     } finally {
+      // Track chat coach success/failure rate alongside the per-meal one.
+      ref.read(analyticsServiceProvider).capture('coach_reply',
+          properties: {'kind': 'chat', 'ok': replyOk});
       loadingNotifier.state = false;
     }
   }
@@ -1791,6 +1799,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
           rawText: product.displaySummary,
           parsed: parsed,
           asSheet: true,
+          source: 'barcode',
         ),
       );
       FocusManager.instance.primaryFocus?.unfocus();
@@ -1836,6 +1845,7 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
             parsed: parsed,
             imageBytes: _imageBytes,
             asSheet: true,
+            source: _imageBytes != null ? 'photo' : 'text',
           ),
         );
         // Aggressively close the keyboard if anything in the sheet (or the
@@ -2125,6 +2135,7 @@ void _editMeal(BuildContext context, MealEntry meal) {
         parsed: _toParseResult(meal),
         existingMealId: meal.id,
         existingCreatedAt: meal.createdAt,
+        source: 'edit',
       ),
     ),
   );

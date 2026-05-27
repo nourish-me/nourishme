@@ -64,6 +64,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           numChildren: 1, ageGroup: 0, sharePercent: 100);
 
   @override
+  void initState() {
+    super.initState();
+    // Top of the activation funnel. Pairs with onboarding_completed so we can
+    // measure drop-off between first launch and finishing setup.
+    ref.read(analyticsServiceProvider).capture('onboarding_started');
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     _height.dispose();
