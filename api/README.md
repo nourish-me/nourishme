@@ -94,6 +94,49 @@ wrangler deploy
 
 Update `.env`, rebuild app. Old builds stop working — by design.
 
+## Cost telemetry + circuit breaker
+
+The worker logs every call's token usage and enforces a daily global call cap.
+
+**Live view (no setup needed):** every call prints a structured line you can
+watch in real time:
+
+```bash
+cd api
+wrangler tail
+# {"event":"api_call","callType":"coach","status":200,"inputTokens":1004,"outputTokens":210,"ts":"..."}
+```
+
+`callType` is one of `parse`, `coach`, `photo`, `chat`, `safety` (sent by the
+app via the `x-call-type` header). Photo calls carry image tokens, so they're
+the expensive ones — this split is what validates the pricing model.
+
+**Daily aggregate + circuit breaker (needs a KV namespace):**
+
+```bash
+cd api
+wrangler kv namespace create BUDGET
+# Copy the printed id into wrangler.toml: uncomment the [[kv_namespaces]]
+# block and paste the id, then redeploy:
+wrangler deploy
+```
+
+Once bound, the worker keeps a per-day record `day:YYYY-MM-DD` with
+`{calls, in, out}` (token totals) and returns HTTP 429 once `calls` exceeds
+`MAX_CALLS_PER_DAY` (default 800, set in `wrangler.toml`). This is a
+runaway-loop safety net, **not** subscription/quota logic. Read a day's
+spend with:
+
+```bash
+wrangler kv key get --binding BUDGET "day:2026-05-27"
+# {"calls":42,"in":51230,"out":8900}
+```
+
+Cost = `in / 1e6 * $1.00 + out / 1e6 * $5.00` (claude-haiku-4-5 rates).
+
+Until the KV namespace is bound the worker still runs — logging works, the cap
+is simply skipped.
+
 ## Cost / limits
 
 Cloudflare Workers free tier: 100 000 requests/day. Easily covers ~1 000

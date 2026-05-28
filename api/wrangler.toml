@@ -5,3 +5,16 @@ compatibility_date = "2025-05-01"
 # Secrets (set via `wrangler secret put`, never commit values):
 #   ANTHROPIC_API_KEY - sk-ant-... from console.anthropic.com
 #   APP_SECRET        - random string the app sends in x-app-secret header
+
+# Daily global call cap (circuit breaker against runaway loops). Set well
+# above expected beta volume; raise if legitimate use ever hits it.
+[vars]
+MAX_CALLS_PER_DAY = "800"
+
+# Per-day cost/usage aggregate + circuit-breaker counter. Create the namespace
+# once, then uncomment and paste its id below:
+#   wrangler kv namespace create BUDGET
+# Until this binding exists the worker still runs (logging only, no cap).
+# [[kv_namespaces]]
+# binding = "BUDGET"
+# id = "PASTE_NAMESPACE_ID_HERE"

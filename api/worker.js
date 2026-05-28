@@ -10,6 +10,19 @@
 // secret without touching the Anthropic key. Cloudflare's per-IP rate
 // limiting on the free tier provides additional protection.
 //
+// Cost telemetry: every call's token usage is logged as a structured line
+// (visible live via `wrangler tail`) and, when the BUDGET KV namespace is
+// bound, aggregated into a per-day record. The app labels each call via the
+// `x-call-type` header (parse / coach / photo / chat / safety) so we can see
+// the COGS split during the beta and validate the pricing model with real
+// numbers instead of guesses.
+//
+// Circuit breaker: a global per-day call cap (MAX_CALLS_PER_DAY) returns 429
+// once exceeded. This is a runaway-loop safety net, NOT subscription/quota
+// logic (that's a public-launch concern). Set the cap well above expected
+// beta volume. Degrades gracefully: if the BUDGET KV namespace isn't bound,
+// the cap is skipped and only console logging runs.
+//
 // Endpoints:
 //   POST /messages   → forwards to api.anthropic.com/v1/messages
 //   GET  /health     → simple liveness check (no auth)
@@ -18,53 +31,85 @@
 
 const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
+const DEFAULT_MAX_CALLS_PER_DAY = 800;
+const DAY_RECORD_TTL_SECONDS = 90 * 24 * 60 * 60; // keep ~90 days of history
+
+function utcDayKey(now) {
+  return `day:${now.toISOString().slice(0, 10)}`; // day:YYYY-MM-DD
+}
+
+function jsonResponse(obj, status) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     // Health check (unauthenticated).
     if (request.method === 'GET' && url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok' }), {
-        headers: { 'content-type': 'application/json' },
-      });
+      return jsonResponse({ status: 'ok' }, 200);
     }
 
     if (request.method !== 'POST' || url.pathname !== '/messages') {
-      return new Response(
-        JSON.stringify({ error: 'Not found' }),
-        { status: 404, headers: { 'content-type': 'application/json' } },
-      );
+      return jsonResponse({ error: 'Not found' }, 404);
     }
 
     // Shared-secret auth.
     const secret = request.headers.get('x-app-secret');
     if (!env.APP_SECRET || !secret || secret !== env.APP_SECRET) {
-      return new Response(
-        JSON.stringify({ error: 'Forbidden' }),
-        { status: 403, headers: { 'content-type': 'application/json' } },
-      );
+      return jsonResponse({ error: 'Forbidden' }, 403);
     }
 
     if (!env.ANTHROPIC_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: 'Worker misconfigured: ANTHROPIC_API_KEY missing' }),
-        { status: 500, headers: { 'content-type': 'application/json' } },
+      return jsonResponse(
+        { error: 'Worker misconfigured: ANTHROPIC_API_KEY missing' },
+        500,
       );
+    }
+
+    const callType = request.headers.get('x-call-type') || 'unknown';
+    const now = new Date();
+    const dayKey = utcDayKey(now);
+    const cap = Number(env.MAX_CALLS_PER_DAY) || DEFAULT_MAX_CALLS_PER_DAY;
+
+    // Read today's aggregate so we can enforce the circuit breaker. Skipped
+    // entirely when KV isn't bound, so the worker keeps working pre-setup.
+    let dayRecord = { calls: 0, in: 0, out: 0 };
+    if (env.BUDGET) {
+      const existing = await env.BUDGET.get(dayKey, { type: 'json' });
+      if (existing) dayRecord = existing;
+      if (dayRecord.calls >= cap) {
+        console.log(
+          JSON.stringify({
+            event: 'budget_cap_hit',
+            day: dayKey,
+            calls: dayRecord.calls,
+            cap,
+          }),
+        );
+        return jsonResponse(
+          {
+            error:
+              'Daily request cap reached. Resets at 00:00 UTC. If you are seeing this in normal use, raise MAX_CALLS_PER_DAY.',
+          },
+          429,
+        );
+      }
     }
 
     let body;
     try {
       body = await request.text();
     } catch (e) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid request body' }),
-        { status: 400, headers: { 'content-type': 'application/json' } },
-      );
+      return jsonResponse({ error: 'Invalid request body' }, 400);
     }
 
-    // Forward to Anthropic. We don't parse or modify the JSON — the app
-    // already knows the Anthropic schema, the Worker is just a credential
+    // Forward to Anthropic. We don't parse or modify the request JSON — the
+    // app already knows the Anthropic schema, the Worker is just a credential
     // injection layer.
     const upstream = await fetch(ANTHROPIC_ENDPOINT, {
       method: 'POST',
@@ -77,6 +122,48 @@ export default {
     });
 
     const upstreamBody = await upstream.text();
+
+    // Best-effort usage extraction for cost telemetry. Never let logging break
+    // the proxied response.
+    let inputTokens = 0;
+    let outputTokens = 0;
+    try {
+      const parsed = JSON.parse(upstreamBody);
+      if (parsed && parsed.usage) {
+        inputTokens = parsed.usage.input_tokens || 0;
+        outputTokens = parsed.usage.output_tokens || 0;
+      }
+    } catch (e) {
+      // Non-JSON or error body: tokens stay 0, still logged below.
+    }
+
+    console.log(
+      JSON.stringify({
+        event: 'api_call',
+        callType,
+        status: upstream.status,
+        inputTokens,
+        outputTokens,
+        ts: now.toISOString(),
+      }),
+    );
+
+    // Update the daily aggregate after responding (non-blocking). Read-modify
+    // -write isn't atomic, so counts can be slightly off under concurrency —
+    // fine for a beta-scale safety net, not for billing.
+    if (env.BUDGET) {
+      const updated = {
+        calls: dayRecord.calls + 1,
+        in: dayRecord.in + inputTokens,
+        out: dayRecord.out + outputTokens,
+      };
+      ctx.waitUntil(
+        env.BUDGET.put(dayKey, JSON.stringify(updated), {
+          expirationTtl: DAY_RECORD_TTL_SECONDS,
+        }),
+      );
+    }
+
     return new Response(upstreamBody, {
       status: upstream.status,
       headers: {

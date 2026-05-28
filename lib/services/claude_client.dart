@@ -203,15 +203,15 @@ ${NutritionFacts.coachContextBlock}
 
 Antworte strikt in folgendem Markdown-Format. Keine Tabellen, sie passen auf Handy-Bildschirmen nicht. Keine zusätzlichen Sätze davor oder danach.
 
-**Bestandteile:** (NUR wenn die Mahlzeit aus mehreren Komponenten besteht. Bei einer Komponente diesen Block komplett weglassen.)
+**Bestandteile:** (NUR wenn die Mahlzeit aus mehreren Komponenten besteht. Bei einer Komponente diesen Block komplett weglassen. Maximal 4 Hauptkomponenten, kleinere zusammenfassen.)
 - <Bestandteil>, <Menge>: <kcal> kcal · P <g> · KH <g> · F <g>
 - ... weitere Bestandteile in derselben Form
 
-**🟢 Stark:** ein bis zwei Stärken in einem Satz
-**🟡 Knapp:** ein bis zwei Schwachpunkte, falls relevant
+**🟢 Stark:** eine Stärke, Stichworte
+**🟡 Knapp:** ein Schwachpunkt, nur falls relevant
 
-**Was heute noch fehlt:** kurz, mit kcal-Split auf die nächsten Mahlzeiten
-**Nächste Mahlzeit:** Empfehlung mit Timing und konkretem Lebensmittel-Vorschlag
+**Was heute noch fehlt:** ein knapper Satz mit kcal-Split auf die nächsten Mahlzeiten
+**Nächste Mahlzeit:** ein konkreter Vorschlag mit Timing
 
 Regeln:
 - Bestandteile aus dem Originaltext oder der Beschreibung schätzen, Mengen in g, ml oder Stück
@@ -219,7 +219,7 @@ Regeln:
 - KEINE Gesamt-Zeile, kcal stehen schon auf der Mahlzeit-Karte und Makros werden in der Toolbar gezählt
 - Wiederhole NICHT den Tagesstand in kcal oder Protein, der ist in der Toolbar oben sichtbar
 - Mikronährstoffe (Eisen, Calcium, Folat, Omega-3) nur nennen wenn sie zur Mahlzeit oder Tagesphase passen
-- Maximal 120 Wörter
+- Maximal 70 Wörter. Fasse dich extrem knapp: Stichworte statt ganzer Sätze, keine Füllwörter, keine Wiederholung der Mahlzeit
 - Vermeide das Wort "Stillen" und seine Varianten. Nutze "während du Muttermilch produzierst" oder "in dieser Phase", weil viele Mütter ausschließlich pumpen
 - Die Nutzerdaten (Gewicht, Aktivität, Anzahl Kinder, Milchvolumen, etc.) sind im Profil mitgeliefert. Nutze sie SOFORT und FRAG NIEMALS danach.
 - Wenn ein Ernährungsprofil (Vegetarisch, Vegan, Allergien etc.) im Kontext steht, RESPEKTIERE es absolut: schlage keine vermiedenen Lebensmittel vor, halte Vorschläge im Stil (z.B. nur Pflanzliches bei vegan).
@@ -234,15 +234,15 @@ ${NutritionFacts.coachContextBlockEn}
 
 Answer strictly in the following Markdown format. No tables, they don't fit on phone screens. No additional sentences before or after.
 
-**Components:** (ONLY when the meal consists of multiple parts. Skip the whole block when there's only one component.)
+**Components:** (ONLY when the meal consists of multiple parts. Skip the whole block when there's only one component. At most 4 main components, fold smaller ones together.)
 - <component>, <amount>: <kcal> kcal · P <g> · C <g> · F <g>
 - ... further components in the same form
 
-**🟢 Strong:** one or two strengths in one sentence
-**🟡 Light:** one or two weaknesses, if relevant
+**🟢 Strong:** one strength, keywords
+**🟡 Light:** one weakness, only if relevant
 
-**What's still missing today:** brief, with a kcal split across the next meals
-**Next meal:** recommendation with timing and a concrete food suggestion
+**What's still missing today:** one brief sentence with a kcal split across the next meals
+**Next meal:** one concrete suggestion with timing
 
 Rules:
 - Estimate components from the raw text or description, amounts in g, ml or pieces
@@ -250,7 +250,7 @@ Rules:
 - NO total line, kcal are already on the meal card and macros are counted in the toolbar
 - Do NOT repeat the daily kcal or protein total, it's visible in the toolbar above
 - Mention micronutrients (iron, calcium, folate, omega-3) only when they fit the meal or time of day
-- Maximum 120 words
+- Maximum 70 words. Be extremely terse: keywords over full sentences, no filler words, no restating the meal
 - Avoid the word "breastfeeding" and its variations. Use "while you're producing breast milk" or "in this phase", since many mothers exclusively pump
 - User data (weight, activity, number of children, milk volume, etc.) is provided in the profile. Use it IMMEDIATELY and NEVER ask for it.
 - If a dietary profile (vegetarian, vegan, allergies, etc.) is in the context, RESPECT it absolutely: never suggest avoided foods, keep suggestions in the listed style (e.g. plant-only for vegan).
@@ -331,6 +331,7 @@ ${NutritionFacts.coachContextBlockEn}
     required String systemPrompt,
     required List<Map<String, dynamic>> messages,
     int maxTokens = 600,
+    String callType = 'unknown',
   }) async {
     final url = _usingProxy
         ? Uri.parse('$_proxyUrl/messages')
@@ -340,6 +341,9 @@ ${NutritionFacts.coachContextBlockEn}
     };
     if (_usingProxy) {
       headers['x-app-secret'] = _appSecret;
+      // Labels the call so the Worker can break COGS down by type (parse vs
+      // coach vs photo vs chat). Not forwarded to Anthropic.
+      headers['x-call-type'] = callType;
     } else {
       if (_legacyApiKey.isEmpty) {
         throw CoachApiException(
@@ -472,6 +476,7 @@ ${NutritionFacts.coachContextBlockEn}
       messages: [
         {'role': 'user', 'content': content},
       ],
+      callType: imageBytes != null ? 'photo' : 'parse',
     );
 
     final jsonStart = text.indexOf('{');
@@ -546,6 +551,7 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
           {'role': 'user', 'content': productName},
         ],
         maxTokens: 200,
+        callType: 'safety',
       ))
           .trim();
       final start = raw.indexOf('[');
@@ -683,7 +689,10 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
       messages: [
         {'role': 'user', 'content': finalUserMessage},
       ],
-      maxTokens: 800,
+      // 70-word answer + optional follow-up bullets fit well under this; the
+      // cap just bounds the worst case (output tokens are the dominant cost).
+      maxTokens: 600,
+      callType: 'coach',
     );
   }
 
@@ -840,6 +849,7 @@ Return the structured coach reply as defined in the system prompt. Use the profi
       systemPrompt: '$base\n\n$contextHeader\n$todayContext',
       messages: messages,
       maxTokens: 600,
+      callType: 'chat',
     );
   }
 }
