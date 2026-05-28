@@ -11,10 +11,8 @@ compatibility_date = "2025-05-01"
 [vars]
 MAX_CALLS_PER_DAY = "800"
 
-# Per-day cost/usage aggregate + circuit-breaker counter. Create the namespace
-# once, then uncomment and paste its id below:
-#   wrangler kv namespace create BUDGET
-# Until this binding exists the worker still runs (logging only, no cap).
-# [[kv_namespaces]]
-# binding = "BUDGET"
-# id = "PASTE_NAMESPACE_ID_HERE"
+# Per-day cost/usage aggregate + circuit-breaker counter. Until this binding
+# exists the worker still runs (logging only, no cap).
+[[kv_namespaces]]
+binding = "BUDGET"
+id = "c28aac59a7db416c8c704a23eed5baa3"
