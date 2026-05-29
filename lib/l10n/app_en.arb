@@ -132,6 +132,13 @@
 
   "homeOpenDayHelp": "Open day",
   "homeCoachThinking": "Coach is thinking…",
+  "homeCoachLookingAtMeal": "Coach is looking at your meal…",
+  "homeCoachBundling": "Coach is waiting briefly for more items… ({count})",
+  "@homeCoachBundling": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "homeEmptyRangeSingle": "{label} · no entries",
   "@homeEmptyRangeSingle": {
     "placeholders": {

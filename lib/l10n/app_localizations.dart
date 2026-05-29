@@ -590,6 +590,18 @@ abstract class AppLocalizations {
   /// **'Coach is thinking…'**
   String get homeCoachThinking;
 
+  /// No description provided for @homeCoachLookingAtMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach is looking at your meal…'**
+  String get homeCoachLookingAtMeal;
+
+  /// No description provided for @homeCoachBundling.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach is waiting briefly for more items… ({count})'**
+  String homeCoachBundling(int count);
+
   /// No description provided for @homeEmptyRangeSingle.
   ///
   /// In en, this message translates to:

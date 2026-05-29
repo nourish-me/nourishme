@@ -14,6 +14,7 @@ import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
+import '../services/coach_session_manager.dart';
 import '../utils/coach_followups.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
@@ -584,6 +585,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       threadByDay: threadByDay,
                       mealsAll: mealsAll,
                       coachLoading: coachLoading,
+                      // Id of the most recent meal in the current coach
+                      // session bundle, if any. Used by _buildSlivers to
+                      // inject the in-thread thinking bubble right after
+                      // that meal so the loading state is visible exactly
+                      // where the user just confirmed an entry.
+                      bundleAnchorMealId:
+                          ref.watch(coachSessionProvider)?.items.last.id,
                       scheme: scheme,
                       textTheme: textTheme,
                       mealsOnly: _mealsOnly,
@@ -644,6 +652,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required Map<DateTime, List<ThreadItem>> threadByDay,
     required List<MealEntry> mealsAll,
     required bool coachLoading,
+    required String? bundleAnchorMealId,
     required ColorScheme scheme,
     required TextTheme textTheme,
     bool mealsOnly = false,
@@ -742,6 +751,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onDelete: () => _confirmDelete(context, ref, meal),
               ),
             ));
+            // In-thread thinking bubble: appears directly after the most
+            // recent meal in the active coach session so the user sees the
+            // loading state exactly where they just confirmed an entry.
+            // Suppressed in meals-only mode (same as actual coach bubbles)
+            // so the filtered view stays a plain log of what was eaten.
+            if (!mealsOnly &&
+                bundleAnchorMealId != null &&
+                meal.id == bundleAnchorMealId) {
+              widgets.add(const SizedBox(height: 8));
+              widgets.add(const _CoachThinkingBubble());
+            }
           case ThreadItemType.coachResponse:
             widgets.add(_CoachBubble(text: item.text ?? '', isAnswer: false));
           case ThreadItemType.userQuestion:
@@ -760,6 +780,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 enum _ScrollDir { up, down }
+
+// Renders inline in the diary right after the most recent meal in the
+// currently-bundling coach session. Watches coachSessionProvider directly so
+// it updates in place as items are added or the call enters its calling
+// phase, and it disappears the moment the call resolves and the real coach
+// reply lands. Visual is intentionally quieter than _CoachBubble so a
+// real reply still stands out when it replaces this placeholder.
+class _CoachThinkingBubble extends ConsumerWidget {
+  const _CoachThinkingBubble();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(coachSessionProvider);
+    if (session == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final label = session.phase == SessionPhase.calling
+        ? l10n.homeCoachThinking
+        : session.items.length > 1
+            ? l10n.homeCoachBundling(session.items.length)
+            : l10n.homeCoachLookingAtMeal;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _CoachLoadingBanner extends StatelessWidget {
   final ColorScheme scheme;

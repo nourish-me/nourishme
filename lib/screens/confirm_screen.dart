@@ -10,6 +10,7 @@ import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
+import '../services/coach_session_manager.dart';
 import '../utils/weight_trend.dart';
 
 class ConfirmScreen extends ConsumerStatefulWidget {
@@ -330,29 +331,37 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       return;
     }
     final threadRepo = ref.read(threadRepositoryProvider);
+    final locale = Localizations.localeOf(context).languageCode;
+
+    if (!isEdit) {
+      // New meal: persist it and hand off to the session manager, which
+      // bundles rapid-fire logs (typically barcode sessions) into one coach
+      // call. The in-thread thinking bubble is the user-visible signal that
+      // the coach is processing.
+      await threadRepo.add(
+          ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
+      ref.read(coachSessionProvider.notifier).submitMeal(meal, locale);
+      return;
+    }
+
+    // Edit path: regenerate the existing coach reply synchronously. Edits
+    // bypass the session bundle because they're a targeted re-generation
+    // for one already-logged meal, not part of a new "I'm eating now"
+    // session that could pick up follow-up items.
     final client = ref.read(claudeClientProvider);
     final target = ref.read(calorieTargetProvider);
     final byDay = ref.read(mealsByDayProvider);
     final profile = ref.read(userProfileProvider).valueOrNull;
     final loadingNotifier = ref.read(insightLoadingProvider.notifier);
-    final locale = Localizations.localeOf(context).languageCode;
-    // Pass the weight trend to the coach only when it's notably fast, so an
-    // ordinary meal reply doesn't bring up weight every time.
     final trend = ref.read(weightTrendProvider);
     final notableTrend = (trend != null && trend.isNotable)
         ? formatWeightTrendForCoach(trend,
             isDe: locale.toLowerCase().startsWith('de'))
         : null;
 
-    if (isEdit) {
-      // The meal item is already in the thread. Remove the old coach
-      // response so we can replace it with a fresh one based on the edited
-      // values.
-      await threadRepo.removeCoachResponseForMeal(meal.id, meal.createdAt);
-    } else {
-      await threadRepo.add(
-          ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
-    }
+    // The meal item is already in the thread. Remove the old coach response
+    // so we can replace it with a fresh one based on the edited values.
+    await threadRepo.removeCoachResponseForMeal(meal.id, meal.createdAt);
 
     // Compose the running total for the meal's OWN day (not always today).
     // When the user logs a past-day meal via the empty-range picker or the

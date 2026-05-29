@@ -93,6 +93,13 @@
 
   "homeOpenDayHelp": "Tag öffnen",
   "homeCoachThinking": "Coach denkt nach…",
+  "homeCoachLookingAtMeal": "Coach schaut sich deine Mahlzeit an…",
+  "homeCoachBundling": "Coach wartet kurz auf weitere Items… ({count})",
+  "@homeCoachBundling": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "homeEmptyRangeSingle": "{label} · keine Einträge",
   "homeEmptyRangeMulti": "{from} bis {to} · {count} Tage leer",
   "homeEmptyDayText": "Keine Einträge",

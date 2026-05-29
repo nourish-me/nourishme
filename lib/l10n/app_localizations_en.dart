@@ -279,6 +279,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCoachThinking => 'Coach is thinking…';
 
   @override
+  String get homeCoachLookingAtMeal => 'Coach is looking at your meal…';
+
+  @override
+  String homeCoachBundling(int count) {
+    return 'Coach is waiting briefly for more items… ($count)';
+  }
+
+  @override
   String homeEmptyRangeSingle(String label) {
     return '$label · no entries';
   }
