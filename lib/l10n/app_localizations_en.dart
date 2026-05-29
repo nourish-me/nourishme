@@ -282,6 +282,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCoachLookingAtMeal => 'Coach is looking at your meal…';
 
   @override
+  String get homePhotoTextHint => 'Add amounts or notes (optional)';
+
+  @override
+  String get historyChipSubtitleToday => 'today';
+
+  @override
+  String get historyChipSubtitleYesterday => 'yesterday';
+
+  @override
+  String historyChipSubtitleDaysAgo(int count) {
+    return '$count days ago';
+  }
+
+  @override
+  String get historySuggestionsHeader => 'Logged before';
+
+  @override
+  String get tipsTitle => 'Get the most out of it';
+
+  @override
+  String get tipsSkip => 'Skip';
+
+  @override
+  String get tipsNext => 'Next';
+
+  @override
+  String get tipsDone => 'Let\'s go';
+
+  @override
+  String tipsCounter(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get tip1Title => 'Combine photo and text';
+
+  @override
+  String get tip1Body =>
+      'Take a photo and also type an amount or a note. The photo identifies what it is, the text makes the amount estimate accurate.';
+
+  @override
+  String get tip2Title => 'Barcode for brand values';
+
+  @override
+  String get tip2Body =>
+      'For packaged products like skyr, cereal or quark scan the barcode. You get exact brand values instead of an estimate.';
+
+  @override
+  String get tip3Title => 'The app remembers your favourites';
+
+  @override
+  String get tip3Body =>
+      'Start typing and suggestions from your meal history appear. Tap one — done. No new estimate needed, exact brand values come along.';
+
+  @override
+  String get tip4Title => 'Follow-ups under coach replies';
+
+  @override
+  String get tip4Body =>
+      'Some coach replies have small chips below them. Tap one and the question is half-typed into your input ready to send.';
+
+  @override
+  String get tip5Title => 'Log a missed meal later';
+
+  @override
+  String get tip5Body =>
+      'Tap an empty past day in your diary. You can set the date and time and log the meal retroactively.';
+
+  @override
   String homeCoachBundling(int count) {
     return 'Coach is waiting briefly for more items… ($count)';
   }

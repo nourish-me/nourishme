@@ -596,6 +596,126 @@ abstract class AppLocalizations {
   /// **'Coach is looking at your meal…'**
   String get homeCoachLookingAtMeal;
 
+  /// No description provided for @homePhotoTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add amounts or notes (optional)'**
+  String get homePhotoTextHint;
+
+  /// No description provided for @historyChipSubtitleToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get historyChipSubtitleToday;
+
+  /// No description provided for @historyChipSubtitleYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get historyChipSubtitleYesterday;
+
+  /// No description provided for @historyChipSubtitleDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String historyChipSubtitleDaysAgo(int count);
+
+  /// No description provided for @historySuggestionsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged before'**
+  String get historySuggestionsHeader;
+
+  /// No description provided for @tipsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get the most out of it'**
+  String get tipsTitle;
+
+  /// No description provided for @tipsSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tipsSkip;
+
+  /// No description provided for @tipsNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tipsNext;
+
+  /// No description provided for @tipsDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go'**
+  String get tipsDone;
+
+  /// No description provided for @tipsCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String tipsCounter(int current, int total);
+
+  /// No description provided for @tip1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Combine photo and text'**
+  String get tip1Title;
+
+  /// No description provided for @tip1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo and also type an amount or a note. The photo identifies what it is, the text makes the amount estimate accurate.'**
+  String get tip1Body;
+
+  /// No description provided for @tip2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode for brand values'**
+  String get tip2Title;
+
+  /// No description provided for @tip2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'For packaged products like skyr, cereal or quark scan the barcode. You get exact brand values instead of an estimate.'**
+  String get tip2Body;
+
+  /// No description provided for @tip3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'The app remembers your favourites'**
+  String get tip3Title;
+
+  /// No description provided for @tip3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Start typing and suggestions from your meal history appear. Tap one — done. No new estimate needed, exact brand values come along.'**
+  String get tip3Body;
+
+  /// No description provided for @tip4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups under coach replies'**
+  String get tip4Title;
+
+  /// No description provided for @tip4Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Some coach replies have small chips below them. Tap one and the question is half-typed into your input ready to send.'**
+  String get tip4Body;
+
+  /// No description provided for @tip5Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a missed meal later'**
+  String get tip5Title;
+
+  /// No description provided for @tip5Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an empty past day in your diary. You can set the date and time and log the meal retroactively.'**
+  String get tip5Body;
+
   /// No description provided for @homeCoachBundling.
   ///
   /// In en, this message translates to:

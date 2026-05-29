@@ -144,6 +144,37 @@ final macroTargetsProvider = Provider<MacroTargets>((ref) {
 
 final insightLoadingProvider = StateProvider<bool>((ref) => false);
 
+// Up to 3 distinct meals from the user's last 30 days whose summary contains
+// every token of [query] (case-insensitive substring match). Deduped by
+// lowercased summary, most-recent occurrence wins. Empty until the query has
+// at least 2 characters, so the suggestions don't flicker on every keystroke.
+//
+// Intent: nutrition trackers see the same products over and over (a specific
+// brand of skyr, a specific cereal). Surfacing those as one-tap chips skips
+// a parseMeal call and keeps brand-accurate macros instead of a generic
+// estimate.
+final mealHistorySuggestionsProvider =
+    Provider.family<List<MealEntry>, String>((ref, query) {
+  final trimmed = query.trim();
+  if (trimmed.length < 2) return const [];
+  final all = ref.watch(mealsProvider).valueOrNull ?? const [];
+  final tokens =
+      trimmed.toLowerCase().split(RegExp(r'\s+')).where((t) => t.isNotEmpty);
+  final cutoff = DateTime.now().subtract(const Duration(days: 30));
+  final matches = <MealEntry>[];
+  final seen = <String>{};
+  // mealsProvider yields newest first.
+  for (final m in all) {
+    if (m.createdAt.isBefore(cutoff)) continue;
+    final summaryLower = m.summary.toLowerCase();
+    if (!tokens.every(summaryLower.contains)) continue;
+    if (!seen.add(summaryLower)) continue;
+    matches.add(m);
+    if (matches.length >= 3) break;
+  }
+  return matches;
+});
+
 // Bumped whenever something elsewhere in the app has signaled that the
 // user almost certainly wants to type into the meal input next: tapping
 // a meal-reminder notification, picking a photo, finishing onboarding.

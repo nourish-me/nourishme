@@ -133,6 +133,38 @@
   "homeOpenDayHelp": "Open day",
   "homeCoachThinking": "Coach is thinking…",
   "homeCoachLookingAtMeal": "Coach is looking at your meal…",
+  "homePhotoTextHint": "Add amounts or notes (optional)",
+  "historyChipSubtitleToday": "today",
+  "historyChipSubtitleYesterday": "yesterday",
+  "historyChipSubtitleDaysAgo": "{count} days ago",
+  "@historyChipSubtitleDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "historySuggestionsHeader": "Logged before",
+
+  "tipsTitle": "Get the most out of it",
+  "tipsSkip": "Skip",
+  "tipsNext": "Next",
+  "tipsDone": "Let's go",
+  "tipsCounter": "{current} of {total}",
+  "@tipsCounter": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "tip1Title": "Combine photo and text",
+  "tip1Body": "Take a photo and also type an amount or a note. The photo identifies what it is, the text makes the amount estimate accurate.",
+  "tip2Title": "Barcode for brand values",
+  "tip2Body": "For packaged products like skyr, cereal or quark scan the barcode. You get exact brand values instead of an estimate.",
+  "tip3Title": "The app remembers your favourites",
+  "tip3Body": "Start typing and suggestions from your meal history appear. Tap one — done. No new estimate needed, exact brand values come along.",
+  "tip4Title": "Follow-ups under coach replies",
+  "tip4Body": "Some coach replies have small chips below them. Tap one and the question is half-typed into your input ready to send.",
+  "tip5Title": "Log a missed meal later",
+  "tip5Body": "Tap an empty past day in your diary. You can set the date and time and log the meal retroactively.",
   "homeCoachBundling": "Coach is waiting briefly for more items… ({count})",
   "@homeCoachBundling": {
     "placeholders": {

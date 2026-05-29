@@ -286,6 +286,75 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeCoachLookingAtMeal => 'Coach schaut sich deine Mahlzeit an…';
 
   @override
+  String get homePhotoTextHint => 'Mengen oder Notizen ergänzen (optional)';
+
+  @override
+  String get historyChipSubtitleToday => 'heute';
+
+  @override
+  String get historyChipSubtitleYesterday => 'gestern';
+
+  @override
+  String historyChipSubtitleDaysAgo(int count) {
+    return 'vor $count Tagen';
+  }
+
+  @override
+  String get historySuggestionsHeader => 'Schon mal geloggt';
+
+  @override
+  String get tipsTitle => 'So holst du das Beste raus';
+
+  @override
+  String get tipsSkip => 'Überspringen';
+
+  @override
+  String get tipsNext => 'Weiter';
+
+  @override
+  String get tipsDone => 'Los geht\'s';
+
+  @override
+  String tipsCounter(int current, int total) {
+    return '$current von $total';
+  }
+
+  @override
+  String get tip1Title => 'Foto + Text kombinieren';
+
+  @override
+  String get tip1Body =>
+      'Mach ein Foto und tippe zusätzlich eine Menge oder eine Notiz dazu. Das Foto erkennt, was es ist, der Text macht die Mengenschätzung präzise.';
+
+  @override
+  String get tip2Title => 'Barcode für Marken-Werte';
+
+  @override
+  String get tip2Body =>
+      'Bei verpackten Produkten wie Skyr, Müsli oder Quark scanne den Barcode. Du kriegst die exakten Marken-Werte statt einer Schätzung.';
+
+  @override
+  String get tip3Title => 'Die App merkt sich deine Lieblings-Produkte';
+
+  @override
+  String get tip3Body =>
+      'Wenn du anfängst zu tippen, erscheinen Vorschläge aus deiner Mahlzeit-Historie. Eine tappen, fertig — keine neue Schätzung nötig.';
+
+  @override
+  String get tip4Title => 'Folge-Fragen unter Coach-Antworten';
+
+  @override
+  String get tip4Body =>
+      'Manche Coach-Antworten haben kleine Chips drunter. Tappe einen, dann ist die Frage schon halb formuliert im Eingabefeld.';
+
+  @override
+  String get tip5Title => 'Verpasste Mahlzeit nachtragen';
+
+  @override
+  String get tip5Body =>
+      'Tappe einen leeren vergangenen Tag in deinem Tagebuch. Du kannst Datum und Uhrzeit setzen und die Mahlzeit nachträglich loggen.';
+
+  @override
   String homeCoachBundling(int count) {
     return 'Coach wartet kurz auf weitere Items… ($count)';
   }

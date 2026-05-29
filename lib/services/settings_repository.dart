@@ -16,6 +16,10 @@ class SettingsRepository {
   static const _disclaimerKey = 'disclaimer_accepted_at';
   static const _analyticsIdKey = 'analytics_distinct_id';
   static const _analyticsOptOutKey = 'analytics_opt_out';
+  // Bumped on the key when a new tips screen ships; existing users see the
+  // refreshed deck once, instead of being permanently gated by an earlier
+  // "I've seen tips" flag that was set against the old content.
+  static const _tipsSeenKey = 'tips_seen_v1';
 
   final Box<String> _box;
 
@@ -54,6 +58,10 @@ class SettingsRepository {
 
   Future<void> setDisclaimerAcceptedAt(DateTime at) =>
       _box.put(_disclaimerKey, at.toIso8601String());
+
+  bool hasSeenTipsV1() => _box.get(_tipsSeenKey) == 'true';
+
+  Future<void> setTipsV1Seen() => _box.put(_tipsSeenKey, 'true');
 
   // Stable, anonymous identifier for product analytics. Generated once and
   // persisted; carries no personal data, just lets PostHog group events from

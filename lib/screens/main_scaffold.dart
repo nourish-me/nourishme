@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/meal_providers.dart';
 import 'history_screen.dart';
 import 'home_screen.dart';
+import 'tips_screen.dart';
 import 'trends_screen.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
@@ -16,6 +17,23 @@ class MainScaffold extends ConsumerStatefulWidget {
 
 class _MainScaffoldState extends ConsumerState<MainScaffold> {
   final Set<int> _visited = {0};
+
+  @override
+  void initState() {
+    super.initState();
+    // First-time tips deck: shown once per install in front of MainScaffold.
+    // Covers both the after-onboarding case (new user) and the first launch
+    // after the update that introduced the deck (existing testers) — the
+    // hasSeenTipsV1 flag is set only when the user finishes or skips it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (ref.read(settingsRepositoryProvider).hasSeenTipsV1()) return;
+      ref.read(analyticsServiceProvider).capture('tips_shown');
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const TipsScreen()),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

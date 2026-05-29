@@ -94,6 +94,38 @@
   "homeOpenDayHelp": "Tag öffnen",
   "homeCoachThinking": "Coach denkt nach…",
   "homeCoachLookingAtMeal": "Coach schaut sich deine Mahlzeit an…",
+  "homePhotoTextHint": "Mengen oder Notizen ergänzen (optional)",
+  "historyChipSubtitleToday": "heute",
+  "historyChipSubtitleYesterday": "gestern",
+  "historyChipSubtitleDaysAgo": "vor {count} Tagen",
+  "@historyChipSubtitleDaysAgo": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "historySuggestionsHeader": "Schon mal geloggt",
+
+  "tipsTitle": "So holst du das Beste raus",
+  "tipsSkip": "Überspringen",
+  "tipsNext": "Weiter",
+  "tipsDone": "Los geht's",
+  "tipsCounter": "{current} von {total}",
+  "@tipsCounter": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "tip1Title": "Foto + Text kombinieren",
+  "tip1Body": "Mach ein Foto und tippe zusätzlich eine Menge oder eine Notiz dazu. Das Foto erkennt, was es ist, der Text macht die Mengenschätzung präzise.",
+  "tip2Title": "Barcode für Marken-Werte",
+  "tip2Body": "Bei verpackten Produkten wie Skyr, Müsli oder Quark scanne den Barcode. Du kriegst die exakten Marken-Werte statt einer Schätzung.",
+  "tip3Title": "Die App merkt sich deine Lieblings-Produkte",
+  "tip3Body": "Wenn du anfängst zu tippen, erscheinen Vorschläge aus deiner Mahlzeit-Historie. Eine tappen, fertig — keine neue Schätzung nötig.",
+  "tip4Title": "Folge-Fragen unter Coach-Antworten",
+  "tip4Body": "Manche Coach-Antworten haben kleine Chips drunter. Tappe einen, dann ist die Frage schon halb formuliert im Eingabefeld.",
+  "tip5Title": "Verpasste Mahlzeit nachtragen",
+  "tip5Body": "Tappe einen leeren vergangenen Tag in deinem Tagebuch. Du kannst Datum und Uhrzeit setzen und die Mahlzeit nachträglich loggen.",
   "homeCoachBundling": "Coach wartet kurz auf weitere Items… ({count})",
   "@homeCoachBundling": {
     "placeholders": {

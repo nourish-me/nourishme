@@ -781,6 +781,69 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 enum _ScrollDir { up, down }
 
+// Single chip in the history-suggestion row above the diary input. Renders
+// the prior meal's summary plus a short relative time + kcal subtitle so
+// the user can pick the right one when several products share a word.
+class _HistorySuggestionChip extends StatelessWidget {
+  final MealEntry meal;
+  final VoidCallback onTap;
+  const _HistorySuggestionChip({required this.meal, required this.onTap});
+
+  String _relativeAgo(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final mealDay =
+        DateTime(meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
+    final days = today.difference(mealDay).inDays;
+    if (days <= 0) return l10n.historyChipSubtitleToday;
+    if (days == 1) return l10n.historyChipSubtitleYesterday;
+    return l10n.historyChipSubtitleDaysAgo(days);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Material(
+      color: scheme.secondaryContainer,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                meal.summary,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSecondaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${_relativeAgo(context)} · ${meal.kcal} kcal',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodySmall?.copyWith(
+                  color: scheme.onSecondaryContainer.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // Renders inline in the diary right after the most recent meal in the
 // currently-bundling coach session. Watches coachSessionProvider directly so
 // it updates in place as items are added or the call enters its calling
@@ -1496,9 +1559,25 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
   bool _sending = false;
   int _lastFocusRequest = 0;
   int _lastPrefillVersion = 0;
+  // Mirror of _controller.text used to drive the history-suggestion chip row.
+  // Stored separately so build() can watch it without subscribing to every
+  // TextField rebuild path.
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    if (_query == _controller.text) return;
+    setState(() => _query = _controller.text);
+  }
 
   @override
   void dispose() {
+    _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -1562,6 +1641,46 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         ),
       ),
     );
+  }
+
+  // Re-uses a meal from the user's history exactly as it was logged before
+  // (same brand, same portion, same macros), skipping the parseMeal call.
+  // For products the user repeatedly logs this is more accurate than a
+  // generic estimate AND cheaper (one Anthropic call saved per tap).
+  Future<void> _useHistoryMatch(MealEntry m) async {
+    if (_sending) return;
+    ref
+        .read(analyticsServiceProvider)
+        .capture('history_chip_tapped', properties: {
+      'summary_length': m.summary.length,
+    });
+    final parsed = MealParseResult(
+      isMeal: true,
+      rejectionReason: null,
+      summary: m.summary,
+      kcal: m.kcal,
+      proteinG: m.proteinG,
+      carbsG: m.carbsG,
+      fatG: m.fatG,
+      portionAmount: m.portionAmount,
+      portionUnit: m.portionUnit,
+      portionAlias: m.portionAlias,
+      safetyWarnings: m.safetyWarnings,
+    );
+    await showModalBottomSheet<MealEntry>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => ConfirmScreen(
+        rawText: m.summary,
+        parsed: parsed,
+        asSheet: true,
+        source: 'history',
+      ),
+    );
+    // Clear the input so it doesn't sit there suggesting the same meal again.
+    if (mounted) _controller.clear();
   }
 
   Future<void> _useFavorite(FavoriteMeal favorite) async {
@@ -1964,6 +2083,13 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     final textTheme = Theme.of(context).textTheme;
     final favorites =
         ref.watch(favoritesProvider).valueOrNull ?? const <FavoriteMeal>[];
+    // Recent-meal matches for the current typed query (empty list until the
+    // user has typed >= 2 chars). Hidden when a photo is attached because the
+    // photo flow follows a different mental model — the user is already
+    // committed to that meal, not searching for one.
+    final historySuggestions = _imageBytes != null
+        ? const <MealEntry>[]
+        : ref.watch(mealHistorySuggestionsProvider(_query));
 
     // Listen for focus requests from the rest of the app (notification tap,
     // onboarding finish, photo-picker from elsewhere). The counter pattern
@@ -2084,6 +2210,28 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                   ),
                   const SizedBox(height: 6),
                 ],
+                // History suggestions: pulls up to 3 recent matching meals
+                // as one-tap chips while the user is typing. Surfaces the
+                // exact brand + portion they logged before instead of a
+                // generic estimate, and skips a parseMeal API call.
+                if (historySuggestions.isNotEmpty) ...[
+                  SizedBox(
+                    height: 60,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: historySuggestions.length,
+                      separatorBuilder: (_, i) => const SizedBox(width: 8),
+                      itemBuilder: (_, i) {
+                        final m = historySuggestions[i];
+                        return _HistorySuggestionChip(
+                          meal: m,
+                          onTap: () => _useHistoryMatch(m),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                ],
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -2123,7 +2271,16 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                         onSubmitted: (_) => _send(),
                         style: textTheme.bodyMedium,
                         decoration: InputDecoration(
-                          hintText: AppLocalizations.of(context).homeMainInputHint,
+                          // With a photo attached the prompt shifts: the
+                          // photo carries the "what did I eat" signal, so
+                          // the textfield's job becomes amount + notes,
+                          // not the meal name. Surfacing that in the hint
+                          // pushes users towards the more accurate
+                          // photo+text combo without an explicit tip.
+                          hintText: _imageBytes != null
+                              ? AppLocalizations.of(context).homePhotoTextHint
+                              : AppLocalizations.of(context)
+                                  .homeMainInputHint,
                           hintStyle: TextStyle(color: scheme.outline),
                           isDense: true,
                           filled: true,
