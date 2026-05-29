@@ -635,7 +635,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Get the most out of it'**
+  /// **'Tips & Tricks'**
   String get tipsTitle;
 
   /// No description provided for @tipsSkip.

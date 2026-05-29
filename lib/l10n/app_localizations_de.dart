@@ -306,7 +306,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsButtonShowTips => 'Tipps erneut zeigen';
 
   @override
-  String get tipsTitle => 'So holst du das Beste raus';
+  String get tipsTitle => 'Tipps & Tricks';
 
   @override
   String get tipsSkip => 'Überspringen';

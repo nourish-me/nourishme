@@ -302,7 +302,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsButtonShowTips => 'Show tips again';
 
   @override
-  String get tipsTitle => 'Get the most out of it';
+  String get tipsTitle => 'Tips & Tricks';
 
   @override
   String get tipsSkip => 'Skip';
