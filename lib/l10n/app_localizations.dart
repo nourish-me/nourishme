@@ -665,49 +665,49 @@ abstract class AppLocalizations {
   /// No description provided for @tip1Title.
   ///
   /// In en, this message translates to:
-  /// **'Combine photo and text'**
+  /// **'Photo + text nails it'**
   String get tip1Title;
 
   /// No description provided for @tip1Body.
   ///
   /// In en, this message translates to:
-  /// **'Take a photo and also type an amount or a note. The photo identifies what it is, the text makes the amount estimate accurate.'**
+  /// **'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at — far more accurate than a photo alone.'**
   String get tip1Body;
 
   /// No description provided for @tip2Title.
   ///
   /// In en, this message translates to:
-  /// **'Barcode for brand values'**
+  /// **'Barcode trains your brands'**
   String get tip2Title;
 
   /// No description provided for @tip2Body.
   ///
   /// In en, this message translates to:
-  /// **'For packaged products like skyr, cereal or quark scan the barcode. You get exact brand values instead of an estimate.'**
+  /// **'Scan the barcode for packaged products like skyr or cereal — you get exact values. The app remembers what you buy often.'**
   String get tip2Body;
 
   /// No description provided for @tip3Title.
   ///
   /// In en, this message translates to:
-  /// **'The app remembers your favourites'**
+  /// **'Your favourites are one tap away'**
   String get tip3Title;
 
   /// No description provided for @tip3Body.
   ///
   /// In en, this message translates to:
-  /// **'Start typing and suggestions from your meal history appear. Tap one — done. No new estimate needed, exact brand values come along.'**
+  /// **'Just type the first few letters (“Sky…”) and you\'ll see suggestions from your history. Tap → done, with the brand values from last time. The more you log, the better the app knows you.'**
   String get tip3Body;
 
   /// No description provided for @tip4Title.
   ///
   /// In en, this message translates to:
-  /// **'Follow-ups under coach replies'**
+  /// **'Coach replies are tappable'**
   String get tip4Title;
 
   /// No description provided for @tip4Body.
   ///
   /// In en, this message translates to:
-  /// **'Some coach replies have small chips below them. Tap one and the question is half-typed into your input ready to send.'**
+  /// **'Some coach replies have chip suggestions beneath them. Tap one → the question is already half-typed in your input.'**
   String get tip4Body;
 
   /// No description provided for @tip5Title.
@@ -719,7 +719,7 @@ abstract class AppLocalizations {
   /// No description provided for @tip5Body.
   ///
   /// In en, this message translates to:
-  /// **'Tap an empty past day in your diary. You can set the date and time and log the meal retroactively.'**
+  /// **'Tap a past day in your diary → you can set the date and time and log the meal retroactively.'**
   String get tip5Body;
 
   /// No description provided for @homeCoachBundling.

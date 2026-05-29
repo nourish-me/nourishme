@@ -341,6 +341,14 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       await threadRepo.add(
           ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
       ref.read(coachSessionProvider.notifier).submitMeal(meal, locale);
+      // Scroll the diary to the meal's day so the user sees their new
+      // entry land — critical for retro-logged past-day meals where the
+      // entry would otherwise be far off-screen and they'd wonder if the
+      // save actually worked. No-op when the meal is for today and the
+      // diary is already showing today.
+      final mealDay = DateTime(
+          meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
+      ref.read(scrollToDayProvider.notifier).state = mealDay;
       return;
     }
 

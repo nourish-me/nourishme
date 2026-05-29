@@ -141,7 +141,7 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
   "safety_warnings": [string]
 }
 
-"summary" ist eine kurze deutsche Beschreibung, maximal 80 Zeichen.
+"summary" ist eine kurze deutsche Beschreibung, maximal 80 Zeichen. Behalte ALLE vom Nutzer genannten Komponenten in der summary. Generalisiere NICHT zu Oberkategorien: "Kapern und Äpfel" bleibt "Kapern und Äpfel", nicht "Äpfel" oder "Obst"; "Tomate und Gurke" bleibt "Tomate und Gurke", nicht "Gemüse". Du darfst Mengen ergänzen (z.B. "1 Apfel ~120 g"), aber keine Komponente weglassen oder durch eine Oberkategorie ersetzen.
 "portion_amount" und "portion_unit" zusammen müssen plausibel zur summary passen. Bei is_meal=false dürfen sie 0 bzw. "g" sein.
 "portion_alias" ist eine handliche Bezugsgröße auf Deutsch, max. 25 Zeichen, die der Userin hilft die Menge ohne Waage einzuschätzen. Beispiele: "eine Handvoll", "2 EL", "ein kleiner Becher", "1 Handfläche", "ein gehäufter TL", "1 mittlere Schüssel". Wenn keine sinnvolle Bezugsgröße existiert (z. B. Wasser, Mineralwasser): null.
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
@@ -189,7 +189,7 @@ Respond EXCLUSIVELY with JSON in this schema, no Markdown code fence, no text be
   "safety_warnings": [string]
 }
 
-"summary" is a short English description, max 80 characters.
+"summary" is a short English description, max 80 characters. Keep ALL components the user named in the summary. Do NOT generalise to higher-level categories: "capers and apples" stays "capers and apples", not "apples" or "fruit"; "tomato and cucumber" stays "tomato and cucumber", not "vegetables". You may add amounts (e.g. "1 apple ~120 g"), but do not drop any component or replace it with a category.
 "portion_amount" and "portion_unit" together must be plausible for the summary. With is_meal=false they may be 0 and "g".
 "portion_alias" is a handy reference size in English, max 25 characters, that helps the user gauge the amount without a scale. Examples: "a handful", "2 tbsp", "a small mug", "1 palm size", "1 heaped tsp", "1 medium bowl". When no useful reference exists (e.g. water, sparkling water): null.
 "safety_warnings" only contains health-relevant notes for the phase, never input problems. Empty when nothing is critical.

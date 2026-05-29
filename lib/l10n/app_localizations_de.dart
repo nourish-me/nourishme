@@ -323,39 +323,39 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get tip1Title => 'Foto + Text kombinieren';
+  String get tip1Title => 'Foto + Text macht\'s präzise';
 
   @override
   String get tip1Body =>
-      'Mach ein Foto und tippe zusätzlich eine Menge oder eine Notiz dazu. Das Foto erkennt, was es ist, der Text macht die Mengenschätzung präzise.';
+      'Mach ein Foto und sag in einem Wort dazu, was es ist. So weiß die App genau, welche Lebensmittel drauf sind — die Schätzung wird viel präziser als mit Foto allein.';
 
   @override
-  String get tip2Title => 'Barcode für Marken-Werte';
+  String get tip2Title => 'Barcode trainiert deine Marken';
 
   @override
   String get tip2Body =>
-      'Bei verpackten Produkten wie Skyr, Müsli oder Quark scanne den Barcode. Du kriegst die exakten Marken-Werte statt einer Schätzung.';
+      'Scanne den Barcode bei verpackten Produkten wie Skyr oder Müsli — du kriegst die exakten Werte. Die App merkt sich, was du oft kaufst.';
 
   @override
-  String get tip3Title => 'Die App merkt sich deine Lieblings-Produkte';
+  String get tip3Title => 'Deine Lieblings-Produkte sind eine Antippung weg';
 
   @override
   String get tip3Body =>
-      'Wenn du anfängst zu tippen, erscheinen Vorschläge aus deiner Mahlzeit-Historie. Eine tappen, fertig — keine neue Schätzung nötig.';
+      'Schreib nur den Anfang („Sky…“) und du siehst Vorschläge aus deiner Historie. Tap → fertig, mit den Marken-Werten von letztem Mal. Je öfter du loggst, desto besser kennt dich die App.';
 
   @override
-  String get tip4Title => 'Folge-Fragen unter Coach-Antworten';
+  String get tip4Title => 'Coach-Antworten antippbar';
 
   @override
   String get tip4Body =>
-      'Manche Coach-Antworten haben kleine Chips drunter. Tappe einen, dann ist die Frage schon halb formuliert im Eingabefeld.';
+      'Manche Coach-Antworten haben Chip-Vorschläge drunter. Tippe einen → die Frage steht halb fertig in deinem Eingabefeld.';
 
   @override
   String get tip5Title => 'Verpasste Mahlzeit nachtragen';
 
   @override
   String get tip5Body =>
-      'Tappe einen leeren vergangenen Tag in deinem Tagebuch. Du kannst Datum und Uhrzeit setzen und die Mahlzeit nachträglich loggen.';
+      'Tap auf einen vergangenen Tag im Tagebuch → du kannst Datum und Uhrzeit setzen und nachträglich loggen.';
 
   @override
   String homeCoachBundling(int count) {

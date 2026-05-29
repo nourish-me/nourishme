@@ -867,7 +867,10 @@ class _CoachThinkingBubble extends ConsumerWidget {
             : l10n.homeCoachLookingAtMeal;
     return Container(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
+        // tertiaryContainer (rose) matches the older standalone loading
+        // banner and stands out against the diary cards without competing
+        // with a real coach bubble's amber.
+        color: scheme.tertiaryContainer,
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
@@ -878,7 +881,7 @@ class _CoachThinkingBubble extends ConsumerWidget {
             height: 12,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: scheme.onSurfaceVariant,
+              color: scheme.onTertiaryContainer,
             ),
           ),
           const SizedBox(width: 10),
@@ -886,7 +889,7 @@ class _CoachThinkingBubble extends ConsumerWidget {
             child: Text(
               label,
               style: textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
+                color: scheme.onTertiaryContainer,
                 fontStyle: FontStyle.italic,
               ),
             ),

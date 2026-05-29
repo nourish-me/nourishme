@@ -117,16 +117,16 @@
       "total": {"type": "int"}
     }
   },
-  "tip1Title": "Foto + Text kombinieren",
-  "tip1Body": "Mach ein Foto und tippe zusätzlich eine Menge oder eine Notiz dazu. Das Foto erkennt, was es ist, der Text macht die Mengenschätzung präzise.",
-  "tip2Title": "Barcode für Marken-Werte",
-  "tip2Body": "Bei verpackten Produkten wie Skyr, Müsli oder Quark scanne den Barcode. Du kriegst die exakten Marken-Werte statt einer Schätzung.",
-  "tip3Title": "Die App merkt sich deine Lieblings-Produkte",
-  "tip3Body": "Wenn du anfängst zu tippen, erscheinen Vorschläge aus deiner Mahlzeit-Historie. Eine tappen, fertig — keine neue Schätzung nötig.",
-  "tip4Title": "Folge-Fragen unter Coach-Antworten",
-  "tip4Body": "Manche Coach-Antworten haben kleine Chips drunter. Tappe einen, dann ist die Frage schon halb formuliert im Eingabefeld.",
+  "tip1Title": "Foto + Text macht's präzise",
+  "tip1Body": "Mach ein Foto und sag in einem Wort dazu, was es ist. So weiß die App genau, welche Lebensmittel drauf sind — die Schätzung wird viel präziser als mit Foto allein.",
+  "tip2Title": "Barcode trainiert deine Marken",
+  "tip2Body": "Scanne den Barcode bei verpackten Produkten wie Skyr oder Müsli — du kriegst die exakten Werte. Die App merkt sich, was du oft kaufst.",
+  "tip3Title": "Deine Lieblings-Produkte sind eine Antippung weg",
+  "tip3Body": "Schreib nur den Anfang („Sky…“) und du siehst Vorschläge aus deiner Historie. Tap → fertig, mit den Marken-Werten von letztem Mal. Je öfter du loggst, desto besser kennt dich die App.",
+  "tip4Title": "Coach-Antworten antippbar",
+  "tip4Body": "Manche Coach-Antworten haben Chip-Vorschläge drunter. Tippe einen → die Frage steht halb fertig in deinem Eingabefeld.",
   "tip5Title": "Verpasste Mahlzeit nachtragen",
-  "tip5Body": "Tappe einen leeren vergangenen Tag in deinem Tagebuch. Du kannst Datum und Uhrzeit setzen und die Mahlzeit nachträglich loggen.",
+  "tip5Body": "Tap auf einen vergangenen Tag im Tagebuch → du kannst Datum und Uhrzeit setzen und nachträglich loggen.",
   "homeCoachBundling": "Coach wartet kurz auf weitere Items… ({count})",
   "@homeCoachBundling": {
     "placeholders": {

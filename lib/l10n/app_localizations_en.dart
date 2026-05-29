@@ -319,39 +319,39 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tip1Title => 'Combine photo and text';
+  String get tip1Title => 'Photo + text nails it';
 
   @override
   String get tip1Body =>
-      'Take a photo and also type an amount or a note. The photo identifies what it is, the text makes the amount estimate accurate.';
+      'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at — far more accurate than a photo alone.';
 
   @override
-  String get tip2Title => 'Barcode for brand values';
+  String get tip2Title => 'Barcode trains your brands';
 
   @override
   String get tip2Body =>
-      'For packaged products like skyr, cereal or quark scan the barcode. You get exact brand values instead of an estimate.';
+      'Scan the barcode for packaged products like skyr or cereal — you get exact values. The app remembers what you buy often.';
 
   @override
-  String get tip3Title => 'The app remembers your favourites';
+  String get tip3Title => 'Your favourites are one tap away';
 
   @override
   String get tip3Body =>
-      'Start typing and suggestions from your meal history appear. Tap one — done. No new estimate needed, exact brand values come along.';
+      'Just type the first few letters (“Sky…”) and you\'ll see suggestions from your history. Tap → done, with the brand values from last time. The more you log, the better the app knows you.';
 
   @override
-  String get tip4Title => 'Follow-ups under coach replies';
+  String get tip4Title => 'Coach replies are tappable';
 
   @override
   String get tip4Body =>
-      'Some coach replies have small chips below them. Tap one and the question is half-typed into your input ready to send.';
+      'Some coach replies have chip suggestions beneath them. Tap one → the question is already half-typed in your input.';
 
   @override
   String get tip5Title => 'Log a missed meal later';
 
   @override
   String get tip5Body =>
-      'Tap an empty past day in your diary. You can set the date and time and log the meal retroactively.';
+      'Tap a past day in your diary → you can set the date and time and log the meal retroactively.';
 
   @override
   String homeCoachBundling(int count) {
