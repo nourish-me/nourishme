@@ -1,32 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
-  <style>
-    .ill{fill:none;stroke-linecap:round;stroke-linejoin:round}
-    .ln{stroke:currentColor;stroke-width:2.6}
-    .ln-thin{stroke:currentColor;stroke-width:1.7}
-    .ln-hair{stroke:currentColor;stroke-width:1.2}
-    .am{stroke:#C8884A;stroke-width:2.6}
-    .am-thin{stroke:#C8884A;stroke-width:1.7}
-    .am-fill{fill:#C8884A;stroke:none}
-    .dash{stroke-dasharray:1 7}
-  </style>
-  <g class="ill">
-    <ellipse class="ln" cx="168" cy="150" rx="50" ry="12"/>
-    <path class="ln" d="M120 150 L136 300 Q168 312 200 300 L216 150"/>
-    <rect class="ln-thin" x="140" y="186" width="56" height="86" rx="7" opacity=".7"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse stroke="currentColor" stroke-width="2.6" fill="none" cx="168" cy="150" rx="50" ry="12"/>
+    <path stroke="currentColor" stroke-width="2.6" fill="none" d="M120 150 L136 300 Q168 312 200 300 L216 150"/>
+    <rect stroke="currentColor" stroke-width="1.7" fill="none" x="140" y="186" width="56" height="86" rx="7" opacity=".7"/>
     <text x="168" y="178" text-anchor="middle" font-family="serif" font-style="italic" font-size="16" font-weight="600" fill="currentColor">Skyr</text>
     <g stroke="currentColor" stroke-width="2" opacity=".9">
       <path d="M150 200 V232"/><path d="M155 200 V232"/><path d="M161 200 V232" stroke-width="3.4"/><path d="M168 200 V232"/><path d="M174 200 V232" stroke-width="3.4"/><path d="M181 200 V232"/><path d="M187 200 V232" stroke-width="3.4"/>
     </g>
     <text x="168" y="250" text-anchor="middle" font-family="monospace" font-size="8.5" letter-spacing="1.5" fill="currentColor" opacity=".55">8 712 044</text>
-    <path class="am" d="M108 214 L 226 206"/>
-    <path class="am-thin" d="M108 208 L108 220 M226 200 L226 212"/>
-    <path class="ln-thin dash" d="M224 210 C 300 210, 300 150, 372 150" opacity=".8"/>
-    <rect class="ln" x="372" y="104" width="190" height="132" rx="14"/>
+    <path stroke="#C8884A" stroke-width="2.6" fill="none" d="M108 214 L 226 206"/>
+    <path stroke="#C8884A" stroke-width="1.7" fill="none" d="M108 208 L108 220 M226 200 L226 212"/>
+    <path stroke="currentColor" stroke-width="1.7" fill="none" stroke-dasharray="1 7" d="M224 210 C 300 210, 300 150, 372 150" opacity=".8"/>
+    <rect stroke="currentColor" stroke-width="2.6" fill="none" x="372" y="104" width="190" height="132" rx="14"/>
     <text x="392" y="140" font-family="monospace" font-size="10" letter-spacing=".12em" fill="currentColor" opacity=".6">PRO 100 G</text>
-    <line class="ln-hair" x1="392" y1="150" x2="544" y2="150" opacity=".4"/>
+    <line stroke="currentColor" stroke-width="1.2" fill="none" x1="392" y1="150" x2="544" y2="150" opacity=".4"/>
     <text x="392" y="186" font-family="serif" font-style="italic" font-weight="600" font-size="30" fill="currentColor">150 kcal</text>
     <text x="392" y="216" font-family="monospace" font-size="15" fill="currentColor"><tspan fill="#C8884A" font-weight="500">17 g</tspan> Protein</text>
-    <circle class="am-fill" cx="540" cy="100" r="12"/>
+    <circle fill="#C8884A" cx="540" cy="100" r="12"/>
     <path d="M520 112 A 20 20 0 0 0 560 112 Z" fill="currentColor"/>
   </g>
 </svg>

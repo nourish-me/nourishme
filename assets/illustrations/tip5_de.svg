@@ -1,29 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
-  <style>
-    .ill{fill:none;stroke-linecap:round;stroke-linejoin:round}
-    .ln{stroke:currentColor;stroke-width:2.6}
-    .ln-thin{stroke:currentColor;stroke-width:1.7}
-    .ln-hair{stroke:currentColor;stroke-width:1.2}
-    .am{stroke:#C8884A;stroke-width:2.6}
-    .am-thin{stroke:#C8884A;stroke-width:1.7}
-    .am-fill{fill:#C8884A;stroke:none}
-    .dot{fill:currentColor;stroke:none}
-    .dash{stroke-dasharray:1 7}
-  </style>
-  <g class="ill">
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
     <g font-family="monospace">
-      <g transform="translate(78,206)"><rect class="ln-thin" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">M</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">12</text></g>
-      <g transform="translate(142,206)"><rect class="ln-thin" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">D</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">13</text></g>
-      <g transform="translate(206,206)"><rect class="ln-thin" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">M</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">14</text></g>
-      <g transform="translate(270,200)"><rect class="am" x="0" y="0" width="60" height="86" rx="13"/><text x="30" y="24" text-anchor="middle" font-size="11" fill="#C8884A" font-weight="500">D</text><text x="30" y="58" text-anchor="middle" font-family="serif" font-style="italic" font-weight="600" font-size="25" fill="currentColor">15</text><text x="30" y="110" text-anchor="middle" font-size="10" letter-spacing=".1em" fill="#C8884A">GESTERN</text></g>
-      <g transform="translate(340,206)"><rect class="ln-thin" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">F</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">16</text></g>
-      <g transform="translate(404,206)"><rect class="ln-thin" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">S</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">17</text></g>
-      <g transform="translate(468,206)"><rect class="ln-thin" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">S</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">18</text></g>
+      <g transform="translate(78,206)"><rect stroke="currentColor" stroke-width="1.7" fill="none" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">M</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">12</text></g>
+      <g transform="translate(142,206)"><rect stroke="currentColor" stroke-width="1.7" fill="none" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">D</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">13</text></g>
+      <g transform="translate(206,206)"><rect stroke="currentColor" stroke-width="1.7" fill="none" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">M</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">14</text></g>
+      <g transform="translate(270,200)"><rect stroke="#C8884A" stroke-width="2.6" fill="none" x="0" y="0" width="60" height="86" rx="13"/><text x="30" y="24" text-anchor="middle" font-size="11" fill="#C8884A" font-weight="500">D</text><text x="30" y="58" text-anchor="middle" font-family="serif" font-style="italic" font-weight="600" font-size="25" fill="currentColor">15</text><text x="30" y="110" text-anchor="middle" font-size="10" letter-spacing=".1em" fill="#C8884A">GESTERN</text></g>
+      <g transform="translate(340,206)"><rect stroke="currentColor" stroke-width="1.7" fill="none" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">F</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">16</text></g>
+      <g transform="translate(404,206)"><rect stroke="currentColor" stroke-width="1.7" fill="none" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">S</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">17</text></g>
+      <g transform="translate(468,206)"><rect stroke="currentColor" stroke-width="1.7" fill="none" x="0" y="0" width="56" height="74" rx="11" opacity=".7"/><text x="28" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">S</text><text x="28" y="52" text-anchor="middle" font-family="serif" font-size="22" fill="currentColor" opacity=".7">18</text></g>
     </g>
-    <circle class="am-fill" cx="300" cy="120" r="15"/>
+    <circle fill="#C8884A" cx="300" cy="120" r="15"/>
     <path d="M276 134 A 24 24 0 0 0 324 134 Z" fill="currentColor"/>
-    <path class="ln-thin dash" d="M300 150 L 300 196" opacity=".6"/>
-    <g transform="translate(188,72) rotate(-40)"><rect class="ln" x="0" y="0" width="20" height="118" rx="5"/><line class="ln-thin" x1="10" y1="0" x2="10" y2="118" opacity=".35"/><line class="ln-thin" x1="0" y1="16" x2="20" y2="16"/><path class="ln" d="M0 118 L 10 144 L 20 118 Z"/><path class="am-fill" d="M4 129 L 10 144 L 16 129 Z"/></g>
-    <g transform="translate(486,316)"><circle class="ln" cx="0" cy="0" r="38"/><path class="ln" d="M0 0 L -16 -7"/><path class="ln-thin" d="M0 0 L 4 -20"/><circle class="dot" cx="0" cy="0" r="3"/><path class="am" d="M -2 -50 A 50 50 0 0 0 -46 -20"/><path class="am" d="M -2 -50 L -13 -49 M -2 -50 L -6 -39"/></g>
+    <path stroke="currentColor" stroke-width="1.7" fill="none" stroke-dasharray="1 7" d="M300 150 L 300 196" opacity=".6"/>
+    <g transform="translate(188,72) rotate(-40)"><rect stroke="currentColor" stroke-width="2.6" fill="none" x="0" y="0" width="20" height="118" rx="5"/><line stroke="currentColor" stroke-width="1.7" fill="none" x1="10" y1="0" x2="10" y2="118" opacity=".35"/><line stroke="currentColor" stroke-width="1.7" fill="none" x1="0" y1="16" x2="20" y2="16"/><path stroke="currentColor" stroke-width="2.6" fill="none" d="M0 118 L 10 144 L 20 118 Z"/><path fill="#C8884A" d="M4 129 L 10 144 L 16 129 Z"/></g>
+    <g transform="translate(486,316)"><circle stroke="currentColor" stroke-width="2.6" fill="none" cx="0" cy="0" r="38"/><path stroke="currentColor" stroke-width="2.6" fill="none" d="M0 0 L -16 -7"/><path stroke="currentColor" stroke-width="1.7" fill="none" d="M0 0 L 4 -20"/><circle fill="currentColor" cx="0" cy="0" r="3"/><path stroke="#C8884A" stroke-width="2.6" fill="none" d="M -2 -50 A 50 50 0 0 0 -46 -20"/><path stroke="#C8884A" stroke-width="2.6" fill="none" d="M -2 -50 L -13 -49 M -2 -50 L -6 -39"/></g>
   </g>
 </svg>

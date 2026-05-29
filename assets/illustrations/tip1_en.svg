@@ -1,29 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
-  <style>
-    .ill{fill:none;stroke-linecap:round;stroke-linejoin:round}
-    .ln{stroke:currentColor;stroke-width:2.6}
-    .ln-thin{stroke:currentColor;stroke-width:1.7}
-    .ln-hair{stroke:currentColor;stroke-width:1.2}
-    .am{stroke:#C8884A;stroke-width:2.6}
-    .am-thin{stroke:#C8884A;stroke-width:1.7}
-    .am-fill{fill:#C8884A;stroke:none}
-    .wash{fill:#C8884A;stroke:none;opacity:.13}
-    .dot{fill:currentColor;stroke:none}
-    .dash{stroke-dasharray:1 7}
-  </style>
-  <g class="ill">
-    <circle class="am-fill" cx="222" cy="206" r="33"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle fill="#C8884A" cx="222" cy="206" r="33"/>
     <path d="M148 220 A 78 78 0 0 0 304 220 Z" fill="currentColor"/>
-    <rect class="ln" x="150" y="86" width="130" height="40" rx="20"/>
-    <circle class="am-fill" cx="176" cy="106" r="4.5"/>
+    <rect stroke="currentColor" stroke-width="2.6" fill="none" x="150" y="86" width="130" height="40" rx="20"/>
+    <circle fill="#C8884A" cx="176" cy="106" r="4.5"/>
     <text x="194" y="113" font-family="monospace" font-size="18" font-weight="500" fill="currentColor">150 g</text>
-    <path class="ln-thin" d="M206 126 L 202 140 L 214 130"/>
+    <path stroke="currentColor" stroke-width="1.7" fill="none" d="M206 126 L 202 140 L 214 130"/>
     <g transform="rotate(-10 424 210)">
-      <rect class="ln" x="372" y="118" width="104" height="190" rx="20"/>
-      <rect class="ln-thin" x="384" y="150" width="80" height="128" rx="9" opacity=".5"/>
-      <path class="ln-thin" d="M411 133 h28" opacity=".7"/>
-      <circle class="am-fill" cx="424" cy="214" r="7"/>
-      <path class="ln-thin" d="M404 222 A 21 21 0 0 0 446 222"/>
+      <rect stroke="currentColor" stroke-width="2.6" fill="none" x="372" y="118" width="104" height="190" rx="20"/>
+      <rect stroke="currentColor" stroke-width="1.7" fill="none" x="384" y="150" width="80" height="128" rx="9" opacity=".5"/>
+      <path stroke="currentColor" stroke-width="1.7" fill="none" d="M411 133 h28" opacity=".7"/>
+      <circle fill="#C8884A" cx="424" cy="214" r="7"/>
+      <path stroke="currentColor" stroke-width="1.7" fill="none" d="M404 222 A 21 21 0 0 0 446 222"/>
     </g>
   </g>
 </svg>
