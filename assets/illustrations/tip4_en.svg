@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+  <style>
+    .ill{fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .ln{stroke:currentColor;stroke-width:2.6}
+    .ln-thin{stroke:currentColor;stroke-width:1.7}
+    .ln-hair{stroke:currentColor;stroke-width:1.2}
+    .am{stroke:#C8884A;stroke-width:2.6}
+    .am-thin{stroke:#C8884A;stroke-width:1.7}
+    .am-fill{fill:#C8884A;stroke:none}
+  </style>
+  <g class="ill">
+    <rect class="ln" x="78" y="58" width="404" height="120" rx="22"/>
+    <path class="ln" d="M108 178 L 100 204 L 134 178"/>
+    <circle class="am-fill" cx="116" cy="90" r="11"/>
+    <path d="M98 100 A 18 18 0 0 0 134 100 Z" fill="currentColor"/>
+    <line class="ln-thin" x1="150" y1="92" x2="452" y2="92" opacity=".45"/>
+    <line class="ln-thin" x1="150" y1="114" x2="452" y2="114" opacity=".45"/>
+    <line class="ln-thin" x1="150" y1="136" x2="396" y2="136" opacity=".45"/>
+    <rect class="ln" x="78" y="214" width="168" height="44" rx="22"/>
+    <text x="100" y="241" font-family="sans-serif" font-size="14" font-weight="500" fill="currentColor">More protein?</text>
+    <rect class="ln" x="262" y="214" width="150" height="44" rx="22"/>
+    <text x="282" y="241" font-family="sans-serif" font-size="14" font-weight="500" fill="currentColor">OK at night?</text>
+    <rect class="am" x="120" y="276" width="244" height="46" rx="23"/>
+    <text x="142" y="304" font-family="sans-serif" font-size="14" font-weight="600" fill="currentColor">Snack on the go?</text>
+    <path class="am-thin" d="M329 320 q 9 -9 18 0" opacity=".75"/>
+    <path class="am-thin" d="M322 315 q 16 -15 31 0" opacity=".45"/>
+    <path class="ln" d="M331 361 L331 339 Q331 327 338 327 Q345 327 345 339 L345 361"/>
+    <path class="ln-hair" d="M334 336 q 4 -3 8 0" opacity=".6"/>
+    <path class="ln" d="M320 361 Q312 363 311 375 Q309 392 332 393 L366 393 Q386 392 384 375 Q383 361 373 360"/>
+    <path class="ln-thin" d="M330 373 q 15 -3 27 4" opacity=".7"/>
+    <path class="ln-thin" d="M331 383 q 13 -2 24 3" opacity=".7"/>
+    <path class="ln-thin" d="M320 368 Q308 372 309 385 Q310 393 318 392"/>
+  </g>
+</svg>

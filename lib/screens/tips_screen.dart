@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../l10n/app_localizations.dart';
 import '../providers/meal_providers.dart';
@@ -10,9 +11,15 @@ import '../providers/meal_providers.dart';
 // SettingsRepository.hasSeenTipsV1, so future iterations can refresh the
 // deck without permanently locking earlier users out.
 //
-// Routing: pushed by main.dart in front of MainScaffold when hasProfile is
-// true and hasSeenTipsV1 is false. The "Done" / "Skip" actions both mark the
-// flag and replace the route with MainScaffold.
+// Routing: pushed by main_scaffold.dart after MainScaffold mounts and from
+// the "Tipps erneut zeigen" button in Settings. Both Done / Skip mark the
+// flag (via _finish) and pop the route.
+//
+// Illustrations: per-tip SVGs in assets/illustrations/, locale-suffixed
+// (tip{N}_de.svg / tip{N}_en.svg) because some illustrations bake in short
+// labels ("PRO 100 G", weekday letters, brand examples) that need to follow
+// the app's language. The line colour is driven by currentColor so the
+// SVGs blend with the active theme — pine in light mode, paper in dark.
 class TipsScreen extends ConsumerStatefulWidget {
   const TipsScreen({super.key});
 
@@ -51,29 +58,32 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final localeCode =
+        Localizations.localeOf(context).languageCode.toLowerCase();
+    final assetSuffix = localeCode.startsWith('de') ? 'de' : 'en';
     final tips = <_Tip>[
       _Tip(
-        icon: Icons.photo_camera_outlined,
+        asset: 'assets/illustrations/tip1_$assetSuffix.svg',
         title: l10n.tip1Title,
         body: l10n.tip1Body,
       ),
       _Tip(
-        icon: Icons.qr_code_scanner,
+        asset: 'assets/illustrations/tip2_$assetSuffix.svg',
         title: l10n.tip2Title,
         body: l10n.tip2Body,
       ),
       _Tip(
-        icon: Icons.lightbulb_outline,
+        asset: 'assets/illustrations/tip3_$assetSuffix.svg',
         title: l10n.tip3Title,
         body: l10n.tip3Body,
       ),
       _Tip(
-        icon: Icons.chat_bubble_outline,
+        asset: 'assets/illustrations/tip4_$assetSuffix.svg',
         title: l10n.tip4Title,
         body: l10n.tip4Body,
       ),
       _Tip(
-        icon: Icons.event_available_outlined,
+        asset: 'assets/illustrations/tip5_$assetSuffix.svg',
         title: l10n.tip5Title,
         body: l10n.tip5Body,
       ),
@@ -147,10 +157,10 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
 }
 
 class _Tip {
-  final IconData icon;
+  final String asset;
   final String title;
   final String body;
-  const _Tip({required this.icon, required this.title, required this.body});
+  const _Tip({required this.asset, required this.title, required this.body});
 }
 
 class _TipPage extends StatelessWidget {
@@ -161,26 +171,29 @@ class _TipPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    // Drive the illustration's currentColor from the active theme so the line
+    // work reads against both paper (light) and ink (dark) without shipping
+    // separate light/dark assets. onSurface tracks the theme exactly.
+    final lineColor = scheme.onSurface;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              tip.icon,
-              size: 36,
-              color: scheme.onPrimaryContainer,
+          Expanded(
+            flex: 5,
+            child: Center(
+              child: SvgPicture.asset(
+                tip.asset,
+                fit: BoxFit.contain,
+                // Drives only currentColor — leaves the amber accents
+                // (#C8884A, hard-coded in the SVG) untouched. A colorFilter
+                // would flatten everything to one tone.
+                theme: SvgTheme(currentColor: lineColor),
+              ),
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
           Text(
             tip.title,
             style: textTheme.headlineSmall?.copyWith(
@@ -195,6 +208,7 @@ class _TipPage extends StatelessWidget {
               height: 1.4,
             ),
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );

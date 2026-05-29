@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+  <style>
+    .ill{fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .ln{stroke:currentColor;stroke-width:2.6}
+    .ln-thin{stroke:currentColor;stroke-width:1.7}
+    .ln-hair{stroke:currentColor;stroke-width:1.2}
+    .am{stroke:#C8884A;stroke-width:2.6}
+    .am-thin{stroke:#C8884A;stroke-width:1.7}
+    .am-fill{fill:#C8884A;stroke:none}
+  </style>
+  <g class="ill">
+    <rect class="ln-thin" x="104" y="118" width="150" height="186" rx="12" opacity=".5"/>
+    <rect class="ln" x="92" y="106" width="150" height="186" rx="12"/>
+    <path class="ln-thin" d="M114 106 L114 292" opacity=".6"/>
+    <g stroke="currentColor" stroke-width="1.5" opacity=".55"><path d="M101 130 H114"/><path d="M101 168 H114"/><path d="M101 206 H114"/><path d="M101 244 H114"/></g>
+    <circle class="am-fill" cx="167" cy="150" r="14"/>
+    <path d="M145 162 A 22 22 0 0 0 189 162 Z" fill="currentColor"/>
+    <text x="167" y="208" text-anchor="middle" font-family="serif" font-style="italic" font-weight="600" font-size="17" fill="currentColor">Favorites</text>
+    <line class="ln-thin" x1="124" y1="232" x2="210" y2="232" opacity=".4"/>
+    <line class="ln-thin" x1="124" y1="250" x2="196" y2="250" opacity=".4"/>
+    <g transform="translate(312,118) rotate(-4)"><rect class="ln" x="0" y="0" width="206" height="50" rx="25"/><path class="ln-thin" d="M34 33 C 24 33, 22 18, 33 18 C 37 14, 45 14, 48 18 C 59 18, 57 33, 47 33 C 43 38, 38 38, 34 33 Z"/><path class="ln-hair" d="M40 16 Q 44 8 50 10"/><text x="74" y="31" font-family="sans-serif" font-size="15" font-weight="500" fill="currentColor">Apple, small</text><path class="am-thin" d="M182 16 L185 24 L194 24 L187 29 L190 38 L182 33 L174 38 L177 29 L170 24 L179 24 Z"/></g>
+    <g transform="translate(338,184) rotate(2)"><rect class="ln" x="0" y="0" width="206" height="50" rx="25"/><ellipse class="ln-thin" cx="38" cy="18" rx="13" ry="4"/><path class="ln-thin" d="M27 18 L31 38 Q 38 41 45 38 L49 18"/><text x="74" y="31" font-family="sans-serif" font-size="15" font-weight="500" fill="currentColor">Skyr, vanilla</text><path class="am-thin" d="M182 16 L185 24 L194 24 L187 29 L190 38 L182 33 L174 38 L177 29 L170 24 L179 24 Z"/></g>
+    <g transform="translate(316,250) rotate(-3)"><rect class="ln" x="0" y="0" width="206" height="50" rx="25"/><path class="ln-thin" d="M28 36 L28 16 L48 16 L48 36 Z M28 16 L33 11 L53 11 L48 16 M48 16 L53 11 L53 31 L48 36"/><text x="74" y="31" font-family="sans-serif" font-size="15" font-weight="500" fill="currentColor">Oat granola</text><path class="am-thin" d="M182 16 L185 24 L194 24 L187 29 L190 38 L182 33 L174 38 L177 29 L170 24 L179 24 Z"/></g>
+  </g>
+</svg>
