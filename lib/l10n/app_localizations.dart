@@ -626,6 +626,12 @@ abstract class AppLocalizations {
   /// **'Logged before'**
   String get historySuggestionsHeader;
 
+  /// No description provided for @settingsButtonShowTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Show tips again'**
+  String get settingsButtonShowTips;
+
   /// No description provided for @tipsTitle.
   ///
   /// In en, this message translates to:

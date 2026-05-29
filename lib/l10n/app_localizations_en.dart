@@ -299,6 +299,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historySuggestionsHeader => 'Logged before';
 
   @override
+  String get settingsButtonShowTips => 'Show tips again';
+
+  @override
   String get tipsTitle => 'Get the most out of it';
 
   @override

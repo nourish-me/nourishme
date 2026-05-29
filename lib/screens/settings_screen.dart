@@ -10,6 +10,7 @@ import '../models/favorite_meal.dart';
 import '../models/reminder_settings.dart';
 import '../models/weight_entry.dart';
 import '../services/feedback_sender.dart';
+import 'tips_screen.dart';
 import '../services/notification_scheduler.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
@@ -423,6 +424,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _ThemeSection(),
                 const SizedBox(height: 16),
                 const _PrivacySection(),
+                const SizedBox(height: 16),
+                // Lets the user revisit the first-run tips deck. The deck
+                // sets hasSeenTipsV1 on dismiss, so launching it from here
+                // simply re-runs the same screen.
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const TipsScreen()),
+                  ),
+                  icon: const Icon(Icons.lightbulb_outline),
+                  label:
+                      Text(AppLocalizations.of(context).settingsButtonShowTips),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () => FeedbackSender.openFeedbackMail(

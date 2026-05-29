@@ -303,6 +303,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get historySuggestionsHeader => 'Schon mal geloggt';
 
   @override
+  String get settingsButtonShowTips => 'Tipps erneut zeigen';
+
+  @override
   String get tipsTitle => 'So holst du das Beste raus';
 
   @override
