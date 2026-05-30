@@ -25,13 +25,48 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     // Covers both the after-onboarding case (new user) and the first launch
     // after the update that introduced the deck (existing testers) — the
     // hasSeenTipsV1 flag is set only when the user finishes or skips it.
+    //
+    // The presentation is delayed ~900 ms so the user sees the Diary land
+    // first, then the deck slides up over it. Without the delay the deck
+    // appeared instantly on top of onboarding's exit transition, which
+    // felt like a jarring cut from one form to another.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (ref.read(settingsRepositoryProvider).hasSeenTipsV1()) return;
-      ref.read(analyticsServiceProvider).capture('tips_shown');
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const TipsScreen()),
-      );
+      Future.delayed(const Duration(milliseconds: 900), () {
+        if (!mounted) return;
+        ref.read(analyticsServiceProvider).capture('tips_shown');
+        // Dismiss any lingering keyboard (e.g. from an onboarding text
+        // field whose focus didn't release on the screen swap) before
+        // pushing the deck, so the bottom half of the first tip card
+        // isn't eaten by the keyboard.
+        FocusManager.instance.primaryFocus?.unfocus();
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            opaque: false,
+            transitionDuration: const Duration(milliseconds: 360),
+            reverseTransitionDuration: const Duration(milliseconds: 240),
+            pageBuilder: (ctx, anim, secAnim) => const TipsScreen(),
+            transitionsBuilder: (ctx, anim, secAnim, child) {
+              final curve = CurvedAnimation(
+                parent: anim,
+                curve: Curves.easeOutCubic,
+                reverseCurve: Curves.easeInCubic,
+              );
+              return FadeTransition(
+                opacity: curve,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.12),
+                    end: Offset.zero,
+                  ).animate(curve),
+                  child: child,
+                ),
+              );
+            },
+          ),
+        );
+      });
     });
   }
 

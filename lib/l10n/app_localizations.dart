@@ -1748,18 +1748,6 @@ abstract class AppLocalizations {
   /// **'NourishMe is a personal wellness tool, not a medical device. For medical questions, talk to your doctor or midwife. For allergies or pre-existing conditions, double-check coach suggestions yourself.'**
   String get onboardingDisclaimerBody;
 
-  /// No description provided for @onboardingDisclaimerCheckbox.
-  ///
-  /// In en, this message translates to:
-  /// **'I understand.'**
-  String get onboardingDisclaimerCheckbox;
-
-  /// No description provided for @onboardingDisclaimerHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Please confirm above to continue.'**
-  String get onboardingDisclaimerHint;
-
   /// No description provided for @onboardingDisclaimerLink.
   ///
   /// In en, this message translates to:

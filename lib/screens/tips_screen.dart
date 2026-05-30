@@ -32,6 +32,19 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
   int _index = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // Belt + suspenders: in case the deck is opened while another screen's
+    // text field still holds focus (e.g. tapping "Tipps erneut zeigen"
+    // from Settings mid-edit), dismiss the keyboard so the cards aren't
+    // pushed up by an open keyboard.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      FocusScope.of(context).unfocus();
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();

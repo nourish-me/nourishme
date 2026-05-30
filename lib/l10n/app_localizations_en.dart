@@ -936,12 +936,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'NourishMe is a personal wellness tool, not a medical device. For medical questions, talk to your doctor or midwife. For allergies or pre-existing conditions, double-check coach suggestions yourself.';
 
   @override
-  String get onboardingDisclaimerCheckbox => 'I understand.';
-
-  @override
-  String get onboardingDisclaimerHint => 'Please confirm above to continue.';
-
-  @override
   String get onboardingDisclaimerLink => 'More details';
 
   @override

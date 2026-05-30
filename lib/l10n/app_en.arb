@@ -453,8 +453,6 @@
 
   "onboardingDisclaimerTitle": "Briefly: not medical advice.",
   "onboardingDisclaimerBody": "NourishMe is a personal wellness tool, not a medical device. For medical questions, talk to your doctor or midwife. For allergies or pre-existing conditions, double-check coach suggestions yourself.",
-  "onboardingDisclaimerCheckbox": "I understand.",
-  "onboardingDisclaimerHint": "Please confirm above to continue.",
   "onboardingDisclaimerLink": "More details",
 
   "settingsSectionDiet": "Diet & allergies",
