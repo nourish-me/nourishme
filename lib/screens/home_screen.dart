@@ -804,18 +804,6 @@ class _HistorySuggestionChip extends StatelessWidget {
   final VoidCallback onTap;
   const _HistorySuggestionChip({required this.meal, required this.onTap});
 
-  String _relativeAgo(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final mealDay =
-        DateTime(meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
-    final days = today.difference(mealDay).inDays;
-    if (days <= 0) return l10n.historyChipSubtitleToday;
-    if (days == 1) return l10n.historyChipSubtitleYesterday;
-    return l10n.historyChipSubtitleDaysAgo(days);
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -824,9 +812,12 @@ class _HistorySuggestionChip extends StatelessWidget {
         ? ', ${meal.portionAmount.toStringAsFixed(0)} ${meal.portionUnit}'
         : '';
     return InputChip(
+      // History icon (vs star on favourites) is the only differentiator —
+      // the relative-time suffix on the label felt like a data-record;
+      // the icon already conveys "from before" without the timestamp.
       avatar: Icon(Icons.history, size: 14, color: scheme.secondary),
       label: Text(
-        '${meal.summary}$amount · ${_relativeAgo(context)}',
+        '${meal.summary}$amount',
         style: textTheme.labelSmall,
       ),
       visualDensity: VisualDensity.compact,
@@ -852,13 +843,19 @@ class _CoachThinkingBubble extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isBundling = session.phase == SessionPhase.bundling;
     final label = session.phase == SessionPhase.calling
         ? l10n.homeCoachThinking
         : session.items.length > 1
             ? l10n.homeCoachBundling(session.items.length)
             : l10n.homeCoachLookingAtMeal;
-    final body = Padding(
+    // No tap-to-fire affordance: the 25 s debounce is short enough that
+    // skipping the wait isn't a meaningful win, and the earlier "Antippen
+    // für sofort" hint muddied what the bubble was actually saying.
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       child: Row(
         children: [
@@ -880,34 +877,7 @@ class _CoachThinkingBubble extends ConsumerWidget {
               ),
             ),
           ),
-          // Tap-to-fire affordance: only while still bundling. Once the
-          // call is in flight there's nothing to skip.
-          if (isBundling) ...[
-            const SizedBox(width: 8),
-            Text(
-              l10n.thinkingBubbleFireNow,
-              style: textTheme.labelSmall?.copyWith(
-                color: scheme.onTertiaryContainer.withValues(alpha: 0.75),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(Icons.send,
-                size: 14,
-                color: scheme.onTertiaryContainer.withValues(alpha: 0.75)),
-          ],
         ],
-      ),
-    );
-    return Material(
-      color: scheme.tertiaryContainer,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: isBundling
-            ? () => ref.read(coachSessionProvider.notifier).fireNow()
-            : null,
-        child: body,
       ),
     );
   }
@@ -1338,12 +1308,14 @@ class _ThreadMealCard extends StatelessWidget {
         color: scheme.surfaceContainerLow,
         child: ListTile(
           // Tap opens the same sheet as the slidable "edit" action so the
-          // macros (protein / carbs / fat / portion) and meal time become
-          // visible without committing to changes. Acts as a detail view
-          // for read-only glances; editing remains opt-in via Speichern.
+          // full nutrition values and meal time become visible without
+          // committing to changes. Acts as a detail view for read-only
+          // glances; editing remains opt-in via Speichern.
           onTap: onEdit,
           title: Text(meal.summary),
-          subtitle: Text(timeLabel),
+          subtitle: Text(
+            '$timeLabel  ·  P ${meal.proteinG.round()} g  ·  KH ${meal.carbsG.round()} g  ·  F ${meal.fatG.round()} g',
+          ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1604,13 +1576,25 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     super.dispose();
   }
 
-  void _focusAndOpenKeyboard() {
+  Future<void> _focusAndOpenKeyboard() async {
     // Schedule on the next frame so we don't fight any in-flight unfocus
     // (e.g. from a route transition). FocusNode.requestFocus on its own
-    // brings the iOS keyboard up.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _focusNode.requestFocus();
-    });
+    // brings the iOS keyboard up — when it actually lands. Cold-launch
+    // from a meal-reminder push can arrive before the TextField has even
+    // attached its FocusNode, so we retry a few times until focus sticks
+    // or we give up. The debugPrint trail makes diagnosis from the
+    // device console straightforward when it doesn't work.
+    for (var attempt = 0; attempt < 5; attempt++) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+      _focusNode.requestFocus();
+      if (_focusNode.hasFocus) {
+        debugPrint('[Focus] keyboard requested on attempt $attempt');
+        return;
+      }
+      await Future.delayed(const Duration(milliseconds: 150));
+    }
+    debugPrint('[Focus] gave up after 5 attempts, focus did not stick');
   }
 
   String _formatTime(DateTime t) =>

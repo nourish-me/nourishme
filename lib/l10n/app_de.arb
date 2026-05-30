@@ -95,19 +95,9 @@
   "homeCoachThinking": "Coach denkt nach…",
   "homeCoachLookingAtMeal": "Coach schaut sich deine Mahlzeit an…",
   "homePhotoTextHint": "Mengen oder Notizen ergänzen (optional)",
-  "historyChipSubtitleToday": "heute",
-  "historyChipSubtitleYesterday": "gestern",
-  "historyChipSubtitleDaysAgo": "vor {count} Tagen",
-  "@historyChipSubtitleDaysAgo": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "historySuggestionsHeader": "Schon mal geloggt",
 
   "settingsButtonShowTips": "Tipps erneut zeigen",
   "bundlingToast": "Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.",
-  "thinkingBubbleFireNow": "Antippen für sofort",
   "tipsTitle": "Tipps & Tricks",
   "tipsSkip": "Überspringen",
   "tipsNext": "Weiter",
@@ -120,7 +110,7 @@
     }
   },
   "tip1Title": "Foto + Text macht's präzise",
-  "tip1Body": "Mach ein Foto und sag in einem Wort dazu, was es ist. So weiß die App genau, welche Lebensmittel drauf sind. Die Schätzung wird viel präziser als mit Foto allein.",
+  "tip1Body": "Mach ein Foto und sag in einem Wort dazu, was es ist. So weiß die App genau, welche Lebensmittel drauf sind. Die Schätzung wird viel präziser als mit Foto allein. Tipp: statt zu tippen kannst du das Mikrofon auf der iOS-Tastatur antippen und reinsprechen.",
   "tip2Title": "Barcode trainiert deine Marken",
   "tip2Body": "Scanne den Barcode bei verpackten Produkten wie Skyr oder Müsli. Du kriegst die exakten Werte, und die App merkt sich, was du oft kaufst.",
   "tip3Title": "Deine Lieblings-Produkte sind eine Antippung weg",

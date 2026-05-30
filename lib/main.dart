@@ -114,15 +114,24 @@ class NourishMeApp extends ConsumerStatefulWidget {
 
 class _NourishMeAppState extends ConsumerState<NourishMeApp> {
   void _onNotificationTap() {
-    // Forward the static signal from NotificationScheduler into Riverpod so
-    // _HomeInput (which reads via ref.watch) can pull focus on the next
-    // build. Wrapped because the notifier may fire before ref is mounted.
+    debugPrint('[NotificationTap] fired, mounted=$mounted');
     if (!mounted) return;
     // Switch to the Diary tab first so the meal input is the visible field,
     // otherwise the focus request lands on a screen the user can't see (e.g.
     // when the reminder is tapped while History/Trends was last open).
     ref.read(selectedTabProvider.notifier).state = 0;
-    ref.read(mealInputFocusRequestProvider.notifier).state++;
+    // Bump the focus request several times with growing delays. The first
+    // bump catches the warm-resume case where the input is already on
+    // screen; the later bumps catch cold-launch + tab-switch races where
+    // _HomeInput's TextField only attaches its FocusNode after first paint
+    // or after the route stack finishes settling.
+    for (final delayMs in [50, 300, 800]) {
+      Future.delayed(Duration(milliseconds: delayMs), () {
+        if (!mounted) return;
+        debugPrint('[NotificationTap] focus bump after ${delayMs}ms');
+        ref.read(mealInputFocusRequestProvider.notifier).state++;
+      });
+    }
   }
 
   @override

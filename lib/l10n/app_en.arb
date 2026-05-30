@@ -134,19 +134,9 @@
   "homeCoachThinking": "Coach is thinking…",
   "homeCoachLookingAtMeal": "Coach is looking at your meal…",
   "homePhotoTextHint": "Add amounts or notes (optional)",
-  "historyChipSubtitleToday": "today",
-  "historyChipSubtitleYesterday": "yesterday",
-  "historyChipSubtitleDaysAgo": "{count} days ago",
-  "@historyChipSubtitleDaysAgo": {
-    "placeholders": {
-      "count": {"type": "int"}
-    }
-  },
-  "historySuggestionsHeader": "Logged before",
 
   "settingsButtonShowTips": "Show tips again",
   "bundlingToast": "Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.",
-  "thinkingBubbleFireNow": "Tap to send now",
   "tipsTitle": "Tips & Tricks",
   "tipsSkip": "Skip",
   "tipsNext": "Next",
@@ -159,7 +149,7 @@
     }
   },
   "tip1Title": "Photo + text nails it",
-  "tip1Body": "Take a photo and add one or two words about what's on it. That way the app knows exactly which foods it's looking at. Far more accurate than a photo alone.",
+  "tip1Body": "Take a photo and add one or two words about what's on it. That way the app knows exactly which foods it's looking at. Far more accurate than a photo alone. Tip: instead of typing, tap the microphone on the iOS keyboard and dictate.",
   "tip2Title": "Barcode trains your brands",
   "tip2Body": "Scan the barcode for packaged products like skyr or cereal. You get exact values, and the app remembers what you buy often.",
   "tip3Title": "Your favourites are one tap away",

@@ -285,28 +285,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePhotoTextHint => 'Add amounts or notes (optional)';
 
   @override
-  String get historyChipSubtitleToday => 'today';
-
-  @override
-  String get historyChipSubtitleYesterday => 'yesterday';
-
-  @override
-  String historyChipSubtitleDaysAgo(int count) {
-    return '$count days ago';
-  }
-
-  @override
-  String get historySuggestionsHeader => 'Logged before';
-
-  @override
   String get settingsButtonShowTips => 'Show tips again';
 
   @override
   String get bundlingToast =>
       'Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.';
-
-  @override
-  String get thinkingBubbleFireNow => 'Tap to send now';
 
   @override
   String get tipsTitle => 'Tips & Tricks';
@@ -330,7 +313,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tip1Body =>
-      'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at. Far more accurate than a photo alone.';
+      'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at. Far more accurate than a photo alone. Tip: instead of typing, tap the microphone on the iOS keyboard and dictate.';
 
   @override
   String get tip2Title => 'Barcode trains your brands';

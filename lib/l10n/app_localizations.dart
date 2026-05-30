@@ -602,30 +602,6 @@ abstract class AppLocalizations {
   /// **'Add amounts or notes (optional)'**
   String get homePhotoTextHint;
 
-  /// No description provided for @historyChipSubtitleToday.
-  ///
-  /// In en, this message translates to:
-  /// **'today'**
-  String get historyChipSubtitleToday;
-
-  /// No description provided for @historyChipSubtitleYesterday.
-  ///
-  /// In en, this message translates to:
-  /// **'yesterday'**
-  String get historyChipSubtitleYesterday;
-
-  /// No description provided for @historyChipSubtitleDaysAgo.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} days ago'**
-  String historyChipSubtitleDaysAgo(int count);
-
-  /// No description provided for @historySuggestionsHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Logged before'**
-  String get historySuggestionsHeader;
-
   /// No description provided for @settingsButtonShowTips.
   ///
   /// In en, this message translates to:
@@ -637,12 +613,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.'**
   String get bundlingToast;
-
-  /// No description provided for @thinkingBubbleFireNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap to send now'**
-  String get thinkingBubbleFireNow;
 
   /// No description provided for @tipsTitle.
   ///
@@ -683,7 +653,7 @@ abstract class AppLocalizations {
   /// No description provided for @tip1Body.
   ///
   /// In en, this message translates to:
-  /// **'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at. Far more accurate than a photo alone.'**
+  /// **'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at. Far more accurate than a photo alone. Tip: instead of typing, tap the microphone on the iOS keyboard and dictate.'**
   String get tip1Body;
 
   /// No description provided for @tip2Title.

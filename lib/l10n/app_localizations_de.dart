@@ -289,28 +289,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homePhotoTextHint => 'Mengen oder Notizen ergänzen (optional)';
 
   @override
-  String get historyChipSubtitleToday => 'heute';
-
-  @override
-  String get historyChipSubtitleYesterday => 'gestern';
-
-  @override
-  String historyChipSubtitleDaysAgo(int count) {
-    return 'vor $count Tagen';
-  }
-
-  @override
-  String get historySuggestionsHeader => 'Schon mal geloggt';
-
-  @override
   String get settingsButtonShowTips => 'Tipps erneut zeigen';
 
   @override
   String get bundlingToast =>
       'Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.';
-
-  @override
-  String get thinkingBubbleFireNow => 'Antippen für sofort';
 
   @override
   String get tipsTitle => 'Tipps & Tricks';
@@ -334,7 +317,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tip1Body =>
-      'Mach ein Foto und sag in einem Wort dazu, was es ist. So weiß die App genau, welche Lebensmittel drauf sind. Die Schätzung wird viel präziser als mit Foto allein.';
+      'Mach ein Foto und sag in einem Wort dazu, was es ist. So weiß die App genau, welche Lebensmittel drauf sind. Die Schätzung wird viel präziser als mit Foto allein. Tipp: statt zu tippen kannst du das Mikrofon auf der iOS-Tastatur antippen und reinsprechen.';
 
   @override
   String get tip2Title => 'Barcode trainiert deine Marken';

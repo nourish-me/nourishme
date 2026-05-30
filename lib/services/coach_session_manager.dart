@@ -92,16 +92,6 @@ class CoachSessionManager extends StateNotifier<CoachSession?> {
     _timer = Timer(const Duration(seconds: _debounceSeconds), _fireNow);
   }
 
-  // Public escape hatch — user taps the thinking bubble to say "I'm done
-  // logging, send the coach reply now". No-op while a call is already in
-  // flight or when nothing is bundling.
-  void fireNow() {
-    final current = state;
-    if (current == null || current.phase == SessionPhase.calling) return;
-    _timer?.cancel();
-    unawaited(_fireNow());
-  }
-
   Future<void> _fireNow() async {
     final current = state;
     if (current == null) return;
