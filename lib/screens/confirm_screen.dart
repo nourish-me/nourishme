@@ -341,14 +341,18 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       await threadRepo.add(
           ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
       ref.read(coachSessionProvider.notifier).submitMeal(meal, locale);
-      // Scroll the diary to the meal's day so the user sees their new
-      // entry land — critical for retro-logged past-day meals where the
-      // entry would otherwise be far off-screen and they'd wonder if the
-      // save actually worked. No-op when the meal is for today and the
-      // diary is already showing today.
+      // Scroll the diary to the meal's day only for retro-logs (past-day
+      // saves). Today's saves don't need it — the new entry lands at the
+      // bottom near the input bar, naturally visible. Firing the scroll
+      // for today made the diary jump up to "today's earliest entry",
+      // which felt like an unwanted scroll-up right after saving.
+      final now = DateTime.now();
+      final todayKey = DateTime(now.year, now.month, now.day);
       final mealDay = DateTime(
           meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
-      ref.read(scrollToDayProvider.notifier).state = mealDay;
+      if (mealDay != todayKey) {
+        ref.read(scrollToDayProvider.notifier).state = mealDay;
+      }
       return;
     }
 

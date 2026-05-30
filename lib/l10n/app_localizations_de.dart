@@ -306,6 +306,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsButtonShowTips => 'Tipps erneut zeigen';
 
   @override
+  String get bundlingToast =>
+      'Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.';
+
+  @override
   String get tipsTitle => 'Tipps & Tricks';
 
   @override

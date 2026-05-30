@@ -632,6 +632,12 @@ abstract class AppLocalizations {
   /// **'Show tips again'**
   String get settingsButtonShowTips;
 
+  /// No description provided for @bundlingToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.'**
+  String get bundlingToast;
+
   /// No description provided for @tipsTitle.
   ///
   /// In en, this message translates to:

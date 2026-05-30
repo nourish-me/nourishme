@@ -20,6 +20,10 @@ class SettingsRepository {
   // refreshed deck once, instead of being permanently gated by an earlier
   // "I've seen tips" flag that was set against the old content.
   static const _tipsSeenKey = 'tips_seen_v1';
+  // One-shot educational toast shown the first time the session manager
+  // actually bundles multiple items into a single coach reply. Teaches the
+  // bundling concept exactly in the moment the user experiences it.
+  static const _bundlingToastSeenKey = 'bundling_toast_seen';
 
   final Box<String> _box;
 
@@ -62,6 +66,11 @@ class SettingsRepository {
   bool hasSeenTipsV1() => _box.get(_tipsSeenKey) == 'true';
 
   Future<void> setTipsV1Seen() => _box.put(_tipsSeenKey, 'true');
+
+  bool hasSeenBundlingToast() => _box.get(_bundlingToastSeenKey) == 'true';
+
+  Future<void> setBundlingToastSeen() =>
+      _box.put(_bundlingToastSeenKey, 'true');
 
   // Stable, anonymous identifier for product analytics. Generated once and
   // persisted; carries no personal data, just lets PostHog group events from

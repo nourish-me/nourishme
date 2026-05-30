@@ -145,6 +145,7 @@
   "historySuggestionsHeader": "Logged before",
 
   "settingsButtonShowTips": "Show tips again",
+  "bundlingToast": "Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.",
   "tipsTitle": "Tips & Tricks",
   "tipsSkip": "Skip",
   "tipsNext": "Next",

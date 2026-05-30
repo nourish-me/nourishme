@@ -106,6 +106,7 @@
   "historySuggestionsHeader": "Schon mal geloggt",
 
   "settingsButtonShowTips": "Tipps erneut zeigen",
+  "bundlingToast": "Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.",
   "tipsTitle": "Tipps & Tricks",
   "tipsSkip": "Überspringen",
   "tipsNext": "Weiter",

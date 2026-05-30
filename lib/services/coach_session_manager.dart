@@ -1,8 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
+import '../main.dart';
 import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
@@ -186,6 +188,28 @@ class CoachSessionManager extends StateNotifier<CoachSession?> {
       analytics.capture('coach_session_fired', properties: {
         'item_count': items.length,
       });
+      // One-shot educational toast the first time bundling actually
+      // happens. Teaches the concept in the moment it occurs, more
+      // memorable than a tip card seen in isolation.
+      if (items.length > 1) {
+        final settings = _ref.read(settingsRepositoryProvider);
+        if (!settings.hasSeenBundlingToast()) {
+          await settings.setBundlingToastSeen();
+          final messenger = rootScaffoldMessengerKey.currentState;
+          final messengerCtx = rootScaffoldMessengerKey.currentContext;
+          if (messenger != null && messengerCtx != null) {
+            // Global-key context: safe to read sync after the await because
+            // the linter rule targets per-State contexts that can be disposed.
+            // ignore: use_build_context_synchronously
+            final l10n = AppLocalizations.of(messengerCtx);
+            messenger.showSnackBar(SnackBar(
+              content: Text(l10n.bundlingToast),
+              duration: const Duration(seconds: 7),
+              behavior: SnackBarBehavior.floating,
+            ));
+          }
+        }
+      }
     } catch (e, stack) {
       debugPrint('Coach session call failed: $e\n$stack');
       final message = e is CoachApiException

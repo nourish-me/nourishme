@@ -615,7 +615,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           : 'scroll-bottom',
                       onPressed: _scrollDir == _ScrollDir.up
                           ? () => _scrollToTop()
-                          : () => _scrollToBottom(),
+                          : () {
+                              // Dismiss the keyboard first when present —
+                              // otherwise maxScrollExtent is measured with
+                              // the input area pushed up, and the "bottom"
+                              // we scroll to ends up partly hidden behind
+                              // the keyboard / suggestion strip. ~280 ms
+                              // matches the iOS keyboard collapse so the
+                              // layout has settled before we measure again.
+                              FocusScope.of(context).unfocus();
+                              Future.delayed(
+                                const Duration(milliseconds: 280),
+                                _scrollToBottom,
+                              );
+                            },
                       tooltip: _scrollDir == _ScrollDir.up
                           ? AppLocalizations.of(context).homeScrollToTop
                           : AppLocalizations.of(context).homeScrollToBottom,
@@ -781,9 +794,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 enum _ScrollDir { up, down }
 
-// Single chip in the history-suggestion row above the diary input. Renders
-// the prior meal's summary plus a short relative time + kcal subtitle so
-// the user can pick the right one when several products share a word.
+// One chip in the history-suggestion row above the diary input. Uses the
+// same InputChip shape and height as the favourites row so the two rows
+// stack visually as one consistent suggestion strip — distinguished only
+// by the icon (history vs star) so the user knows the source. No delete
+// affordance because the user can't "unsuggest" a past meal log.
 class _HistorySuggestionChip extends StatelessWidget {
   final MealEntry meal;
   final VoidCallback onTap;
@@ -805,41 +820,18 @@ class _HistorySuggestionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Material(
-      color: scheme.secondaryContainer,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                meal.summary,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSecondaryContainer,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${_relativeAgo(context)} · ${meal.kcal} kcal',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodySmall?.copyWith(
-                  color: scheme.onSecondaryContainer.withValues(alpha: 0.7),
-                ),
-              ),
-            ],
-          ),
-        ),
+    final amount = meal.portionAmount > 0
+        ? ', ${meal.portionAmount.toStringAsFixed(0)} ${meal.portionUnit}'
+        : '';
+    return InputChip(
+      avatar: Icon(Icons.history, size: 14, color: scheme.secondary),
+      label: Text(
+        '${meal.summary}$amount · ${_relativeAgo(context)}',
+        style: textTheme.labelSmall,
       ),
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      onPressed: onTap,
     );
   }
 }
@@ -1324,6 +1316,11 @@ class _ThreadMealCard extends StatelessWidget {
         elevation: 0,
         color: scheme.surfaceContainerLow,
         child: ListTile(
+          // Tap opens the same sheet as the slidable "edit" action so the
+          // macros (protein / carbs / fat / portion) and meal time become
+          // visible without committing to changes. Acts as a detail view
+          // for read-only glances; editing remains opt-in via Speichern.
+          onTap: onEdit,
           title: Text(meal.summary),
           subtitle: Text(timeLabel),
           trailing: Row(
@@ -2219,11 +2216,11 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
                 // generic estimate, and skips a parseMeal API call.
                 if (historySuggestions.isNotEmpty) ...[
                   SizedBox(
-                    height: 60,
+                    height: 36,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: historySuggestions.length,
-                      separatorBuilder: (_, i) => const SizedBox(width: 8),
+                      separatorBuilder: (_, i) => const SizedBox(width: 6),
                       itemBuilder: (_, i) {
                         final m = historySuggestions[i];
                         return _HistorySuggestionChip(
