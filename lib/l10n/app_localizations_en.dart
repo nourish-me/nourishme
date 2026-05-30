@@ -330,14 +330,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tip1Body =>
-      'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at — far more accurate than a photo alone.';
+      'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at. Far more accurate than a photo alone.';
 
   @override
   String get tip2Title => 'Barcode trains your brands';
 
   @override
   String get tip2Body =>
-      'Scan the barcode for packaged products like skyr or cereal — you get exact values. The app remembers what you buy often.';
+      'Scan the barcode for packaged products like skyr or cereal. You get exact values, and the app remembers what you buy often.';
 
   @override
   String get tip3Title => 'Your favourites are one tap away';

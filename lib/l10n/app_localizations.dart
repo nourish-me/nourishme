@@ -683,7 +683,7 @@ abstract class AppLocalizations {
   /// No description provided for @tip1Body.
   ///
   /// In en, this message translates to:
-  /// **'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at — far more accurate than a photo alone.'**
+  /// **'Take a photo and add one or two words about what\'s on it. That way the app knows exactly which foods it\'s looking at. Far more accurate than a photo alone.'**
   String get tip1Body;
 
   /// No description provided for @tip2Title.
@@ -695,7 +695,7 @@ abstract class AppLocalizations {
   /// No description provided for @tip2Body.
   ///
   /// In en, this message translates to:
-  /// **'Scan the barcode for packaged products like skyr or cereal — you get exact values. The app remembers what you buy often.'**
+  /// **'Scan the barcode for packaged products like skyr or cereal. You get exact values, and the app remembers what you buy often.'**
   String get tip2Body;
 
   /// No description provided for @tip3Title.
