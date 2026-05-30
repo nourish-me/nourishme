@@ -191,13 +191,20 @@ class _MacrosColumn extends StatelessWidget {
           style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           children: [
             TextSpan(text: '$label  '),
+            // Current amount stays the visual anchor (coloured + bold);
+            // target follows in muted text so the relationship reads as
+            // "12 of 100 g" without competing with the live number.
             TextSpan(
-              text: '${grams.toStringAsFixed(0)} g',
+              text: grams.toStringAsFixed(0),
               style: textTheme.bodySmall?.copyWith(
                 color: color,
                 fontWeight: FontWeight.w600,
               ),
             ),
+            if (target > 0)
+              TextSpan(text: ' / ${target.toStringAsFixed(0)} g')
+            else
+              const TextSpan(text: ' g'),
           ],
         ),
       ),

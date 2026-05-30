@@ -536,6 +536,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                 // Wrap long titles (multi-component meals from a photo).
                 minLines: 1,
                 maxLines: 3,
+                // "Done" instead of the default "Return" so dismissing the
+                // keyboard is a single tap. Multi-line is preserved for
+                // photo-parsed multi-component summaries that wrap.
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: l10n.confirmDescriptionHint,

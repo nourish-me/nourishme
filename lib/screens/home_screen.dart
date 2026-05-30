@@ -590,8 +590,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // inject the in-thread thinking bubble right after
                       // that meal so the loading state is visible exactly
                       // where the user just confirmed an entry.
-                      bundleAnchorMealId:
-                          ref.watch(coachSessionProvider)?.items.last.id,
+                      // IDs of meals whose coach call is currently in flight.
+                      // _buildSlivers renders a thinking bubble after each
+                      // such meal, so multiple parallel calls (rapid logs)
+                      // each get their own visible loading state.
+                      inFlightMealIds: ref.watch(coachSessionProvider),
                       scheme: scheme,
                       textTheme: textTheme,
                       mealsOnly: _mealsOnly,
@@ -665,7 +668,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required Map<DateTime, List<ThreadItem>> threadByDay,
     required List<MealEntry> mealsAll,
     required bool coachLoading,
-    required String? bundleAnchorMealId,
+    required Set<String> inFlightMealIds,
     required ColorScheme scheme,
     required TextTheme textTheme,
     bool mealsOnly = false,
@@ -764,14 +767,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onDelete: () => _confirmDelete(context, ref, meal),
               ),
             ));
-            // In-thread thinking bubble: appears directly after the most
-            // recent meal in the active coach session so the user sees the
-            // loading state exactly where they just confirmed an entry.
-            // Suppressed in meals-only mode (same as actual coach bubbles)
-            // so the filtered view stays a plain log of what was eaten.
-            if (!mealsOnly &&
-                bundleAnchorMealId != null &&
-                meal.id == bundleAnchorMealId) {
+            // In-thread thinking bubble: appears directly after any meal
+            // whose coach call is currently in flight. Suppressed in
+            // meals-only mode (same as actual coach bubbles) so the
+            // filtered view stays a plain log of what was eaten.
+            if (!mealsOnly && inFlightMealIds.contains(meal.id)) {
               widgets.add(const SizedBox(height: 8));
               widgets.add(const _CoachThinkingBubble());
             }
@@ -827,30 +827,19 @@ class _HistorySuggestionChip extends StatelessWidget {
   }
 }
 
-// Renders inline in the diary right after the most recent meal in the
-// currently-bundling coach session. Watches coachSessionProvider directly so
-// it updates in place as items are added or the call enters its calling
-// phase, and it disappears the moment the call resolves and the real coach
-// reply lands. Visual is intentionally quieter than _CoachBubble so a
-// real reply still stands out when it replaces this placeholder.
-class _CoachThinkingBubble extends ConsumerWidget {
+// Quiet rose-tinted placeholder shown inline in the diary while a coach
+// call is in flight for a given meal. The caller already gates rendering
+// on the in-flight set, so this widget just draws — no provider lookup.
+// Visual is intentionally quieter than _CoachBubble so a real reply
+// still stands out when it replaces this placeholder.
+class _CoachThinkingBubble extends StatelessWidget {
   const _CoachThinkingBubble();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(coachSessionProvider);
-    if (session == null) return const SizedBox.shrink();
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final label = session.phase == SessionPhase.calling
-        ? l10n.homeCoachThinking
-        : session.items.length > 1
-            ? l10n.homeCoachBundling(session.items.length)
-            : l10n.homeCoachLookingAtMeal;
-    // No tap-to-fire affordance: the 25 s debounce is short enough that
-    // skipping the wait isn't a meaningful win, and the earlier "Antippen
-    // für sofort" hint muddied what the bubble was actually saying.
     return Container(
       decoration: BoxDecoration(
         color: scheme.tertiaryContainer,
@@ -870,7 +859,7 @@ class _CoachThinkingBubble extends ConsumerWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              label,
+              l10n.homeCoachThinking,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onTertiaryContainer,
                 fontStyle: FontStyle.italic,
@@ -1309,13 +1298,11 @@ class _ThreadMealCard extends StatelessWidget {
         child: ListTile(
           // Tap opens the same sheet as the slidable "edit" action so the
           // full nutrition values and meal time become visible without
-          // committing to changes. Acts as a detail view for read-only
-          // glances; editing remains opt-in via Speichern.
+          // committing to changes. Subtitle stays minimal (just time) —
+          // macros are one tap away in the detail sheet.
           onTap: onEdit,
           title: Text(meal.summary),
-          subtitle: Text(
-            '$timeLabel  ·  P ${meal.proteinG.round()} g  ·  KH ${meal.carbsG.round()} g  ·  F ${meal.fatG.round()} g',
-          ),
+          subtitle: Text(timeLabel),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
