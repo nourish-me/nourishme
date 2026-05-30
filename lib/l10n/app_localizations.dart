@@ -638,6 +638,12 @@ abstract class AppLocalizations {
   /// **'Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.'**
   String get bundlingToast;
 
+  /// No description provided for @thinkingBubbleFireNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to send now'**
+  String get thinkingBubbleFireNow;
+
   /// No description provided for @tipsTitle.
   ///
   /// In en, this message translates to:

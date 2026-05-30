@@ -310,6 +310,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.';
 
   @override
+  String get thinkingBubbleFireNow => 'Antippen für sofort';
+
+  @override
   String get tipsTitle => 'Tipps & Tricks';
 
   @override

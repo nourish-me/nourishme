@@ -61,7 +61,10 @@ class CoachSessionManager extends StateNotifier<CoachSession?> {
   final Ref _ref;
   Timer? _timer;
   String _locale = 'en';
-  static const _debounceSeconds = 45;
+  // Tuned down from 45s after live testing — the longer window made the
+  // solo-log case feel sluggish without meaningfully improving bundling
+  // success (typical barcode-scan sequences finish well within 25s).
+  static const _debounceSeconds = 25;
 
   // Called by ConfirmScreen after a NEW meal is persisted. Edits bypass this
   // path and regenerate their coach reply directly — the bundle concept only
@@ -87,6 +90,16 @@ class CoachSessionManager extends StateNotifier<CoachSession?> {
   void _resetTimer() {
     _timer?.cancel();
     _timer = Timer(const Duration(seconds: _debounceSeconds), _fireNow);
+  }
+
+  // Public escape hatch — user taps the thinking bubble to say "I'm done
+  // logging, send the coach reply now". No-op while a call is already in
+  // flight or when nothing is bundling.
+  void fireNow() {
+    final current = state;
+    if (current == null || current.phase == SessionPhase.calling) return;
+    _timer?.cancel();
+    unawaited(_fireNow());
   }
 
   Future<void> _fireNow() async {

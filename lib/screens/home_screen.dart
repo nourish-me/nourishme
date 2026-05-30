@@ -852,19 +852,13 @@ class _CoachThinkingBubble extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isBundling = session.phase == SessionPhase.bundling;
     final label = session.phase == SessionPhase.calling
         ? l10n.homeCoachThinking
         : session.items.length > 1
             ? l10n.homeCoachBundling(session.items.length)
             : l10n.homeCoachLookingAtMeal;
-    return Container(
-      decoration: BoxDecoration(
-        // tertiaryContainer (rose) matches the older standalone loading
-        // banner and stands out against the diary cards without competing
-        // with a real coach bubble's amber.
-        color: scheme.tertiaryContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    final body = Padding(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       child: Row(
         children: [
@@ -886,7 +880,34 @@ class _CoachThinkingBubble extends ConsumerWidget {
               ),
             ),
           ),
+          // Tap-to-fire affordance: only while still bundling. Once the
+          // call is in flight there's nothing to skip.
+          if (isBundling) ...[
+            const SizedBox(width: 8),
+            Text(
+              l10n.thinkingBubbleFireNow,
+              style: textTheme.labelSmall?.copyWith(
+                color: scheme.onTertiaryContainer.withValues(alpha: 0.75),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.send,
+                size: 14,
+                color: scheme.onTertiaryContainer.withValues(alpha: 0.75)),
+          ],
         ],
+      ),
+    );
+    return Material(
+      color: scheme.tertiaryContainer,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: isBundling
+            ? () => ref.read(coachSessionProvider.notifier).fireNow()
+            : null,
+        child: body,
       ),
     );
   }

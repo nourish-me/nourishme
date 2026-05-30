@@ -306,6 +306,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.';
 
   @override
+  String get thinkingBubbleFireNow => 'Tap to send now';
+
+  @override
   String get tipsTitle => 'Tips & Tricks';
 
   @override
