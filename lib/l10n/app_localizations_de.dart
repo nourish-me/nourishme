@@ -296,6 +296,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.';
 
   @override
+  String get confirmScanAnother => '+ Noch einen scannen';
+
+  @override
+  String confirmBundleHint(int n) {
+    return 'Bestandteil $n dieser Mahlzeit. Der Coach analysiert alle zusammen.';
+  }
+
+  @override
   String get tipsTitle => 'Tipps & Tricks';
 
   @override

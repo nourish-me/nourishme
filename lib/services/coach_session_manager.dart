@@ -9,32 +9,32 @@ import '../providers/meal_providers.dart';
 import '../utils/weight_trend.dart';
 import 'claude_client.dart';
 
-// Tracks which meal IDs currently have a coach call in flight. Each saved
-// meal fires its own coach call immediately — no debounce, no bundling.
-//
-// History: an earlier version of this file tried to bundle rapid-fire logs
-// into one call via a 25-second timer. Live testing showed the wait felt
-// sluggish even for the dominant single-item case, and the bundling logic
-// had a subtle race where a save arriving during the calling phase would
-// be lost. Reverted to per-meal fire-and-forget: simpler, instant feedback,
-// each meal gets its own bubble + reply. The extra cost is marginal at
-// beta volume and the bundling concept can be revisited later if usage
-// patterns make it worthwhile (with a route-stack-driven trigger instead
-// of a timer).
+// Tracks which meal IDs currently have a coach call in flight. Most calls
+// are single-meal (text, photo, single barcode), but the barcode flow can
+// hand in a bundle when the user chained several scans via "+ Noch einen
+// scannen" and only finally tapped Speichern. In a bundle, only the LAST
+// meal's ID lands in the in-flight set — the thinking bubble appears
+// inline after that meal and represents the whole bundle's call.
 class CoachSessionManager extends StateNotifier<Set<String>> {
   CoachSessionManager(this._ref) : super(const {});
 
   final Ref _ref;
 
-  // Fired by ConfirmScreen after a new meal is persisted. Edits bypass this
-  // path; they re-generate their coach reply via the legacy direct call so
-  // the existing insight-loading banner UX is preserved.
+  // Single-meal convenience wrapper. Used by text + photo + standalone
+  // barcode saves where there's nothing to bundle.
   void submitMeal(MealEntry meal, String locale) {
-    state = {...state, meal.id};
-    unawaited(_runCallFor(meal, locale));
+    submitMeals([meal], locale);
   }
 
-  Future<void> _runCallFor(MealEntry meal, String locale) async {
+  // Bundle entry point. Used by the barcode flow when the user chained
+  // multiple scans into one meal-session.
+  void submitMeals(List<MealEntry> meals, String locale) {
+    if (meals.isEmpty) return;
+    state = {...state, meals.last.id};
+    unawaited(_runCallFor(meals, locale));
+  }
+
+  Future<void> _runCallFor(List<MealEntry> meals, String locale) async {
     final threadRepo = _ref.read(threadRepositoryProvider);
     final client = _ref.read(claudeClientProvider);
     final target = _ref.read(calorieTargetProvider);
@@ -48,13 +48,30 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         ? formatWeightTrendForCoach(trend, isDe: isDe)
         : null;
 
-    // Day totals anchored to the meal's own day so retro-logged past-day
-    // meals still reason against that day's running total.
+    final last = meals.last;
+    // Combined fields for the bundled call. For a single meal the
+    // joins/folds collapse to that meal's own values.
+    final combinedRawText = meals
+        .map((m) => m.rawText)
+        .where((s) => s.isNotEmpty)
+        .join(', ');
+    final combinedSummary = meals.map((m) => m.summary).join(', ');
+    final sumKcal = meals.fold<int>(0, (s, m) => s + m.kcal);
+    final sumProtein = meals.fold<double>(0, (s, m) => s + m.proteinG);
+    final sumCarbs = meals.fold<double>(0, (s, m) => s + m.carbsG);
+    final sumFat = meals.fold<double>(0, (s, m) => s + m.fatG);
+    final unionWarnings =
+        meals.expand((m) => m.safetyWarnings).toSet().toList();
+
+    // Day totals anchored to the most recent meal's day so retro-logged
+    // past-day meals still reason against that day's running total.
     final mealDayKey =
-        DateTime(meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
+        DateTime(last.createdAt.year, last.createdAt.month, last.createdAt.day);
     final sameDay = byDay[mealDayKey] ?? const <MealEntry>[];
-    final included = sameDay.any((m) => m.id == meal.id);
-    final mealsForTotal = included ? sameDay : [...sameDay, meal];
+    final extras = meals
+        .where((m) => !sameDay.any((s) => s.id == m.id))
+        .toList(growable: false);
+    final mealsForTotal = [...sameDay, ...extras];
     final totalKcal = mealsForTotal.fold<int>(0, (s, m) => s + m.kcal);
     final totalProtein =
         mealsForTotal.fold<double>(0, (s, m) => s + m.proteinG);
@@ -64,13 +81,13 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
 
     try {
       final response = await client.generatePerMealResponse(
-        mealRawText: meal.rawText,
-        mealSummary: meal.summary,
-        mealKcal: meal.kcal,
-        mealProteinG: meal.proteinG,
-        mealCarbsG: meal.carbsG,
-        mealFatG: meal.fatG,
-        safetyWarnings: meal.safetyWarnings,
+        mealRawText: combinedRawText,
+        mealSummary: combinedSummary,
+        mealKcal: sumKcal,
+        mealProteinG: sumProtein,
+        mealCarbsG: sumCarbs,
+        mealFatG: sumFat,
+        safetyWarnings: unionWarnings,
         totalKcalToday: totalKcal,
         targetKcal: target,
         totalProteinToday: totalProtein,
@@ -88,33 +105,37 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         restrictions: profile?.restrictions ?? const {},
         dietaryNotes: profile?.dietaryNotes ?? '',
         locale: locale,
-        loggedAt: meal.createdAt,
+        loggedAt: last.createdAt,
         requestFollowUps: mealsForTotal.length % 3 == 0,
         weightTrend: notableTrend,
       );
-      final coachAt = meal.createdAt.add(const Duration(minutes: 1));
+      final coachAt = last.createdAt.add(const Duration(minutes: 1));
       await threadRepo.add(ThreadItem.coachResponse(
-        mealId: meal.id,
+        mealId: last.id,
         text: response.trim(),
         at: coachAt,
       ));
       analytics.capture('coach_reply',
           properties: {'kind': 'per_meal', 'ok': true});
+      if (meals.length > 1) {
+        analytics.capture('coach_session_fired',
+            properties: {'item_count': meals.length});
+      }
     } catch (e, stack) {
-      debugPrint('Coach call failed for meal ${meal.id}: $e\n$stack');
+      debugPrint('Coach call failed for ${meals.length} meal(s): $e\n$stack');
       final message = e is CoachApiException
           ? e.userMessage
           : 'Coach reply unavailable. Try again later.';
-      final coachAt = meal.createdAt.add(const Duration(minutes: 1));
+      final coachAt = last.createdAt.add(const Duration(minutes: 1));
       await threadRepo.add(ThreadItem.coachResponse(
-        mealId: meal.id,
+        mealId: last.id,
         text: message,
         at: coachAt,
       ));
       analytics.capture('coach_reply',
           properties: {'kind': 'per_meal', 'ok': false});
     } finally {
-      final next = Set<String>.from(state)..remove(meal.id);
+      final next = Set<String>.from(state)..remove(last.id);
       state = next;
     }
   }

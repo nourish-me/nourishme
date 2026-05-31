@@ -614,6 +614,18 @@ abstract class AppLocalizations {
   /// **'Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.'**
   String get bundlingToast;
 
+  /// No description provided for @confirmScanAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Scan another'**
+  String get confirmScanAnother;
+
+  /// No description provided for @confirmBundleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Item {n} of this meal. The coach will analyse them together.'**
+  String confirmBundleHint(int n);
+
   /// No description provided for @tipsTitle.
   ///
   /// In en, this message translates to:

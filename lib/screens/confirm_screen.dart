@@ -23,6 +23,11 @@ class ConfirmScreen extends ConsumerStatefulWidget {
   // How this entry reached the confirm sheet, for the meal_logged analytics
   // event: 'text', 'photo', 'barcode', 'favorite', 'quick_add', or 'edit'.
   final String source;
+  // When true (used by the barcode flow), the sheet shows a "+ Noch einen
+  // scannen" secondary button. Tapping it pops the sheet with the value
+  // true so the caller can chain another scan; tapping the regular
+  // Speichern pops with null. Both paths persist this meal first.
+  final bool allowScanAnother;
 
   const ConfirmScreen({
     super.key,
@@ -33,6 +38,7 @@ class ConfirmScreen extends ConsumerStatefulWidget {
     this.existingCreatedAt,
     this.asSheet = false,
     this.source = 'text',
+    this.allowScanAnother = false,
   });
 
   @override
@@ -231,7 +237,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
   }
 
-  Future<void> _save() async {
+  // [fireCoach] false defers the coach call to the next save in the same
+  // scan-session: the meal lands in the diary + the pending bundle, but no
+  // coach call goes out. The eventual "Speichern" tap drains the bundle
+  // and fires one call for all of them.
+  // [popValue] lets the caller signal something back to the modal-sheet
+  // host (e.g. `true` means "chain another scan").
+  Future<void> _save({bool fireCoach = true, Object? popValue}) async {
     final summary = _summary.text.trim().isEmpty
         ? widget.parsed.summary
         : _summary.text.trim();
@@ -301,10 +313,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     FocusScope.of(context).unfocus();
     final navigator = Navigator.of(context);
     final asSheet = widget.asSheet;
-    await _appendToThread(meal);
+    await _appendToThread(meal, fireCoach: fireCoach);
     if (!mounted) return;
     if (asSheet) {
-      navigator.pop(meal);
+      navigator.pop(popValue ?? meal);
     } else {
       navigator.popUntil((r) => r.isFirst);
     }
@@ -323,7 +335,8 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         (meal.fatG - orig.fatG).abs() > 0.05;
   }
 
-  Future<void> _appendToThread(MealEntry meal) async {
+  Future<void> _appendToThread(MealEntry meal,
+      {bool fireCoach = true}) async {
     final isEdit = widget.existingMealId != null;
     if (isEdit && !_mealValuesChanged(meal)) {
       // No actual changes, keep the existing coach response, don't spend a
@@ -334,13 +347,25 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final locale = Localizations.localeOf(context).languageCode;
 
     if (!isEdit) {
-      // New meal: persist it and hand off to the session manager, which
-      // bundles rapid-fire logs (typically barcode sessions) into one coach
-      // call. The in-thread thinking bubble is the user-visible signal that
-      // the coach is processing.
+      // New meal: persist it so it shows up in the diary right away. The
+      // coach call is either fired now (with any pending bundle) or
+      // deferred (added to the bundle for the next save to fire).
       await threadRepo.add(
           ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
-      ref.read(coachSessionProvider.notifier).submitMeal(meal, locale);
+      final bundleNotifier =
+          ref.read(pendingScanBundleProvider.notifier);
+      if (fireCoach) {
+        // Drain any in-progress scan bundle and fire one coach call for
+        // everything together (or just this meal when no bundle exists).
+        final pending = ref.read(pendingScanBundleProvider);
+        bundleNotifier.state = const [];
+        final all = [...pending, meal];
+        ref.read(coachSessionProvider.notifier).submitMeals(all, locale);
+      } else {
+        // Append to the bundle without firing — used by the barcode
+        // "+ Noch einen scannen" path.
+        bundleNotifier.state = [...bundleNotifier.state, meal];
+      }
       // Scroll the diary to the meal's day only for retro-logs (past-day
       // saves). Today's saves don't need it — the new entry lands at the
       // bottom near the input bar, naturally visible. Firing the scroll
@@ -509,10 +534,41 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    // Visible to the user mid-scan-session so they understand previous
+    // scans haven't been "lost" — they're queued for one combined coach
+    // reply. Only relevant on the barcode entry path.
+    final pendingBundle = widget.allowScanAnother
+        ? ref.watch(pendingScanBundleProvider)
+        : const <MealEntry>[];
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
       shrinkWrap: widget.asSheet,
       children: [
+        if (pendingBundle.isNotEmpty) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: scheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.layers_outlined,
+                    size: 18, color: scheme.onTertiaryContainer),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.confirmBundleHint(pendingBundle.length + 1),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onTertiaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         if (widget.imageBytes != null) ...[
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -736,7 +792,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   }
 
   Widget _buildActionRow() {
-    return _ActionRow(onDiscard: _discard, onSave: _save);
+    return _ActionRow(
+      onDiscard: _discard,
+      onSave: _save,
+      onScanAnother: widget.allowScanAnother
+          ? () => _save(fireCoach: false, popValue: true)
+          : null,
+    );
   }
 
   Widget _buildSheetHeader() {
@@ -986,26 +1048,45 @@ class _KeyboardAccessoryBar extends StatelessWidget {
 class _ActionRow extends StatelessWidget {
   final VoidCallback onDiscard;
   final VoidCallback onSave;
-  const _ActionRow({required this.onDiscard, required this.onSave});
+  // Non-null only when the parent flow can chain another scan (barcode
+  // entry path). Renders a secondary text-button below the main row.
+  final VoidCallback? onScanAnother;
+  const _ActionRow({
+    required this.onDiscard,
+    required this.onSave,
+    this.onScanAnother,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: onDiscard,
-            child: Text(l10n.confirmDiscardConfirm),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: onDiscard,
+                child: Text(l10n.confirmDiscardConfirm),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: FilledButton(
+                onPressed: onSave,
+                child: Text(l10n.confirmSave),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: FilledButton(
-            onPressed: onSave,
-            child: Text(l10n.confirmSave),
+        if (onScanAnother != null) ...[
+          const SizedBox(height: 4),
+          TextButton(
+            onPressed: onScanAnother,
+            child: Text(l10n.confirmScanAnother),
           ),
-        ),
+        ],
       ],
     );
   }

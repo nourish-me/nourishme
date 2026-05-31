@@ -144,6 +144,14 @@ final macroTargetsProvider = Provider<MacroTargets>((ref) {
 
 final insightLoadingProvider = StateProvider<bool>((ref) => false);
 
+// Meals saved in the current scan-session that are NOT yet handed to the
+// coach. The barcode flow appends here when the user taps "+ Noch einen
+// scannen" and drains the list when the user finally taps "Speichern" — at
+// that point all queued meals plus the current one go to the coach as a
+// single bundled call. Other flows (text, photo) leave this empty.
+final pendingScanBundleProvider =
+    StateProvider<List<MealEntry>>((ref) => const []);
+
 // Up to 3 distinct meals from the user's last 30 days whose summary contains
 // every token of [query] (case-insensitive substring match). Deduped by
 // lowercased summary, most-recent occurrence wins. Empty until the query has

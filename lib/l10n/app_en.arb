@@ -137,6 +137,13 @@
 
   "settingsButtonShowTips": "Show tips again",
   "bundlingToast": "Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.",
+  "confirmScanAnother": "+ Scan another",
+  "confirmBundleHint": "Item {n} of this meal. The coach will analyse them together.",
+  "@confirmBundleHint": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
   "tipsTitle": "Tips & Tricks",
   "tipsSkip": "Skip",
   "tipsNext": "Next",

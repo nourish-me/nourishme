@@ -1928,70 +1928,97 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
   Future<void> _scanBarcode() async {
     if (_sending) return;
     FocusScope.of(context).unfocus();
-    final barcode = await Navigator.of(context).push<String>(
-      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
-    );
-    if (barcode == null || !mounted) return;
 
-    setState(() => _sending = true);
+    // Outer loop runs each individual scan. The inner ConfirmScreen pops
+    // with `true` when the user tapped "+ Noch einen scannen", signalling
+    // we should chain straight into the scanner again with the same
+    // session's pending bundle preserved. Any other exit (Speichern,
+    // dismiss) breaks the loop; the pending bundle then gets flushed.
     try {
-      final product =
-          await ref.read(openFoodFactsClientProvider).lookupByBarcode(barcode);
-      if (!mounted) return;
-      ref.read(analyticsServiceProvider).capture('barcode_scanned',
-          properties: {'found': product != null});
-      if (product == null) {
-        _showSnack(AppLocalizations.of(context).scanNotFound);
-        return;
+      while (true) {
+        if (!mounted) break;
+        final barcode = await Navigator.of(context).push<String>(
+          MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+        );
+        if (barcode == null || !mounted) break;
+
+        setState(() => _sending = true);
+        final product = await ref
+            .read(openFoodFactsClientProvider)
+            .lookupByBarcode(barcode);
+        if (!mounted) break;
+        ref.read(analyticsServiceProvider).capture('barcode_scanned',
+            properties: {'found': product != null});
+        if (product == null) {
+          _showSnack(AppLocalizations.of(context).scanNotFound);
+          setState(() => _sending = false);
+          break;
+        }
+        // OFF has accurate macros but no safety data, which is core to this
+        // app. Run a phase-aware safety-only check on the product name and
+        // merge it in (degrades to no warnings if the call fails).
+        final profile = ref.read(userProfileProvider).valueOrNull;
+        final warnings = await ref.read(claudeClientProvider).safetyCheck(
+              productName: product.displaySummary,
+              isPregnant: profile?.isPregnant ?? false,
+              trimester: profile?.trimester,
+              isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+              locale: Localizations.localeOf(context).languageCode,
+            );
+        if (!mounted) break;
+        // OFF stores nutrition per 100 g/ml; scale to the default serving
+        // so the confirm sheet opens on a sensible amount. The user can
+        // adjust it there and the macros rescale locally.
+        final amount = product.defaultAmount;
+        final f = amount / 100.0;
+        final parsed = MealParseResult(
+          isMeal: true,
+          rejectionReason: null,
+          summary: product.displaySummary,
+          kcal: (product.kcalPer100 * f).round(),
+          proteinG: product.proteinPer100 * f,
+          carbsG: product.carbsPer100 * f,
+          fatG: product.fatPer100 * f,
+          portionAmount: amount,
+          portionUnit: product.unit,
+          portionAlias: null,
+          safetyWarnings: warnings,
+        );
+        if (mounted) setState(() => _sending = false);
+        final result = await showModalBottomSheet<Object?>(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          showDragHandle: true,
+          builder: (_) => ConfirmScreen(
+            rawText: product.displaySummary,
+            parsed: parsed,
+            asSheet: true,
+            source: 'barcode',
+            allowScanAnother: true,
+          ),
+        );
+        if (mounted) FocusManager.instance.primaryFocus?.unfocus();
+        // ConfirmScreen pops with `true` to request another scan; anything
+        // else (the saved meal, null on dismiss) ends the session.
+        if (result != true) break;
       }
-      // OFF has accurate macros but no safety data, which is core to this app.
-      // Run a phase-aware safety-only check on the product name and merge it in
-      // (degrades to no warnings if the call fails).
-      final profile = ref.read(userProfileProvider).valueOrNull;
-      final warnings = await ref.read(claudeClientProvider).safetyCheck(
-            productName: product.displaySummary,
-            isPregnant: profile?.isPregnant ?? false,
-            trimester: profile?.trimester,
-            isLactating: (profile?.numChildrenNursing ?? 0) > 0,
-            locale: Localizations.localeOf(context).languageCode,
-          );
-      if (!mounted) return;
-      // OFF stores nutrition per 100 g/ml; scale to the default serving so the
-      // confirm sheet opens on a sensible amount. The user can adjust it there
-      // and the macros rescale locally.
-      final amount = product.defaultAmount;
-      final f = amount / 100.0;
-      final parsed = MealParseResult(
-        isMeal: true,
-        rejectionReason: null,
-        summary: product.displaySummary,
-        kcal: (product.kcalPer100 * f).round(),
-        proteinG: product.proteinPer100 * f,
-        carbsG: product.carbsPer100 * f,
-        fatG: product.fatPer100 * f,
-        portionAmount: amount,
-        portionUnit: product.unit,
-        portionAlias: null,
-        safetyWarnings: warnings,
-      );
-      await showModalBottomSheet<MealEntry>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => ConfirmScreen(
-          rawText: product.displaySummary,
-          parsed: parsed,
-          asSheet: true,
-          source: 'barcode',
-        ),
-      );
-      FocusManager.instance.primaryFocus?.unfocus();
     } catch (e, st) {
       debugPrint('Barcode flow failed: $e\n$st');
       if (mounted) _showSnack(AppLocalizations.of(context).commonSendError);
     } finally {
       if (mounted) setState(() => _sending = false);
+      // Belt-and-suspenders: if the user exited via dismiss (swipe down)
+      // mid-session, any items already saved into the pending bundle still
+      // deserve a coach reply. Flush them.
+      if (mounted) {
+        final pending = ref.read(pendingScanBundleProvider);
+        if (pending.isNotEmpty) {
+          ref.read(pendingScanBundleProvider.notifier).state = const [];
+          final locale = Localizations.localeOf(context).languageCode;
+          ref.read(coachSessionProvider.notifier).submitMeals(pending, locale);
+        }
+      }
     }
   }
 
