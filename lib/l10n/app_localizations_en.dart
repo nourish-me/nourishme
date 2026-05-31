@@ -292,7 +292,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.';
 
   @override
-  String get confirmScanAnother => '+ Scan another';
+  String get confirmScanAnother => 'Scan another';
 
   @override
   String confirmBundleHint(int n) {

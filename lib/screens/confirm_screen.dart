@@ -1060,6 +1060,7 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1082,9 +1083,21 @@ class _ActionRow extends StatelessWidget {
         ),
         if (onScanAnother != null) ...[
           const SizedBox(height: 4),
-          TextButton(
+          // Same Layers icon + rose tone as the top "Bestandteil N" hint
+          // so the connection between the action and the bundle state
+          // reads at a glance, even though they sit at opposite ends of
+          // the sheet.
+          TextButton.icon(
             onPressed: onScanAnother,
-            child: Text(l10n.confirmScanAnother),
+            icon: Icon(
+              Icons.layers_outlined,
+              size: 18,
+              color: scheme.tertiary,
+            ),
+            label: Text(
+              l10n.confirmScanAnother,
+              style: TextStyle(color: scheme.tertiary),
+            ),
           ),
         ],
       ],

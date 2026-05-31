@@ -617,7 +617,7 @@ abstract class AppLocalizations {
   /// No description provided for @confirmScanAnother.
   ///
   /// In en, this message translates to:
-  /// **'+ Scan another'**
+  /// **'Scan another'**
   String get confirmScanAnother;
 
   /// No description provided for @confirmBundleHint.

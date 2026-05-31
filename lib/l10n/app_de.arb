@@ -98,7 +98,7 @@
 
   "settingsButtonShowTips": "Tipps erneut zeigen",
   "bundlingToast": "Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.",
-  "confirmScanAnother": "+ Noch einen scannen",
+  "confirmScanAnother": "Noch einen scannen",
   "confirmBundleHint": "Bestandteil {n} dieser Mahlzeit. Der Coach analysiert alle zusammen.",
   "@confirmBundleHint": {
     "placeholders": {
