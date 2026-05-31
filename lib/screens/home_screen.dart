@@ -1925,86 +1925,39 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
     );
   }
 
-  Future<void> _scanBarcode() async {
+  // Thin wrapper so the scanner-icon tap reads naturally. The real loop
+  // lives in _runScanSession and can also handle photo / text follow-ups.
+  Future<void> _scanBarcode() => _runScanSession(firstType: 'barcode');
+
+  // Multi-step scan-session loop. Each iteration runs one step (barcode /
+  // photo / text), shows ConfirmScreen with allowScanAnother:true, and
+  // looks at the popped value: 'barcode' / 'photo' / 'text' continues
+  // with that next step; anything else (saved meal, null on dismiss)
+  // ends the session and the pending bundle gets flushed.
+  Future<void> _runScanSession({required String firstType}) async {
     if (_sending) return;
     FocusScope.of(context).unfocus();
-
-    // Outer loop runs each individual scan. The inner ConfirmScreen pops
-    // with `true` when the user tapped "+ Noch einen scannen", signalling
-    // we should chain straight into the scanner again with the same
-    // session's pending bundle preserved. Any other exit (Speichern,
-    // dismiss) breaks the loop; the pending bundle then gets flushed.
     try {
-      while (true) {
+      String? next = firstType;
+      while (next != null) {
         if (!mounted) break;
-        final barcode = await Navigator.of(context).push<String>(
-          MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
-        );
-        if (barcode == null || !mounted) break;
-
-        setState(() => _sending = true);
-        final product = await ref
-            .read(openFoodFactsClientProvider)
-            .lookupByBarcode(barcode);
-        if (!mounted) break;
-        ref.read(analyticsServiceProvider).capture('barcode_scanned',
-            properties: {'found': product != null});
-        if (product == null) {
-          _showSnack(AppLocalizations.of(context).scanNotFound);
-          setState(() => _sending = false);
-          break;
+        switch (next) {
+          case 'barcode':
+            next = await _doBarcodeStep();
+            break;
+          case 'photo':
+            next = await _doPhotoStep();
+            break;
+          case 'text':
+            next = await _doTextStep();
+            break;
+          default:
+            next = null;
         }
-        // OFF has accurate macros but no safety data, which is core to this
-        // app. Run a phase-aware safety-only check on the product name and
-        // merge it in (degrades to no warnings if the call fails).
-        final profile = ref.read(userProfileProvider).valueOrNull;
-        final warnings = await ref.read(claudeClientProvider).safetyCheck(
-              productName: product.displaySummary,
-              isPregnant: profile?.isPregnant ?? false,
-              trimester: profile?.trimester,
-              isLactating: (profile?.numChildrenNursing ?? 0) > 0,
-              locale: Localizations.localeOf(context).languageCode,
-            );
-        if (!mounted) break;
-        // OFF stores nutrition per 100 g/ml; scale to the default serving
-        // so the confirm sheet opens on a sensible amount. The user can
-        // adjust it there and the macros rescale locally.
-        final amount = product.defaultAmount;
-        final f = amount / 100.0;
-        final parsed = MealParseResult(
-          isMeal: true,
-          rejectionReason: null,
-          summary: product.displaySummary,
-          kcal: (product.kcalPer100 * f).round(),
-          proteinG: product.proteinPer100 * f,
-          carbsG: product.carbsPer100 * f,
-          fatG: product.fatPer100 * f,
-          portionAmount: amount,
-          portionUnit: product.unit,
-          portionAlias: null,
-          safetyWarnings: warnings,
-        );
-        if (mounted) setState(() => _sending = false);
-        final result = await showModalBottomSheet<Object?>(
-          context: context,
-          isScrollControlled: true,
-          useSafeArea: true,
-          showDragHandle: true,
-          builder: (_) => ConfirmScreen(
-            rawText: product.displaySummary,
-            parsed: parsed,
-            asSheet: true,
-            source: 'barcode',
-            allowScanAnother: true,
-          ),
-        );
         if (mounted) FocusManager.instance.primaryFocus?.unfocus();
-        // ConfirmScreen pops with `true` to request another scan; anything
-        // else (the saved meal, null on dismiss) ends the session.
-        if (result != true) break;
       }
     } catch (e, st) {
-      debugPrint('Barcode flow failed: $e\n$st');
+      debugPrint('Scan session failed: $e\n$st');
       if (mounted) _showSnack(AppLocalizations.of(context).commonSendError);
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -2020,6 +1973,209 @@ class _HomeInputState extends ConsumerState<_HomeInput> {
         }
       }
     }
+  }
+
+  Future<String?> _doBarcodeStep() async {
+    final barcode = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+    if (barcode == null || !mounted) return null;
+    setState(() => _sending = true);
+    final product =
+        await ref.read(openFoodFactsClientProvider).lookupByBarcode(barcode);
+    if (!mounted) return null;
+    ref.read(analyticsServiceProvider).capture('barcode_scanned',
+        properties: {'found': product != null});
+    if (product == null) {
+      _showSnack(AppLocalizations.of(context).scanNotFound);
+      setState(() => _sending = false);
+      return null;
+    }
+    final profile = ref.read(userProfileProvider).valueOrNull;
+    final warnings = await ref.read(claudeClientProvider).safetyCheck(
+          productName: product.displaySummary,
+          isPregnant: profile?.isPregnant ?? false,
+          trimester: profile?.trimester,
+          isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+          locale: Localizations.localeOf(context).languageCode,
+        );
+    if (!mounted) return null;
+    final amount = product.defaultAmount;
+    final f = amount / 100.0;
+    final parsed = MealParseResult(
+      isMeal: true,
+      rejectionReason: null,
+      summary: product.displaySummary,
+      kcal: (product.kcalPer100 * f).round(),
+      proteinG: product.proteinPer100 * f,
+      carbsG: product.carbsPer100 * f,
+      fatG: product.fatPer100 * f,
+      portionAmount: amount,
+      portionUnit: product.unit,
+      portionAlias: null,
+      safetyWarnings: warnings,
+    );
+    if (mounted) setState(() => _sending = false);
+    final result = await showModalBottomSheet<Object?>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => ConfirmScreen(
+        rawText: product.displaySummary,
+        parsed: parsed,
+        asSheet: true,
+        source: 'barcode',
+        allowScanAnother: true,
+      ),
+    );
+    return result is String ? result : null;
+  }
+
+  Future<String?> _doPhotoStep() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(AppLocalizations.of(context).homePhotoCamera),
+              onTap: () => Navigator.pop(sheetCtx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(AppLocalizations.of(context).homePhotoGallery),
+              onTap: () => Navigator.pop(sheetCtx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return null;
+    final picked = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1280,
+    );
+    if (picked == null || !mounted) return null;
+    final bytes = await picked.readAsBytes();
+    if (!mounted) return null;
+    setState(() => _sending = true);
+    final profile = ref.read(userProfileProvider).valueOrNull;
+    final parsed = await ref.read(claudeClientProvider).parseMeal(
+          '',
+          imageBytes: bytes,
+          locale: Localizations.localeOf(context).languageCode,
+          isPregnant: profile?.isPregnant ?? false,
+          trimester: profile?.trimester,
+          isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+        );
+    if (mounted) setState(() => _sending = false);
+    if (!mounted || !parsed.isMeal) {
+      if (mounted) {
+        _showSnack(parsed.rejectionReason ??
+            AppLocalizations.of(context).homePhotoNotFoodError);
+      }
+      return null;
+    }
+    final result = await showModalBottomSheet<Object?>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => ConfirmScreen(
+        rawText: '',
+        parsed: parsed,
+        imageBytes: bytes,
+        asSheet: true,
+        source: 'photo',
+        allowScanAnother: true,
+      ),
+    );
+    return result is String ? result : null;
+  }
+
+  Future<String?> _doTextStep() async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController();
+    final entered = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetCtx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          16 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.confirmAddTextSheetTitle,
+              style: Theme.of(sheetCtx)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLines: 1,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (v) => Navigator.pop(sheetCtx, v.trim()),
+              decoration: InputDecoration(
+                hintText: l10n.confirmAddTextSheetHint,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.pop(sheetCtx, controller.text.trim()),
+              child: Text(l10n.confirmAddTextSheetCta),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+    if (entered == null || entered.isEmpty || !mounted) return null;
+    setState(() => _sending = true);
+    final profile = ref.read(userProfileProvider).valueOrNull;
+    final parsed = await ref.read(claudeClientProvider).parseMeal(
+          entered,
+          locale: Localizations.localeOf(context).languageCode,
+          isPregnant: profile?.isPregnant ?? false,
+          trimester: profile?.trimester,
+          isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+        );
+    if (mounted) setState(() => _sending = false);
+    if (!mounted || !parsed.isMeal) {
+      if (mounted) {
+        _showSnack(parsed.rejectionReason ?? l10n.commonGenericError);
+      }
+      return null;
+    }
+    final result = await showModalBottomSheet<Object?>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => ConfirmScreen(
+        rawText: entered,
+        parsed: parsed,
+        asSheet: true,
+        source: 'text',
+        allowScanAnother: true,
+      ),
+    );
+    return result is String ? result : null;
   }
 
   Future<void> _send() async {

@@ -795,10 +795,46 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     return _ActionRow(
       onDiscard: _discard,
       onSave: _save,
-      onScanAnother: widget.allowScanAnother
-          ? () => _save(fireCoach: false, popValue: true)
-          : null,
+      onAddAnother: widget.allowScanAnother ? _showAddAnotherChooser : null,
     );
+  }
+
+  // Bottom-sheet chooser shown when the user taps "Weiteren Bestandteil
+  // hinzufügen". A mixed meal might combine a scanned skyr with a typed
+  // apple — barcode is one of three valid follow-up paths, not the only
+  // one. Whatever the user picks gets passed back as the sheet's pop
+  // value so the parent loop can branch accordingly.
+  Future<void> _showAddAnotherChooser() async {
+    final l10n = AppLocalizations.of(context);
+    final chosen = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.qr_code_scanner),
+              title: Text(l10n.confirmAddByBarcode),
+              onTap: () => Navigator.pop(sheetContext, 'barcode'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.confirmAddByPhoto),
+              onTap: () => Navigator.pop(sheetContext, 'photo'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(l10n.confirmAddByText),
+              onTap: () => Navigator.pop(sheetContext, 'text'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+    // Save current meal into the pending bundle (no coach call yet) and
+    // signal the parent loop which entry path to take next.
+    await _save(fireCoach: false, popValue: chosen);
   }
 
   Widget _buildSheetHeader() {
@@ -1048,13 +1084,14 @@ class _KeyboardAccessoryBar extends StatelessWidget {
 class _ActionRow extends StatelessWidget {
   final VoidCallback onDiscard;
   final VoidCallback onSave;
-  // Non-null only when the parent flow can chain another scan (barcode
-  // entry path). Renders a secondary text-button below the main row.
-  final VoidCallback? onScanAnother;
+  // Non-null only when the parent flow can chain another item (currently
+  // bundle-session, started from the barcode entry). Triggers a chooser
+  // sheet so the next item can be a scan, a photo, or text.
+  final VoidCallback? onAddAnother;
   const _ActionRow({
     required this.onDiscard,
     required this.onSave,
-    this.onScanAnother,
+    this.onAddAnother,
   });
 
   @override
@@ -1081,14 +1118,14 @@ class _ActionRow extends StatelessWidget {
             ),
           ],
         ),
-        if (onScanAnother != null) ...[
+        if (onAddAnother != null) ...[
           const SizedBox(height: 4),
           // Same Layers icon + rose tone as the top "Bestandteil N" hint
           // so the connection between the action and the bundle state
           // reads at a glance, even though they sit at opposite ends of
           // the sheet.
           TextButton.icon(
-            onPressed: onScanAnother,
+            onPressed: onAddAnother,
             icon: Icon(
               Icons.layers_outlined,
               size: 18,

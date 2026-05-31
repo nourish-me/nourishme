@@ -617,8 +617,44 @@ abstract class AppLocalizations {
   /// No description provided for @confirmScanAnother.
   ///
   /// In en, this message translates to:
-  /// **'Scan another'**
+  /// **'Add another item'**
   String get confirmScanAnother;
+
+  /// No description provided for @confirmAddByBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a barcode'**
+  String get confirmAddByBarcode;
+
+  /// No description provided for @confirmAddByPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take or pick a photo'**
+  String get confirmAddByPhoto;
+
+  /// No description provided for @confirmAddByText.
+  ///
+  /// In en, this message translates to:
+  /// **'Type some text'**
+  String get confirmAddByText;
+
+  /// No description provided for @confirmAddTextSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Another item'**
+  String get confirmAddTextSheetTitle;
+
+  /// No description provided for @confirmAddTextSheetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What else did you have?'**
+  String get confirmAddTextSheetHint;
+
+  /// No description provided for @confirmAddTextSheetCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get confirmAddTextSheetCta;
 
   /// No description provided for @confirmBundleHint.
   ///

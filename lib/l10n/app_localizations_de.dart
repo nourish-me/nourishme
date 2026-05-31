@@ -296,7 +296,25 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.';
 
   @override
-  String get confirmScanAnother => 'Noch einen scannen';
+  String get confirmScanAnother => 'Weiteren Bestandteil hinzufügen';
+
+  @override
+  String get confirmAddByBarcode => 'Barcode scannen';
+
+  @override
+  String get confirmAddByPhoto => 'Foto machen oder wählen';
+
+  @override
+  String get confirmAddByText => 'Text eintippen';
+
+  @override
+  String get confirmAddTextSheetTitle => 'Weiterer Bestandteil';
+
+  @override
+  String get confirmAddTextSheetHint => 'Was hast du noch dazu?';
+
+  @override
+  String get confirmAddTextSheetCta => 'Weiter';
 
   @override
   String confirmBundleHint(int n) {

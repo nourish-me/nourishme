@@ -98,7 +98,13 @@
 
   "settingsButtonShowTips": "Tipps erneut zeigen",
   "bundlingToast": "Schon gemerkt? Mehrere Bestandteile schnell hintereinander geloggt → der Coach bündelt sie zu einer Antwort. Reduziert den Lärm im Tagebuch.",
-  "confirmScanAnother": "Noch einen scannen",
+  "confirmScanAnother": "Weiteren Bestandteil hinzufügen",
+  "confirmAddByBarcode": "Barcode scannen",
+  "confirmAddByPhoto": "Foto machen oder wählen",
+  "confirmAddByText": "Text eintippen",
+  "confirmAddTextSheetTitle": "Weiterer Bestandteil",
+  "confirmAddTextSheetHint": "Was hast du noch dazu?",
+  "confirmAddTextSheetCta": "Weiter",
   "confirmBundleHint": "Bestandteil {n} dieser Mahlzeit. Der Coach analysiert alle zusammen.",
   "@confirmBundleHint": {
     "placeholders": {

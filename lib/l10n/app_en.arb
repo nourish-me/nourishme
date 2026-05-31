@@ -137,7 +137,13 @@
 
   "settingsButtonShowTips": "Show tips again",
   "bundlingToast": "Notice that? When you log several items quickly, the coach bundles them into one reply. Less noise in your diary.",
-  "confirmScanAnother": "Scan another",
+  "confirmScanAnother": "Add another item",
+  "confirmAddByBarcode": "Scan a barcode",
+  "confirmAddByPhoto": "Take or pick a photo",
+  "confirmAddByText": "Type some text",
+  "confirmAddTextSheetTitle": "Another item",
+  "confirmAddTextSheetHint": "What else did you have?",
+  "confirmAddTextSheetCta": "Next",
   "confirmBundleHint": "Item {n} of this meal. The coach will analyse them together.",
   "@confirmBundleHint": {
     "placeholders": {
