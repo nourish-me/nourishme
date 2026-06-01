@@ -605,6 +605,52 @@
     line-height: 1.6;
   }
 
+  /* ─────────── FAQ ─────────── */
+  .faq {
+    padding: 64px 0;
+    background: var(--paper-hi);
+    border-top: 0.5px solid var(--rule);
+  }
+  .faq .mono { color: var(--ink-mute); margin-bottom: 18px; display: block; }
+  .faq-list { margin-top: 32px; }
+  .faq-item {
+    border-top: 0.5px solid var(--rule);
+    padding: 22px 0;
+  }
+  .faq-item:last-of-type { border-bottom: 0.5px solid var(--rule); }
+  .faq-item summary {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1.3;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+    position: relative;
+    padding-right: 32px;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+";
+    position: absolute;
+    right: 0; top: -2px;
+    font-family: var(--serif);
+    font-style: normal;
+    font-weight: 400;
+    font-size: 28px;
+    color: var(--amber);
+    line-height: 1;
+  }
+  .faq-item[open] summary::after { content: "−"; }
+  .faq-item p {
+    margin: 12px 0 0;
+    font-family: var(--serif);
+    color: var(--ink-soft);
+    line-height: 1.6;
+    font-size: 16.5px;
+  }
+
   /* ─────────── Footer ─────────── */
   footer {
     padding: 36px 0 44px;
@@ -1023,6 +1069,44 @@
     <p class="disclaimer">
       NourishMe is not a medical device and does not replace medical or midwife advice. For medical questions, consult your physician or midwife.
     </p>
+  </div>
+</section>
+
+<!-- ─────────── FAQ ─────────── -->
+<section class="faq">
+  <div class="wrap-narrow">
+    <span class="mono">Frequently asked</span>
+    <h2 class="section-title" style="margin-top:12px;">Questions that <em>keep coming up</em>.</h2>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>Where is my data stored?</summary>
+        <p>Meals, profile, weight and settings live only on your iPhone, in a local on-device database. No cloud account, no sync, no server holds a copy. Delete the app and the data is gone.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does the AI see my meals?</summary>
+        <p>When you log a meal the description briefly travels to Anthropic's Claude for analysis; the reply comes back and is stored locally. Anthropic does not use API data for training (per their policy), and there's no account linking it to you. Anonymous usage stats (which methods, how often, whether coach replies arrive) go to PostHog on EU servers — without contents, weights or names. You can switch analytics off in Settings any time.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How accurate are the calorie and macro estimates?</summary>
+        <p>For packaged products (barcode scan) very accurate: values come straight from the manufacturer via Open Food Facts. For text and photo entries they're estimates — solid for trends, not for medical precision. You can adjust amounts at any time and everything scales with it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does the app work if I'm not (or no longer) breastfeeding?</summary>
+        <p>Yes. NourishMe calculates based on your phase. In your profile you can switch between pregnancy, breastfeeding and "neither" at any time, and the calorie and nutrient calculations adapt. For general adult nutrition outside these phases, more specialised apps exist.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What if I'm vegetarian, vegan or have allergies?</summary>
+        <p>You can set your dietary style (omnivore, vegetarian, vegan, pescatarian) and allergies in your profile. The coach respects them absolutely: vegan suggestions contain no animal products, nut allergy means no nuts.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How much does NourishMe cost?</summary>
+        <p>Free in the closed beta. For the public launch a monthly subscription with a 7-day trial is planned. Exact prices will be shared in time, and the principle stays: no ads, no data sharing.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is NourishMe a medical product?</summary>
+        <p>No. NourishMe is a personal wellness tool, not a medical device, and not a substitute for medical or midwife advice. For medical questions, high-risk pregnancy or existing conditions, talk to your doctor or midwife.</p>
+      </details>
+    </div>
   </div>
 </section>
 
