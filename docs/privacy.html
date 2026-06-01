@@ -68,9 +68,17 @@ Geräte-Kennung genutzt, <strong>keine Werbe-ID (IDFA)</strong> und kein
 geräteübergreifendes Tracking. Du kannst die Statistik jederzeit in den
 Einstellungen unter „Datenschutz" abschalten.</p>
 <p>Darüber hinaus keine weiteren Tracker: kein Firebase, kein Google
-Analytics, kein Crash-Reporting, keine Werbe-Netzwerke.</p>
+Analytics, keine Werbe-Netzwerke.</p>
 
-<h3>3.4 Keine Benutzerkonten</h3>
+<h3>3.4 Crash- und Fehler-Reports</h3>
+<p>Wenn die App abstürzt oder einen Fehler auslöst, senden wir den
+Stack-Trace, App-Version und grundlegende Geräteinformationen
+(Modell, iOS-Version) an Sentry (Server in der EU, Frankfurt). Wir
+übertragen <strong>keine IP-Adresse, keine Werbe-ID, keine Mahlzeit-
+Inhalte und keine persönlichen Profilangaben</strong>. Nur so können
+wir Bugs beheben, ohne dass eine Nutzerin sie melden muss.</p>
+
+<h3>3.5 Keine Benutzerkonten</h3>
 <p>NourishMe hat kein Login. Keine E-Mail, kein Passwort. Alle Daten bleiben
 anonym auf deinem Gerät.</p>
 
@@ -89,6 +97,8 @@ verarbeitet. NourishMe stellt <strong>keine Diagnose</strong> und ersetzt keine
   <li><strong>Cloudflare:</strong> Verbindungs-Metadaten typischerweise 24 h.</li>
   <li><strong>PostHog (anonyme Statistik):</strong> aggregierte Ereignisse, kein
     Personenbezug. Per Opt-out in den Einstellungen jederzeit deaktivierbar.</li>
+  <li><strong>Sentry (Crash-Reports):</strong> 90 Tage, ausschließlich technische
+    Fehlerinformationen ohne Personenbezug.</li>
 </ul>
 
 <h2>6. Deine Rechte</h2>

@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/meal_providers.dart';
@@ -76,18 +77,50 @@ Future<void> main() async {
   final hasProfile = settingsRepo.hasProfile();
   final themeMode = _parseThemeMode(settingsRepo.getThemeMode());
 
-  runApp(
-    ProviderScope(
-      overrides: [
-        mealRepositoryProvider.overrideWithValue(mealRepo),
-        settingsRepositoryProvider.overrideWithValue(settingsRepo),
-        favoriteRepositoryProvider.overrideWithValue(favoriteRepo),
-        threadRepositoryProvider.overrideWithValue(threadRepo),
-        weightRepositoryProvider.overrideWithValue(weightRepo),
-        themeModeProvider.overrideWith((ref) => themeMode),
-      ],
-      child: NourishMeApp(showOnboarding: !hasProfile),
-    ),
+  // Sentry: crash + unhandled-exception reporting. Wraps runApp so any
+  // throw in the widget tree, zone, or platform channel makes it back
+  // to a Sentry issue we can actually see. Skipped silently when no DSN
+  // is configured so local dev doesn't depend on Sentry being up.
+  final sentryDsn = dotenv.env['SENTRY_DSN'] ?? '';
+  void startApp() {
+    runApp(
+      ProviderScope(
+        overrides: [
+          mealRepositoryProvider.overrideWithValue(mealRepo),
+          settingsRepositoryProvider.overrideWithValue(settingsRepo),
+          favoriteRepositoryProvider.overrideWithValue(favoriteRepo),
+          threadRepositoryProvider.overrideWithValue(threadRepo),
+          weightRepositoryProvider.overrideWithValue(weightRepo),
+          themeModeProvider.overrideWith((ref) => themeMode),
+        ],
+        child: NourishMeApp(showOnboarding: !hasProfile),
+      ),
+    );
+  }
+
+  if (sentryDsn.isEmpty) {
+    startApp();
+    return;
+  }
+
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = sentryDsn;
+      // Tag every event with the build's identity so we can filter beta
+      // crashes from later production ones once the App Store version
+      // ships. Bump the release string when the version changes.
+      options.release = 'nourishme@1.0.0+18';
+      options.environment = 'beta';
+      // Trace sampling stays off — we only care about crashes + errors,
+      // not performance traces. Keeps the free-tier event budget intact.
+      options.tracesSampleRate = 0.0;
+      // Privacy: never send default PII (IP, device-attached identifiers
+      // beyond what the SDK strictly needs). Aligns with the local-first
+      // promise on the landing page.
+      options.sendDefaultPii = false;
+      options.attachScreenshot = false;
+    },
+    appRunner: startApp,
   );
 }
 
