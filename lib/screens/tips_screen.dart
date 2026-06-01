@@ -105,6 +105,10 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
     final isLast = _index >= lastIndex;
     return Scaffold(
       appBar: AppBar(
+        // No back arrow: "Überspringen" already does the same job
+        // semantically (close the deck), and having both made the top
+        // bar feel cluttered with two ways to exit.
+        automaticallyImplyLeading: false,
         title: Text(l10n.tipsTitle),
         actions: [
           TextButton(
