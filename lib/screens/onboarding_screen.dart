@@ -29,6 +29,16 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  // Stable, language-independent names for funnel analytics. Index matches
+  // the order of the PageView children in build().
+  static const _stepNames = [
+    'welcome',
+    'phase',
+    'body',
+    'phase_details',
+    'summary',
+  ];
+
   final _controller = PageController();
   int _step = 0;
 
@@ -64,6 +74,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // Top of the activation funnel. Pairs with onboarding_completed so we can
     // measure drop-off between first launch and finishing setup.
     ref.read(analyticsServiceProvider).capture('onboarding_started');
+    _trackStepView();
+  }
+
+  // Per-step funnel telemetry. Fires when a step becomes visible (initial
+  // load, _next, _restart). Back navigation does not re-fire so the funnel
+  // stays a clean forward sequence.
+  void _trackStepView() {
+    ref.read(analyticsServiceProvider).capture(
+      'onboarding_step_view',
+      properties: {
+        'step_index': _step,
+        'step_name': _stepNames[_step],
+      },
+    );
   }
 
   @override
@@ -109,6 +133,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _next() {
     if (_step < _totalSteps - 1) {
       setState(() => _step += 1);
+      _trackStepView();
       _controller.animateToPage(
         _step,
         duration: const Duration(milliseconds: 250),
@@ -169,6 +194,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
     });
     _controller.jumpToPage(0);
+    _trackStepView();
   }
 
   UserProfileSettings _buildProfile() => UserProfileSettings(
