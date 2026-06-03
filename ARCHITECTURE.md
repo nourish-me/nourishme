@@ -106,6 +106,41 @@ to attach to, so they wouldn't fit cleanly in a MealEntry-extended
 model. Don't unify without first checking that pure chat entries are
 still a use case.
 
+### Schema evolution rules (Beta-critical)
+
+Hive boxes are `Box<String>` storing raw JSON. There is no schema
+version field. The model survives drift by `fromJson` tolerating
+missing fields with safe defaults (see `meal_entry.dart` portion
+fallback for the existing example).
+
+**Rules for modifying a persisted model during the beta or after any
+release shipped to real users:**
+
+1. **Nullable add: safe.** Adding `field: Type?` is the only change
+   that is always safe. `fromJson` reads `null` for old records.
+2. **Required add: forbidden.** A required new field makes `fromJson`
+   throw on every existing record → app fails to start → user must
+   reinstall → tester data lost. If you need a new field to be
+   required at the type level, add it nullable, write a one-shot
+   backfill in the repository's `open()`, then make it required in a
+   later release once backfill is verified.
+3. **Rename: forbidden.** Renaming a field silently loses the data
+   (new code reads `null`). If a rename is unavoidable, write
+   explicit dual-read in `fromJson`: try the new key, fall back to
+   the old key.
+4. **Semantic change: forbidden.** Changing what a field *means*
+   (e.g. `portionAmount` from "per 100g" to "total") silently
+   corrupts every existing record. If you must, introduce a *new*
+   field with the new semantics and migrate explicitly.
+5. **Field removal: safe.** Unknown JSON keys are ignored.
+
+When you can no longer follow these rules (a real semantic refactor,
+or several migrations stack up), switch to a versioned wrapper
+(`{"version": N, "data": {...}}`) plus a migration chain in the
+repository's `open()` method. Do not pre-build the wrapper before it
+is needed — the current JSON-with-defaults pattern handles all
+nullable-add cases for free.
+
 ---
 
 ## 5. State management map (Riverpod)
