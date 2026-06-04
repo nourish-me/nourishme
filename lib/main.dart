@@ -137,56 +137,12 @@ ThemeMode _parseThemeMode(String s) {
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-class NourishMeApp extends ConsumerStatefulWidget {
+class NourishMeApp extends ConsumerWidget {
   final bool showOnboarding;
   const NourishMeApp({super.key, required this.showOnboarding});
 
   @override
-  ConsumerState<NourishMeApp> createState() => _NourishMeAppState();
-}
-
-class _NourishMeAppState extends ConsumerState<NourishMeApp> {
-  void _onNotificationTap() {
-    debugPrint('[NotificationTap] fired, mounted=$mounted');
-    if (!mounted) return;
-    // Switch to the Diary tab first so the meal input is the visible field,
-    // otherwise the focus request lands on a screen the user can't see (e.g.
-    // when the reminder is tapped while History/Trends was last open).
-    ref.read(selectedTabProvider.notifier).state = 0;
-    // Bump the focus request several times with growing delays. The first
-    // bump catches the warm-resume case where the input is already on
-    // screen; the later bumps catch cold-launch + tab-switch races where
-    // _HomeInput's TextField only attaches its FocusNode after first paint
-    // or after the route stack finishes settling.
-    for (final delayMs in [50, 300, 800]) {
-      Future.delayed(Duration(milliseconds: delayMs), () {
-        if (!mounted) return;
-        debugPrint('[NotificationTap] focus bump after ${delayMs}ms');
-        ref.read(mealInputFocusRequestProvider.notifier).state++;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    NotificationScheduler.tapNotifier.addListener(_onNotificationTap);
-    // Cold-launch case: the notifier was bumped during init() before this
-    // widget started listening. Pick that up now so the first frame already
-    // routes through the focus path.
-    if (NotificationScheduler.tapNotifier.value > 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _onNotificationTap());
-    }
-  }
-
-  @override
-  void dispose() {
-    NotificationScheduler.tapNotifier.removeListener(_onNotificationTap);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     return MaterialApp(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
@@ -206,7 +162,7 @@ class _NourishMeAppState extends ConsumerState<NourishMeApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: widget.showOnboarding
+      home: showOnboarding
           ? const OnboardingScreen()
           : const MainScaffold(),
     );
