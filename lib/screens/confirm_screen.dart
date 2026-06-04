@@ -395,6 +395,14 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         ? formatWeightTrendForCoach(trend,
             isDe: locale.toLowerCase().startsWith('de'))
         : null;
+    // Pre-capture everything the async callbacks need. The modal pops as
+    // soon as _save returns, disposing this widget. Touching `ref` or
+    // `context` afterwards throws "Bad state: Cannot use ref after the
+    // widget was disposed", and that exception silently kills the chain
+    // (.then throws → .catchError throws → unhandled async error → the
+    // loading banner never resets and the app looks hung).
+    final analytics = ref.read(analyticsServiceProvider);
+    final fallbackMessage = AppLocalizations.of(context).confirmCoachErrorFallback;
 
     // The meal item is already in the thread. Remove the old coach response
     // so we can replace it with a fresh one based on the edited values.
@@ -467,29 +475,31 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         text: response.trim(),
         at: coachAt,
       ));
-      ref.read(analyticsServiceProvider).capture('coach_reply',
+      analytics.capture('coach_reply',
           properties: {'kind': 'per_meal', 'ok': true});
-      loadingNotifier.state = false;
     }).catchError((Object error, StackTrace stack) async {
       // Log the real error so an intermittent coach failure is diagnosable
       // (these have shown up sporadically; the bubble below only carries a
       // human-friendly message). Also track the failure rate in analytics.
       debugPrint('Per-meal coach failed: $error\n$stack');
-      ref.read(analyticsServiceProvider).capture('coach_reply',
+      analytics.capture('coach_reply',
           properties: {'kind': 'per_meal', 'ok': false});
       // Surface a human-readable hint instead of silently swallowing the
       // failure. Linked to the meal so deleting the meal cleans it up too.
       final message = error is CoachApiException
           ? error.userMessage
-          : (mounted
-              ? AppLocalizations.of(context).confirmCoachErrorFallback
-              : "Coach reply unavailable. Try again later.");
+          : fallbackMessage;
       final coachAt = meal.createdAt.add(const Duration(minutes: 1));
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: meal.id,
         text: message,
         at: coachAt,
       ));
+    }).whenComplete(() {
+      // Bulletproof reset: fires whether the chain succeeded, failed, or a
+      // callback above threw. Without this, an exception inside .then or
+      // .catchError leaves loadingNotifier stuck at true and the banner
+      // spins forever.
       loadingNotifier.state = false;
     });
   }
