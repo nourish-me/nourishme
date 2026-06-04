@@ -54,6 +54,61 @@ export default {
       return jsonResponse({ status: 'ok' }, 200);
     }
 
+    // Cost summary readout. Secured by the same APP_SECRET so the beta
+    // dashboard can call it without exposing per-day spend to anyone who
+    // happens to know the Worker URL. Returns the last N days (default 7,
+    // max 30) of token aggregates with derived USD cost. Drives L3 of the
+    // beta learning goals (cost per active user per week).
+    if (request.method === 'GET' && url.pathname === '/budget/summary') {
+      const secret = request.headers.get('x-app-secret');
+      if (!env.APP_SECRET || !secret || secret !== env.APP_SECRET) {
+        return jsonResponse({ error: 'Forbidden' }, 403);
+      }
+      if (!env.BUDGET) {
+        return jsonResponse(
+          { error: 'BUDGET KV namespace not bound on this Worker.' },
+          503,
+        );
+      }
+      const requestedDays = Number(url.searchParams.get('days')) || 7;
+      const days = Math.max(1, Math.min(30, requestedDays));
+      // Claude Haiku 4.5 pricing (per 1M tokens). When we switch model,
+      // update both lines AND the model constant referenced in the app.
+      const INPUT_USD_PER_MTOK = 1.0;
+      const OUTPUT_USD_PER_MTOK = 5.0;
+      const today = new Date();
+      const summary = [];
+      for (let i = 0; i < days; i++) {
+        const d = new Date(today);
+        d.setUTCDate(d.getUTCDate() - i);
+        const dayStr = d.toISOString().slice(0, 10);
+        const key = `day:${dayStr}`;
+        const record = await env.BUDGET.get(key, { type: 'json' });
+        const r = record || { calls: 0, in: 0, out: 0 };
+        const costUsd =
+          (r.in / 1_000_000) * INPUT_USD_PER_MTOK +
+          (r.out / 1_000_000) * OUTPUT_USD_PER_MTOK;
+        summary.push({
+          day: dayStr,
+          calls: r.calls,
+          inputTokens: r.in,
+          outputTokens: r.out,
+          costUsd: Math.round(costUsd * 10000) / 10000,
+        });
+      }
+      const totals = summary.reduce(
+        (acc, d) => ({
+          calls: acc.calls + d.calls,
+          inputTokens: acc.inputTokens + d.inputTokens,
+          outputTokens: acc.outputTokens + d.outputTokens,
+          costUsd:
+            Math.round((acc.costUsd + d.costUsd) * 10000) / 10000,
+        }),
+        { calls: 0, inputTokens: 0, outputTokens: 0, costUsd: 0 },
+      );
+      return jsonResponse({ days, summary, totals }, 200);
+    }
+
     if (request.method !== 'POST' || url.pathname !== '/messages') {
       return jsonResponse({ error: 'Not found' }, 404);
     }
