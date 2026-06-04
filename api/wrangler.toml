@@ -1,6 +1,10 @@
 name = "nourishme-api"
 main = "worker.js"
 compatibility_date = "2025-05-01"
+# Scoped API tokens can't list accounts, so wrangler can't auto-pick which
+# account to deploy to. Hard-code the ID (not secret, just identifies the
+# Cloudflare account).
+account_id = "4c9d7a83014d3043fe2f298cdd855516"
 
 # Secrets (set via `wrangler secret put`, never commit values):
 #   ANTHROPIC_API_KEY - sk-ant-... from console.anthropic.com
