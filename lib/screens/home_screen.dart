@@ -461,25 +461,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scrollTarget = ref.watch(scrollToDayProvider);
     if (scrollTarget != null && scrollTarget != _handledScrollToDay) {
       _handledScrollToDay = scrollTarget;
-      // Prefer scrolling to the EARLIEST meal of the tapped day (so the
-      // user lands on breakfast, not dinner). thread items are already
-      // sorted ascending by timestamp in the repository, so the first
-      // ThreadItemType.meal entry is the day's earliest. Fall back to
-      // the day-separator key when the day has no logged meals yet.
-      final dayItems = threadByDay[scrollTarget] ?? const <ThreadItem>[];
-      final firstMealId = dayItems
-          .firstWhere(
-            (i) => i.type == ThreadItemType.meal,
-            orElse: () => ThreadItem.userQuestion(text: '', at: DateTime(0)),
-          )
-          .mealId;
+      // Pick the scroll destination on the target day.
+      //   - Past-day SAVE: a freshly-rendered meal landed in that day
+      //     (scrollTargetMealId from newlyRenderedMealIds above). Prefer
+      //     it so the user lands on the entry they just added, not on
+      //     the day's earliest meal that happens to share the date.
+      //   - Calendar/Verlauf TAP: no new meal involved → fall back to
+      //     first-of-day so the user starts at the breakfast end.
+      //   - Empty day: scroll to the day separator itself.
+      String? preferredMealId;
+      if (scrollTargetMealId != null) {
+        final m = mealsById[scrollTargetMealId];
+        if (m != null) {
+          final mealDay = DateTime(
+              m.createdAt.year, m.createdAt.month, m.createdAt.day);
+          if (mealDay == scrollTarget) preferredMealId = scrollTargetMealId;
+        }
+      }
+      String? targetMealId = preferredMealId;
+      if (targetMealId == null) {
+        final dayItems = threadByDay[scrollTarget] ?? const <ThreadItem>[];
+        targetMealId = dayItems
+            .firstWhere(
+              (i) => i.type == ThreadItemType.meal,
+              orElse: () => ThreadItem.userQuestion(text: '', at: DateTime(0)),
+            )
+            .mealId;
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        debugPrint('scrollToDay: target=$scrollTarget firstMealId=$firstMealId '
-            'mealKeyKnown=${firstMealId != null && _mealKeys.containsKey(firstMealId)} '
+        debugPrint('scrollToDay: target=$scrollTarget targetMealId=$targetMealId '
+            'preferredFromNewMeal=${preferredMealId != null} '
+            'mealKeyKnown=${targetMealId != null && _mealKeys.containsKey(targetMealId)} '
             'dayKeyCtx=${_keyForDay(scrollTarget).currentContext != null}');
-        if (firstMealId != null && _mealKeys.containsKey(firstMealId)) {
-          await _scrollToNewMeal(firstMealId);
+        if (targetMealId != null && _mealKeys.containsKey(targetMealId)) {
+          await _scrollToNewMeal(targetMealId);
         } else {
           await _scrollToDay(scrollTarget);
         }
