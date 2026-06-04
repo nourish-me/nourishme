@@ -412,8 +412,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final pendingScrollTarget = ref.read(scrollToDayProvider);
     if (scrollTargetMealId != null) {
       final id = scrollTargetMealId;
+      // For TODAY's meals, prefer scroll-to-bottom: chat-style layout puts
+      // the input bar at the bottom and the new meal lands right above it,
+      // so the user stays anchored where they typed. Using scroll-to-meal
+      // (top-of-viewport alignment) here would push them away from the
+      // input — confusing especially after a bundled scan-session save.
+      // For past-day saves the scrollToDayProvider path handles things; we
+      // only fall back to scrollToNewMeal here when somehow neither applies
+      // (e.g. a today-bucket meal whose createdAt isn't actually today).
+      final m = mealsById[id];
+      final now = DateTime.now();
+      final isToday = m != null &&
+          m.createdAt.year == now.year &&
+          m.createdAt.month == now.month &&
+          m.createdAt.day == now.day;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _scrollToNewMeal(id);
+        if (!mounted) return;
+        if (isToday) {
+          _scrollToBottom();
+        } else {
+          _scrollToNewMeal(id);
+        }
       });
     } else if (totalItems > _lastTotalItemCount &&
         _lastTotalItemCount > 0 &&
