@@ -34,7 +34,35 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     unawaited(_runCallFor(meals, locale));
   }
 
-  Future<void> _runCallFor(List<MealEntry> meals, String locale) async {
+  // Edit-path entry point. Regenerates the per-meal coach reply for one
+  // already-logged meal whose values just changed. Routes through the
+  // same in-flight / thinking-bubble mechanism as live saves so the user
+  // sees the in-thread bubble next to the meal instead of a detached
+  // banner above the input. Caller is responsible for removing the old
+  // coach response from the thread before invoking this (so a brief
+  // moment of "no bubble + thinking-bubble" is the only visible flicker).
+  void regenerateForMeal(
+      MealEntry meal, String locale, String fallbackMessage) {
+    state = {...state, meal.id};
+    unawaited(_runCallFor(
+      [meal],
+      locale,
+      requestFollowUps: false,
+      fallbackMessage: fallbackMessage,
+    ));
+  }
+
+  Future<void> _runCallFor(
+    List<MealEntry> meals,
+    String locale, {
+    // Override for the follow-up-chips heuristic. Live saves let the
+    // every-3rd-meal rule decide; edits force false because edits reuse
+    // the existing conversation rhythm and shouldn't surface new chips.
+    bool? requestFollowUps,
+    // Optional caller-supplied (typically localized) fallback when the
+    // coach call fails. Defaults to the legacy English string.
+    String? fallbackMessage,
+  }) async {
     final threadRepo = _ref.read(threadRepositoryProvider);
     final client = _ref.read(claudeClientProvider);
     final target = _ref.read(calorieTargetProvider);
@@ -106,7 +134,8 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         dietaryNotes: profile?.dietaryNotes ?? '',
         locale: locale,
         loggedAt: last.createdAt,
-        requestFollowUps: mealsForTotal.length % 3 == 0,
+        requestFollowUps:
+            requestFollowUps ?? mealsForTotal.length % 3 == 0,
         weightTrend: notableTrend,
       );
       final coachAt = last.createdAt.add(const Duration(minutes: 1));
@@ -125,7 +154,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
       debugPrint('Coach call failed for ${meals.length} meal(s): $e\n$stack');
       final message = e is CoachApiException
           ? e.userMessage
-          : 'Coach reply unavailable. Try again later.';
+          : (fallbackMessage ?? 'Coach reply unavailable. Try again later.');
       final coachAt = last.createdAt.add(const Duration(minutes: 1));
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,

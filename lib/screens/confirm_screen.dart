@@ -12,7 +12,6 @@ import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
 import '../services/coach_session_manager.dart';
 import '../services/notification_scheduler.dart';
-import '../utils/weight_trend.dart';
 
 class ConfirmScreen extends ConsumerStatefulWidget {
   final String rawText;
@@ -399,28 +398,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       return;
     }
 
-    // Edit path: regenerate the existing coach reply synchronously. Edits
-    // bypass the session bundle because they're a targeted re-generation
-    // for one already-logged meal, not part of a new "I'm eating now"
-    // session that could pick up follow-up items.
-    final client = ref.read(claudeClientProvider);
-    final target = ref.read(calorieTargetProvider);
-    final byDay = ref.read(mealsByDayProvider);
-    final profile = ref.read(userProfileProvider).valueOrNull;
-    final loadingNotifier = ref.read(insightLoadingProvider.notifier);
-    final trend = ref.read(weightTrendProvider);
-    final notableTrend = (trend != null && trend.isNotable)
-        ? formatWeightTrendForCoach(trend,
-            isDe: locale.toLowerCase().startsWith('de'))
-        : null;
-    // Pre-capture everything the async callbacks need. The modal pops as
-    // soon as _save returns, disposing this widget. Touching `ref` or
-    // `context` afterwards throws "Bad state: Cannot use ref after the
-    // widget was disposed", and that exception silently kills the chain
-    // (.then throws → .catchError throws → unhandled async error → the
-    // loading banner never resets and the app looks hung).
-    final analytics = ref.read(analyticsServiceProvider);
-    final fallbackMessage = AppLocalizations.of(context).confirmCoachErrorFallback;
+    // Edit path: route through CoachSessionManager so the thinking bubble
+    // appears in-thread next to the meal (same UX as live saves), instead
+    // of as a detached banner above the input. Pre-capture the localized
+    // fallback message because the modal pops before the manager's async
+    // call resolves — touching context after that would throw.
+    final fallbackMessage =
+        AppLocalizations.of(context).confirmCoachErrorFallback;
 
     // If the time was edited, move the meal's ThreadItem (and any orphan
     // coach response on the old day) to the new timestamp before the
@@ -432,105 +416,14 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           meal.id, originalAt, meal.createdAt);
     }
     // The meal item is already in the thread. Remove the old coach response
-    // so we can replace it with a fresh one based on the edited values.
+    // so the manager's regenerate step can add the replacement cleanly.
     // (If updateMealItemTime just migrated it cross-day, this picks up the
     // migrated copy and removes it.)
     await threadRepo.removeCoachResponseForMeal(meal.id, meal.createdAt);
 
-    // Compose the running total for the meal's OWN day (not always today).
-    // When the user logs a past-day meal via the empty-range picker or the
-    // calendar, the coach should reason about that day's progress against
-    // the daily target, not against today's running total.
-    final mealDayKey = DateTime(
-        meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
-    final sameDay = byDay[mealDayKey] ?? const <MealEntry>[];
-    // The provider stream may not have ticked yet, so include the new meal
-    // ourselves if it isn't already in the bucket.
-    final hadAlready = sameDay.any((m) => m.id == meal.id);
-    final mealsForTotal = hadAlready ? sameDay : [...sameDay, meal];
-    final totalKcalToday =
-        mealsForTotal.fold<int>(0, (sum, m) => sum + m.kcal);
-    final totalProteinToday =
-        mealsForTotal.fold<double>(0, (sum, m) => sum + m.proteinG);
-
-    // DGE 2025: lactation protein 1.2 g/kg, not 1.8 (was wrong before).
-    final proteinTargetG = profile != null
-        ? (profile.weightKg * 1.2).round()
-        : 80;
-
-    loadingNotifier.state = true;
-    client
-        .generatePerMealResponse(
-      mealRawText: widget.rawText,
-      mealSummary: meal.summary,
-      mealKcal: meal.kcal,
-      mealProteinG: meal.proteinG,
-      mealCarbsG: meal.carbsG,
-      mealFatG: meal.fatG,
-      safetyWarnings: meal.safetyWarnings,
-      totalKcalToday: totalKcalToday,
-      targetKcal: target,
-      totalProteinToday: totalProteinToday,
-      proteinTargetG: proteinTargetG,
-      numChildrenNursing: profile?.numChildrenNursing ?? 0,
-      milkSharePercent: profile?.milkSharePercent ?? 0,
-      weightKg: profile?.weightKg ?? 0,
-      heightCm: profile?.heightCm ?? 0,
-      ageYears: profile?.ageYears ?? 0,
-      activityFactor: profile?.activityFactor ?? 1.375,
-      isPregnant: profile?.isPregnant ?? false,
-      trimester: profile?.trimester,
-      dailyMilkVolumeMl: profile?.dailyMilkVolumeMl ?? 0,
-      dietStyle: profile?.dietStyle ?? 'omnivore',
-      restrictions: profile?.restrictions ?? const {},
-      dietaryNotes: profile?.dietaryNotes ?? '',
-      locale: locale,
-      loggedAt: meal.createdAt,
-      // Every 3rd meal of the day (3, 6, 9, ...) the coach surfaces chip
-      // questions the user can tap to share preferences/context. Only on
-      // first-time logging, not on edits (those reuse the established
-      // conversation rhythm).
-      requestFollowUps: !isEdit && mealsForTotal.length % 3 == 0,
-      weightTrend: notableTrend,
-    )
-        .then((response) async {
-      // Link the coach response to the meal so deleting the meal also
-      // removes the response (no orphaned advice). Anchor the timestamp to
-      // the MEAL's day so a past-day entry's coach reply ends up in the same
-      // day bucket as the meal (not in today's bucket).
-      final coachAt = meal.createdAt.add(const Duration(minutes: 1));
-      await threadRepo.add(ThreadItem.coachResponse(
-        mealId: meal.id,
-        text: response.trim(),
-        at: coachAt,
-      ));
-      analytics.capture('coach_reply',
-          properties: {'kind': 'per_meal', 'ok': true});
-    }).catchError((Object error, StackTrace stack) async {
-      // Log the real error so an intermittent coach failure is diagnosable
-      // (these have shown up sporadically; the bubble below only carries a
-      // human-friendly message). Also track the failure rate in analytics.
-      debugPrint('Per-meal coach failed: $error\n$stack');
-      analytics.capture('coach_reply',
-          properties: {'kind': 'per_meal', 'ok': false});
-      // Surface a human-readable hint instead of silently swallowing the
-      // failure. Linked to the meal so deleting the meal cleans it up too.
-      final message = error is CoachApiException
-          ? error.userMessage
-          : fallbackMessage;
-      final coachAt = meal.createdAt.add(const Duration(minutes: 1));
-      await threadRepo.add(ThreadItem.coachResponse(
-        mealId: meal.id,
-        text: message,
-        at: coachAt,
-      ));
-    }).whenComplete(() {
-      // Bulletproof reset: fires whether the chain succeeded, failed, or a
-      // callback above threw. Without this, an exception inside .then or
-      // .catchError leaves loadingNotifier stuck at true and the banner
-      // spins forever.
-      loadingNotifier.state = false;
-    });
+    ref
+        .read(coachSessionProvider.notifier)
+        .regenerateForMeal(meal, locale, fallbackMessage);
   }
 
   void _discard() {
