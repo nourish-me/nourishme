@@ -412,28 +412,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final pendingScrollTarget = ref.read(scrollToDayProvider);
     if (scrollTargetMealId != null) {
       final id = scrollTargetMealId;
-      // For TODAY's meals, prefer scroll-to-bottom: chat-style layout puts
-      // the input bar at the bottom and the new meal lands right above it,
-      // so the user stays anchored where they typed. Using scroll-to-meal
-      // (top-of-viewport alignment) here would push them away from the
-      // input — confusing especially after a bundled scan-session save.
-      // For past-day saves the scrollToDayProvider path handles things; we
-      // only fall back to scrollToNewMeal here when somehow neither applies
-      // (e.g. a today-bucket meal whose createdAt isn't actually today).
-      final m = mealsById[id];
-      final now = DateTime.now();
-      final isToday = m != null &&
-          m.createdAt.year == now.year &&
-          m.createdAt.month == now.month &&
-          m.createdAt.day == now.day;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+      // Skip autoscroll while a bundle scan-session is open. Intermediate
+      // saves (barcode → "+ noch einen scannen") would otherwise scroll
+      // the diary under the modal — wasted work, leaves the position in a
+      // weird intermediate state until the final save runs autoscroll
+      // again. The final save naturally fires this dispatcher with the
+      // bundle drained.
+      final mid = ref.read(pendingScanBundleProvider).isNotEmpty;
+      if (!mid) {
+        final m = mealsById[id];
+        final now = DateTime.now();
+        final isToday = m != null &&
+            m.createdAt.year == now.year &&
+            m.createdAt.month == now.month &&
+            m.createdAt.day == now.day;
+        // Today + newest: scroll-to-bottom keeps the user anchored on the
+        // input bar (chat-style mental model). Today + NOT newest (e.g.
+        // backdated 7:30 entry while there's already lunch and dinner):
+        // scroll-to-bottom would land on dinner instead of the new entry —
+        // wrong. Fall back to scroll-to-meal so the user actually sees
+        // what they just added. Past-day saves route through
+        // scrollToDayProvider (preferred-meal path) below.
+        bool isNewestToday = false;
         if (isToday) {
-          _scrollToBottom();
-        } else {
-          _scrollToNewMeal(id);
+          isNewestToday = !mealsAll.any((other) =>
+              other.id != m.id &&
+              other.createdAt.year == m.createdAt.year &&
+              other.createdAt.month == m.createdAt.month &&
+              other.createdAt.day == m.createdAt.day &&
+              other.createdAt.isAfter(m.createdAt));
         }
-      });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (isToday && isNewestToday) {
+            _scrollToBottom();
+          } else {
+            _scrollToNewMeal(id);
+          }
+        });
+      }
     } else if (totalItems > _lastTotalItemCount &&
         _lastTotalItemCount > 0 &&
         newlyRenderedMealIds.isEmpty &&
