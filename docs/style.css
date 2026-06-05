@@ -145,17 +145,6 @@ body:not(.landing) {
   text-decoration: line-through;
 }
 
-/* "EN coming soon" banner (only on EN landing) */
-.banner-soon {
-  background: var(--accent-soft);
-  color: var(--text);
-  text-align: center;
-  padding: 0.875rem 1.5rem;
-  font-size: 0.95rem;
-  line-height: 1.45;
-  border-bottom: 1px solid var(--border);
-}
-
 .landing h1 {
   font-family: 'Newsreader', Georgia, serif;
   font-size: 3.25rem;
