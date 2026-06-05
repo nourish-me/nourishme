@@ -422,8 +422,19 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final analytics = ref.read(analyticsServiceProvider);
     final fallbackMessage = AppLocalizations.of(context).confirmCoachErrorFallback;
 
+    // If the time was edited, move the meal's ThreadItem (and any orphan
+    // coach response on the old day) to the new timestamp before the
+    // regenerate step. Without this the entry visually stays at the old
+    // slot — and for cross-day edits in the wrong day bucket entirely.
+    final originalAt = widget.existingCreatedAt;
+    if (originalAt != null && originalAt != meal.createdAt) {
+      await threadRepo.updateMealItemTime(
+          meal.id, originalAt, meal.createdAt);
+    }
     // The meal item is already in the thread. Remove the old coach response
     // so we can replace it with a fresh one based on the edited values.
+    // (If updateMealItemTime just migrated it cross-day, this picks up the
+    // migrated copy and removes it.)
     await threadRepo.removeCoachResponseForMeal(meal.id, meal.createdAt);
 
     // Compose the running total for the meal's OWN day (not always today).

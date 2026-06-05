@@ -90,6 +90,58 @@ class ThreadRepository {
     await _box.put(key, jsonEncode(items.map((i) => i.toJson()).toList()));
   }
 
+  // Moves a meal's ThreadItem (and any orphaned coach response on the old
+  // day) to a new timestamp / day. Called when an edit changes the meal's
+  // createdAt: without this the entry visually stays at the old time, and
+  // for cross-day edits in the wrong day bucket entirely.
+  //
+  // If the meal item isn't found at oldAt (already moved by a previous
+  // edit, or createdAt drifted), the call is a silent no-op rather than
+  // throwing — defensive against any state we missed.
+  Future<void> updateMealItemTime(
+      String mealId, DateTime oldAt, DateTime newAt) async {
+    final sameDay = oldAt.year == newAt.year &&
+        oldAt.month == newAt.month &&
+        oldAt.day == newAt.day;
+    final oldKey = _keyFor(oldAt);
+    final oldItems = getForDate(oldAt);
+    final mealIdx = oldItems.indexWhere(
+        (i) => i.type == ThreadItemType.meal && i.mealId == mealId);
+    if (mealIdx == -1) return;
+
+    if (sameDay) {
+      // In-place timestamp swap on the same day's bucket.
+      oldItems[mealIdx] = ThreadItem.meal(mealId: mealId, at: newAt);
+      await _box.put(
+          oldKey, jsonEncode(oldItems.map((i) => i.toJson()).toList()));
+      return;
+    }
+
+    // Cross-day move: pull the meal item (and any coach response anchored
+    // to it) out of the old day, then re-add them into the new day's
+    // bucket. The coach response migrates with the meal so an old-day
+    // bubble doesn't end up orphaned next to a now-empty slot.
+    final coachIdx = oldItems.indexWhere((i) =>
+        i.type == ThreadItemType.coachResponse && i.mealId == mealId);
+    final coachItem = coachIdx == -1 ? null : oldItems[coachIdx];
+    oldItems.removeWhere((i) =>
+        (i.type == ThreadItemType.meal && i.mealId == mealId) ||
+        (i.type == ThreadItemType.coachResponse && i.mealId == mealId));
+    await _box.put(
+        oldKey, jsonEncode(oldItems.map((i) => i.toJson()).toList()));
+
+    await add(ThreadItem.meal(mealId: mealId, at: newAt));
+    if (coachItem != null) {
+      // Keep the coach response anchored to the new meal time + 1 min so
+      // it still sorts immediately after the meal in the new day's view.
+      await add(ThreadItem.coachResponse(
+        mealId: mealId,
+        text: coachItem.text ?? '',
+        at: newAt.add(const Duration(minutes: 1)),
+      ));
+    }
+  }
+
   Future<void> clearAll() => _box.clear();
 
   Stream<List<ThreadItem>> watchToday() async* {
