@@ -580,7 +580,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionFavorites => 'Manage favourites';
 
   @override
-  String get settingsFieldBirthdate => 'Date of birth';
+  String get settingsFieldBirthdate => 'Your date of birth';
 
   @override
   String get settingsFieldHeight => 'Height';

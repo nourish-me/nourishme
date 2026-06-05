@@ -587,7 +587,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsSectionFavorites => 'Favoriten verwalten';
 
   @override
-  String get settingsFieldBirthdate => 'Geburtsdatum';
+  String get settingsFieldBirthdate => 'Dein Geburtsdatum';
 
   @override
   String get settingsFieldHeight => 'Größe';
@@ -602,7 +602,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsFieldWeightSuffix => 'kg';
 
   @override
-  String get settingsBirthdatePickerHelp => 'Geburtsdatum wählen';
+  String get settingsBirthdatePickerHelp => 'Dein Geburtsdatum wählen';
 
   @override
   String get settingsButtonFeedback => 'Feedback senden';

@@ -1133,7 +1133,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsFieldBirthdate.
   ///
   /// In en, this message translates to:
-  /// **'Date of birth'**
+  /// **'Your date of birth'**
   String get settingsFieldBirthdate;
 
   /// No description provided for @settingsFieldHeight.
