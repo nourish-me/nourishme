@@ -11,6 +11,7 @@ import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
 import '../services/coach_session_manager.dart';
+import '../services/notification_scheduler.dart';
 import '../utils/weight_trend.dart';
 
 class ConfirmScreen extends ConsumerStatefulWidget {
@@ -253,6 +254,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final fatG = _parseDouble(_fat.text, widget.parsed.fatG);
     final portion = _parseDouble(_portion.text, widget.parsed.portionAmount);
 
+    // Capture context-bound values up front so the post-save reminder skip
+    // and other async-after-pop logic can run safely without touching a
+    // disposed BuildContext.
+    final reminderSettings =
+        ref.read(settingsRepositoryProvider).getReminders();
+    final reminderL10n = AppLocalizations.of(context);
+
     final meal = MealEntry(
       id: widget.existingMealId ??
           DateTime.now().microsecondsSinceEpoch.toString(),
@@ -273,6 +281,16 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     analytics.capture('meal_logged', properties: {
       'method': widget.source,
       'edited': widget.existingMealId != null,
+    });
+    // Smart-skip: if a reminder is about to fire for a slot the user has
+    // now covered, cancel today's occurrence and re-anchor its daily
+    // chain to tomorrow. Fire-and-forget so the save UX isn't gated on
+    // the notification plugin round-trip.
+    NotificationScheduler.skipImminentReminders(
+      settings: reminderSettings,
+      l10n: reminderL10n,
+    ).catchError((Object e, StackTrace _) {
+      debugPrint('skipImminentReminders failed: $e');
     });
     // Track how often the food-safety feature actually surfaces a warning, so
     // we can tell whether it earns its keep.

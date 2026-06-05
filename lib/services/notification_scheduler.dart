@@ -139,4 +139,69 @@ class NotificationScheduler {
     }
     return fire;
   }
+
+  // Called after a meal_logged event. Cancels any enabled reminder whose
+  // today-fire is within [windowMinutes] of NOW (i.e. would buzz the user
+  // for a meal she just covered) and re-anchors that slot's daily chain
+  // to tomorrow's same time. `matchDateTimeComponents.time` restores the
+  // daily-recurring behavior from the new anchor, so future days keep
+  // firing on schedule.
+  //
+  // Semantics:
+  //  - "Skip" only catches slots whose today-fire is still in the future.
+  //    A retroactively-logged meal whose time is in the past doesn't try
+  //    to skip an already-fired reminder.
+  //  - Logging more than [windowMinutes] ahead of a slot does NOT skip it.
+  //    Tradeoff: occasional false-negative (rare) over false-positive
+  //    (would skip a reminder the user genuinely wanted).
+  //  - Idempotent: safe to call multiple times for the same slot within
+  //    the same minute (e.g. bundle session: each meal-save calls it).
+  static Future<void> skipImminentReminders({
+    required ReminderSettings settings,
+    required AppLocalizations l10n,
+    int windowMinutes = 60,
+  }) async {
+    await init();
+    if (!settings.masterEnabled) return;
+
+    final now = tz.TZDateTime.now(tz.local);
+    final windowEnd = now.add(Duration(minutes: windowMinutes));
+
+    final details = NotificationDetails(
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: false,
+        presentSound: true,
+      ),
+      android: AndroidNotificationDetails(
+        _channelId,
+        l10n.reminderChannelName,
+        channelDescription: l10n.reminderChannelDescription,
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+      ),
+    );
+
+    for (final entry in settings.entries) {
+      if (!entry.enabled) continue;
+      final todayFire = tz.TZDateTime(
+          tz.local, now.year, now.month, now.day, entry.hour, entry.minute);
+      if (!todayFire.isAfter(now)) continue; // already-fired slot
+      if (todayFire.isAfter(windowEnd)) continue; // outside skip window
+
+      await _plugin.cancel(entry.slot.index);
+      final tomorrowFire = todayFire.add(const Duration(days: 1));
+      await _plugin.zonedSchedule(
+        entry.slot.index,
+        ReminderCopy.titleFor(entry.slot, l10n),
+        ReminderCopy.bodyFor(entry.slot, l10n),
+        tomorrowFire,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    }
+  }
 }
