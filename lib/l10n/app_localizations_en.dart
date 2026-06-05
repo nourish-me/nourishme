@@ -370,6 +370,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap a past day in your diary → you can set the date and time and log the meal retroactively.';
 
   @override
+  String get tip6Title => 'Just say what you ate';
+
+  @override
+  String get tip6Body =>
+      'You don\'t have to structure it as \"cappuccino 200 ml\". \"A cappuccino please\" or \"a bowl of cereal with berries\" is enough. The app figures out it\'s a meal, estimates a typical portion, and logs it.';
+
+  @override
   String homeCoachBundling(int count) {
     return 'Coach is waiting briefly for more items… ($count)';
   }

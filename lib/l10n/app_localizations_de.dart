@@ -374,6 +374,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tap auf einen vergangenen Tag im Tagebuch → du kannst Datum und Uhrzeit setzen und nachträglich loggen.';
 
   @override
+  String get tip6Title => 'Tipp einfach in Alltagssprache';
+
+  @override
+  String get tip6Body =>
+      'Du musst nicht „Cappuccino 200 ml“ tippen. „Einen Cappuccino bitte“ oder „eine Schüssel Müsli mit Beeren“ reicht. Die App erkennt, dass es eine Mahlzeit ist, schätzt eine typische Portion und legt sie an.';
+
+  @override
   String homeCoachBundling(int count) {
     return 'Coach wartet kurz auf weitere Items… ($count)';
   }

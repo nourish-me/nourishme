@@ -100,6 +100,15 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
         title: l10n.tip5Title,
         body: l10n.tip5Body,
       ),
+      // Reuses tip3's illustration as a placeholder — tip3 already shows
+      // the typing/autocomplete motif which is close enough to natural-
+      // language entry for the beta. Swap to a dedicated tip6_*.svg when
+      // the design is ready (chat bubble + ✓ icon would fit).
+      _Tip(
+        asset: 'assets/illustrations/tip3_$assetSuffix.svg',
+        title: l10n.tip6Title,
+        body: l10n.tip6Body,
+      ),
     ];
     final lastIndex = tips.length - 1;
     final isLast = _index >= lastIndex;

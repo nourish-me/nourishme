@@ -171,6 +171,8 @@
   "tip4Body": "Some coach replies have chip suggestions beneath them. Tap one → the question is already half-typed in your input.",
   "tip5Title": "Log a missed meal later",
   "tip5Body": "Tap a past day in your diary → you can set the date and time and log the meal retroactively.",
+  "tip6Title": "Just say what you ate",
+  "tip6Body": "You don't have to structure it as \"cappuccino 200 ml\". \"A cappuccino please\" or \"a bowl of cereal with berries\" is enough. The app figures out it's a meal, estimates a typical portion, and logs it.",
   "homeCoachBundling": "Coach is waiting briefly for more items… ({count})",
   "@homeCoachBundling": {
     "placeholders": {

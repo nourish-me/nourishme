@@ -752,6 +752,18 @@ abstract class AppLocalizations {
   /// **'Tap a past day in your diary → you can set the date and time and log the meal retroactively.'**
   String get tip5Body;
 
+  /// No description provided for @tip6Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Just say what you ate'**
+  String get tip6Title;
+
+  /// No description provided for @tip6Body.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have to structure it as \"cappuccino 200 ml\". \"A cappuccino please\" or \"a bowl of cereal with berries\" is enough. The app figures out it\'s a meal, estimates a typical portion, and logs it.'**
+  String get tip6Body;
+
   /// No description provided for @homeCoachBundling.
   ///
   /// In en, this message translates to:
