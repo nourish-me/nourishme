@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/meal_entry.dart';
+import '../models/meal_entry_source.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
@@ -298,7 +299,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           parsed: parsed,
           existingCreatedAt: createdAt,
           asSheet: true,
-          source: 'quick_add',
+          source: MealEntrySource.quickAdd,
         ),
       );
     } on CoachApiException catch (e) {
@@ -862,7 +863,7 @@ void _editMeal(BuildContext context, MealEntry meal) {
         parsed: _toParseResult(meal),
         existingMealId: meal.id,
         existingCreatedAt: meal.createdAt,
-        source: 'edit',
+        source: MealEntrySource.edit,
       ),
     ),
   );

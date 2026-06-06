@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 
 import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
+import '../models/meal_entry_source.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../services/claude_client.dart';
@@ -20,9 +21,11 @@ class ConfirmScreen extends ConsumerStatefulWidget {
   final String? existingMealId;
   final DateTime? existingCreatedAt;
   final bool asSheet;
-  // How this entry reached the confirm sheet, for the meal_logged analytics
-  // event: 'text', 'photo', 'barcode', 'favorite', 'quick_add', or 'edit'.
-  final String source;
+  // How this entry reached the confirm sheet. The analytics layer reads
+  // [source.analyticsLabel] to populate the meal_logged.method dimension
+  // that PostHog dashboards already filter on — see MealEntrySource for
+  // the wire-format guarantees when adding a new source.
+  final MealEntrySource source;
   // When true (used by the barcode flow), the sheet shows a "+ Noch einen
   // scannen" secondary button. Tapping it pops the sheet with the value
   // true so the caller can chain another scan; tapping the regular
@@ -37,7 +40,7 @@ class ConfirmScreen extends ConsumerStatefulWidget {
     this.existingMealId,
     this.existingCreatedAt,
     this.asSheet = false,
-    this.source = 'text',
+    this.source = MealEntrySource.text,
     this.allowScanAnother = false,
   });
 
@@ -283,7 +286,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     await ref.read(mealRepositoryProvider).save(meal);
     final analytics = ref.read(analyticsServiceProvider);
     analytics.capture('meal_logged', properties: {
-      'method': widget.source,
+      'method': widget.source.analyticsLabel,
       'edited': widget.existingMealId != null,
     });
     // Smart-skip: if a reminder is about to fire for a slot the user has

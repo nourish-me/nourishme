@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../main.dart';
 import '../../models/favorite_meal.dart';
 import '../../models/meal_entry.dart';
+import '../../models/meal_entry_source.dart';
 import '../../models/thread_item.dart';
 import '../../providers/meal_providers.dart';
 import '../../services/claude_client.dart';
@@ -168,7 +169,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         rawText: m.summary,
         parsed: parsed,
         asSheet: true,
-        source: 'history',
+        source: MealEntrySource.history,
       ),
     );
     // Clear the input so it doesn't sit there suggesting the same meal again.
@@ -199,7 +200,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         rawText: '',
         parsed: parsed,
         asSheet: true,
-        source: 'favorite',
+        source: MealEntrySource.favorite,
       ),
     );
   }
@@ -525,7 +526,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         rawText: product.displaySummary,
         parsed: parsed,
         asSheet: true,
-        source: 'barcode',
+        source: MealEntrySource.barcode,
         allowScanAnother: true,
       ),
     );
@@ -590,7 +591,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         parsed: parsed,
         imageBytes: bytes,
         asSheet: true,
-        source: 'photo',
+        source: MealEntrySource.photo,
         allowScanAnother: true,
       ),
     );
@@ -671,7 +672,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         rawText: entered,
         parsed: parsed,
         asSheet: true,
-        source: 'text',
+        source: MealEntrySource.text,
         allowScanAnother: true,
       ),
     );
@@ -712,7 +713,9 @@ class _HomeInputState extends ConsumerState<HomeInput> {
             parsed: parsed,
             imageBytes: _imageBytes,
             asSheet: true,
-            source: _imageBytes != null ? 'photo' : 'text',
+            source: _imageBytes != null
+                ? MealEntrySource.photo
+                : MealEntrySource.text,
           ),
         );
         // Aggressively close the keyboard if anything in the sheet (or the
