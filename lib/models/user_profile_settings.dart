@@ -36,6 +36,14 @@ class UserProfileSettings {
   final Set<String> restrictions;
   final String dietaryNotes;
 
+  // Daily supplement (e.g. prenatal multivitamin). Photographed once by
+  // the user; Claude Vision parses the nutrient table into structured
+  // values. Those values get added to every day's micronutrient totals
+  // alongside dietary intake. Null when the user hasn't configured one.
+  // v1 supports a single active supplement; multi-supplement is a
+  // post-launch follow-up.
+  final ActiveSupplement? activeSupplement;
+
   const UserProfileSettings({
     required this.ageYears,
     this.birthdate,
@@ -54,6 +62,7 @@ class UserProfileSettings {
     this.dietStyle = DietStyle.omnivore,
     this.restrictions = const {},
     this.dietaryNotes = '',
+    this.activeSupplement,
   });
 
   // Age in completed years, computed from birthdate if available, otherwise
@@ -146,6 +155,13 @@ class UserProfileSettings {
     String? dietStyle,
     Set<String>? restrictions,
     String? dietaryNotes,
+    // copyWith for nullable fields uses a Object-typed sentinel so the
+    // caller can distinguish "leave alone" from "explicitly clear to
+    // null". Needed for activeSupplement so the "delete supplement"
+    // action can pass `activeSupplement: null` and have it actually
+    // null out the field instead of being interpreted as "keep
+    // existing".
+    Object? activeSupplement = _unset,
   }) =>
       UserProfileSettings(
         ageYears: ageYears ?? this.ageYears,
@@ -165,6 +181,9 @@ class UserProfileSettings {
         dietStyle: dietStyle ?? this.dietStyle,
         restrictions: restrictions ?? this.restrictions,
         dietaryNotes: dietaryNotes ?? this.dietaryNotes,
+        activeSupplement: identical(activeSupplement, _unset)
+            ? this.activeSupplement
+            : activeSupplement as ActiveSupplement?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -185,6 +204,8 @@ class UserProfileSettings {
         'dietStyle': dietStyle,
         'restrictions': restrictions.toList(),
         'dietaryNotes': dietaryNotes,
+        if (activeSupplement != null)
+          'activeSupplement': activeSupplement!.toJson(),
       };
 
   factory UserProfileSettings.fromJson(Map<String, dynamic> json) {
@@ -213,8 +234,57 @@ class UserProfileSettings {
               .toSet() ??
           const {},
       dietaryNotes: json['dietaryNotes'] as String? ?? '',
+      activeSupplement: (json['activeSupplement'] as Map<String, dynamic>?) != null
+          ? ActiveSupplement.fromJson(
+              json['activeSupplement'] as Map<String, dynamic>)
+          : null,
     );
   }
+}
+
+// Internal sentinel for nullable copyWith arguments. Allows the caller
+// to pass an explicit null to clear the field versus omitting the arg
+// to leave it alone. Kept private to this file because it leaks the
+// API only here (other nullable fields default to "leave alone" via
+// the `??` pattern, which doesn't need this).
+const _unset = Object();
+
+// User's currently configured daily supplement (one at a time in v1).
+// Values are PER DAY (already multiplied by dosesPerDay at parse time
+// so the daily-aggregation provider can just add them once).
+//
+// The unit-suffixed keys match MicronutrientKey, so the values plug
+// straight into the per-meal aggregation map.
+class ActiveSupplement {
+  final String name; // e.g. 'Femibion 2', user-editable after parse
+  final Map<String, double> values; // unit-suffixed nutrient keys → per-day amount
+  final int dosesPerDay; // metadata only; values already account for it
+  final DateTime addedAt; // for "added on X" display + cache eviction later
+
+  const ActiveSupplement({
+    required this.name,
+    required this.values,
+    required this.dosesPerDay,
+    required this.addedAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'values': values,
+        'dosesPerDay': dosesPerDay,
+        'addedAt': addedAt.toIso8601String(),
+      };
+
+  factory ActiveSupplement.fromJson(Map<String, dynamic> json) =>
+      ActiveSupplement(
+        name: json['name'] as String,
+        values: (json['values'] as Map).map(
+          (k, v) => MapEntry(k as String, (v as num).toDouble()),
+        ),
+        dosesPerDay: json['dosesPerDay'] as int? ?? 1,
+        addedAt:
+            DateTime.tryParse(json['addedAt'] as String? ?? '') ?? DateTime.now(),
+      );
 }
 
 // Canonical strings for the user's diet style. Stored in

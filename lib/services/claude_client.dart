@@ -892,4 +892,176 @@ Return the structured coach reply as defined in the system prompt. Use the profi
       callType: 'chat',
     );
   }
+
+  // Vision-based parse of a supplement label photo. The user takes a
+  // single shot of the "Nährwerttabelle / Nutrition facts" panel on the
+  // back of their prenatal supplement; Claude extracts the per-day
+  // values keyed by MicronutrientKey so they can be added to the daily
+  // aggregation.
+  //
+  // The model is told to compute "per day" by multiplying per-capsule
+  // values by dosesPerDay if that's spelled out on the label. If
+  // dosesPerDay is ambiguous from the label, the model defaults to 1
+  // and we surface a stepper so the user can correct in the result
+  // sheet.
+  //
+  // Throws CoachApiException on network/auth/parse failure so the
+  // caller can show a "couldn't read the label, try again" hint and
+  // fall back to manual entry.
+  Future<SupplementParseResult> parseSupplementLabel(
+    Uint8List imageBytes, {
+    String locale = 'en',
+  }) async {
+    final isDe = _isGerman(locale);
+    final systemPrompt = isDe ? _supplementPromptDe : _supplementPromptEn;
+    final userText = isDe
+        ? 'Extrahiere die Nährwerte aus dem Foto und gib das JSON zurück.'
+        : 'Extract the nutrient values from the photo and return JSON.';
+    final text = await _post(
+      systemPrompt: systemPrompt,
+      messages: [
+        {
+          'role': 'user',
+          'content': [
+            {
+              'type': 'image',
+              'source': {
+                'type': 'base64',
+                'media_type': 'image/jpeg',
+                'data': base64Encode(imageBytes),
+              },
+            },
+            {'type': 'text', 'text': userText},
+          ],
+        },
+      ],
+      maxTokens: 400,
+      callType: 'supplement_parse',
+    );
+    final jsonStart = text.indexOf('{');
+    final jsonEnd = text.lastIndexOf('}');
+    if (jsonStart == -1 || jsonEnd == -1) {
+      throw CoachApiException(
+        isDe
+            ? 'Das Etikett ließ sich nicht auslesen. Probier ein klareres Foto oder trag die Werte manuell ein.'
+            : "Couldn't read the label. Try a clearer photo or enter the values manually.",
+        'no JSON in reply: ${text.substring(0, text.length.clamp(0, 200))}',
+      );
+    }
+    final Map<String, dynamic> parsed;
+    try {
+      parsed = jsonDecode(text.substring(jsonStart, jsonEnd + 1))
+          as Map<String, dynamic>;
+    } catch (e) {
+      throw CoachApiException(
+        isDe
+            ? 'Etikett-Daten waren unleserlich. Probier ein neues Foto.'
+            : "Label data was unreadable. Try another photo.",
+        'JSON decode failed: $e',
+      );
+    }
+    final dosesPerDay = (parsed['doses_per_day'] as num?)?.toInt() ?? 1;
+    final perDose = (parsed['values'] as Map?)?.map(
+          (k, v) => MapEntry(k as String, (v as num).toDouble()),
+        ) ??
+        const <String, double>{};
+    // Bake dosesPerDay into the stored values so the daily-aggregation
+    // provider can just add them once without needing the dose count.
+    final perDay = <String, double>{
+      for (final entry in perDose.entries)
+        entry.key: entry.value * dosesPerDay,
+    };
+    return SupplementParseResult(
+      name: (parsed['name'] as String?)?.trim() ?? '',
+      values: perDay,
+      dosesPerDay: dosesPerDay,
+    );
+  }
+
+  static const _supplementPromptDe = r'''
+Du siehst die Nährwerttabelle eines Schwangerschafts- oder Stillzeit-Supplements (Multi-Vitamin/Mineralien, z.B. Femibion, Elevit, Orthomol).
+
+Extrahiere die enthaltenen Mikronährstoffe pro Tagesdosis. Wenn auf dem Etikett "pro Kapsel" steht und mehrere Kapseln pro Tag empfohlen werden, multipliziere passend. Wenn die empfohlene Tagesdosis unklar ist, nimm 1 Dosis an.
+
+Antworte AUSSCHLIESSLICH mit JSON, ohne Markdown-Codeblock, in diesem Schema:
+{
+  "name": string (Produktname so wie auf dem Etikett, z.B. "Femibion 2"),
+  "doses_per_day": int (empfohlene Dosen/Tag, default 1),
+  "values": {
+    "folate_ug": number,
+    "iron_mg": number,
+    "iodine_ug": number,
+    "vitamin_d_ug": number,
+    "dha_mg": number,
+    "b12_ug": number,
+    "calcium_mg": number,
+    "choline_mg": number,
+    "zinc_mg": number
+  }
+}
+
+Regeln:
+- Werte in "values" sind PRO KAPSEL/TABLETTE/PORTION (NICHT pro Tag) — das app rechnet × doses_per_day selbst.
+- Nur Keys aufnehmen die auf dem Etikett tatsächlich angegeben sind. Wenn z.B. kein DHA drin ist, lass den Key weg.
+- Einheiten genau einhalten: Folat in µg, Eisen in mg, Jod in µg, Vit D in µg, DHA in mg, B12 in µg, Calcium in mg, Cholin in mg, Zink in mg.
+- Wenn das Etikett "Folsäure" sagt, behandle das als folate_ug (Folat-Äquivalent).
+- Wenn die Tabelle "% NRV" oder "% RDA" zeigt, NICHT in % zurückgeben — nimm die absolute Menge daneben.
+- name: Produktname KURZ, max 40 Zeichen.
+- doses_per_day: aus dem Text der Verzehrempfehlung lesen ("1 Kapsel täglich" → 1, "2 Tabletten am Tag" → 2). Wenn unklar, 1.
+- Wenn das Foto KEIN Supplement-Etikett zeigt oder unleserlich ist, antworte mit {"name": "", "doses_per_day": 1, "values": {}} und keiner weiteren Erklärung.
+''';
+
+  static const _supplementPromptEn = r'''
+You are looking at the nutrition label of a pregnancy or lactation supplement (multivitamin/mineral, e.g. Femibion, Elevit, Orthomol, Nature Made Prenatal).
+
+Extract the contained micronutrients per recommended daily dose. If the label lists values "per capsule" with multiple capsules per day recommended, multiply correctly. If the recommended daily dose is unclear, assume 1.
+
+Respond EXCLUSIVELY with JSON, no Markdown code fence, in this schema:
+{
+  "name": string (product name as on the label, e.g. "Femibion 2" or "Elevit Pronatal"),
+  "doses_per_day": int (recommended doses per day, default 1),
+  "values": {
+    "folate_ug": number,
+    "iron_mg": number,
+    "iodine_ug": number,
+    "vitamin_d_ug": number,
+    "dha_mg": number,
+    "b12_ug": number,
+    "calcium_mg": number,
+    "choline_mg": number,
+    "zinc_mg": number
+  }
+}
+
+Rules:
+- Values in "values" are PER CAPSULE/TABLET/SERVING (NOT per day) — the app multiplies by doses_per_day itself.
+- Only include keys actually listed on the label. If e.g. no DHA is in the product, omit the key.
+- Units must match exactly: folate in µg, iron in mg, iodine in µg, vit D in µg, DHA in mg, B12 in µg, calcium in mg, choline in mg, zinc in mg.
+- If the label says "folic acid", treat it as folate_ug (folate equivalent).
+- If the table shows "% NRV" or "% RDA", do NOT return percentages — read the absolute amount next to it.
+- name: product name SHORT, max 40 characters.
+- doses_per_day: read from the suggested-use text ("Take 1 capsule daily" → 1, "Take 2 tablets per day" → 2). If unclear, 1.
+- If the photo does NOT show a supplement label or is unreadable, respond with {"name": "", "doses_per_day": 1, "values": {}} and no further explanation.
+''';
+}
+
+// Result from Claude Vision parsing a supplement label photo. The
+// caller (Settings supplement-setup flow) shows this in a result sheet
+// so the user can verify / edit before saving as ActiveSupplement.
+//
+// Note: [values] are already multiplied by [dosesPerDay] (the parser
+// hands back per-dose values and the API method bakes the multiplication
+// in). That's so the stored ActiveSupplement.values represent the user's
+// actual daily intake and the daily-aggregation provider can add them
+// without re-doing the math.
+class SupplementParseResult {
+  final String name;
+  final Map<String, double> values; // per-day, already × dosesPerDay
+  final int dosesPerDay; // metadata only for display
+
+  const SupplementParseResult({
+    required this.name,
+    required this.values,
+    required this.dosesPerDay,
+  });
 }
