@@ -198,6 +198,185 @@ class MicronutrientTargets {
 
 enum _Phase { baseline, pregnancyT1, pregnancyT2, pregnancyT3, lactation }
 
+// The 2-3 micronutrients shown by default in the always-visible diary
+// strip, per phase + diet. Backed by the Deep Research brief — these
+// are the deficiency-weighted picks where (a) Germany has a real
+// supply gap and (b) daily food choices can move the number.
+//
+// Vegan/vegetarian lactation users swap the third slot to B12, which
+// is milk-dependent and a real deficiency risk on plant-based diets.
+//
+// Choline is intentionally NOT in any default top-3. It's available
+// for the user to opt into via Settings, where it renders with the
+// "awareness" treatment (dashed ring, italic label).
+class MicronutrientDefaults {
+  static List<String> forProfile(UserProfileSettings p) {
+    if (p.isPregnant) {
+      switch (p.trimester ?? 1) {
+        case 2:
+          return const [
+            MicronutrientKey.ironMg,
+            MicronutrientKey.iodineUg,
+            MicronutrientKey.dhaMg,
+          ];
+        case 3:
+          return const [
+            MicronutrientKey.ironMg,
+            MicronutrientKey.dhaMg,
+            MicronutrientKey.iodineUg,
+          ];
+        default:
+          return const [
+            MicronutrientKey.folateUg,
+            MicronutrientKey.iodineUg,
+            MicronutrientKey.vitaminDUg,
+          ];
+      }
+    }
+    if (p.numChildrenNursing > 0) {
+      final isPlantBased = p.dietStyle == DietStyle.vegan ||
+          p.dietStyle == DietStyle.vegetarian;
+      // 0-6mo vs 6-12mo: at 6+mo, mother's iron repletion rises in
+      // priority (menses returns + cumulatively depleted stores), so
+      // iron displaces vitamin D in the omnivore default. Vegan users
+      // get B12 in both because milk-dependent infant B12 deficiency
+      // can be severe.
+      final ageGroup = p.childrenAgeGroup;
+      if (ageGroup == 0) {
+        return isPlantBased
+            ? const [
+                MicronutrientKey.iodineUg,
+                MicronutrientKey.dhaMg,
+                MicronutrientKey.b12Ug,
+              ]
+            : const [
+                MicronutrientKey.iodineUg,
+                MicronutrientKey.dhaMg,
+                MicronutrientKey.vitaminDUg,
+              ];
+      }
+      return isPlantBased
+          ? const [
+              MicronutrientKey.iodineUg,
+              MicronutrientKey.dhaMg,
+              MicronutrientKey.b12Ug,
+            ]
+          : const [
+              MicronutrientKey.iodineUg,
+              MicronutrientKey.dhaMg,
+              MicronutrientKey.ironMg,
+            ];
+    }
+    // Neither pregnant nor lactating: strip hides itself entirely.
+    return const [];
+  }
+
+  // True when this slot was swapped due to the user's diet (vegan B12 in
+  // lactation). UI uses this to render the leaf glyph on the cell label.
+  static bool isDietAdaptedSlot(String key, UserProfileSettings p) {
+    if (!p.isPregnant && p.numChildrenNursing > 0) {
+      final isPlantBased = p.dietStyle == DietStyle.vegan ||
+          p.dietStyle == DietStyle.vegetarian;
+      if (isPlantBased && key == MicronutrientKey.b12Ug) return true;
+    }
+    return false;
+  }
+
+  // Stable mono caption shown above the donuts. Driven by the same phase
+  // classification the donut defaults use, so updating one keeps the
+  // other in sync. Localized in the caller (de strings here are the
+  // German source; EN passes through unchanged for now since this is a
+  // mono caption with technical-feeling content).
+  static String captionDe(UserProfileSettings p) {
+    if (p.isPregnant) {
+      switch (p.trimester ?? 1) {
+        case 2:
+          return 'T2 · SCHWANGERSCHAFT';
+        case 3:
+          return 'T3 · SCHWANGERSCHAFT';
+        default:
+          return 'T1 · SCHWANGERSCHAFT';
+      }
+    }
+    if (p.numChildrenNursing > 0) {
+      return p.childrenAgeGroup == 0
+          ? 'STILLZEIT · 0–6 MO'
+          : 'STILLZEIT · 6–12 MO';
+    }
+    return '';
+  }
+
+  static String captionEn(UserProfileSettings p) {
+    if (p.isPregnant) {
+      switch (p.trimester ?? 1) {
+        case 2:
+          return 'T2 · PREGNANCY';
+        case 3:
+          return 'T3 · PREGNANCY';
+        default:
+          return 'T1 · PREGNANCY';
+      }
+    }
+    if (p.numChildrenNursing > 0) {
+      return p.childrenAgeGroup == 0
+          ? 'LACTATION · 0–6 MO'
+          : 'LACTATION · 6–12 MO';
+    }
+    return '';
+  }
+}
+
+// Display metadata for a tracked nutrient — short label + unit + whether
+// to render with the "awareness" treatment (no DGE target). Drives the
+// MicronutrientCell labels.
+class MicronutrientDisplay {
+  final String shortNameDe;
+  final String shortNameEn;
+  final String unitLabel;
+  final bool awareness; // dashed ring + italic label + info tag
+  final bool hasUpperLimit; // can render "over" state
+
+  const MicronutrientDisplay({
+    required this.shortNameDe,
+    required this.shortNameEn,
+    required this.unitLabel,
+    this.awareness = false,
+    this.hasUpperLimit = false,
+  });
+
+  String nameForLocale(String locale) =>
+      locale.toLowerCase().startsWith('de') ? shortNameDe : shortNameEn;
+
+  static const _table = <String, MicronutrientDisplay>{
+    MicronutrientKey.folateUg: MicronutrientDisplay(
+        shortNameDe: 'Folat', shortNameEn: 'Folate', unitLabel: 'µg'),
+    MicronutrientKey.ironMg: MicronutrientDisplay(
+        shortNameDe: 'Eisen',
+        shortNameEn: 'Iron',
+        unitLabel: 'mg',
+        hasUpperLimit: true),
+    MicronutrientKey.iodineUg: MicronutrientDisplay(
+        shortNameDe: 'Jod', shortNameEn: 'Iodine', unitLabel: 'µg'),
+    MicronutrientKey.vitaminDUg: MicronutrientDisplay(
+        shortNameDe: 'Vit D', shortNameEn: 'Vit D', unitLabel: 'µg'),
+    MicronutrientKey.dhaMg: MicronutrientDisplay(
+        shortNameDe: 'DHA', shortNameEn: 'DHA', unitLabel: 'mg'),
+    MicronutrientKey.b12Ug: MicronutrientDisplay(
+        shortNameDe: 'B12', shortNameEn: 'B12', unitLabel: 'µg'),
+    MicronutrientKey.calciumMg: MicronutrientDisplay(
+        shortNameDe: 'Kalzium', shortNameEn: 'Calcium', unitLabel: 'mg'),
+    MicronutrientKey.cholineMg: MicronutrientDisplay(
+        shortNameDe: 'Cholin',
+        shortNameEn: 'Choline',
+        unitLabel: 'mg',
+        awareness: true),
+    MicronutrientKey.zincMg: MicronutrientDisplay(
+        shortNameDe: 'Zink', shortNameEn: 'Zinc', unitLabel: 'mg'),
+  };
+
+  static MicronutrientDisplay? forKey(String key) => _table[key];
+}
+
 // Aggregates a day's worth of per-meal micronutrient estimates into one
 // per-key sum. Absent keys on a meal contribute 0; meals with a null
 // micronutrients map (legacy entries, photo path that skipped them)

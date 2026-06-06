@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../models/meal_entry.dart';
 import '../models/meal_entry_source.dart';
+import '../widgets/micronutrient/micronutrient_strip.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
@@ -616,6 +617,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       body: Column(
         children: [
+          // Daily micronutrient strip — sits directly below the pinned
+          // kcal toolbar, above the scrolling diary. Auto-hides for
+          // neither-phase users (returns SizedBox.shrink()).
+          MicronutrientStrip(
+            locale: Localizations.localeOf(context).languageCode,
+          ),
           Expanded(
             child: Stack(
               children: [
