@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
 import '../providers/meal_providers.dart';
+import '../providers/ui_providers.dart';
 import '../services/calorie_target.dart';
 import '../utils/date_format.dart';
 import '../widgets/empty/empty_history.dart';

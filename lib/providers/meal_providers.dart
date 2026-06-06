@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/favorite_meal.dart';
@@ -67,16 +66,8 @@ final loadedDaysProvider = StateProvider<List<DateTime>>((ref) {
   return [DateTime(now.year, now.month, now.day)];
 });
 
-// Bottom-nav tab index, exposed so other screens can switch tabs programmatically.
-final selectedTabProvider = StateProvider<int>((ref) => 0);
-
-// App-wide theme mode (light/dark/system). Read once from settings on app
-// start; updated via the settings screen.
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
-
-// One-shot scroll request: set to a day to make the Tagebuch scroll to that
-// day's header. Consumers must reset to null after handling.
-final scrollToDayProvider = StateProvider<DateTime?>((ref) => null);
+// UI-orchestration state (selectedTab, theme, scrollToDay, input focus,
+// input prefill, chat-loading) lives in providers/ui_providers.dart.
 
 // Emits a map of day -> thread items for every loaded day, refreshed whenever
 // the underlying box changes (any thread add/remove anywhere).
@@ -164,8 +155,6 @@ final macroTargetsProvider = Provider<MacroTargets>((ref) {
   return calculateMacroTargets(profile, kcal);
 });
 
-final insightLoadingProvider = StateProvider<bool>((ref) => false);
-
 // Meals saved in the current scan-session that are NOT yet handed to the
 // coach. The barcode flow appends here when the user taps "+ Noch einen
 // scannen" and drains the list when the user finally taps "Speichern" — at
@@ -204,27 +193,6 @@ final mealHistorySuggestionsProvider =
   }
   return matches;
 });
-
-// Bumped whenever something elsewhere in the app has signaled that the
-// user almost certainly wants to type into the meal input next: tapping
-// a meal-reminder notification, picking a photo, finishing onboarding.
-// The home input listens for changes and pulls focus + brings up the
-// keyboard. Using an int counter (rather than a bool) so consecutive
-// requests still trigger a notify even if the value doesn't flip.
-final mealInputFocusRequestProvider = StateProvider<int>((ref) => 0);
-
-// One-shot prefill payload for the home meal input. Other parts of the app
-// (e.g. coach-response follow-up chips) push a question here and clear it
-// to null after the input pulls the value. Bundles a payload + a version
-// counter so a repeated tap with the same text still re-fires the prefill.
-class MealInputPrefill {
-  final String text;
-  final int version;
-  const MealInputPrefill({required this.text, required this.version});
-}
-
-final mealInputPrefillProvider =
-    StateProvider<MealInputPrefill?>((ref) => null);
 
 final mealsByDayProvider = Provider<Map<DateTime, List<MealEntry>>>((ref) {
   final all = ref.watch(mealsProvider).valueOrNull ?? const [];

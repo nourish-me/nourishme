@@ -6,6 +6,7 @@ import 'package:intl/intl.dart' as intl;
 import '../models/user_profile_settings.dart';
 import '../models/weight_entry.dart';
 import '../providers/meal_providers.dart';
+import '../providers/ui_providers.dart';
 import '../services/calorie_target.dart';
 import '../l10n/app_localizations.dart';
 import '../models/reminder_settings.dart';

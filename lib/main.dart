@@ -12,6 +12,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/meal_providers.dart';
+import 'providers/ui_providers.dart';
 import 'screens/main_scaffold.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/favorite_repository.dart';

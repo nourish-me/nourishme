@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../providers/meal_providers.dart';
+import '../../providers/ui_providers.dart';
 import '../../utils/coach_followups.dart';
 
 // Coach + user bubbles rendered inline in the diary thread, plus the

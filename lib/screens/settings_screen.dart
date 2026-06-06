@@ -14,6 +14,7 @@ import 'tips_screen.dart';
 import '../services/notification_scheduler.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
+import '../providers/ui_providers.dart';
 import '../services/calorie_target.dart';
 import '../services/nutrition_facts.dart';
 import '../utils/number_format.dart';

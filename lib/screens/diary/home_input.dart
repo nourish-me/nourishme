@@ -11,6 +11,7 @@ import '../../models/meal_entry.dart';
 import '../../models/meal_entry_source.dart';
 import '../../models/thread_item.dart';
 import '../../providers/meal_providers.dart';
+import '../../providers/ui_providers.dart';
 import '../../services/claude_client.dart';
 import '../../services/coach_session_manager.dart';
 import '../../utils/weight_trend.dart';

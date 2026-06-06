@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
 import '../providers/meal_providers.dart';
+import '../providers/ui_providers.dart';
 import 'history_screen.dart';
 import 'home_screen.dart';
 import 'tips_screen.dart';
