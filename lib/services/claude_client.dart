@@ -37,6 +37,13 @@ class MealParseResult {
   // user can sanity-check the magnitude without weighing.
   final String? portionAlias;
   final List<String> safetyWarnings;
+  // Per-meal micronutrient estimates from the parser, keyed by
+  // MicronutrientKey (e.g. folate_ug, iron_mg). Null when the prompt's
+  // micronutrient block wasn't returned (e.g. legacy parser or photo
+  // path where the model judged everything negligible). Absent keys on
+  // a non-null map mean the parser skipped negligible values (<5 %
+  // of daily target).
+  final Map<String, double>? micronutrients;
 
   const MealParseResult({
     required this.isMeal,
@@ -50,6 +57,7 @@ class MealParseResult {
     required this.portionUnit,
     required this.portionAlias,
     required this.safetyWarnings,
+    this.micronutrients,
   });
 
   // Neutral non-meal result. Used as a graceful fallback when the model's
@@ -66,7 +74,8 @@ class MealParseResult {
         portionAmount = 0,
         portionUnit = 'g',
         portionAlias = null,
-        safetyWarnings = const [];
+        safetyWarnings = const [],
+        micronutrients = null;
 }
 
 class ChatTurn {
@@ -138,13 +147,27 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
   "portion_amount": number,
   "portion_unit": string ("g" oder "ml"),
   "portion_alias": string oder null,
-  "safety_warnings": [string]
+  "safety_warnings": [string],
+  "micronutrients": object (siehe Regeln unten) oder weglassen
 }
 
 "summary" ist eine kurze deutsche Beschreibung, maximal 80 Zeichen. Behalte ALLE vom Nutzer genannten Komponenten in der summary. Generalisiere NICHT zu Oberkategorien: "Kapern und Äpfel" bleibt "Kapern und Äpfel", nicht "Äpfel" oder "Obst"; "Tomate und Gurke" bleibt "Tomate und Gurke", nicht "Gemüse". Du darfst Mengen ergänzen (z.B. "1 Apfel ~120 g"), aber keine Komponente weglassen oder durch eine Oberkategorie ersetzen.
 "portion_amount" und "portion_unit" zusammen müssen plausibel zur summary passen. Bei is_meal=false dürfen sie 0 bzw. "g" sein.
 "portion_alias" ist eine handliche Bezugsgröße auf Deutsch, max. 25 Zeichen, die der Userin hilft die Menge ohne Waage einzuschätzen. Beispiele: "eine Handvoll", "2 EL", "ein kleiner Becher", "1 Handfläche", "ein gehäufter TL", "1 mittlere Schüssel". Wenn keine sinnvolle Bezugsgröße existiert (z. B. Wasser, Mineralwasser): null.
 "safety_warnings" enthält ausschließlich gesundheitliche Hinweise zum Stillen, niemals Eingabe-Probleme. Leer wenn nichts kritisch ist.
+
+"micronutrients" (optional, Token-sparen): Schätze für diese Mahlzeit die relevanten Mikronährstoffe nach folgendem Schema. Erlaubte Keys (Unit ist im Namen):
+- folate_ug: Folat in Mikrogramm DFE
+- iron_mg: Eisen in Milligramm
+- iodine_ug: Jod in Mikrogramm
+- vitamin_d_ug: Vitamin D in Mikrogramm
+- dha_mg: DHA (Omega-3) in Milligramm
+- b12_ug: Vitamin B12 in Mikrogramm
+- calcium_mg: Calcium in Milligramm
+- choline_mg: Cholin in Milligramm
+- zinc_mg: Zink in Milligramm
+WICHTIG zur Effizienz: liste NUR Nährstoffe deren Wert in dieser Mahlzeit mindestens ~5% der Tagesreferenz (DGE 2025) erreicht. Bei kleineren Werten den Key komplett weglassen. Bei einer Mahlzeit ohne nennenswerte Mikronährstoffe (z.B. Wasser, reiner Zuckerdrink) das gesamte micronutrients-Feld weglassen. Werte sind pro DIESE Mahlzeit, nicht pro 100g.
+Bei is_meal=false: micronutrients weglassen.
 ''';
 
   static final _parsePromptEn = '''
@@ -186,13 +209,27 @@ Respond EXCLUSIVELY with JSON in this schema, no Markdown code fence, no text be
   "portion_amount": number,
   "portion_unit": string ("g" or "ml"),
   "portion_alias": string or null,
-  "safety_warnings": [string]
+  "safety_warnings": [string],
+  "micronutrients": object (see rules below) or omit
 }
 
 "summary" is a short English description, max 80 characters. Keep ALL components the user named in the summary. Do NOT generalise to higher-level categories: "capers and apples" stays "capers and apples", not "apples" or "fruit"; "tomato and cucumber" stays "tomato and cucumber", not "vegetables". You may add amounts (e.g. "1 apple ~120 g"), but do not drop any component or replace it with a category.
 "portion_amount" and "portion_unit" together must be plausible for the summary. With is_meal=false they may be 0 and "g".
 "portion_alias" is a handy reference size in English, max 25 characters, that helps the user gauge the amount without a scale. Examples: "a handful", "2 tbsp", "a small mug", "1 palm size", "1 heaped tsp", "1 medium bowl". When no useful reference exists (e.g. water, sparkling water): null.
 "safety_warnings" only contains health-relevant notes for the phase, never input problems. Empty when nothing is critical.
+
+"micronutrients" (optional, token-saving): estimate the relevant micronutrients in THIS meal. Allowed keys (unit is in the name):
+- folate_ug: folate in micrograms DFE
+- iron_mg: iron in milligrams
+- iodine_ug: iodine in micrograms
+- vitamin_d_ug: vitamin D in micrograms
+- dha_mg: DHA (omega-3) in milligrams
+- b12_ug: vitamin B12 in micrograms
+- calcium_mg: calcium in milligrams
+- choline_mg: choline in milligrams
+- zinc_mg: zinc in milligrams
+IMPORTANT for efficiency: only list nutrients whose value in this meal reaches at least ~5% of the daily reference (DGE 2025). Skip the key entirely for smaller values. For meals with no notable micronutrients (e.g. water, plain sugar drink) omit the entire micronutrients field. Values are PER THIS MEAL, not per 100 g.
+With is_meal=false: omit micronutrients.
 ''';
 
   static final _perMealPromptDe = '''
@@ -512,6 +549,9 @@ ${NutritionFacts.coachContextBlockEn}
           ? null
           : parsed['portion_alias'] as String?,
       safetyWarnings: List<String>.from(parsed['safety_warnings'] as List? ?? const []),
+      micronutrients: (parsed['micronutrients'] as Map?)?.map(
+        (k, v) => MapEntry(k as String, (v as num).toDouble()),
+      ),
     );
   }
 

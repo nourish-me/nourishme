@@ -9,6 +9,7 @@ import '../models/weight_entry.dart';
 import '../services/analytics_service.dart';
 import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
+import '../services/micronutrient_targets.dart';
 import '../services/open_food_facts_client.dart';
 import '../services/favorite_repository.dart';
 import '../services/meal_repository.dart';
@@ -127,6 +128,16 @@ final yesterdayMealsProvider = Provider<List<MealEntry>>((ref) {
 
 final userProfileProvider = StreamProvider<UserProfileSettings>((ref) {
   return ref.watch(settingsRepositoryProvider).watchProfile();
+});
+
+// Today's micronutrient running totals, keyed by MicronutrientKey.
+// Sums the per-meal estimates the parser stored on each MealEntry. Only
+// non-zero keys appear in the map (the donut UI iterates this directly).
+// Supplements are NOT added here yet — when supplement integration ships,
+// the daily-supplement values get summed into this map.
+final todayMicronutrientsProvider = Provider<Map<String, double>>((ref) {
+  final meals = ref.watch(todayMealsProvider);
+  return sumMicronutrientsFor(meals);
 });
 
 final calorieTargetProvider = Provider<int>((ref) {

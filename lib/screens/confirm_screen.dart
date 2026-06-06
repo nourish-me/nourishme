@@ -274,6 +274,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       portionUnit: widget.parsed.portionUnit,
       portionAlias: _currentAlias,
       safetyWarnings: widget.parsed.safetyWarnings,
+      // Carry the parser's per-meal micronutrient estimates through to
+      // storage. The daily-aggregation provider sums these across the
+      // day's meals; absent on legacy entries or meals where the parser
+      // judged all nutrients negligible.
+      micronutrients: widget.parsed.micronutrients,
     );
     await ref.read(mealRepositoryProvider).save(meal);
     final analytics = ref.read(analyticsServiceProvider);

@@ -155,6 +155,9 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       portionUnit: m.portionUnit,
       portionAlias: m.portionAlias,
       safetyWarnings: m.safetyWarnings,
+      // Carry micronutrients from the historical entry so re-logging the
+      // same meal preserves the original estimate without a fresh parse.
+      micronutrients: m.micronutrients,
     );
     await showModalBottomSheet<MealEntry>(
       context: context,
