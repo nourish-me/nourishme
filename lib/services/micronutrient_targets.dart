@@ -377,6 +377,27 @@ class MicronutrientDisplay {
   static MicronutrientDisplay? forKey(String key) => _table[key];
 }
 
+// True when the active supplement contributes a non-zero amount for
+// [nutrientKey]. Used to surface the "+" marker on the matching cell.
+bool nutrientHasSupplementContribution(
+    String nutrientKey, UserProfileSettings profile) {
+  final v = profile.activeSupplement?.values[nutrientKey];
+  return v != null && v > 0;
+}
+
+// Fold a day's meals + the active supplement into the running total for
+// [nutrientKey]. Used by NutritionHeader's micros tier to drive the cell
+// progress.
+double dailyIntakeFor(
+    String nutrientKey, Iterable<MealEntry> meals, UserProfileSettings profile) {
+  final mealsSum = meals.fold<double>(0, (sum, m) {
+    final v = m.micronutrients?[nutrientKey];
+    return sum + (v ?? 0);
+  });
+  final supplementSum = profile.activeSupplement?.values[nutrientKey] ?? 0;
+  return mealsSum + supplementSum;
+}
+
 // Aggregates a day's worth of per-meal micronutrient estimates into one
 // per-key sum. Absent keys on a meal contribute 0; meals with a null
 // micronutrients map (legacy entries, photo path that skipped them)

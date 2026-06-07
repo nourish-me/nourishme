@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../models/meal_entry.dart';
 import '../models/meal_entry_source.dart';
-import '../widgets/micronutrient/micronutrient_strip.dart';
+import '../widgets/nutrition_header/nutrition_header.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
@@ -12,7 +12,6 @@ import '../services/claude_client.dart';
 import '../services/coach_session_manager.dart';
 import '../utils/date_format.dart';
 import '../widgets/empty/empty_today.dart';
-import '../widgets/kcal_summary.dart';
 import 'confirm_screen.dart';
 import 'diary/coach_bubble.dart';
 import 'diary/day_separator.dart';
@@ -363,19 +362,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ref.watch(loadedThreadProvider).valueOrNull ?? const {};
     final coachLoading = ref.watch(insightLoadingProvider);
     final mealsAll = ref.watch(mealsProvider).valueOrNull ?? const [];
-    final targetKcal = ref.watch(calorieTargetProvider);
-    final macroTargets = ref.watch(macroTargetsProvider);
-
-    final now = DateTime.now();
-    final todayDate = DateTime(now.year, now.month, now.day);
-    final todayMeals = mealsAll
-        .where((m) => m.createdAt.isAfter(todayDate))
-        .toList();
-    final totalKcal = todayMeals.fold<int>(0, (s, m) => s + m.kcal);
-    final totalProtein =
-        todayMeals.fold<double>(0, (s, m) => s + m.proteinG);
-    final totalCarbs = todayMeals.fold<double>(0, (s, m) => s + m.carbsG);
-    final totalFat = todayMeals.fold<double>(0, (s, m) => s + m.fatG);
+    // kcal / macro / micronutrient totals are now consumed by
+    // NutritionHeader directly via providers, so the diary build no
+    // longer needs to recompute them locally.
 
     // Detect genuinely-new meals by looking at the thread itself: we collect
     // all meal IDs currently rendered and diff against the previous snapshot.
@@ -589,40 +578,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(72),
+          // Header height varies (~50px without micros, ~75px with).
+          // Use a comfortable upper bound — Material clips/handles the
+          // actual content height.
+          preferredSize: const Size.fromHeight(82),
           child: Material(
             color: scheme.surface,
             elevation: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: scheme.outlineVariant.withValues(alpha: 0.5),
-                    width: 0.5,
-                  ),
-                ),
-              ),
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-              child: KcalSummary(
-                totalKcal: totalKcal,
-                targetKcal: targetKcal,
-                protein: totalProtein,
-                carbs: totalCarbs,
-                fat: totalFat,
-                macroTargets: macroTargets,
-              ),
-            ),
+            child: const NutritionHeader(),
           ),
         ),
       ),
       body: Column(
         children: [
-          // Daily micronutrient strip — sits directly below the pinned
-          // kcal toolbar, above the scrolling diary. Auto-hides for
-          // neither-phase users (returns SizedBox.shrink()).
-          MicronutrientStrip(
-            locale: Localizations.localeOf(context).languageCode,
-          ),
           Expanded(
             child: Stack(
               children: [
