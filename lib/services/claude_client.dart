@@ -83,6 +83,51 @@ class MealParseResult {
         portionAlias = null,
         safetyWarnings = const [],
         micronutrients = null;
+
+  // Pure transformation of a raw model reply into a MealParseResult. Extracted
+  // from ClaudeClient.parseMeal so the brittle bits — JSON extraction from a
+  // possibly-prose reply, decode failure handling, and field defaulting — are
+  // unit-testable without a network round-trip. parseMeal builds the prompt,
+  // calls _post(), then delegates the reply parsing here.
+  factory MealParseResult.fromModelText(String text) {
+    final jsonStart = text.indexOf('{');
+    final jsonEnd = text.lastIndexOf('}');
+    if (jsonStart == -1 || jsonEnd == -1) {
+      // No JSON at all means the model answered in prose, which only happens
+      // for inputs that aren't a loggable meal (typically a question). Fall
+      // back to a non-meal result so the send routes to the coach chat
+      // instead of dying with a generic "Couldn't send".
+      debugPrint('parseMeal: no JSON in reply, treating as non-meal. Raw: $text');
+      return const MealParseResult.nonMeal();
+    }
+    final Map<String, dynamic> parsed;
+    try {
+      parsed = jsonDecode(text.substring(jsonStart, jsonEnd + 1))
+          as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('parseMeal: JSON decode failed ($e), treating as non-meal. Raw: $text');
+      return const MealParseResult.nonMeal();
+    }
+
+    return MealParseResult(
+      isMeal: parsed['is_meal'] as bool? ?? true,
+      rejectionReason: parsed['rejection_reason'] as String?,
+      summary: parsed['summary'] as String? ?? '',
+      kcal: (parsed['kcal'] as num?)?.toInt() ?? 0,
+      proteinG: (parsed['protein_g'] as num?)?.toDouble() ?? 0,
+      carbsG: (parsed['carbs_g'] as num?)?.toDouble() ?? 0,
+      fatG: (parsed['fat_g'] as num?)?.toDouble() ?? 0,
+      portionAmount: (parsed['portion_amount'] as num?)?.toDouble() ?? 0,
+      portionUnit: parsed['portion_unit'] as String? ?? 'g',
+      portionAlias: (parsed['portion_alias'] as String?)?.trim().isEmpty == true
+          ? null
+          : parsed['portion_alias'] as String?,
+      safetyWarnings: List<String>.from(parsed['safety_warnings'] as List? ?? const []),
+      micronutrients: (parsed['micronutrients'] as Map?)?.map(
+        (k, v) => MapEntry(k as String, (v as num).toDouble()),
+      ),
+    );
+  }
 }
 
 class ChatTurn {
@@ -301,48 +346,13 @@ class ClaudeClient {
       callType: imageBytes != null ? 'photo' : 'parse',
     );
 
-    final jsonStart = text.indexOf('{');
-    final jsonEnd = text.lastIndexOf('}');
-    if (jsonStart == -1 || jsonEnd == -1) {
-      // No JSON at all means the model answered in prose, which only happens
-      // for inputs that aren't a loggable meal (typically a question). Fall
-      // back to a non-meal result so the send routes to the coach chat
-      // instead of dying with a generic "Couldn't send".
-      debugPrint('parseMeal: no JSON in reply, treating as non-meal. Raw: $text');
-      return const MealParseResult.nonMeal();
-    }
-    final Map<String, dynamic> parsed;
-    try {
-      parsed = jsonDecode(text.substring(jsonStart, jsonEnd + 1))
-          as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('parseMeal: JSON decode failed ($e), treating as non-meal. Raw: $text');
-      return const MealParseResult.nonMeal();
-    }
+    final result = MealParseResult.fromModelText(text);
     // Temporary diagnostic while we verify the micronutrient pipeline.
     // Logs whether the parser returned anything in the micronutrients
     // block. Remove once we confirm Claude is populating it for
     // nutrient-dense meals as expected.
-    debugPrint('parseMeal micronutrients: ${parsed['micronutrients']}');
-
-    return MealParseResult(
-      isMeal: parsed['is_meal'] as bool? ?? true,
-      rejectionReason: parsed['rejection_reason'] as String?,
-      summary: parsed['summary'] as String? ?? '',
-      kcal: (parsed['kcal'] as num?)?.toInt() ?? 0,
-      proteinG: (parsed['protein_g'] as num?)?.toDouble() ?? 0,
-      carbsG: (parsed['carbs_g'] as num?)?.toDouble() ?? 0,
-      fatG: (parsed['fat_g'] as num?)?.toDouble() ?? 0,
-      portionAmount: (parsed['portion_amount'] as num?)?.toDouble() ?? 0,
-      portionUnit: parsed['portion_unit'] as String? ?? 'g',
-      portionAlias: (parsed['portion_alias'] as String?)?.trim().isEmpty == true
-          ? null
-          : parsed['portion_alias'] as String?,
-      safetyWarnings: List<String>.from(parsed['safety_warnings'] as List? ?? const []),
-      micronutrients: (parsed['micronutrients'] as Map?)?.map(
-        (k, v) => MapEntry(k as String, (v as num).toDouble()),
-      ),
-    );
+    debugPrint('parseMeal micronutrients: ${result.micronutrients}');
+    return result;
   }
 
   // Safety-only check for a known product (e.g. one scanned via Open Food
