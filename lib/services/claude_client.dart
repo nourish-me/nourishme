@@ -319,6 +319,11 @@ class ClaudeClient {
       debugPrint('parseMeal: JSON decode failed ($e), treating as non-meal. Raw: $text');
       return const MealParseResult.nonMeal();
     }
+    // Temporary diagnostic while we verify the micronutrient pipeline.
+    // Logs whether the parser returned anything in the micronutrients
+    // block. Remove once we confirm Claude is populating it for
+    // nutrient-dense meals as expected.
+    debugPrint('parseMeal micronutrients: ${parsed['micronutrients']}');
 
     return MealParseResult(
       isMeal: parsed['is_meal'] as bool? ?? true,

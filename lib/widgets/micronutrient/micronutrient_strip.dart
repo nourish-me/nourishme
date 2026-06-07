@@ -5,16 +5,18 @@ import '../../providers/meal_providers.dart';
 import '../../services/micronutrient_targets.dart';
 import 'micronutrient_cell.dart';
 
-// Always-visible daily micronutrient strip — phase caption + 2-3 donut
-// cells. Sits between the kcal toolbar (pinned above) and today's first
-// meal in the diary; rendered as a SliverToBoxAdapter from
-// home_screen's diary builder.
+// Always-visible daily micronutrient strip. Sits between the kcal
+// toolbar (pinned above) and the scrolling diary. Auto-hides for
+// neither-phase users.
+//
+// Compact bar-style cells (~32px each, total strip ~44px) — the
+// donut variant tested too tall against the keyboard. Phase caption
+// removed: testers know whether they're pregnant or lactating; the
+// app still uses the phase internally to pick the right top-3.
 //
 // Renders nothing (zero height) when:
-//   - the user is in the "neither pregnant nor lactating" phase
-//   - or no nutrients are configured / enabled in the profile
-// — per the design contract: the strip MUST disappear entirely when
-// disabled, not show a placeholder.
+//   - profile is in the "neither pregnant nor lactating" phase
+//   - no nutrients resolve from the defaults
 class MicronutrientStrip extends ConsumerWidget {
   final String locale;
   final ValueChanged<String>? onCellTap;
@@ -35,10 +37,6 @@ class MicronutrientStrip extends ConsumerWidget {
 
     final meals = ref.watch(todayMealsProvider);
     final scheme = Theme.of(context).colorScheme;
-    final isDe = locale.toLowerCase().startsWith('de');
-    final caption =
-        isDe ? MicronutrientDefaults.captionDe(profile) : MicronutrientDefaults.captionEn(profile);
-    final hasCaption = caption.isNotEmpty;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -48,49 +46,26 @@ class MicronutrientStrip extends ConsumerWidget {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.only(
-          top: hasCaption ? 7 : 8,
-          left: 16,
-          right: 16,
-          bottom: 10,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (hasCaption) ...[
-              Text(
-                caption,
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.08,
-                  color: scheme.outline,
+            for (var i = 0; i < keys.length; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              Expanded(
+                child: MicronutrientCell(
+                  nutrientKey: keys[i],
+                  intake: dailyIntakeFor(keys[i], meals, profile),
+                  profile: profile,
+                  locale: locale,
+                  hasSupplement:
+                      nutrientHasSupplementContribution(keys[i], profile),
+                  dietAdapted: MicronutrientDefaults.isDietAdaptedSlot(
+                      keys[i], profile),
+                  onTap: onCellTap == null ? null : () => onCellTap!(keys[i]),
                 ),
               ),
-              const SizedBox(height: 4),
             ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final key in keys)
-                  Flexible(
-                    child: MicronutrientCell(
-                      nutrientKey: key,
-                      intake: dailyIntakeFor(key, meals, profile),
-                      profile: profile,
-                      locale: locale,
-                      hasSupplement:
-                          nutrientHasSupplementContribution(key, profile),
-                      dietAdapted:
-                          MicronutrientDefaults.isDietAdaptedSlot(key, profile),
-                      onTap: onCellTap == null ? null : () => onCellTap!(key),
-                    ),
-                  ),
-              ],
-            ),
           ],
         ),
       ),
