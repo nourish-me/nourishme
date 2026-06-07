@@ -378,5 +378,8 @@
   "kcalCombined": "{current} / {target} kcal",
   "macroLabelProtein": "P",
   "macroLabelCarbs": "KH",
-  "macroLabelFat": "F"
+  "macroLabelFat": "F",
+  "nutritionMacroProtein": "Protein",
+  "nutritionMacroCarbs": "Kohlenh.",
+  "nutritionMacroFat": "Fett"
 }

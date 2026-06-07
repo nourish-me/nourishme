@@ -521,5 +521,8 @@
   },
   "macroLabelProtein": "P",
   "macroLabelCarbs": "C",
-  "macroLabelFat": "F"
+  "macroLabelFat": "F",
+  "nutritionMacroProtein": "Protein",
+  "nutritionMacroCarbs": "Carbs",
+  "nutritionMacroFat": "Fat"
 }

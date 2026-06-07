@@ -2029,6 +2029,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'F'**
   String get macroLabelFat;
+
+  /// No description provided for @nutritionMacroProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein'**
+  String get nutritionMacroProtein;
+
+  /// No description provided for @nutritionMacroCarbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get nutritionMacroCarbs;
+
+  /// No description provided for @nutritionMacroFat.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat'**
+  String get nutritionMacroFat;
 }
 
 class _AppLocalizationsDelegate

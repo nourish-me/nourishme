@@ -1096,4 +1096,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get macroLabelFat => 'F';
+
+  @override
+  String get nutritionMacroProtein => 'Protein';
+
+  @override
+  String get nutritionMacroCarbs => 'Kohlenh.';
+
+  @override
+  String get nutritionMacroFat => 'Fett';
 }

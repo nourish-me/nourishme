@@ -241,17 +241,17 @@ class _MacrosRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: _macroCell(context, l10n.macroLabelProtein, protein,
+          child: _macroCell(context, l10n.nutritionMacroProtein, protein,
               targets.proteinG.toDouble(), 'protein'),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _macroCell(context, l10n.macroLabelCarbs, carbs,
+          child: _macroCell(context, l10n.nutritionMacroCarbs, carbs,
               targets.carbsG.toDouble(), 'carbs'),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _macroCell(context, l10n.macroLabelFat, fat,
+          child: _macroCell(context, l10n.nutritionMacroFat, fat,
               targets.fatG.toDouble(), 'fat'),
         ),
       ],
