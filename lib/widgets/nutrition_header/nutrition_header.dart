@@ -132,6 +132,11 @@ class _KcalTier extends StatelessWidget {
     final pct = targetKcal > 0 ? (totalKcal / targetKcal) * 100 : 0.0;
     final status = sweetSpotStatusFor(totalKcal.toDouble(), targetKcal.toDouble());
     final intakeColor = sweetSpotColorFor(status, scheme);
+    // Target-preview mode for the empty state: instead of "0 / 2.100 kcal
+    // · 0%" (which reads cold and "sad"), the headline shows the day's
+    // goal as the anchor. The bar stays at 0% so the progress meaning
+    // is unchanged; only the label content shifts.
+    final isEmpty = totalKcal == 0;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
@@ -139,34 +144,56 @@ class _KcalTier extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
         child: Row(
           children: [
-            // Headline text — intake colored by corridor, rest muted.
+            // Headline text — intake colored by corridor, rest muted. In
+            // empty state, swap to "{target} kcal Ziel" so the day reads
+            // as a target rather than a deficit.
             RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: scheme.outline,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-                children: [
-                  TextSpan(
-                    text: formatKcal(totalKcal),
-                    style: TextStyle(
-                      color: intakeColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13.5,
+              text: isEmpty
+                  ? TextSpan(
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: scheme.onSurfaceVariant,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                      children: [
+                        TextSpan(
+                          text: formatKcal(targetKcal),
+                          style: TextStyle(
+                            color: scheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                        const TextSpan(text: ' kcal Ziel'),
+                      ],
+                    )
+                  : TextSpan(
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: scheme.outline,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                      children: [
+                        TextSpan(
+                          text: formatKcal(totalKcal),
+                          style: TextStyle(
+                            color: intakeColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                        TextSpan(text: ' / ${formatKcal(targetKcal)} kcal · '),
+                        TextSpan(
+                          text: '${pct.round()}%',
+                          style: TextStyle(
+                            color: intakeColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  TextSpan(text: ' / ${formatKcal(targetKcal)} kcal · '),
-                  TextSpan(
-                    text: '${pct.round()}%',
-                    style: TextStyle(
-                      color: intakeColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
             ),
             const SizedBox(width: 10),
             // Inline progress bar — always primary (pine) fill regardless
@@ -237,10 +264,29 @@ class _MacrosRow extends StatelessWidget {
     final pct = target > 0 ? (grams / target) * 100 : 0.0;
     final status = sweetSpotStatusFor(grams, target);
     final color = sweetSpotColorFor(status, scheme);
+    // Empty-state target preview: when nothing's logged yet for this
+    // macro, swap the "0%" pct text for the day's target ("95 g") so
+    // the cell anchors on the goal instead of the deficit.
+    final isEmpty = grams == 0;
     return MiniPctCell(
       name: name,
       percent: pct,
       color: color,
+      pctOverridesText: isEmpty
+          ? Text(
+              '${target.round()} g',
+              style: TextStyle(
+                // Match the name + pct fontSize (11.5) so the Row's
+                // center-alignment keeps all three columns of preview
+                // text on the same visual baseline.
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurfaceVariant,
+                height: 1.1,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            )
+          : null,
       onTap: onMacroTap == null ? null : () => onMacroTap!(tapKey),
     );
   }
@@ -293,15 +339,35 @@ class _MicrosRow extends StatelessWidget {
     final isMet = state == MicronutrientState.met;
     final isOver = state == MicronutrientState.over;
     final isAwareness = state == MicronutrientState.awareness;
+    final isEmpty = state == MicronutrientState.empty;
+    // Empty-state target preview: same logic as macros — show the
+    // day's reference value (e.g. "230 µg") instead of "0%" so the
+    // cell anchors on the goal. Awareness nutrients keep the italic
+    // treatment in the preview too.
+    Widget? overrideText;
+    if (isMet) {
+      overrideText = Icon(Icons.check, size: 14, color: color, weight: 700);
+    } else if (isEmpty) {
+      overrideText = Text(
+        '${_formatTargetValue(target.value)} ${target.unitLabel}',
+        style: TextStyle(
+          // Match the name + pct fontSize (11.5) — see _macroCell note.
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: scheme.onSurfaceVariant,
+          fontStyle: isAwareness ? FontStyle.italic : FontStyle.normal,
+          height: 1.1,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      );
+    }
     return MiniPctCell(
       name: isOver ? '${display.nameForLocale(locale)} · UL' : display.nameForLocale(locale),
       percent: pct,
       color: color,
       italic: isAwareness,
       dashedTrack: isAwareness,
-      pctOverridesText: isMet
-          ? Icon(Icons.check, size: 14, color: color, weight: 700)
-          : null,
+      pctOverridesText: overrideText,
       nameTrailing: [
         if (MicronutrientDefaults.isDietAdaptedSlot(key, profile))
           Icon(Icons.eco_outlined, size: 11, color: scheme.primary),
@@ -312,6 +378,15 @@ class _MicrosRow extends StatelessWidget {
       ],
       onTap: onMicroTap == null ? null : () => onMicroTap!(key),
     );
+  }
+
+  // Same rule as MicronutrientCell used previously: integer when ≥50,
+  // otherwise let the source decide (most micronutrient targets are
+  // whole numbers anyway).
+  String _formatTargetValue(double target) {
+    if (target >= 50) return target.round().toString();
+    if (target == target.roundToDouble()) return target.toStringAsFixed(0);
+    return target.toStringAsFixed(1);
   }
 
   Color _microColor(MicronutrientState state, ColorScheme scheme) {

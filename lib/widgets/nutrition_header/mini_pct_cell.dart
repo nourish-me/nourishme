@@ -88,7 +88,11 @@ class MiniPctCell extends StatelessWidget {
                   Text(
                     '${percent.round()}%',
                     style: TextStyle(
-                      fontSize: 11,
+                      // Same fontSize + height as the name so center-
+                      // aligned Row keeps both texts on the same
+                      // visual baseline. Was 11 — caused a ~0.5px
+                      // baseline drift relative to the 11.5 name.
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w700,
                       color: color,
                       fontStyle: italic ? FontStyle.italic : FontStyle.normal,
