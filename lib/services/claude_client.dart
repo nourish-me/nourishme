@@ -108,6 +108,11 @@ class MealParseResult {
       debugPrint('parseMeal: JSON decode failed ($e), treating as non-meal. Raw: $text');
       return const MealParseResult.nonMeal();
     }
+    // Temporary diagnostic while we verify the micronutrient pipeline.
+    // Logs the RAW pre-mapped value so a malformed entry (e.g. Claude
+    // returned a string instead of a number, or the key shape changed)
+    // is visible before the cast-and-map step would swallow it.
+    debugPrint('parseMeal micronutrients: ${parsed['micronutrients']}');
 
     return MealParseResult(
       isMeal: parsed['is_meal'] as bool? ?? true,
@@ -346,13 +351,7 @@ class ClaudeClient {
       callType: imageBytes != null ? 'photo' : 'parse',
     );
 
-    final result = MealParseResult.fromModelText(text);
-    // Temporary diagnostic while we verify the micronutrient pipeline.
-    // Logs whether the parser returned anything in the micronutrients
-    // block. Remove once we confirm Claude is populating it for
-    // nutrient-dense meals as expected.
-    debugPrint('parseMeal micronutrients: ${result.micronutrients}');
-    return result;
+    return MealParseResult.fromModelText(text);
   }
 
   // Safety-only check for a known product (e.g. one scanned via Open Food
