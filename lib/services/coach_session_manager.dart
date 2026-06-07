@@ -52,6 +52,20 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     ));
   }
 
+  // The coach reply must live on the SAME calendar day as its meal. It is
+  // stored under a date-only key (ThreadRepository._keyFor) and the thread
+  // re-anchors it directly beneath its meal at sort time. A naive +1min tips
+  // a late-night meal (e.g. logged at 23:59) into the next day, where its
+  // meal isn't found — so the reply sorts to the very top of tomorrow's
+  // thread instead of under its meal. Clamp the +1min nudge to end-of-day so
+  // it can never cross midnight.
+  static DateTime coachAnchorFor(DateTime mealAt) {
+    final plusOne = mealAt.add(const Duration(minutes: 1));
+    final endOfDay =
+        DateTime(mealAt.year, mealAt.month, mealAt.day, 23, 59, 59, 999);
+    return plusOne.isAfter(endOfDay) ? endOfDay : plusOne;
+  }
+
   Future<void> _runCallFor(
     List<MealEntry> meals,
     String locale, {
@@ -138,7 +152,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
             requestFollowUps ?? mealsForTotal.length % 3 == 0,
         weightTrend: notableTrend,
       );
-      final coachAt = last.createdAt.add(const Duration(minutes: 1));
+      final coachAt = coachAnchorFor(last.createdAt);
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,
         text: response.trim(),
@@ -155,7 +169,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
       final message = e is CoachApiException
           ? e.userMessage
           : (fallbackMessage ?? 'Coach reply unavailable. Try again later.');
-      final coachAt = last.createdAt.add(const Duration(minutes: 1));
+      final coachAt = coachAnchorFor(last.createdAt);
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,
         text: message,
