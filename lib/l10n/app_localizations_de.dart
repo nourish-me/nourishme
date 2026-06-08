@@ -1105,4 +1105,85 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nutritionMacroFat => 'Fett';
+
+  @override
+  String get macroDetailKcalName => 'Kalorien';
+
+  @override
+  String get macroDetailProteinName => 'Protein';
+
+  @override
+  String get macroDetailCarbsName => 'Kohlenhydrate';
+
+  @override
+  String get macroDetailFatName => 'Fett';
+
+  @override
+  String macroDetailRemaining(String value, String unit) {
+    return 'noch $value $unit';
+  }
+
+  @override
+  String get macroDetailMet => 'Ziel erreicht';
+
+  @override
+  String macroDetailOver(String value, String unit) {
+    return '$value $unit über Ziel';
+  }
+
+  @override
+  String macroDetailSweetNote(String target, String unit) {
+    return 'Im Zielkorridor. Mehr ist hier nicht besser, die $target $unit sind dein Tagesziel.';
+  }
+
+  @override
+  String macroDetailOverNote(String name) {
+    return '$name über dem Tagesziel. Kein Stress, einzelne Tage gleichen sich aus.';
+  }
+
+  @override
+  String macroDetailNeutralNote(String target, String unit) {
+    return 'Noch im Aufbau Richtung $target $unit.';
+  }
+
+  @override
+  String get nutritionDetailContributions => 'Heute beigetragen';
+
+  @override
+  String get nutritionDetailNoContributions => 'Noch keine Einträge heute.';
+
+  @override
+  String get nutritionDetailClose => 'Schließen';
+
+  @override
+  String get microDetailTwinDisclaimer =>
+      'Zwillinge: Datenlage begrenzt, Zielwerte aus Einlings-Werten hochgerechnet. Bitte mit Hebamme oder Ärztin abstimmen.';
+
+  @override
+  String get microDetailAwarenessNote =>
+      'Kein DGE-Referenzwert. Der angezeigte Wert ist eine EFSA-Schätzung (Adequate Intake) und dient als Orientierung, nicht als feste Empfehlung.';
+
+  @override
+  String get microDetailMilkDependentTitle => 'Erreicht dein Baby';
+
+  @override
+  String get microDetailBufferedTitle => 'Deine Reserven';
+
+  @override
+  String microDetailMilkDependentBody(String name) {
+    return '$name geht direkt in deine Muttermilch über, was du isst, kommt beim Baby an.';
+  }
+
+  @override
+  String microDetailBufferedBody(String name) {
+    return '$name-Gehalt in der Milch bleibt stabil, auf Kosten deiner eigenen Reserven. Schau auf dich.';
+  }
+
+  @override
+  String microDetailNoContributions(String name) {
+    return 'Noch keine Einträge mit $name heute.';
+  }
+
+  @override
+  String get microDetailSourceHeader => 'Quelle & Zielwert';
 }

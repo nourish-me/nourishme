@@ -524,5 +524,71 @@
   "macroLabelFat": "F",
   "nutritionMacroProtein": "Protein",
   "nutritionMacroCarbs": "Carbs",
-  "nutritionMacroFat": "Fat"
+  "nutritionMacroFat": "Fat",
+
+  "macroDetailKcalName": "Calories",
+  "macroDetailProteinName": "Protein",
+  "macroDetailCarbsName": "Carbohydrates",
+  "macroDetailFatName": "Fat",
+  "macroDetailRemaining": "{value} {unit} to go",
+  "@macroDetailRemaining": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "macroDetailMet": "Target met",
+  "macroDetailOver": "{value} {unit} over target",
+  "@macroDetailOver": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "macroDetailSweetNote": "On target. More isn't better here, {target} {unit} is your daily goal.",
+  "@macroDetailSweetNote": {
+    "placeholders": {
+      "target": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "macroDetailOverNote": "{name} over today's target. No stress, single days balance out.",
+  "@macroDetailOverNote": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "macroDetailNeutralNote": "Building toward {target} {unit}.",
+  "@macroDetailNeutralNote": {
+    "placeholders": {
+      "target": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "nutritionDetailContributions": "Today's contributions",
+  "nutritionDetailNoContributions": "No entries today yet.",
+  "nutritionDetailClose": "Close",
+  "microDetailTwinDisclaimer": "Twins: data is limited, target values are extrapolated from singleton recommendations. Please coordinate with your midwife or doctor.",
+  "microDetailAwarenessNote": "No DGE reference value. The number shown is an EFSA estimate (Adequate Intake), meant for orientation rather than a fixed target.",
+  "microDetailMilkDependentTitle": "Reaches your baby",
+  "microDetailBufferedTitle": "Your reserves",
+  "microDetailMilkDependentBody": "{name} passes directly into your milk, what you eat reaches your baby.",
+  "@microDetailMilkDependentBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "microDetailBufferedBody": "Your milk's {name} stays stable, drawn from your own reserves. Mind yourself.",
+  "@microDetailBufferedBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "microDetailNoContributions": "No entries with {name} today yet.",
+  "@microDetailNoContributions": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "microDetailSourceHeader": "Source & target"
 }

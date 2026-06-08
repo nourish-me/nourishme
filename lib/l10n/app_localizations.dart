@@ -2047,6 +2047,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fat'**
   String get nutritionMacroFat;
+
+  /// No description provided for @macroDetailKcalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories'**
+  String get macroDetailKcalName;
+
+  /// No description provided for @macroDetailProteinName.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein'**
+  String get macroDetailProteinName;
+
+  /// No description provided for @macroDetailCarbsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbohydrates'**
+  String get macroDetailCarbsName;
+
+  /// No description provided for @macroDetailFatName.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat'**
+  String get macroDetailFatName;
+
+  /// No description provided for @macroDetailRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} {unit} to go'**
+  String macroDetailRemaining(String value, String unit);
+
+  /// No description provided for @macroDetailMet.
+  ///
+  /// In en, this message translates to:
+  /// **'Target met'**
+  String get macroDetailMet;
+
+  /// No description provided for @macroDetailOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} {unit} over target'**
+  String macroDetailOver(String value, String unit);
+
+  /// No description provided for @macroDetailSweetNote.
+  ///
+  /// In en, this message translates to:
+  /// **'On target. More isn\'t better here, {target} {unit} is your daily goal.'**
+  String macroDetailSweetNote(String target, String unit);
+
+  /// No description provided for @macroDetailOverNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} over today\'s target. No stress, single days balance out.'**
+  String macroDetailOverNote(String name);
+
+  /// No description provided for @macroDetailNeutralNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Building toward {target} {unit}.'**
+  String macroDetailNeutralNote(String target, String unit);
+
+  /// No description provided for @nutritionDetailContributions.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s contributions'**
+  String get nutritionDetailContributions;
+
+  /// No description provided for @nutritionDetailNoContributions.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries today yet.'**
+  String get nutritionDetailNoContributions;
+
+  /// No description provided for @nutritionDetailClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get nutritionDetailClose;
+
+  /// No description provided for @microDetailTwinDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Twins: data is limited, target values are extrapolated from singleton recommendations. Please coordinate with your midwife or doctor.'**
+  String get microDetailTwinDisclaimer;
+
+  /// No description provided for @microDetailAwarenessNote.
+  ///
+  /// In en, this message translates to:
+  /// **'No DGE reference value. The number shown is an EFSA estimate (Adequate Intake), meant for orientation rather than a fixed target.'**
+  String get microDetailAwarenessNote;
+
+  /// No description provided for @microDetailMilkDependentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaches your baby'**
+  String get microDetailMilkDependentTitle;
+
+  /// No description provided for @microDetailBufferedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reserves'**
+  String get microDetailBufferedTitle;
+
+  /// No description provided for @microDetailMilkDependentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} passes directly into your milk, what you eat reaches your baby.'**
+  String microDetailMilkDependentBody(String name);
+
+  /// No description provided for @microDetailBufferedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your milk\'s {name} stays stable, drawn from your own reserves. Mind yourself.'**
+  String microDetailBufferedBody(String name);
+
+  /// No description provided for @microDetailNoContributions.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries with {name} today yet.'**
+  String microDetailNoContributions(String name);
+
+  /// No description provided for @microDetailSourceHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Source & target'**
+  String get microDetailSourceHeader;
 }
 
 class _AppLocalizationsDelegate

@@ -1099,4 +1099,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nutritionMacroFat => 'Fat';
+
+  @override
+  String get macroDetailKcalName => 'Calories';
+
+  @override
+  String get macroDetailProteinName => 'Protein';
+
+  @override
+  String get macroDetailCarbsName => 'Carbohydrates';
+
+  @override
+  String get macroDetailFatName => 'Fat';
+
+  @override
+  String macroDetailRemaining(String value, String unit) {
+    return '$value $unit to go';
+  }
+
+  @override
+  String get macroDetailMet => 'Target met';
+
+  @override
+  String macroDetailOver(String value, String unit) {
+    return '$value $unit over target';
+  }
+
+  @override
+  String macroDetailSweetNote(String target, String unit) {
+    return 'On target. More isn\'t better here, $target $unit is your daily goal.';
+  }
+
+  @override
+  String macroDetailOverNote(String name) {
+    return '$name over today\'s target. No stress, single days balance out.';
+  }
+
+  @override
+  String macroDetailNeutralNote(String target, String unit) {
+    return 'Building toward $target $unit.';
+  }
+
+  @override
+  String get nutritionDetailContributions => 'Today\'s contributions';
+
+  @override
+  String get nutritionDetailNoContributions => 'No entries today yet.';
+
+  @override
+  String get nutritionDetailClose => 'Close';
+
+  @override
+  String get microDetailTwinDisclaimer =>
+      'Twins: data is limited, target values are extrapolated from singleton recommendations. Please coordinate with your midwife or doctor.';
+
+  @override
+  String get microDetailAwarenessNote =>
+      'No DGE reference value. The number shown is an EFSA estimate (Adequate Intake), meant for orientation rather than a fixed target.';
+
+  @override
+  String get microDetailMilkDependentTitle => 'Reaches your baby';
+
+  @override
+  String get microDetailBufferedTitle => 'Your reserves';
+
+  @override
+  String microDetailMilkDependentBody(String name) {
+    return '$name passes directly into your milk, what you eat reaches your baby.';
+  }
+
+  @override
+  String microDetailBufferedBody(String name) {
+    return 'Your milk\'s $name stays stable, drawn from your own reserves. Mind yourself.';
+  }
+
+  @override
+  String microDetailNoContributions(String name) {
+    return 'No entries with $name today yet.';
+  }
+
+  @override
+  String get microDetailSourceHeader => 'Source & target';
 }

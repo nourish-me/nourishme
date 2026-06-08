@@ -381,5 +381,71 @@
   "macroLabelFat": "F",
   "nutritionMacroProtein": "Protein",
   "nutritionMacroCarbs": "Kohlenh.",
-  "nutritionMacroFat": "Fett"
+  "nutritionMacroFat": "Fett",
+
+  "macroDetailKcalName": "Kalorien",
+  "macroDetailProteinName": "Protein",
+  "macroDetailCarbsName": "Kohlenhydrate",
+  "macroDetailFatName": "Fett",
+  "macroDetailRemaining": "noch {value} {unit}",
+  "@macroDetailRemaining": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "macroDetailMet": "Ziel erreicht",
+  "macroDetailOver": "{value} {unit} über Ziel",
+  "@macroDetailOver": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "macroDetailSweetNote": "Im Zielkorridor. Mehr ist hier nicht besser, die {target} {unit} sind dein Tagesziel.",
+  "@macroDetailSweetNote": {
+    "placeholders": {
+      "target": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "macroDetailOverNote": "{name} über dem Tagesziel. Kein Stress, einzelne Tage gleichen sich aus.",
+  "@macroDetailOverNote": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "macroDetailNeutralNote": "Noch im Aufbau Richtung {target} {unit}.",
+  "@macroDetailNeutralNote": {
+    "placeholders": {
+      "target": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "nutritionDetailContributions": "Heute beigetragen",
+  "nutritionDetailNoContributions": "Noch keine Einträge heute.",
+  "nutritionDetailClose": "Schließen",
+  "microDetailTwinDisclaimer": "Zwillinge: Datenlage begrenzt, Zielwerte aus Einlings-Werten hochgerechnet. Bitte mit Hebamme oder Ärztin abstimmen.",
+  "microDetailAwarenessNote": "Kein DGE-Referenzwert. Der angezeigte Wert ist eine EFSA-Schätzung (Adequate Intake) und dient als Orientierung, nicht als feste Empfehlung.",
+  "microDetailMilkDependentTitle": "Erreicht dein Baby",
+  "microDetailBufferedTitle": "Deine Reserven",
+  "microDetailMilkDependentBody": "{name} geht direkt in deine Muttermilch über, was du isst, kommt beim Baby an.",
+  "@microDetailMilkDependentBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "microDetailBufferedBody": "{name}-Gehalt in der Milch bleibt stabil, auf Kosten deiner eigenen Reserven. Schau auf dich.",
+  "@microDetailBufferedBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "microDetailNoContributions": "Noch keine Einträge mit {name} heute.",
+  "@microDetailNoContributions": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "microDetailSourceHeader": "Quelle & Zielwert"
 }

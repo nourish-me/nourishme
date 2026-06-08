@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../models/meal_entry.dart';
 import '../models/meal_entry_source.dart';
+import '../widgets/nutrition_header/macro_detail_modal.dart';
+import '../widgets/nutrition_header/micro_detail_modal.dart';
 import '../widgets/nutrition_header/nutrition_header.dart';
 import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
@@ -585,7 +587,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Material(
             color: scheme.surface,
             elevation: 0,
-            child: const NutritionHeader(),
+            child: NutritionHeader(
+              onMacroTap: (key) {
+                final macro = switch (key) {
+                  'kcal' => MacroKey.kcal,
+                  'protein' => MacroKey.protein,
+                  'carbs' => MacroKey.carbs,
+                  'fat' => MacroKey.fat,
+                  _ => null,
+                };
+                if (macro != null) showMacroDetailModal(context, macro);
+              },
+              onMicroTap: (key) => showMicroDetailModal(context, key),
+            ),
           ),
         ),
       ),
