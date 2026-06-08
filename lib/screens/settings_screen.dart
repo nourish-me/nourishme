@@ -12,7 +12,9 @@ import '../models/weight_entry.dart';
 import '../services/feedback_sender.dart';
 import 'tips_screen.dart';
 import '../services/notification_scheduler.dart';
+import '../models/meal_entry.dart' show MicronutrientKey;
 import '../models/user_profile_settings.dart';
+import '../services/micronutrient_targets.dart' show MicronutrientDisplay;
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
 import '../services/calorie_target.dart';
@@ -55,6 +57,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late int _milkSharePercent;
   late int _childrenAgeGroup;
   late int _dailyVolumeMl;
+  // Hand-picked micronutrient subset for the diary header. null = follow
+  // phase/diet defaults; non-null overrides them (capped at 3 by the UI).
+  List<String>? _selectedMicros;
   bool _initialized = false;
   String? _initialProfileJson;
   bool _justSaved = false;
@@ -92,6 +97,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _dietStyle = p.dietStyle;
     _restrictions = {...p.restrictions};
     _dietaryNotes = TextEditingController(text: p.dietaryNotes);
+    _selectedMicros =
+        p.selectedMicronutrients == null ? null : [...p.selectedMicronutrients!];
     _initialProfileJson = jsonEncode(p.toJson());
 
     for (final c in [_height, _weight, _dietaryNotes]) {
@@ -147,6 +154,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         dietStyle: _dietStyle,
         restrictions: _restrictions,
         dietaryNotes: _dietaryNotes.text.trim(),
+        selectedMicronutrients:
+            _selectedMicros == null ? null : List<String>.from(_selectedMicros!),
       );
 
   void _onSharePercentChanged(int v) {
@@ -416,6 +425,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     });
                   },
                   notesController: _dietaryNotes,
+                ),
+                const SizedBox(height: 12),
+                _MicronutrientsSection(
+                  selected: _selectedMicros,
+                  onToggle: (key) {
+                    setState(() {
+                      final current = _selectedMicros ?? <String>[];
+                      final next = [...current];
+                      if (next.contains(key)) {
+                        next.remove(key);
+                      } else if (next.length < 3) {
+                        next.add(key);
+                      }
+                      _selectedMicros = next.isEmpty && _selectedMicros == null
+                          ? null
+                          : next;
+                    });
+                  },
+                  onReset: () => setState(() => _selectedMicros = null),
                 ),
                 const SizedBox(height: 12),
                 const _FavoritesSection(),
@@ -1737,6 +1765,122 @@ class _NumberStepper extends StatelessWidget {
             onPressed: value < max ? () => onChanged(value + 1) : null,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MicronutrientsSection extends StatelessWidget {
+  // null → user follows phase/diet defaults; non-null → explicit pick
+  // (possibly empty if the user wants to hide micros entirely). The cap
+  // of 3 is enforced by the toggle handler in the screen state, not here.
+  final List<String>? selected;
+  final ValueChanged<String> onToggle;
+  final VoidCallback onReset;
+  const _MicronutrientsSection({
+    required this.selected,
+    required this.onToggle,
+    required this.onReset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final locale = Localizations.localeOf(context).languageCode;
+    final picked = selected ?? const <String>[];
+    final atMax = picked.length >= 3;
+    final usingDefaults = selected == null;
+
+    return _Section(
+      title: l10n.settingsSectionMicronutrients,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.settingsMicrosDescription,
+            style: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 12),
+          for (final key in MicronutrientKey.all)
+            _MicroToggleRow(
+              displayName: _displayNameFor(key, locale),
+              isOn: picked.contains(key),
+              isDisabled: !picked.contains(key) && atMax,
+              onTap: () => onToggle(key),
+            ),
+          const SizedBox(height: 4),
+          Text(
+            usingDefaults
+                ? l10n.settingsMicrosUsingDefaults
+                : atMax
+                    ? l10n.settingsMicrosMaxReached
+                    : '${picked.length} / 3',
+            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+          ),
+          if (!usingDefaults) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onReset,
+                icon: const Icon(Icons.refresh, size: 18),
+                label: Text(l10n.settingsMicrosReset),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _displayNameFor(String key, String locale) {
+    final d = MicronutrientDisplay.forKey(key);
+    return d?.nameForLocale(locale) ?? key;
+  }
+}
+
+class _MicroToggleRow extends StatelessWidget {
+  final String displayName;
+  final bool isOn;
+  final bool isDisabled;
+  final VoidCallback onTap;
+  const _MicroToggleRow({
+    required this.displayName,
+    required this.isOn,
+    required this.isDisabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: isDisabled ? null : onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Icon(
+              isOn ? Icons.check_box : Icons.check_box_outline_blank,
+              size: 22,
+              color: isDisabled
+                  ? scheme.outlineVariant
+                  : isOn
+                      ? scheme.primary
+                      : scheme.outline,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              displayName,
+              style: TextStyle(
+                color: isDisabled ? scheme.outlineVariant : scheme.onSurface,
+                fontSize: 15,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

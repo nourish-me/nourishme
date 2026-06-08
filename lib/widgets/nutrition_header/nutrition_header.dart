@@ -58,7 +58,10 @@ class NutritionHeader extends ConsumerWidget {
     final totalCarbs = meals.fold<double>(0, (s, m) => s + m.carbsG);
     final totalFat = meals.fold<double>(0, (s, m) => s + m.fatG);
 
-    final microKeys = MicronutrientDefaults.forProfile(profile);
+    // User-picked list wins; otherwise fall back to the phase/diet default.
+    // An explicit empty list (user opted out of all micros) hides the strip.
+    final microKeys =
+        profile.selectedMicronutrients ?? MicronutrientDefaults.forProfile(profile);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -369,7 +372,11 @@ class _MicrosRow extends StatelessWidget {
       dashedTrack: isAwareness,
       pctOverridesText: overrideText,
       nameTrailing: [
-        if (MicronutrientDefaults.isDietAdaptedSlot(key, profile))
+        // Diet-adapted glyph only meaningful when the slot was chosen by
+        // the default rule (vegan/vegetarian B12 swap). Once the user
+        // hand-picks micros, the glyph is misleading — suppress it.
+        if (profile.selectedMicronutrients == null &&
+            MicronutrientDefaults.isDietAdaptedSlot(key, profile))
           Icon(Icons.eco_outlined, size: 11, color: scheme.primary),
         if (nutrientHasSupplementContribution(key, profile))
           Icon(Icons.add, size: 10, color: scheme.secondary),

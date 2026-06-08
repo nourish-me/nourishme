@@ -1186,4 +1186,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get microDetailSourceHeader => 'Quelle & Zielwert';
+
+  @override
+  String get settingsSectionMicronutrients => 'Mikronährstoffe im Header';
+
+  @override
+  String get settingsMicrosDescription =>
+      'Welche Mikronährstoffe oben im Tagebuch angezeigt werden. Maximal 3. Wenn keiner gewählt ist, nutzt die App den Vorschlag für deine Phase.';
+
+  @override
+  String get settingsMicrosUsingDefaults => 'Aktuell: Phase-Vorschlag aktiv.';
+
+  @override
+  String get settingsMicrosMaxReached => '3 von 3 gewählt';
+
+  @override
+  String get settingsMicrosReset => 'Auf Phase-Vorschlag zurück';
 }

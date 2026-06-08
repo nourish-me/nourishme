@@ -447,5 +447,11 @@
       "name": {"type": "String"}
     }
   },
-  "microDetailSourceHeader": "Quelle & Zielwert"
+  "microDetailSourceHeader": "Quelle & Zielwert",
+
+  "settingsSectionMicronutrients": "Mikronährstoffe im Header",
+  "settingsMicrosDescription": "Welche Mikronährstoffe oben im Tagebuch angezeigt werden. Maximal 3. Wenn keiner gewählt ist, nutzt die App den Vorschlag für deine Phase.",
+  "settingsMicrosUsingDefaults": "Aktuell: Phase-Vorschlag aktiv.",
+  "settingsMicrosMaxReached": "3 von 3 gewählt",
+  "settingsMicrosReset": "Auf Phase-Vorschlag zurück"
 }

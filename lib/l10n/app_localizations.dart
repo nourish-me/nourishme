@@ -2173,6 +2173,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source & target'**
   String get microDetailSourceHeader;
+
+  /// No description provided for @settingsSectionMicronutrients.
+  ///
+  /// In en, this message translates to:
+  /// **'Micronutrients in header'**
+  String get settingsSectionMicronutrients;
+
+  /// No description provided for @settingsMicrosDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Which micronutrients to show at the top of the diary. Max 3. When nothing is selected, the app uses the recommendation for your phase.'**
+  String get settingsMicrosDescription;
+
+  /// No description provided for @settingsMicrosUsingDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently using the phase recommendation.'**
+  String get settingsMicrosUsingDefaults;
+
+  /// No description provided for @settingsMicrosMaxReached.
+  ///
+  /// In en, this message translates to:
+  /// **'3 of 3 selected'**
+  String get settingsMicrosMaxReached;
+
+  /// No description provided for @settingsMicrosReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to phase recommendation'**
+  String get settingsMicrosReset;
 }
 
 class _AppLocalizationsDelegate

@@ -44,6 +44,13 @@ class UserProfileSettings {
   // post-launch follow-up.
   final ActiveSupplement? activeSupplement;
 
+  // User-picked list of MicronutrientKey strings to show in the diary
+  // header. Null means "use the phase/diet default" (MicronutrientDefaults
+  // .forProfile). When non-null the list takes precedence — even if empty
+  // (user explicitly wants no micros). Capped to 3 entries by the Settings
+  // UI; the model itself does not enforce the cap.
+  final List<String>? selectedMicronutrients;
+
   const UserProfileSettings({
     required this.ageYears,
     this.birthdate,
@@ -63,6 +70,7 @@ class UserProfileSettings {
     this.restrictions = const {},
     this.dietaryNotes = '',
     this.activeSupplement,
+    this.selectedMicronutrients,
   });
 
   // Age in completed years, computed from birthdate if available, otherwise
@@ -162,6 +170,7 @@ class UserProfileSettings {
     // null out the field instead of being interpreted as "keep
     // existing".
     Object? activeSupplement = _unset,
+    Object? selectedMicronutrients = _unset,
   }) =>
       UserProfileSettings(
         ageYears: ageYears ?? this.ageYears,
@@ -184,6 +193,9 @@ class UserProfileSettings {
         activeSupplement: identical(activeSupplement, _unset)
             ? this.activeSupplement
             : activeSupplement as ActiveSupplement?,
+        selectedMicronutrients: identical(selectedMicronutrients, _unset)
+            ? this.selectedMicronutrients
+            : selectedMicronutrients as List<String>?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -206,6 +218,8 @@ class UserProfileSettings {
         'dietaryNotes': dietaryNotes,
         if (activeSupplement != null)
           'activeSupplement': activeSupplement!.toJson(),
+        if (selectedMicronutrients != null)
+          'selectedMicronutrients': selectedMicronutrients,
       };
 
   factory UserProfileSettings.fromJson(Map<String, dynamic> json) {
@@ -238,6 +252,9 @@ class UserProfileSettings {
           ? ActiveSupplement.fromJson(
               json['activeSupplement'] as Map<String, dynamic>)
           : null,
+      selectedMicronutrients: (json['selectedMicronutrients'] as List?)
+          ?.whereType<String>()
+          .toList(),
     );
   }
 }

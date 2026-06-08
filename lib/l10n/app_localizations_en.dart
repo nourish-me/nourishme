@@ -1180,4 +1180,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get microDetailSourceHeader => 'Source & target';
+
+  @override
+  String get settingsSectionMicronutrients => 'Micronutrients in header';
+
+  @override
+  String get settingsMicrosDescription =>
+      'Which micronutrients to show at the top of the diary. Max 3. When nothing is selected, the app uses the recommendation for your phase.';
+
+  @override
+  String get settingsMicrosUsingDefaults =>
+      'Currently using the phase recommendation.';
+
+  @override
+  String get settingsMicrosMaxReached => '3 of 3 selected';
+
+  @override
+  String get settingsMicrosReset => 'Reset to phase recommendation';
 }
