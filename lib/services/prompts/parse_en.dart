@@ -61,6 +61,16 @@ Respond EXCLUSIVELY with JSON in this schema, no Markdown code fence, no text be
 - calcium_mg: calcium in milligrams
 - choline_mg: choline in milligrams
 - zinc_mg: zinc in milligrams
+
+PLAUSIBILITY ANCHORS (typical values per 100 g or 100 ml, raw or cooked; use these as a sanity check before rounding up):
+- Iodine: sea fish (salmon, cod, herring, pollock) 20-50 µg, haddock/cod up to 200 µg, whole milk 6-9 µg/100 ml, iodized salt ~2 µg/g, seaweed variable. Values >100 µg/100 g are implausible outside shellfish/lean sea fish.
+- Vitamin D: fatty sea fish (salmon 12-16, herring 22-26, mackerel 4 µg/100 g), egg ~1.1 µg per egg (60 g), mushrooms only if UV-treated. Lean meat, vegetables, grains near zero.
+- DHA: fatty sea fish (salmon 1100-1400, herring 1500-2000, mackerel 1100-1300, sardine 900-1100 mg/100 g), egg yolk 30-40 mg/egg. Lean meat, plants, lean fish near zero.
+- B12: beef 2-3 µg/100 g, pork/poultry 0.5-1 µg, salmon/trout ~3 µg, fatty smoked fish (herring, mackerel, sardine) 8-9 µg/100 g, milk/yogurt 0.4 µg/100 g. Plant foods zero.
+- Iron: cooked legumes (lentils 3, chickpeas 2.5, beans 2 mg/100 g), beef 2.5-3, cooked spinach 3.5, tofu 2.5 mg/100 g. Whole-grain cereals 2-3 mg/100 g.
+- Folate: cooked legumes (lentils 180, chickpeas 170 µg/100 g), raw leafy greens (spinach 145, lamb's lettuce 145 µg/100 g), sunflower seeds 230 µg/100 g, cooked broccoli 60 µg/100 g.
+- Choline: egg yolk ~250 mg/100 g (~145 mg per egg), beef liver 330 mg/100 g, beef/pork 70-85 mg/100 g, chicken 60-80 mg/100 g, salmon 60-65 mg/100 g, soybeans 115 mg/100 g, wheat germ 150 mg/100 g, broccoli/cauliflower 40 mg/100 g. Plant whole foods (except legumes/wheat germ) mostly under 30 mg/100 g.
+
 IMPORTANT for efficiency: only list nutrients whose value in this meal reaches at least ~5% of the daily reference (DGE 2025). Skip the key entirely for smaller values. For meals with no notable micronutrients (e.g. water, plain sugar drink) omit the entire micronutrients field. Values are PER THIS MEAL, not per 100 g.
 With is_meal=false: omit micronutrients.
 ''';

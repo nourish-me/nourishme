@@ -66,6 +66,16 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 - calcium_mg: Calcium in Milligramm
 - choline_mg: Cholin in Milligramm
 - zinc_mg: Zink in Milligramm
+
+PLAUSIBILITÄTS-ANKER (typische Werte pro 100 g bzw. 100 ml im rohen oder gegarten Zustand, daran orientieren bevor du raufschätzt):
+- Iod: Seefisch (Lachs, Kabeljau, Hering, Seelachs) 20-50 µg, Schellfisch/Kabeljau bis 200 µg, Vollmilch 6-9 µg/100 ml, iodiertes Salz ca. 2 µg/g, Algen variabel. Werte >100 µg/100 g sind außerhalb von Schalentieren/mageren Seefischen unplausibel.
+- Vitamin D: fetter Seefisch (Lachs 12-16, Hering 22-26, Makrele 4 µg/100 g), Ei ca. 1.1 µg pro Stück (60 g), Pilze nur wenn UV-belichtet. Mageres Fleisch, Gemüse, Getreide nahe null.
+- DHA: fetter Seefisch (Lachs 1100-1400, Hering 1500-2000, Makrele 1100-1300, Sardine 900-1100 mg/100 g), Eigelb 30-40 mg/Stück. Mageres Fleisch, Pflanzen, magerer Fisch nahe null.
+- B12: Rind 2-3 µg/100 g, Schwein/Geflügel 0.5-1 µg, Lachs/Forelle ca. 3 µg, fettiger Räucherfisch (Hering, Makrele, Sardine) 8-9 µg/100 g, Milch/Joghurt 0.4 µg/100 g. Pflanzlich null.
+- Eisen: Hülsenfrüchte gegart (Linsen 3, Kichererbsen 2.5, Bohnen 2 mg/100 g), Rindfleisch 2.5-3, Spinat gegart 3.5, Tofu 2.5 mg/100 g. Getreide-Vollkorn 2-3 mg/100 g.
+- Folat: Hülsenfrüchte gegart (Linsen 180, Kichererbsen 170 µg/100 g), grünes Blattgemüse roh (Spinat 145, Feldsalat 145 µg/100 g), Sonnenblumenkerne 230 µg/100 g, Brokkoli gegart 60 µg/100 g.
+- Cholin: Eigelb ca. 250 mg/100 g (entspricht ca. 145 mg pro Ei), Rinderleber 330 mg/100 g, Rind/Schwein 70-85 mg/100 g, Hähnchen 60-80 mg/100 g, Lachs 60-65 mg/100 g, Sojabohnen 115 mg/100 g, Weizenkeime 150 mg/100 g, Brokkoli/Blumenkohl 40 mg/100 g. Pflanzliche Vollwertkost außer Hülsenfrüchten/Weizenkeimen meist unter 30 mg/100 g.
+
 WICHTIG zur Effizienz: liste NUR Nährstoffe deren Wert in dieser Mahlzeit mindestens ~5% der Tagesreferenz (DGE 2025) erreicht. Bei kleineren Werten den Key komplett weglassen. Bei einer Mahlzeit ohne nennenswerte Mikronährstoffe (z.B. Wasser, reiner Zuckerdrink) das gesamte micronutrients-Feld weglassen. Werte sind pro DIESE Mahlzeit, nicht pro 100g.
 Bei is_meal=false: micronutrients weglassen.
 ''';
