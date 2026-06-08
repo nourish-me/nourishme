@@ -204,6 +204,12 @@ class ClaudeClient {
     required List<Map<String, dynamic>> messages,
     int maxTokens = 600,
     String callType = 'unknown',
+    // Set true for callers whose system prompt is large + identical across
+    // users (parse, per-meal coach, chat). The Anthropic API caches the
+    // marked block for ~5 min and bills cached input at ~10% of normal.
+    // Safety/supplement skip caching — their prompts are short or per-call
+    // dynamic.
+    bool cacheSystem = false,
   }) async {
     final url = _usingProxy
         ? Uri.parse('$_proxyUrl/messages')
@@ -235,7 +241,19 @@ class ClaudeClient {
             body: jsonEncode({
               'model': _model,
               'max_tokens': maxTokens,
-              'system': systemPrompt,
+              // String-form for un-cached calls (Anthropic happy path).
+              // List-form with cache_control marks the system block as
+              // ephemerally cacheable so identical prefixes across users
+              // and across calls land on the warm cache.
+              'system': cacheSystem
+                  ? [
+                      {
+                        'type': 'text',
+                        'text': systemPrompt,
+                        'cache_control': {'type': 'ephemeral'},
+                      }
+                    ]
+                  : systemPrompt,
               'messages': messages,
             }),
           )
@@ -349,6 +367,7 @@ class ClaudeClient {
         {'role': 'user', 'content': content},
       ],
       callType: imageBytes != null ? 'photo' : 'parse',
+      cacheSystem: true,
     );
 
     return MealParseResult.fromModelText(text);
@@ -536,6 +555,7 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
       // cap just bounds the worst case (output tokens are the dominant cost).
       maxTokens: 600,
       callType: 'coach',
+      cacheSystem: true,
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -100,6 +101,16 @@ Future<void> main() async {
   }
 
   if (sentryDsn.isEmpty) {
+    startApp();
+    return;
+  }
+
+  // Debug builds (Simulator + Hot Reload) generate spurious framework
+  // assertions every time we edit a running app — duplicate GlobalKeys,
+  // RenderFlex overflows, "TextEditingController after dispose", etc.
+  // Routing those to Sentry pollutes the beta crash signal. Only init
+  // Sentry for release builds.
+  if (kDebugMode) {
     startApp();
     return;
   }
