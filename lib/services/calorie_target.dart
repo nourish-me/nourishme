@@ -18,7 +18,7 @@ int calculateLactationSupplement(UserProfileSettings p) {
       ? p.dailyMilkVolumeMl
       : UserProfileSettings.estimatedDailyVolumeMl(
           numChildren: p.numChildrenNursing,
-          ageGroup: p.childrenAgeGroup,
+          ageGroup: p.currentChildrenAgeGroup,
           sharePercent: p.milkSharePercent,
         );
   return UserProfileSettings.volumeBasedSupplement(volume);

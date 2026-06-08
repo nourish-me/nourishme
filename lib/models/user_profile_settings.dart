@@ -13,7 +13,18 @@ class UserProfileSettings {
   // Lactation
   final int numChildrenNursing;
   final int milkSharePercent;
+  // Static fallback bucket — kept for backward compat with profiles saved
+  // before youngestChildBirthdate existed and for users who decline to
+  // enter a birth date. New code paths should read [currentChildrenAgeGroup]
+  // which prefers the birth-date derivation when available.
   final int childrenAgeGroup; // 0 = 0-6mo, 1 = 6-12mo, 2 = 12+mo
+  // Birth date of the youngest nursing child. When present, drives the
+  // age-group bucket dynamically (so a 5-month-old crosses into 6-12mo
+  // automatically without the user editing settings). Twins / same-age
+  // siblings: one date covers them. Mixed-age siblings: enter the
+  // youngest — milk supply estimates are calibrated to the most demanding
+  // recipient.
+  final DateTime? youngestChildBirthdate;
   // 0 means "no explicit volume, derive from share% + age + count".
   // Otherwise the user's measured / estimated daily milk output.
   final int dailyMilkVolumeMl;
@@ -62,6 +73,7 @@ class UserProfileSettings {
     required this.numChildrenNursing,
     required this.milkSharePercent,
     required this.childrenAgeGroup,
+    this.youngestChildBirthdate,
     this.dailyMilkVolumeMl = 0,
     this.milkSupplementKcal = 0,
     this.customProteinPct = 0,
@@ -90,6 +102,21 @@ class UserProfileSettings {
   // legacy ageYears value (used once, when the user updates an old profile).
   static DateTime birthdateFromAge(int age) =>
       DateTime(DateTime.now().year - age, 1, 1);
+
+  // Age-group bucket computed from the youngest child's birth date when
+  // available; otherwise the legacy static [childrenAgeGroup] value. All
+  // downstream consumers (calorie target, micro defaults, milk volume
+  // estimate) should read THIS rather than the raw field.
+  int get currentChildrenAgeGroup {
+    if (youngestChildBirthdate == null) return childrenAgeGroup;
+    final now = DateTime.now();
+    var months = (now.year - youngestChildBirthdate!.year) * 12 +
+        (now.month - youngestChildBirthdate!.month);
+    if (now.day < youngestChildBirthdate!.day) months--;
+    if (months < 6) return 0;
+    if (months < 12) return 1;
+    return 2;
+  }
 
   factory UserProfileSettings.defaults() => const UserProfileSettings(
         ageYears: 34,
@@ -156,6 +183,7 @@ class UserProfileSettings {
     int? numChildrenNursing,
     int? milkSharePercent,
     int? childrenAgeGroup,
+    Object? youngestChildBirthdate = _unset,
     int? dailyMilkVolumeMl,
     int? milkSupplementKcal,
     int? customProteinPct,
@@ -183,6 +211,9 @@ class UserProfileSettings {
         numChildrenNursing: numChildrenNursing ?? this.numChildrenNursing,
         milkSharePercent: milkSharePercent ?? this.milkSharePercent,
         childrenAgeGroup: childrenAgeGroup ?? this.childrenAgeGroup,
+        youngestChildBirthdate: identical(youngestChildBirthdate, _unset)
+            ? this.youngestChildBirthdate
+            : youngestChildBirthdate as DateTime?,
         dailyMilkVolumeMl: dailyMilkVolumeMl ?? this.dailyMilkVolumeMl,
         milkSupplementKcal: milkSupplementKcal ?? this.milkSupplementKcal,
         customProteinPct: customProteinPct ?? this.customProteinPct,
@@ -209,6 +240,8 @@ class UserProfileSettings {
         'numChildrenNursing': numChildrenNursing,
         'milkSharePercent': milkSharePercent,
         'childrenAgeGroup': childrenAgeGroup,
+        if (youngestChildBirthdate != null)
+          'youngestChildBirthdate': youngestChildBirthdate!.toIso8601String(),
         'dailyMilkVolumeMl': dailyMilkVolumeMl,
         'milkSupplementKcal': milkSupplementKcal,
         'customProteinPct': customProteinPct,
@@ -238,6 +271,9 @@ class UserProfileSettings {
       numChildrenNursing: numChildren,
       milkSharePercent: share,
       childrenAgeGroup: ageGroup,
+      youngestChildBirthdate: (json['youngestChildBirthdate'] as String?) != null
+          ? DateTime.tryParse(json['youngestChildBirthdate'] as String)
+          : null,
       dailyMilkVolumeMl: json['dailyMilkVolumeMl'] as int? ?? 0,
       milkSupplementKcal: json['milkSupplementKcal'] as int? ?? 0,
       customProteinPct: json['customProteinPct'] as int? ?? 0,

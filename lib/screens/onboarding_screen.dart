@@ -60,6 +60,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Lactation
   int _numChildren = 1;
   int _childAgeGroup = 0;
+  // Optional youngest-child birth date. When set, _childAgeGroup is
+  // re-derived from it instead of hand-picked.
+  DateTime? _youngestChildBirthdate;
   int _milkSharePercent = 100;
   // Meal-reminder opt-in on the final summary step. Defaults to true so most
   // users land in the app with reminders set up; if iOS denies the system
@@ -187,6 +190,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _activityFactor = 1.375;
       _numChildren = 1;
       _childAgeGroup = 0;
+      _youngestChildBirthdate = null;
       _milkSharePercent = 100;
       _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
         numChildren: 1,
@@ -196,6 +200,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
     _controller.jumpToPage(0);
     _trackStepView();
+  }
+
+  Future<void> _pickYoungestChildBirthdate() async {
+    final now = DateTime.now();
+    final initial = _youngestChildBirthdate ?? now;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(now.year - 3),
+      lastDate: now,
+      helpText: AppLocalizations.of(context).settingsMilkBirthdatePickerHelp,
+    );
+    if (picked != null) {
+      setState(() {
+        _youngestChildBirthdate = picked;
+        final months = (now.year - picked.year) * 12 +
+            (now.month - picked.month) -
+            (now.day < picked.day ? 1 : 0);
+        _childAgeGroup = months < 6 ? 0 : (months < 12 ? 1 : 2);
+        _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
+          numChildren: _numChildren,
+          ageGroup: _childAgeGroup,
+          sharePercent: _milkSharePercent,
+        );
+      });
+    }
   }
 
   UserProfileSettings _buildProfile() => UserProfileSettings(
@@ -211,6 +241,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         numChildrenNursing: _isLactating ? _numChildren : 0,
         milkSharePercent: _milkSharePercent,
         childrenAgeGroup: _childAgeGroup,
+        youngestChildBirthdate: _youngestChildBirthdate,
         dailyMilkVolumeMl: _isLactating ? _dailyVolumeMl : 0,
         milkSupplementKcal: 0, // derived from volume
       );
@@ -335,6 +366,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           );
                         });
                       },
+                      youngestChildBirthdate: _youngestChildBirthdate,
+                      onPickBirthdate: _pickYoungestChildBirthdate,
+                      onClearBirthdate: () =>
+                          setState(() => _youngestChildBirthdate = null),
                       milkSharePercent: _milkSharePercent,
                       onSharePercentChanged: (v) {
                         setState(() {
@@ -864,6 +899,9 @@ class _PhaseDetailsStep extends StatelessWidget {
   final ValueChanged<int> onChildrenChanged;
   final int childAgeGroup;
   final ValueChanged<int> onAgeGroupChanged;
+  final DateTime? youngestChildBirthdate;
+  final VoidCallback onPickBirthdate;
+  final VoidCallback onClearBirthdate;
   final int milkSharePercent;
   final ValueChanged<int> onSharePercentChanged;
   final int dailyVolumeMl;
@@ -878,6 +916,9 @@ class _PhaseDetailsStep extends StatelessWidget {
     required this.onChildrenChanged,
     required this.childAgeGroup,
     required this.onAgeGroupChanged,
+    required this.youngestChildBirthdate,
+    required this.onPickBirthdate,
+    required this.onClearBirthdate,
     required this.milkSharePercent,
     required this.onSharePercentChanged,
     required this.dailyVolumeMl,
@@ -972,13 +1013,21 @@ class _PhaseDetailsStep extends StatelessWidget {
               ),
               selected: {childAgeGroup},
               showSelectedIcon: false,
-              onSelectionChanged: (s) => onAgeGroupChanged(s.first),
+              onSelectionChanged: youngestChildBirthdate != null
+                  ? null
+                  : (s) => onAgeGroupChanged(s.first),
             ),
           ),
           const SizedBox(height: 6),
           Text(
             ageGroups[childAgeGroup].hint,
             style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+          ),
+          const SizedBox(height: 8),
+          _OnboardingBirthdateRow(
+            birthdate: youngestChildBirthdate,
+            onPick: onPickBirthdate,
+            onClear: onClearBirthdate,
           ),
           const SizedBox(height: 20),
           Text(
@@ -1332,3 +1381,61 @@ class _NumberStepper extends StatelessWidget {
 String _formatBirthdate(BuildContext context, DateTime d) => intl.DateFormat.yMd(
       Localizations.localeOf(context).toLanguageTag(),
     ).format(d);
+
+class _OnboardingBirthdateRow extends StatelessWidget {
+  final DateTime? birthdate;
+  final VoidCallback onPick;
+  final VoidCallback onClear;
+  const _OnboardingBirthdateRow({
+    required this.birthdate,
+    required this.onPick,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    if (birthdate == null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: onPick,
+          icon: const Icon(Icons.cake_outlined, size: 18),
+          label: Text(l10n.settingsMilkBirthdatePick),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${l10n.settingsMilkBirthdateLabel}: '
+                '${_formatBirthdate(context, birthdate!)}',
+                style: textTheme.bodyMedium,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: l10n.settingsMilkBirthdatePick,
+              onPressed: onPick,
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              tooltip: l10n.settingsMilkBirthdateClear,
+              onPressed: onClear,
+            ),
+          ],
+        ),
+        Text(
+          l10n.settingsMilkBirthdateAuto,
+          style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+        ),
+      ],
+    );
+  }
+}

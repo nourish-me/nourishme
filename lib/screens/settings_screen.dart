@@ -57,6 +57,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late int _milkSharePercent;
   late int _childrenAgeGroup;
   late int _dailyVolumeMl;
+  // Birth date of the youngest nursing child; null = bucket-picker is the
+  // source of truth, otherwise it's derived from this and the picker shown
+  // read-only.
+  DateTime? _youngestChildBirthdate;
   // Hand-picked micronutrient subset for the diary header. null = follow
   // phase/diet defaults; non-null overrides them (capped at 3 by the UI).
   List<String>? _selectedMicros;
@@ -84,7 +88,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _trimester = p.trimester ?? 1;
     _numChildren = p.numChildrenNursing > 0 ? p.numChildrenNursing : 1;
     _milkSharePercent = p.milkSharePercent;
-    _childrenAgeGroup = p.childrenAgeGroup;
+    _childrenAgeGroup = p.currentChildrenAgeGroup;
+    _youngestChildBirthdate = p.youngestChildBirthdate;
     _dailyVolumeMl = p.dailyMilkVolumeMl > 0
         ? p.dailyMilkVolumeMl
         : UserProfileSettings.estimatedDailyVolumeMl(
@@ -121,6 +126,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return age;
   }
 
+  Future<void> _pickYoungestChildBirthdate() async {
+    final now = DateTime.now();
+    final initial = _youngestChildBirthdate ?? now;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      // Allow up to 3 years back — past 12 months the user is out of the
+      // milk-volume estimation buckets anyway, but we don't gate on that.
+      firstDate: DateTime(now.year - 3),
+      lastDate: now,
+      helpText: AppLocalizations.of(context).settingsMilkBirthdatePickerHelp,
+    );
+    if (picked != null) {
+      setState(() {
+        _youngestChildBirthdate = picked;
+        // Sync the static bucket to the derived value so other code paths
+        // that still read it (and the on-screen segmented picker) stay
+        // visually consistent.
+        final months = (now.year - picked.year) * 12 +
+            (now.month - picked.month) -
+            (now.day < picked.day ? 1 : 0);
+        _childrenAgeGroup = months < 6 ? 0 : (months < 12 ? 1 : 2);
+        _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
+          numChildren: _numChildren,
+          ageGroup: _childrenAgeGroup,
+          sharePercent: _milkSharePercent,
+        );
+      });
+    }
+  }
+
   Future<void> _pickBirthdate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -147,6 +183,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         numChildrenNursing: _isLactating ? _numChildren : 0,
         milkSharePercent: _milkSharePercent,
         childrenAgeGroup: _childrenAgeGroup,
+        youngestChildBirthdate: _youngestChildBirthdate,
         dailyMilkVolumeMl: _isLactating ? _dailyVolumeMl : 0,
         milkSupplementKcal: 0,
         customProteinPct: _customProteinPct,
@@ -392,6 +429,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onChildrenChanged: _onNumChildrenChanged,
                     ageGroup: _childrenAgeGroup,
                     onAgeChanged: _onAgeGroupChanged,
+                    youngestChildBirthdate: _youngestChildBirthdate,
+                    onPickBirthdate: _pickYoungestChildBirthdate,
+                    onClearBirthdate: () =>
+                        setState(() => _youngestChildBirthdate = null),
                     sharePercent: _milkSharePercent,
                     onShareChanged: _onSharePercentChanged,
                     dailyVolumeMl: _dailyVolumeMl,
@@ -1128,6 +1169,12 @@ class _MilkSection extends StatelessWidget {
   final ValueChanged<int> onChildrenChanged;
   final int ageGroup;
   final ValueChanged<int> onAgeChanged;
+  // Optional youngest-child birth date. When set, the segmented bucket
+  // picker becomes read-only — the bucket is derived from this date and
+  // re-derives itself as time passes.
+  final DateTime? youngestChildBirthdate;
+  final VoidCallback onPickBirthdate;
+  final VoidCallback onClearBirthdate;
   final int sharePercent;
   final ValueChanged<int> onShareChanged;
   final int dailyVolumeMl;
@@ -1138,6 +1185,9 @@ class _MilkSection extends StatelessWidget {
     required this.onChildrenChanged,
     required this.ageGroup,
     required this.onAgeChanged,
+    required this.youngestChildBirthdate,
+    required this.onPickBirthdate,
+    required this.onClearBirthdate,
     required this.sharePercent,
     required this.onShareChanged,
     required this.dailyVolumeMl,
@@ -1189,8 +1239,18 @@ class _MilkSection extends StatelessWidget {
                 ),
                 selected: {ageGroup},
                 showSelectedIcon: false,
-                onSelectionChanged: (s) => onAgeChanged(s.first),
+                // Bucket is derived from birth date when present; lock the
+                // segmented picker so users can't accidentally desync it.
+                onSelectionChanged: youngestChildBirthdate != null
+                    ? null
+                    : (s) => onAgeChanged(s.first),
               ),
+            ),
+            const SizedBox(height: 8),
+            _BirthdateRow(
+              birthdate: youngestChildBirthdate,
+              onPick: onPickBirthdate,
+              onClear: onClearBirthdate,
             ),
             const SizedBox(height: 16),
             Text(
@@ -1838,6 +1898,65 @@ class _MicronutrientsSection extends StatelessWidget {
   String _displayNameFor(String key, String locale) {
     final d = MicronutrientDisplay.forKey(key);
     return d?.nameForLocale(locale) ?? key;
+  }
+}
+
+class _BirthdateRow extends StatelessWidget {
+  final DateTime? birthdate;
+  final VoidCallback onPick;
+  final VoidCallback onClear;
+  const _BirthdateRow({
+    required this.birthdate,
+    required this.onPick,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final df = intl.DateFormat.yMd(
+        Localizations.localeOf(context).languageCode);
+    if (birthdate == null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: onPick,
+          icon: const Icon(Icons.cake_outlined, size: 18),
+          label: Text(l10n.settingsMilkBirthdatePick),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${l10n.settingsMilkBirthdateLabel}: ${df.format(birthdate!)}',
+                style: textTheme.bodyMedium,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: l10n.settingsMilkBirthdatePick,
+              onPressed: onPick,
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              tooltip: l10n.settingsMilkBirthdateClear,
+              onPressed: onClear,
+            ),
+          ],
+        ),
+        Text(
+          l10n.settingsMilkBirthdateAuto,
+          style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+        ),
+      ],
+    );
   }
 }
 

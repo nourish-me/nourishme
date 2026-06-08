@@ -213,6 +213,45 @@ void main() {
       expect(p.birthdate, isNull);
       expect(p.currentAge, 30);
     });
+
+    test('youngestChildBirthdate round-trips through JSON', () {
+      final original = _profile(numChildrenNursing: 1, childrenAgeGroup: 0)
+          .copyWith(youngestChildBirthdate: DateTime(2026, 1, 15));
+      final back = UserProfileSettings.fromJson(original.toJson());
+      expect(back.youngestChildBirthdate, DateTime(2026, 1, 15));
+    });
+  });
+
+  group('currentChildrenAgeGroup (computed from birthdate)', () {
+    test('returns static childrenAgeGroup when birthdate is null', () {
+      final p = _profile(numChildrenNursing: 1, childrenAgeGroup: 1);
+      expect(p.youngestChildBirthdate, isNull);
+      expect(p.currentChildrenAgeGroup, 1);
+    });
+
+    test('5-month-old → bucket 0 regardless of stored field', () {
+      final fiveMonthsAgo =
+          DateTime.now().subtract(const Duration(days: 30 * 5));
+      final p = _profile(numChildrenNursing: 1, childrenAgeGroup: 2)
+          .copyWith(youngestChildBirthdate: fiveMonthsAgo);
+      expect(p.currentChildrenAgeGroup, 0);
+    });
+
+    test('8-month-old → bucket 1', () {
+      final eightMonthsAgo =
+          DateTime.now().subtract(const Duration(days: 30 * 8));
+      final p = _profile(numChildrenNursing: 1, childrenAgeGroup: 0)
+          .copyWith(youngestChildBirthdate: eightMonthsAgo);
+      expect(p.currentChildrenAgeGroup, 1);
+    });
+
+    test('14-month-old → bucket 2', () {
+      final fourteenMonthsAgo = DateTime(
+          DateTime.now().year - 1, DateTime.now().month - 2, DateTime.now().day);
+      final p = _profile(numChildrenNursing: 1, childrenAgeGroup: 0)
+          .copyWith(youngestChildBirthdate: fourteenMonthsAgo);
+      expect(p.currentChildrenAgeGroup, 2);
+    });
   });
 }
 

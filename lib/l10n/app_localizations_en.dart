@@ -1197,4 +1197,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsMicrosReset => 'Reset to phase recommendation';
+
+  @override
+  String get settingsMilkBirthdateLabel => 'Birth date (youngest child)';
+
+  @override
+  String get settingsMilkBirthdatePick => 'Pick birth date';
+
+  @override
+  String get settingsMilkBirthdateClear => 'Clear birth date';
+
+  @override
+  String get settingsMilkBirthdateAuto => 'Age bucket follows automatically.';
+
+  @override
+  String get settingsMilkBirthdatePickerHelp =>
+      'When was your (youngest) child born?';
 }

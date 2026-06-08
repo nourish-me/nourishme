@@ -2203,6 +2203,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset to phase recommendation'**
   String get settingsMicrosReset;
+
+  /// No description provided for @settingsMilkBirthdateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth date (youngest child)'**
+  String get settingsMilkBirthdateLabel;
+
+  /// No description provided for @settingsMilkBirthdatePick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick birth date'**
+  String get settingsMilkBirthdatePick;
+
+  /// No description provided for @settingsMilkBirthdateClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear birth date'**
+  String get settingsMilkBirthdateClear;
+
+  /// No description provided for @settingsMilkBirthdateAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Age bucket follows automatically.'**
+  String get settingsMilkBirthdateAuto;
+
+  /// No description provided for @settingsMilkBirthdatePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'When was your (youngest) child born?'**
+  String get settingsMilkBirthdatePickerHelp;
 }
 
 class _AppLocalizationsDelegate

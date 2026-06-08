@@ -596,5 +596,11 @@
   "settingsMicrosDescription": "Which micronutrients to show at the top of the diary. Max 3. When nothing is selected, the app uses the recommendation for your phase.",
   "settingsMicrosUsingDefaults": "Currently using the phase recommendation.",
   "settingsMicrosMaxReached": "3 of 3 selected",
-  "settingsMicrosReset": "Reset to phase recommendation"
+  "settingsMicrosReset": "Reset to phase recommendation",
+
+  "settingsMilkBirthdateLabel": "Birth date (youngest child)",
+  "settingsMilkBirthdatePick": "Pick birth date",
+  "settingsMilkBirthdateClear": "Clear birth date",
+  "settingsMilkBirthdateAuto": "Age bucket follows automatically.",
+  "settingsMilkBirthdatePickerHelp": "When was your (youngest) child born?"
 }

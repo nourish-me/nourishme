@@ -241,7 +241,7 @@ class MicronutrientDefaults {
       // iron displaces vitamin D in the omnivore default. Vegan users
       // get B12 in both because milk-dependent infant B12 deficiency
       // can be severe.
-      final ageGroup = p.childrenAgeGroup;
+      final ageGroup = p.currentChildrenAgeGroup;
       if (ageGroup == 0) {
         return isPlantBased
             ? const [
@@ -299,7 +299,7 @@ class MicronutrientDefaults {
       }
     }
     if (p.numChildrenNursing > 0) {
-      return p.childrenAgeGroup == 0
+      return p.currentChildrenAgeGroup == 0
           ? 'STILLZEIT · 0–6 MO'
           : 'STILLZEIT · 6–12 MO';
     }
@@ -318,7 +318,7 @@ class MicronutrientDefaults {
       }
     }
     if (p.numChildrenNursing > 0) {
-      return p.childrenAgeGroup == 0
+      return p.currentChildrenAgeGroup == 0
           ? 'LACTATION · 0–6 MO'
           : 'LACTATION · 6–12 MO';
     }

@@ -1202,4 +1202,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsMicrosReset => 'Auf Phase-Vorschlag zurück';
+
+  @override
+  String get settingsMilkBirthdateLabel => 'Geburtsdatum (jüngstes Kind)';
+
+  @override
+  String get settingsMilkBirthdatePick => 'Geburtsdatum eintragen';
+
+  @override
+  String get settingsMilkBirthdateClear => 'Geburtsdatum entfernen';
+
+  @override
+  String get settingsMilkBirthdateAuto =>
+      'Alter wird daraus laufend berechnet.';
+
+  @override
+  String get settingsMilkBirthdatePickerHelp =>
+      'Wann wurde dein (jüngstes) Kind geboren?';
 }
