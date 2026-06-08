@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/meal_entry.dart';
 import '../models/thread_item.dart';
+import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../utils/weight_trend.dart';
 import 'claude_client.dart';
+import 'micronutrient_targets.dart';
 
 // Tracks which meal IDs currently have a coach call in flight. Most calls
 // are single-meal (text, photo, single barcode), but the barcode flow can
@@ -59,6 +61,53 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
   // meal isn't found — so the reply sorts to the very top of tomorrow's
   // thread instead of under its meal. Clamp the +1min nudge to end-of-day so
   // it can never cross midnight.
+  // Builds the "low micro" nudge line for the per-meal coach call. Only
+  // fires when (a) it's at least 14:00 local on the meal's day, and (b) at
+  // least one active micronutrient is under 70% of its day target. Returns
+  // null otherwise — the coach prompt suppresses micro talk without a
+  // nudge so we don't get noise on every breakfast.
+  //
+  // "Active" follows the same source the header uses: user-picked list
+  // first, phase/diet default second.
+  static String? _microNudgeFor(
+    UserProfileSettings profile,
+    List<MealEntry> mealsForTotal,
+    MealEntry last, {
+    required bool isDe,
+  }) {
+    if (last.createdAt.hour < 14) return null;
+    final keys = profile.selectedMicronutrients ??
+        MicronutrientDefaults.forProfile(profile);
+    if (keys.isEmpty) return null;
+    final lowParts = <String>[];
+    for (final key in keys) {
+      final target = MicronutrientTargets.forKey(key, profile);
+      final display = MicronutrientDisplay.forKey(key);
+      if (target == null || display == null || target.value <= 0) continue;
+      final intake = dailyIntakeFor(key, mealsForTotal, profile);
+      final pct = (intake / target.value * 100).round();
+      if (pct < 70) {
+        final name =
+            isDe ? display.shortNameDe : display.shortNameEn;
+        lowParts.add(
+            '$name $pct% (${_fmtVal(intake)}/${_fmtVal(target.value)} ${target.unitLabel})');
+      }
+    }
+    if (lowParts.isEmpty) return null;
+    if (isDe) {
+      return 'Mikronährstoff-Lücke heute (nach 14 Uhr): ${lowParts.join(", ")}. '
+          'Falls die aktuelle Mahlzeit dazu passt, erwähne ein konkretes Lebensmittel für die nächste Mahlzeit; sonst kein Hinweis.';
+    }
+    return 'Micronutrient gap today (after 2pm): ${lowParts.join(", ")}. '
+        'If the current meal fits, name one specific food for the next meal; otherwise skip it.';
+  }
+
+  static String _fmtVal(double v) {
+    if (v >= 50) return v.round().toString();
+    if (v == v.roundToDouble()) return v.toStringAsFixed(0);
+    return v.toStringAsFixed(1);
+  }
+
   static DateTime coachAnchorFor(DateTime mealAt) {
     final plusOne = mealAt.add(const Duration(minutes: 1));
     final endOfDay =
@@ -121,6 +170,14 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     final proteinTargetG =
         profile != null ? (profile.weightKg * 1.2).round() : 80;
 
+    // Build the optional micronutrient-nudge for the coach: list active
+    // micros that are still under 70% of target AFTER 14:00 local time of
+    // the meal. Empty list (or before 14:00) → no nudge field is sent, and
+    // the coach won't mention micros proactively.
+    final microNudge = profile != null
+        ? _microNudgeFor(profile, mealsForTotal, last, isDe: isDe)
+        : null;
+
     try {
       final response = await client.generatePerMealResponse(
         mealRawText: combinedRawText,
@@ -151,6 +208,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         requestFollowUps:
             requestFollowUps ?? mealsForTotal.length % 3 == 0,
         weightTrend: notableTrend,
+        microNudge: microNudge,
       );
       final coachAt = coachAnchorFor(last.createdAt);
       await threadRepo.add(ThreadItem.coachResponse(

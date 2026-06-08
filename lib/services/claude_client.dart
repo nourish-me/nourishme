@@ -436,6 +436,7 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     DateTime? loggedAt,
     bool requestFollowUps = false,
     String? weightTrend,
+    String? microNudge,
   }) async {
     final isDe = _isGerman(locale);
     // The coach reasons about meal timing ("breakfast", "next meal") from
@@ -518,6 +519,9 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     // doesn't bring up weight on every ordinary meal.
     if (weightTrend != null && weightTrend.isNotEmpty) {
       finalUserMessage += '\n\n$weightTrend';
+    }
+    if (microNudge != null && microNudge.isNotEmpty) {
+      finalUserMessage += '\n\n$microNudge';
     }
     if (requestFollowUps) {
       finalUserMessage += isDe ? followUpInstructionDe : followUpInstructionEn;
