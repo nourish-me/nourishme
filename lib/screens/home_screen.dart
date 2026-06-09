@@ -714,6 +714,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // so older days are above, today is at the bottom.
     final sortedDays = [...loadedDays]..sort((a, b) => a.compareTo(b));
     final widgets = <Widget>[];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
     // Auto-load happens within a frame or two from Hive, so the spinner
     // just flickers briefly the first time the user pulls up, removed
@@ -770,11 +772,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // We hit a day with content (or today). Flush any pending empty run
       // first, then render the day separator + content normally.
       flushEmptyRun();
+      // Past days with content still need a way to log retroactively (the
+      // EmptyDay path only fires when items.isEmpty). Today's separator
+      // skips the affordance — the regular input bar at the bottom is
+      // already there for that.
+      final isPastDay = day.isBefore(today);
       widgets.add(DaySeparator(
         key: _keyForDay(day),
         day: day,
         scheme: scheme,
         textTheme: textTheme,
+        onAdd: isPastDay ? () => _logForDay(day) : null,
       ));
       if (items.isEmpty) {
         // Today's row still gets the quick-add affordance.

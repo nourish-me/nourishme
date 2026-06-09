@@ -291,7 +291,7 @@
 
   "settingsMilkChildren": "Children you're feeding milk to",
   "settingsMilkAgeLabel": "Age of the children",
-  "settingsMilkVolume": "Estimated daily volume",
+  "settingsMilkVolume": "Breast milk per day",
   "settingsMilkVolumePerDay": "{volume} ml/day → +{supplement} kcal/day",
   "@settingsMilkVolumePerDay": {
     "placeholders": {

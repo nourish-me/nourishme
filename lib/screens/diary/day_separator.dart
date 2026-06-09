@@ -12,11 +12,17 @@ class DaySeparator extends StatelessWidget {
   final DateTime day;
   final ColorScheme scheme;
   final TextTheme textTheme;
+  // Optional retroactive-log entry point. Set for past days with content so
+  // the user can still add a meal to that day (the empty-day "+ add" path
+  // only fires when the day has zero entries). Null on today's separator
+  // (the regular input bar at the bottom handles that) and on future days.
+  final VoidCallback? onAdd;
   const DaySeparator({
     super.key,
     required this.day,
     required this.scheme,
     required this.textTheme,
+    this.onAdd,
   });
 
   @override
@@ -43,6 +49,15 @@ class DaySeparator extends StatelessWidget {
           Expanded(
             child: Divider(color: scheme.outlineVariant, thickness: 0.5),
           ),
+          if (onAdd != null)
+            InkWell(
+              onTap: onAdd,
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                child: Icon(Icons.add, size: 16, color: scheme.primary),
+              ),
+            ),
         ],
       ),
     );

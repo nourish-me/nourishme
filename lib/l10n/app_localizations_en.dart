@@ -641,7 +641,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMilkAgeLabel => 'Age of the children';
 
   @override
-  String get settingsMilkVolume => 'Estimated daily volume';
+  String get settingsMilkVolume => 'Breast milk per day';
 
   @override
   String settingsMilkVolumePerDay(int volume, int supplement) {
