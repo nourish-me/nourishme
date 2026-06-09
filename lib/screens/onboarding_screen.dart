@@ -35,10 +35,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const _stepNames = [
     'welcome',
     'phase',
+    'goal',
     'body',
     'phase_details',
     'summary',
   ];
+
+  // Step indices we branch on. Keeping these in one place keeps the
+  // _skipPhaseDetails branching readable when the step list grows.
+  static const _phaseDetailsStepIndex = 4;
+  static const _summaryStepIndex = 5;
 
   final _controller = PageController();
   int _step = 0;
@@ -50,6 +56,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // phase step. Lets us treat "both toggles off" as a valid choice the
   // user really made, distinct from "user hasn't answered yet".
   bool _phaseExplicitlyNeither = false;
+  // Coach focus chosen during onboarding. Defaults to nutrients so a user
+  // who just taps through gets the safer no-deficit-talk coach.
+  String _goal = CoachGoal.nutrients;
   int _trimester = 1;
 
   // Body fields are pre-filled with neutral defaults so the user can advance
@@ -106,19 +115,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
-  int get _totalSteps => 5;
+  int get _totalSteps => 6;
 
   bool get _canAdvance {
     switch (_step) {
       case 1:
-        // At least one of pregnant/lactating must be picked.
+        // Phase: at least one of pregnant/lactating/neither must be picked.
         return _isPregnant || _isLactating || _phaseExplicitlyNeither;
       case 2:
-        // Birthdate is pre-filled, height/weight have defaults, always
-        // advanceable. User can still adjust before continuing.
+        // Goal: any of nutrients/body/both is valid; default 'nutrients'
+        // so the user can keep tapping through without forced choice.
+        return true;
+      case 3:
+        // Body: birthdate is pre-filled, height/weight defaults exist.
         return double.tryParse(_height.text.replaceAll(',', '.')) != null &&
             double.tryParse(_weight.text.replaceAll(',', '.')) != null;
-      case 4:
+      case _summaryStepIndex:
         // Summary step: disclaimer is shown as plain text (no longer gated
         // by a checkbox — that confused more users than it protected).
         // Tapping "Los geht's" still records the acceptance timestamp in
@@ -138,9 +150,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return age;
   }
 
+  // Step 3 (_PhaseDetailsStep) is empty when the user picked "neither" on
+  // the phase step — no trimester, no nursing-volume sliders to fill in.
+  // We skip over it in both directions so the user doesn't have to tap
+  // through a blank page.
+  bool get _skipPhaseDetails =>
+      !_isPregnant && !_isLactating && _phaseExplicitlyNeither;
+
   void _next() {
     if (_step < _totalSteps - 1) {
-      setState(() => _step += 1);
+      var target = _step + 1;
+      if (target == _phaseDetailsStepIndex && _skipPhaseDetails) target += 1;
+      setState(() => _step = target);
       _trackStepView();
       _controller.animateToPage(
         _step,
@@ -154,7 +175,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _back() {
     if (_step == 0) return;
-    setState(() => _step -= 1);
+    var target = _step - 1;
+    if (target == _phaseDetailsStepIndex && _skipPhaseDetails) target -= 1;
+    setState(() => _step = target);
     _controller.animateToPage(
       _step,
       duration: const Duration(milliseconds: 250),
@@ -187,6 +210,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _isPregnant = false;
       _isLactating = true;
       _phaseExplicitlyNeither = false;
+      _goal = CoachGoal.nutrients;
       _trimester = 1;
       _birthdate = DateTime(
           DateTime.now().year - 30, DateTime.now().month, DateTime.now().day);
@@ -249,6 +273,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         youngestChildBirthdate: _youngestChildBirthdate,
         dailyMilkVolumeMl: _isLactating ? _dailyVolumeMl : 0,
         milkSupplementKcal: 0, // derived from volume
+        goal: _goal,
       );
 
   Future<void> _finish() async {
@@ -340,6 +365,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         _isLactating = false;
                         _phaseExplicitlyNeither = true;
                       }),
+                    ),
+                    _GoalStep(
+                      goal: _goal,
+                      onChanged: (v) => setState(() => _goal = v),
                     ),
                     _BodyStep(
                       birthdate: _birthdate,
@@ -1418,6 +1447,60 @@ class _NumberStepper extends StatelessWidget {
 String _formatBirthdate(BuildContext context, DateTime d) => intl.DateFormat.yMd(
       Localizations.localeOf(context).toLanguageTag(),
     ).format(d);
+
+class _GoalStep extends StatelessWidget {
+  final String goal;
+  final ValueChanged<String> onChanged;
+  const _GoalStep({required this.goal, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.onboardingGoalTitle,
+              style: textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Text(
+            l10n.settingsGoalHint,
+            style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<String>(
+              segments: [
+                ButtonSegment(
+                    value: CoachGoal.nutrients,
+                    label: Text(l10n.settingsGoalNutrients)),
+                ButtonSegment(
+                    value: CoachGoal.body,
+                    label: Text(l10n.settingsGoalBody)),
+                ButtonSegment(
+                    value: CoachGoal.both,
+                    label: Text(l10n.settingsGoalBoth)),
+              ],
+              selected: {goal},
+              showSelectedIcon: false,
+              onSelectionChanged: (s) => onChanged(s.first),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.onboardingGoalSubtitle,
+            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _OnboardingBirthdateRow extends StatelessWidget {
   final DateTime? birthdate;

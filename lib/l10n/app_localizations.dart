@@ -2234,24 +2234,6 @@ abstract class AppLocalizations {
   /// **'When was your (youngest) child born?'**
   String get settingsMilkBirthdatePickerHelp;
 
-  /// No description provided for @settingsSectionIngredients.
-  ///
-  /// In en, this message translates to:
-  /// **'Ingredients today'**
-  String get settingsSectionIngredients;
-
-  /// No description provided for @settingsIngredientsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Anything you want to use up today? The coach factors it into the next suggestion. Expires overnight.'**
-  String get settingsIngredientsHint;
-
-  /// No description provided for @settingsIngredientsPlaceholder.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. zucchini, chicken, yogurt'**
-  String get settingsIngredientsPlaceholder;
-
   /// No description provided for @settingsSectionGoal.
   ///
   /// In en, this message translates to:
@@ -2305,6 +2287,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I\'m neither pregnant nor producing breast milk.'**
   String get onboardingPhaseNeitherHint;
+
+  /// No description provided for @onboardingGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to focus on?'**
+  String get onboardingGoalTitle;
+
+  /// No description provided for @onboardingGoalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this any time in Settings.'**
+  String get onboardingGoalSubtitle;
 }
 
 class _AppLocalizationsDelegate

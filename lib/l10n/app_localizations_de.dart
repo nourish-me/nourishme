@@ -1221,17 +1221,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wann wurde dein (jüngstes) Kind geboren?';
 
   @override
-  String get settingsSectionIngredients => 'Zutaten heute';
-
-  @override
-  String get settingsIngredientsHint =>
-      'Was möchtest du heute verbrauchen? Der Coach berücksichtigt das beim nächsten Vorschlag. Verfällt über Nacht.';
-
-  @override
-  String get settingsIngredientsPlaceholder =>
-      'z.B. Zucchini, Hähnchen, Joghurt';
-
-  @override
   String get settingsSectionGoal => 'Coach-Ziel';
 
   @override
@@ -1260,4 +1249,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get onboardingPhaseNeitherHint =>
       'Weder schwanger noch produziere ich Muttermilch.';
+
+  @override
+  String get onboardingGoalTitle => 'Worauf willst du dich konzentrieren?';
+
+  @override
+  String get onboardingGoalSubtitle =>
+      'Du kannst das jederzeit in den Einstellungen ändern.';
 }

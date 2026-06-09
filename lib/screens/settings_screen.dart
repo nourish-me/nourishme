@@ -61,10 +61,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // source of truth, otherwise it's derived from this and the picker shown
   // read-only.
   DateTime? _youngestChildBirthdate;
-  // Free-text "use up today" list. Persisted via SettingsRepository (auto-
-  // expires overnight). Held in a TextEditingController so unsaved edits
-  // count as dirty just like other text fields.
-  late TextEditingController _coachIngredients;
   // Coach focus: 'nutrients' (default), 'body', or 'both'.
   late String _goal;
   // Hand-picked micronutrient subset for the diary header. null = follow
@@ -80,7 +76,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _height.dispose();
       _weight.dispose();
       _dietaryNotes.dispose();
-      _coachIngredients.dispose();
     }
     super.dispose();
   }
@@ -115,13 +110,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _dietaryNotes = TextEditingController(text: p.dietaryNotes);
     _selectedMicros =
         p.selectedMicronutrients == null ? null : [...p.selectedMicronutrients!];
-    _coachIngredients = TextEditingController(
-        text: ref.read(settingsRepositoryProvider).getCoachTodaysIngredients() ??
-            '');
     _goal = p.goal;
     _initialProfileJson = jsonEncode(p.toJson());
 
-    for (final c in [_height, _weight, _dietaryNotes, _coachIngredients]) {
+    for (final c in [_height, _weight, _dietaryNotes]) {
       c.addListener(() {
         if (mounted) setState(() {});
       });
@@ -309,12 +301,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
     final newProfile = _currentProfile();
-    final settingsRepo = ref.read(settingsRepositoryProvider);
-    await settingsRepo.saveProfile(newProfile);
-    // Ingredients live next to the profile in the same settings box but
-    // outside UserProfileSettings (they auto-expire across midnight so
-    // they don't belong on the immutable profile object).
-    await settingsRepo.setCoachTodaysIngredients(_coachIngredients.text);
+    await ref.read(settingsRepositoryProvider).saveProfile(newProfile);
     // Record a weight history entry whenever the value differs from the
     // last save. profile.weightKg keeps driving BMR; this log accumulates
     // for the Trends-tab line chart.
@@ -429,6 +416,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onTrimesterChanged: (v) => setState(() => _trimester = v),
                 ),
                 const SizedBox(height: 12),
+                _GoalSection(
+                  goal: _goal,
+                  onChanged: (v) => setState(() => _goal = v),
+                ),
+                const SizedBox(height: 12),
                 _Section(
                   title: AppLocalizations.of(context).settingsSectionProfile,
                   child: _ProfileFields(
@@ -506,13 +498,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     });
                   },
                   onReset: () => setState(() => _selectedMicros = null),
-                ),
-                const SizedBox(height: 12),
-                _IngredientsTodaySection(controller: _coachIngredients),
-                const SizedBox(height: 12),
-                _GoalSection(
-                  goal: _goal,
-                  onChanged: (v) => setState(() => _goal = v),
                 ),
                 const SizedBox(height: 12),
                 const _FavoritesSection(),
@@ -1933,39 +1918,6 @@ class _MicronutrientsSection extends StatelessWidget {
   String _displayNameFor(String key, String locale) {
     final d = MicronutrientDisplay.forKey(key);
     return d?.nameForLocale(locale) ?? key;
-  }
-}
-
-class _IngredientsTodaySection extends StatelessWidget {
-  final TextEditingController controller;
-  const _IngredientsTodaySection({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return _Section(
-      title: l10n.settingsSectionIngredients,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.settingsIngredientsHint,
-            style: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: controller,
-            maxLines: 2,
-            decoration: InputDecoration(
-              hintText: l10n.settingsIngredientsPlaceholder,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

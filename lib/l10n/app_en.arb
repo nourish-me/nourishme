@@ -604,11 +604,7 @@
   "settingsMilkBirthdateAuto": "Age bucket follows automatically.",
   "settingsMilkBirthdatePickerHelp": "When was your (youngest) child born?",
 
-  "settingsSectionIngredients": "Ingredients today",
-  "settingsIngredientsHint": "Anything you want to use up today? The coach factors it into the next suggestion. Expires overnight.",
-  "settingsIngredientsPlaceholder": "e.g. zucchini, chicken, yogurt",
-
-  "settingsSectionGoal": "Coach focus",
+"settingsSectionGoal": "Coach focus",
   "settingsGoalHint": "What should the coach optimise for? For body-focused options the baby's supply stays the top priority — a moderate deficit (max 300-500 kcal, never below 1,800 kcal/day) is allowed only from 6-8 weeks postpartum.",
   "settingsGoalNutrients": "Nutrients",
   "settingsGoalBody": "Body",
@@ -617,5 +613,8 @@
   "settingsPhaseNeither": "Neither",
   "settingsPhaseNeitherHint": "Currently neither pregnant nor producing breast milk, e.g. after weaning or before a pregnancy.",
   "onboardingPhaseNeither": "Neither",
-  "onboardingPhaseNeitherHint": "I'm neither pregnant nor producing breast milk."
+  "onboardingPhaseNeitherHint": "I'm neither pregnant nor producing breast milk.",
+
+  "onboardingGoalTitle": "What do you want to focus on?",
+  "onboardingGoalSubtitle": "You can change this any time in Settings."
 }

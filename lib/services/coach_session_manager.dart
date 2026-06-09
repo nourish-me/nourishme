@@ -120,7 +120,12 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     if (profile.goal == CoachGoal.nutrients) return null;
     if (profile.isPregnant) return null;
     final isLactating = profile.numChildrenNursing > 0;
-    if (isLactating && profile.youngestChildBirthdate != null) {
+    // Neither pregnant nor lactating: deficit talk is unrestricted ("Stillzeit
+    // und danach" — the "danach" case is free of supply guardrails). Skip the
+    // lactation-specific block so the coach doesn't talk about milk to
+    // someone who has weaned.
+    if (!isLactating) return null;
+    if (profile.youngestChildBirthdate != null) {
       final daysPostpartum =
           DateTime.now().difference(profile.youngestChildBirthdate!).inDays;
       if (daysPostpartum < 42) return null; // <6 weeks

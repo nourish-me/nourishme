@@ -461,11 +461,7 @@
   "settingsMilkBirthdateAuto": "Alter wird daraus laufend berechnet.",
   "settingsMilkBirthdatePickerHelp": "Wann wurde dein (jüngstes) Kind geboren?",
 
-  "settingsSectionIngredients": "Zutaten heute",
-  "settingsIngredientsHint": "Was möchtest du heute verbrauchen? Der Coach berücksichtigt das beim nächsten Vorschlag. Verfällt über Nacht.",
-  "settingsIngredientsPlaceholder": "z.B. Zucchini, Hähnchen, Joghurt",
-
-  "settingsSectionGoal": "Coach-Ziel",
+"settingsSectionGoal": "Coach-Ziel",
   "settingsGoalHint": "Worauf soll der Coach optimieren? Bei Körper-Optionen bleibt die Versorgung des Babys oberste Priorität, ein moderates Defizit (max. 300-500 kcal, nie unter 1.800 kcal/Tag) ist nur ab 6-8 Wochen postpartum erlaubt.",
   "settingsGoalNutrients": "Nährstoffe",
   "settingsGoalBody": "Körper",
@@ -474,5 +470,8 @@
   "settingsPhaseNeither": "Weder noch",
   "settingsPhaseNeitherHint": "Aktuell weder schwanger noch stillend, z.B. nach dem Abstillen oder vor einer Schwangerschaft.",
   "onboardingPhaseNeither": "Weder noch",
-  "onboardingPhaseNeitherHint": "Weder schwanger noch produziere ich Muttermilch."
+  "onboardingPhaseNeitherHint": "Weder schwanger noch produziere ich Muttermilch.",
+
+  "onboardingGoalTitle": "Worauf willst du dich konzentrieren?",
+  "onboardingGoalSubtitle": "Du kannst das jederzeit in den Einstellungen ändern."
 }
