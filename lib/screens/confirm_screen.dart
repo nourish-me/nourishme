@@ -24,7 +24,7 @@ class ConfirmScreen extends ConsumerStatefulWidget {
   final bool asSheet;
   // How this entry reached the confirm sheet. The analytics layer reads
   // [source.analyticsLabel] to populate the meal_logged.method dimension
-  // that PostHog dashboards already filter on — see MealEntrySource for
+  // that PostHog dashboards already filter on - see MealEntrySource for
   // the wire-format guarantees when adding a new source.
   final MealEntrySource source;
   // When true (used by the barcode flow), the sheet shows a "+ Noch einen
@@ -388,12 +388,12 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         final all = [...pending, meal];
         ref.read(coachSessionProvider.notifier).submitMeals(all, locale);
       } else {
-        // Append to the bundle without firing — used by the barcode
+        // Append to the bundle without firing - used by the barcode
         // "+ Noch einen scannen" path.
         bundleNotifier.state = [...bundleNotifier.state, meal];
       }
       // Scroll the diary to the meal's day only for retro-logs (past-day
-      // saves). Today's saves don't need it — the new entry lands at the
+      // saves). Today's saves don't need it - the new entry lands at the
       // bottom near the input bar, naturally visible. Firing the scroll
       // for today made the diary jump up to "today's earliest entry",
       // which felt like an unwanted scroll-up right after saving.
@@ -411,14 +411,14 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     // appears in-thread next to the meal (same UX as live saves), instead
     // of as a detached banner above the input. Pre-capture the localized
     // fallback message because the modal pops before the manager's async
-    // call resolves — touching context after that would throw.
+    // call resolves - touching context after that would throw.
     final fallbackMessage =
         AppLocalizations.of(context).confirmCoachErrorFallback;
 
     // If the time was edited, move the meal's ThreadItem (and any orphan
     // coach response on the old day) to the new timestamp before the
     // regenerate step. Without this the entry visually stays at the old
-    // slot — and for cross-day edits in the wrong day bucket entirely.
+    // slot - and for cross-day edits in the wrong day bucket entirely.
     final originalAt = widget.existingCreatedAt;
     if (originalAt != null && originalAt != meal.createdAt) {
       await threadRepo.updateMealItemTime(
@@ -476,7 +476,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     // Visible to the user mid-scan-session so they understand previous
-    // scans haven't been "lost" — they're queued for one combined coach
+    // scans haven't been "lost" - they're queued for one combined coach
     // reply. Only relevant on the barcode entry path.
     final pendingBundle = widget.allowScanAnother
         ? ref.watch(pendingScanBundleProvider)
@@ -742,7 +742,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
 
   // Bottom-sheet chooser shown when the user taps "Weiteren Bestandteil
   // hinzufügen". A mixed meal might combine a scanned skyr with a typed
-  // apple — barcode is one of three valid follow-up paths, not the only
+  // apple - barcode is one of three valid follow-up paths, not the only
   // one. Whatever the user picks gets passed back as the sheet's pop
   // value so the parent loop can branch accordingly.
   Future<void> _showAddAnotherChooser() async {

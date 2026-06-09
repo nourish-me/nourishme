@@ -54,11 +54,11 @@ class MacroTargets {
 //
 // Body-goal override: when the user opted into 'body' or 'both', protein
 // rises to 1.5 g/kg in lactation (still safely above DGE baseline) and
-// 1.6 g/kg post-weaning/never-pregnant. Pregnancy is excluded — no
+// 1.6 g/kg post-weaning/never-pregnant. Pregnancy is excluded - no
 // deficit talk in pregnancy at all, so no recomp protein bump either.
 // These values are the conventional muscle-preservation range during a
 // moderate deficit; ergänzend zur fachlich bestätigten Defizit-Grenze,
-// not from the same brief — flagged in the Settings info card.
+// not from the same brief - flagged in the Settings info card.
 ({int proteinPct, int fatPct, int carbsPct}) autoMacroSplit(
     UserProfileSettings profile, int targetKcal) {
   final lactating = profile.numChildrenNursing > 0;

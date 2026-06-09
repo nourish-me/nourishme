@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nurturetrack/services/claude_client.dart';
 
-// Locks MealParseResult.fromModelText — the pure reply-parsing logic extracted
+// Locks MealParseResult.fromModelText - the pure reply-parsing logic extracted
 // from ClaudeClient.parseMeal. This is the robustness layer of the AI-call
 // path: it must survive malformed or prose-only model replies without throwing,
 // and must default missing fields rather than crash the diary send. A silent
 // regression here means wrong nutrition numbers or a generic "Couldn't send".
 void main() {
-  group('fromModelText — graceful fallbacks', () {
+  group('fromModelText - graceful fallbacks', () {
     test('prose-only reply (no JSON) → non-meal', () {
       final r = MealParseResult.fromModelText(
         'That sounds more like a question than a meal. Want me to help?',
@@ -32,7 +32,7 @@ void main() {
     });
   });
 
-  group('fromModelText — valid replies', () {
+  group('fromModelText - valid replies', () {
     test('full valid JSON maps every field', () {
       final r = MealParseResult.fromModelText('''
 {
@@ -73,7 +73,7 @@ void main() {
     });
   });
 
-  group('fromModelText — defaulting of missing/edge fields', () {
+  group('fromModelText - defaulting of missing/edge fields', () {
     test('missing fields fall back to safe defaults', () {
       final r = MealParseResult.fromModelText('{"summary": "Snack"}');
       expect(r.isMeal, true); // default true when key absent

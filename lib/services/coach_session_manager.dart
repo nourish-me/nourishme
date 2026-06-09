@@ -15,7 +15,7 @@ import 'micronutrient_targets.dart';
 // are single-meal (text, photo, single barcode), but the barcode flow can
 // hand in a bundle when the user chained several scans via "+ Noch einen
 // scannen" and only finally tapped Speichern. In a bundle, only the LAST
-// meal's ID lands in the in-flight set — the thinking bubble appears
+// meal's ID lands in the in-flight set - the thinking bubble appears
 // inline after that meal and represents the whole bundle's call.
 class CoachSessionManager extends StateNotifier<Set<String>> {
   CoachSessionManager(this._ref) : super(const {});
@@ -58,13 +58,13 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
   // stored under a date-only key (ThreadRepository._keyFor) and the thread
   // re-anchors it directly beneath its meal at sort time. A naive +1min tips
   // a late-night meal (e.g. logged at 23:59) into the next day, where its
-  // meal isn't found — so the reply sorts to the very top of tomorrow's
+  // meal isn't found - so the reply sorts to the very top of tomorrow's
   // thread instead of under its meal. Clamp the +1min nudge to end-of-day so
   // it can never cross midnight.
   // Builds the "low micro" nudge line for the per-meal coach call. Only
   // fires when (a) it's at least 14:00 local on the meal's day, and (b) at
   // least one active micronutrient is under 70% of its day target. Returns
-  // null otherwise — the coach prompt suppresses micro talk without a
+  // null otherwise - the coach prompt suppresses micro talk without a
   // nudge so we don't get noise on every breakfast.
   //
   // "Active" follows the same source the header uses: user-picked list
@@ -121,7 +121,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     if (profile.isPregnant) return null;
     final isLactating = profile.numChildrenNursing > 0;
     // Neither pregnant nor lactating: deficit talk is unrestricted ("Stillzeit
-    // und danach" — the "danach" case is free of supply guardrails). Skip the
+    // und danach" - the "danach" case is free of supply guardrails). Skip the
     // lactation-specific block so the coach doesn't talk about milk to
     // someone who has weaned.
     if (!isLactating) return null;
@@ -232,7 +232,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         ? _microNudgeFor(profile, mealsForTotal, last, isDe: isDe)
         : null;
 
-    // "What do you want to use up today?" — coach asks at most once a day,
+    // "What do you want to use up today?" - coach asks at most once a day,
     // and skips the ask entirely when ingredients are already stored. The
     // ask flips on only for live saves (not for edit-regenerates) so the
     // regen path doesn't double-prompt.
@@ -298,7 +298,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
             properties: {'item_count': meals.length});
       }
       // The "anything to use up?" question counts as asked even if the
-      // user doesn't answer in this turn — prevents nagging. Anchor the
+      // user doesn't answer in this turn - prevents nagging. Anchor the
       // ask to this meal's id so the diary can render the reply input
       // right under THIS coach bubble (not under every later one too).
       if (askForIngredients) {

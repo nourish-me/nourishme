@@ -13,7 +13,7 @@ class UserProfileSettings {
   // Lactation
   final int numChildrenNursing;
   final int milkSharePercent;
-  // Static fallback bucket — kept for backward compat with profiles saved
+  // Static fallback bucket - kept for backward compat with profiles saved
   // before youngestChildBirthdate existed and for users who decline to
   // enter a birth date. New code paths should read [currentChildrenAgeGroup]
   // which prefers the birth-date derivation when available.
@@ -22,7 +22,7 @@ class UserProfileSettings {
   // age-group bucket dynamically (so a 5-month-old crosses into 6-12mo
   // automatically without the user editing settings). Twins / same-age
   // siblings: one date covers them. Mixed-age siblings: enter the
-  // youngest — milk supply estimates are calibrated to the most demanding
+  // youngest - milk supply estimates are calibrated to the most demanding
   // recipient.
   final DateTime? youngestChildBirthdate;
   // 0 means "no explicit volume, derive from share% + age + count".
@@ -57,7 +57,7 @@ class UserProfileSettings {
 
   // User-picked list of MicronutrientKey strings to show in the diary
   // header. Null means "use the phase/diet default" (MicronutrientDefaults
-  // .forProfile). When non-null the list takes precedence — even if empty
+  // .forProfile). When non-null the list takes precedence - even if empty
   // (user explicitly wants no micros). Capped to 3 entries by the Settings
   // UI; the model itself does not enforce the cap.
   final List<String>? selectedMicronutrients;

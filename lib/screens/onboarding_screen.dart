@@ -132,7 +132,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             double.tryParse(_weight.text.replaceAll(',', '.')) != null;
       case _summaryStepIndex:
         // Summary step: disclaimer is shown as plain text (no longer gated
-        // by a checkbox — that confused more users than it protected).
+        // by a checkbox - that confused more users than it protected).
         // Tapping "Los geht's" still records the acceptance timestamp in
         // _finish so we have an audit trail.
         return true;
@@ -151,7 +151,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   // Step 3 (_PhaseDetailsStep) is empty when the user picked "neither" on
-  // the phase step — no trimester, no nursing-volume sliders to fill in.
+  // the phase step - no trimester, no nursing-volume sliders to fill in.
   // We skip over it in both directions so the user doesn't have to tap
   // through a blank page.
   bool get _skipPhaseDetails =>

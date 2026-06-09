@@ -63,7 +63,7 @@ class ThreadMealCard extends StatelessWidget {
         child: ListTile(
           // Tap opens the same sheet as the slidable "edit" action so the
           // full nutrition values and meal time become visible without
-          // committing to changes. Subtitle stays minimal (just time) —
+          // committing to changes. Subtitle stays minimal (just time) -
           // macros are one tap away in the detail sheet.
           onTap: onEdit,
           title: Text(meal.summary),

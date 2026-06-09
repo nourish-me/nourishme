@@ -19,7 +19,7 @@ import '../providers/meal_providers.dart';
 // (tip{N}_de.svg / tip{N}_en.svg) because some illustrations bake in short
 // labels ("PRO 100 G", weekday letters, brand examples) that need to follow
 // the app's language. The line colour is driven by currentColor so the
-// SVGs blend with the active theme — pine in light mode, paper in dark.
+// SVGs blend with the active theme - pine in light mode, paper in dark.
 class TipsScreen extends ConsumerStatefulWidget {
   const TipsScreen({super.key});
 
@@ -100,7 +100,7 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
         title: l10n.tip5Title,
         body: l10n.tip5Body,
       ),
-      // Reuses tip3's illustration as a placeholder — tip3 already shows
+      // Reuses tip3's illustration as a placeholder - tip3 already shows
       // the typing/autocomplete motif which is close enough to natural-
       // language entry for the beta. Swap to a dedicated tip6_*.svg when
       // the design is ready (chat bubble + ✓ icon would fit).
@@ -212,7 +212,7 @@ class _TipPage extends StatelessWidget {
               child: SvgPicture.asset(
                 tip.asset,
                 fit: BoxFit.contain,
-                // Drives only currentColor — leaves the amber accents
+                // Drives only currentColor - leaves the amber accents
                 // (#C8884A, hard-coded in the SVG) untouched. A colorFilter
                 // would flatten everything to one tone.
                 theme: SvgTheme(currentColor: lineColor),

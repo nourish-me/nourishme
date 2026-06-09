@@ -170,20 +170,21 @@ class _IngredientsReplyInputState
     final text = _c.text.trim();
     if (text.isEmpty || _submitting) return;
     setState(() => _submitting = true);
+    // Snapshot the localized snackbar text BEFORE the await — using
+    // BuildContext across an async gap risks looking up a deactivated
+    // element if the bubble unmounted while the write was in flight.
+    final snackText = AppLocalizations.of(context).coachIngredientsSavedSnack;
     await ref
         .read(coachAskStateProvider.notifier)
         .submitIngredients(text);
-    // Confirm-cue so the user knows the answer landed — without one the
-    // input just vanishes and feels like the app dropped the input.
-    final l10n = AppLocalizations.of(context);
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
-        content: Text(l10n.coachIngredientsSavedSnack),
+        content: Text(snackText),
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
       ),
     );
-    // No need to clear the controller — the bubble rebuilds without this
+    // No need to clear the controller - the bubble rebuilds without this
     // input once provider state reflects the saved ingredients.
   }
 
@@ -270,7 +271,7 @@ class UserBubble extends StatelessWidget {
 
 // Quiet rose-tinted placeholder shown inline in the diary while a coach
 // call is in flight for a given meal. The caller already gates rendering
-// on the in-flight set, so this widget just draws — no provider lookup.
+// on the in-flight set, so this widget just draws - no provider lookup.
 // Visual is intentionally quieter than CoachBubble so a real reply
 // still stands out when it replaces this placeholder.
 class CoachThinkingBubble extends StatelessWidget {

@@ -24,7 +24,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     super.initState();
     // First-time tips deck: shown once per install in front of MainScaffold.
     // Covers both the after-onboarding case (new user) and the first launch
-    // after the update that introduced the deck (existing testers) — the
+    // after the update that introduced the deck (existing testers) - the
     // hasSeenTipsV1 flag is set only when the user finishes or skips it.
     //
     // The presentation is delayed ~900 ms so the user sees the Diary land

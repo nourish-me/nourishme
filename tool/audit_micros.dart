@@ -9,11 +9,11 @@
 //   ✓ within ±30% of reference (accepted)
 //   ⚠ 30-60% off (suspect)
 //   ✗ >60% off OR missing while above the 5%-DGE threshold
-//   • below 5%-DGE threshold — model correctly omits (no flag)
+//   • below 5%-DGE threshold - model correctly omits (no flag)
 //
 // One-shot diagnostic tool. Costs roughly 10-20 Haiku 4.5 calls (~5 cents).
 // IMPORTANT: keep the embedded prompt in sync with lib/services/prompts/parse_de.dart
-// — if that prompt changes its micronutrients spec, update this file too.
+// - if that prompt changes its micronutrients spec, update this file too.
 
 import 'dart:convert';
 import 'dart:io';
@@ -117,7 +117,7 @@ const _tests = <TestCase>[
   ),
   TestCase(
     input: '1 mittelgroßer Apfel (150g)',
-    // Apple has no micros above 5% threshold — expect all keys omitted.
+    // Apple has no micros above 5% threshold - expect all keys omitted.
     expected: {},
   ),
 ];
@@ -315,9 +315,9 @@ Future<void> main() async {
         final actual = r.micronutrients[key];
         final verdict = _classify(key, expected, actual);
         final actualStr =
-            actual == null ? '—' : actual.toStringAsFixed(actual >= 50 ? 0 : 1);
+            actual == null ? '-' : actual.toStringAsFixed(actual >= 50 ? 0 : 1);
         final expectedStr =
-            expected == null ? '—' : expected.toStringAsFixed(expected >= 50 ? 0 : 1);
+            expected == null ? '-' : expected.toStringAsFixed(expected >= 50 ? 0 : 1);
         cells.add('$actualStr / $expectedStr $verdict');
       }
       print('| ${cells.join(' | ')} |');

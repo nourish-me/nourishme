@@ -3,13 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 // Five visual states for the micronutrient progress ring. The cell's
-// label appearance follows from this too — see MicronutrientCell.
+// label appearance follows from this too - see MicronutrientCell.
 enum MicronutrientState {
-  empty,      // 0% — track only, no arc
-  progress,   // 0 < pct < 100 — amber arc
-  met,        // pct >= 100 — full arc + check
-  over,       // pct > UL — full arc in tertiary (plum)
-  awareness,  // no DGE target (e.g. choline) — dashed track + slim arc
+  empty,      // 0% - track only, no arc
+  progress,   // 0 < pct < 100 - amber arc
+  met,        // pct >= 100 - full arc + check
+  over,       // pct > UL - full arc in tertiary (plum)
+  awareness,  // no DGE target (e.g. choline) - dashed track + slim arc
 }
 
 // Computes the state from raw intake/target. Caller decides whether
@@ -43,12 +43,12 @@ MicronutrientState micronutrientStateFor({
 // hue so we keep the single-accent rule.
 class MicronutrientDonut extends StatelessWidget {
   final MicronutrientState state;
-  final double percent; // 0..100+ — for the center label only
+  final double percent; // 0..100+ - for the center label only
   final bool hasSupplement;
   // Override the default 44px size. Used by the collapsed mini-strip
   // (24px) where the same visual rules apply but at a smaller scale.
   final double size;
-  // Stroke width — defaults to 6 for the full strip donut, 3.5 for the
+  // Stroke width - defaults to 6 for the full strip donut, 3.5 for the
   // mini-strip donut.
   final double strokeWidth;
   // The mini-strip variant drops the center label entirely (the label
@@ -110,7 +110,7 @@ class _CenterLabel extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     switch (state) {
       case MicronutrientState.empty:
-        // Nothing — track-only donut reads as "no intake yet".
+        // Nothing - track-only donut reads as "no intake yet".
         return const SizedBox.shrink();
       case MicronutrientState.met:
         return Icon(Icons.check, size: 20, color: scheme.primary, weight: 700);
@@ -230,7 +230,7 @@ class _DonutPainter extends CustomPainter {
       size.height - strokeWidth,
     );
 
-    // Track ring — solid for normal states, dashed for awareness.
+    // Track ring - solid for normal states, dashed for awareness.
     if (state == MicronutrientState.awareness) {
       _drawDashedCircle(
         canvas,
@@ -250,7 +250,7 @@ class _DonutPainter extends CustomPainter {
       canvas.drawCircle(rect.center, rect.width / 2, trackPaint);
     }
 
-    // Progress arc — color and thickness vary by state.
+    // Progress arc - color and thickness vary by state.
     if (state == MicronutrientState.empty) return;
     final arcColor = state == MicronutrientState.over ? overColor : accentColor;
     final arcStroke = state == MicronutrientState.awareness

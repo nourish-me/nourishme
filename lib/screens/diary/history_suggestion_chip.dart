@@ -4,7 +4,7 @@ import '../../models/meal_entry.dart';
 
 // One chip in the history-suggestion row above the diary input. Uses the
 // same InputChip shape and height as the favourites row so the two rows
-// stack visually as one consistent suggestion strip — distinguished only
+// stack visually as one consistent suggestion strip - distinguished only
 // by the icon (history vs star) so the user knows the source. No delete
 // affordance because the user can't "unsuggest" a past meal log.
 class HistorySuggestionChip extends StatelessWidget {
@@ -21,7 +21,7 @@ class HistorySuggestionChip extends StatelessWidget {
         ? ', ${meal.portionAmount.toStringAsFixed(0)} ${meal.portionUnit}'
         : '';
     return InputChip(
-      // History icon (vs star on favourites) is the only differentiator —
+      // History icon (vs star on favourites) is the only differentiator -
       // the relative-time suffix on the label felt like a data-record;
       // the icon already conveys "from before" without the timestamp.
       avatar: Icon(Icons.history, size: 14, color: scheme.secondary),

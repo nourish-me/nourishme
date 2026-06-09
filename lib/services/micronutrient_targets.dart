@@ -4,7 +4,7 @@ import '../models/user_profile_settings.dart';
 // Daily reference values for the tracked micronutrients, per phase.
 //
 // Source priority: DGE 2025 (D-A-CH Referenzwerte, 3rd ed., Sept 2025)
-// for everything that has a DGE value. Choline is the one exception —
+// for everything that has a DGE value. Choline is the one exception -
 // DGE/D-A-CH has no value, so we use the EFSA Adequate Intake. See
 // BETA_DASHBOARDS.md and the Deep Research brief for the full
 // rationale and source links.
@@ -17,7 +17,7 @@ class MicronutrientTarget {
   final String key; // matches MicronutrientKey constants
   final double value;
   final String unitLabel; // 'µg' or 'mg', for display only
-  final String source; // 'DGE 2025' / 'EFSA AI' — shown in detail modal
+  final String source; // 'DGE 2025' / 'EFSA AI' - shown in detail modal
 
   const MicronutrientTarget({
     required this.key,
@@ -166,7 +166,7 @@ class MicronutrientTargets {
     MicronutrientKey.cholineMg: {
       // No DGE / D-A-CH value exists. EFSA Adequate Intake (2016).
       // The donut UI should signal this is an awareness nutrient, not a
-      // hard target — see the design brief and the Cholin section there.
+      // hard target - see the design brief and the Cholin section there.
       _Phase.baseline: const MicronutrientTarget(
           key: MicronutrientKey.cholineMg, value: 400, unitLabel: 'mg', source: 'EFSA AI'),
       _Phase.pregnancyT1: const MicronutrientTarget(
@@ -199,7 +199,7 @@ class MicronutrientTargets {
 enum _Phase { baseline, pregnancyT1, pregnancyT2, pregnancyT3, lactation }
 
 // The 2-3 micronutrients shown by default in the always-visible diary
-// strip, per phase + diet. Backed by the Deep Research brief — these
+// strip, per phase + diet. Backed by the Deep Research brief - these
 // are the deficiency-weighted picks where (a) Germany has a real
 // supply gap and (b) daily food choices can move the number.
 //
@@ -326,7 +326,7 @@ class MicronutrientDefaults {
   }
 }
 
-// Display metadata for a tracked nutrient — short label + unit + whether
+// Display metadata for a tracked nutrient - short label + unit + whether
 // to render with the "awareness" treatment (no DGE target). Drives the
 // MicronutrientCell labels.
 class MicronutrientDisplay {
@@ -403,7 +403,7 @@ double dailyIntakeFor(
 // micronutrients map (legacy entries, photo path that skipped them)
 // contribute nothing.
 //
-// Returns only keys that have a non-zero total — the donut UI uses this
+// Returns only keys that have a non-zero total - the donut UI uses this
 // directly to render only "live" nutrients without an empty-state loop.
 Map<String, double> sumMicronutrientsFor(Iterable<MealEntry> meals) {
   final totals = <String, double>{};

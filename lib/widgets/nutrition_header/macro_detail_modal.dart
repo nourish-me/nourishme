@@ -9,7 +9,7 @@ import '../../theme/nourishme_colors.dart';
 import 'nutrition_header.dart' show sweetSpotStatusFor, SweetSpotStatus;
 
 // Bottom sheet shown when the user taps a macro (or kcal) cell in the
-// NutritionHeader. Deliberately lighter than the micro modal — macros
+// NutritionHeader. Deliberately lighter than the micro modal - macros
 // have no DGE/EFSA disagreement to surface, no milk-dependent split, no
 // awareness rule. Just: anchor on the day's target with a sweet-spot
 // note, then show which meals contributed.

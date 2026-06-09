@@ -2,7 +2,7 @@ import '../nutrition_facts.dart';
 
 // System prompt base for the open-ended coach chat (German). Daily
 // context (kcal, profile, weight trend) is appended at runtime in
-// ClaudeClient.chat — this base only carries the persona, format
+// ClaudeClient.chat - this base only carries the persona, format
 // rules, and the scientific reference block.
 
 final String chatPromptBaseDe = '''

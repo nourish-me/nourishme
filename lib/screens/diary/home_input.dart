@@ -65,7 +65,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
   Future<void> _focusAndOpenKeyboard() async {
     // Schedule on the next frame so we don't fight any in-flight unfocus
     // (e.g. from a route transition). FocusNode.requestFocus on its own
-    // brings the iOS keyboard up — when it actually lands. Cold-launch
+    // brings the iOS keyboard up - when it actually lands. Cold-launch
     // from a meal-reminder push can arrive before the TextField has even
     // attached its FocusNode, so we retry a few times until focus sticks
     // or we give up. The debugPrint trail makes diagnosis from the
@@ -764,7 +764,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         ref.watch(favoritesProvider).valueOrNull ?? const <FavoriteMeal>[];
     // Recent-meal matches for the current typed query (empty list until the
     // user has typed >= 2 chars). Hidden when a photo is attached because the
-    // photo flow follows a different mental model — the user is already
+    // photo flow follows a different mental model - the user is already
     // committed to that meal, not searching for one.
     final historySuggestions = _imageBytes != null
         ? const <MealEntry>[]

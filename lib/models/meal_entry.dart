@@ -17,7 +17,7 @@ class MealEntry {
   // (see [MicronutrientKey]). Null on legacy entries logged before the
   // tracker shipped; an absent key on a newer entry means the parser
   // judged that nutrient negligible (<5 % of the daily target) and
-  // skipped it to save tokens — treat absent == 0 for aggregation.
+  // skipped it to save tokens - treat absent == 0 for aggregation.
   final Map<String, double>? micronutrients;
 
   const MealEntry({
@@ -75,14 +75,14 @@ class MealEntry {
 }
 
 // Canonical keys for per-meal micronutrient estimates. The unit is baked
-// into the key so a meal's stored map is self-describing — the daily
+// into the key so a meal's stored map is self-describing - the daily
 // aggregation and the donut UI don't need a side table to know that
 // folate_ug is in micrograms and iron_mg is in milligrams.
 //
 // Add a new nutrient by appending a key here, extending the parsePrompt
 // schema (claude_client.dart), and adding its DGE/EFSA reference target
 // in MicronutrientTargets (services/micronutrient_targets.dart). Existing
-// stored meals don't need migration — absent keys aggregate to 0.
+// stored meals don't need migration - absent keys aggregate to 0.
 class MicronutrientKey {
   static const folateUg = 'folate_ug';
   static const ironMg = 'iron_mg';

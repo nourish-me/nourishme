@@ -158,7 +158,7 @@ final userProfileProvider = StreamProvider<UserProfileSettings>((ref) {
 // appear in the map (the donut UI iterates this directly).
 //
 // The detail-modal UI re-computes the food vs. supplement split itself
-// from these two sources — they're aggregated here only because the
+// from these two sources - they're aggregated here only because the
 // donut just needs the total.
 final todayMicronutrientsProvider = Provider<Map<String, double>>((ref) {
   final meals = ref.watch(todayMealsProvider);
@@ -188,7 +188,7 @@ final macroTargetsProvider = Provider<MacroTargets>((ref) {
 
 // Meals saved in the current scan-session that are NOT yet handed to the
 // coach. The barcode flow appends here when the user taps "+ Noch einen
-// scannen" and drains the list when the user finally taps "Speichern" — at
+// scannen" and drains the list when the user finally taps "Speichern" - at
 // that point all queued meals plus the current one go to the coach as a
 // single bundled call. Other flows (text, photo) leave this empty.
 final pendingScanBundleProvider =

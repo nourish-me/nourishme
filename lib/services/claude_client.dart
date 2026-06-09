@@ -85,8 +85,8 @@ class MealParseResult {
         micronutrients = null;
 
   // Pure transformation of a raw model reply into a MealParseResult. Extracted
-  // from ClaudeClient.parseMeal so the brittle bits — JSON extraction from a
-  // possibly-prose reply, decode failure handling, and field defaulting — are
+  // from ClaudeClient.parseMeal so the brittle bits - JSON extraction from a
+  // possibly-prose reply, decode failure handling, and field defaulting - are
   // unit-testable without a network round-trip. parseMeal builds the prompt,
   // calls _post(), then delegates the reply parsing here.
   factory MealParseResult.fromModelText(String text) {
@@ -207,7 +207,7 @@ class ClaudeClient {
     // Set true for callers whose system prompt is large + identical across
     // users (parse, per-meal coach, chat). The Anthropic API caches the
     // marked block for ~5 min and bills cached input at ~10% of normal.
-    // Safety/supplement skip caching — their prompts are short or per-call
+    // Safety/supplement skip caching - their prompts are short or per-call
     // dynamic.
     bool cacheSystem = false,
   }) async {

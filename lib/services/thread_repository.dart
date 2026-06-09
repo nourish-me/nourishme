@@ -97,7 +97,7 @@ class ThreadRepository {
   //
   // If the meal item isn't found at oldAt (already moved by a previous
   // edit, or createdAt drifted), the call is a silent no-op rather than
-  // throwing — defensive against any state we missed.
+  // throwing - defensive against any state we missed.
   Future<void> updateMealItemTime(
       String mealId, DateTime oldAt, DateTime newAt) async {
     final sameDay = oldAt.year == newAt.year &&

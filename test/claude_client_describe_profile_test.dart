@@ -7,7 +7,7 @@ import 'package:nurturetrack/services/claude_client.dart';
 // The share-percent thresholds (25 / 50 / 75 / 100) are the bug-prone part:
 // each boundary is pinned below so an off-by-one (`>` vs `>=`) goes red.
 void main() {
-  group('describeProfile — German (locale "de")', () {
+  group('describeProfile - German (locale "de")', () {
     test('no milk supply when numChildren <= 0', () {
       expect(
         ClaudeClient.describeProfile(0, 0, locale: 'de'),
@@ -58,7 +58,7 @@ void main() {
     });
   });
 
-  group('describeProfile — English (default + "en")', () {
+  group('describeProfile - English (default + "en")', () {
     test('defaults to English when no locale passed', () {
       expect(
         ClaudeClient.describeProfile(0, 0),

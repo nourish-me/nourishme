@@ -107,7 +107,7 @@ Future<void> main() async {
   }
 
   // Debug builds (Simulator + Hot Reload) generate spurious framework
-  // assertions every time we edit a running app — duplicate GlobalKeys,
+  // assertions every time we edit a running app - duplicate GlobalKeys,
   // RenderFlex overflows, "TextEditingController after dispose", etc.
   // Routing those to Sentry pollutes the beta crash signal. Only init
   // Sentry for release builds.
@@ -126,7 +126,7 @@ Future<void> main() async {
       // syncs to Sentry without a hardcoded string drift.
       options.release = 'nourishme@${info.version}+${info.buildNumber}';
       options.environment = 'beta';
-      // Trace sampling stays off — we only care about crashes + errors,
+      // Trace sampling stays off - we only care about crashes + errors,
       // not performance traces. Keeps the free-tier event budget intact.
       options.tracesSampleRate = 0.0;
       // Privacy: never send default PII (IP, device-attached identifiers

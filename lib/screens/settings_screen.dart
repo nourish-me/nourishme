@@ -139,7 +139,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
-      // Allow up to 3 years back — past 12 months the user is out of the
+      // Allow up to 3 years back - past 12 months the user is out of the
       // milk-volume estimation buckets anyway, but we don't gate on that.
       firstDate: DateTime(now.year - 3),
       lastDate: now,
@@ -1190,7 +1190,7 @@ class _MilkSection extends StatelessWidget {
   final int ageGroup;
   final ValueChanged<int> onAgeChanged;
   // Optional youngest-child birth date. When set, the segmented bucket
-  // picker becomes read-only — the bucket is derived from this date and
+  // picker becomes read-only - the bucket is derived from this date and
   // re-derives itself as time passes.
   final DateTime? youngestChildBirthdate;
   final VoidCallback onPickBirthdate;

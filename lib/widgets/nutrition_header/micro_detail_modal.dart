@@ -16,7 +16,7 @@ import '../micronutrient/micronutrient_donut.dart'
 // and the primary source label.
 //
 // Omitted from v1 (vs the full design): DGE-vs-EFSA disagreement table
-// (we surface only the primary source — single row) and the LLM-
+// (we surface only the primary source - single row) and the LLM-
 // generated suggestions list. Both are post-launch.
 
 void showMicroDetailModal(BuildContext context, String nutrientKey) {
@@ -30,7 +30,7 @@ void showMicroDetailModal(BuildContext context, String nutrientKey) {
 }
 
 // Categorisation for the lactation "milk-dependent vs buffered" frame.
-// Source: the Deep Research brief — milk content of these nutrients
+// Source: the Deep Research brief - milk content of these nutrients
 // tracks maternal intake (so eating them reaches the baby), while the
 // buffered set stays adequate in milk at the mother's own expense.
 const _milkDependentKeys = {
@@ -176,7 +176,7 @@ class _MicroDetailSheet extends ConsumerWidget {
               accent: accent,
             ),
             const SizedBox(height: 20),
-            // Source & target — one row in v1 (DGE-vs-EFSA disagreement
+            // Source & target - one row in v1 (DGE-vs-EFSA disagreement
             // table is post-launch).
             Text(
               l10n.microDetailSourceHeader,

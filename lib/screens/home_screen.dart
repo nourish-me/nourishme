@@ -408,7 +408,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final id = scrollTargetMealId;
       // Skip autoscroll while a bundle scan-session is open. Intermediate
       // saves (barcode → "+ noch einen scannen") would otherwise scroll
-      // the diary under the modal — wasted work, leaves the position in a
+      // the diary under the modal - wasted work, leaves the position in a
       // weird intermediate state until the final save runs autoscroll
       // again. The final save naturally fires this dispatcher with the
       // bundle drained.
@@ -423,7 +423,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // Today + newest: scroll-to-bottom keeps the user anchored on the
         // input bar (chat-style mental model). Today + NOT newest (e.g.
         // backdated 7:30 entry while there's already lunch and dinner):
-        // scroll-to-bottom would land on dinner instead of the new entry —
+        // scroll-to-bottom would land on dinner instead of the new entry -
         // wrong. Fall back to scroll-to-meal so the user actually sees
         // what they just added. Past-day saves route through
         // scrollToDayProvider (preferred-meal path) below.
@@ -581,7 +581,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
         bottom: PreferredSize(
           // Header height varies (~50px without micros, ~75px with).
-          // Use a comfortable upper bound — Material clips/handles the
+          // Use a comfortable upper bound - Material clips/handles the
           // actual content height.
           preferredSize: const Size.fromHeight(82),
           child: Material(
@@ -655,7 +655,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       onPressed: _scrollDir == _ScrollDir.up
                           ? () => _scrollToTop()
                           : () {
-                              // Dismiss the keyboard first when present —
+                              // Dismiss the keyboard first when present -
                               // otherwise maxScrollExtent is measured with
                               // the input area pushed up, and the "bottom"
                               // we scroll to ends up partly hidden behind
@@ -774,7 +774,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       flushEmptyRun();
       // Past days with content still need a way to log retroactively (the
       // EmptyDay path only fires when items.isEmpty). Today's separator
-      // skips the affordance — the regular input bar at the bottom is
+      // skips the affordance - the regular input bar at the bottom is
       // already there for that.
       final isPastDay = day.isBefore(today);
       widgets.add(DaySeparator(

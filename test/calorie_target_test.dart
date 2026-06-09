@@ -188,7 +188,7 @@ void main() {
     });
 
     test('goal=body in pregnancy does NOT bump protein (no deficit talk)', () {
-      // Pregnancy excluded from body-goal override — protein stays at the
+      // Pregnancy excluded from body-goal override - protein stays at the
       // trimester-specific DGE value.
       final p = _pregnant(trimester: 3).copyWith(
         weightKg: 65,

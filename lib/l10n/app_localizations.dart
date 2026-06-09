@@ -2243,7 +2243,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsGoalHint.
   ///
   /// In en, this message translates to:
-  /// **'What should the coach optimise for? For body-focused options the baby\'s supply stays the top priority — a moderate deficit (max 300-500 kcal, never below 1,800 kcal/day) is allowed only from 6-8 weeks postpartum.'**
+  /// **'What should the coach optimise for? For body-focused options the baby\'s supply stays the top priority - a moderate deficit (max 300-500 kcal, never below 1,800 kcal/day) is allowed only from 6-8 weeks postpartum.'**
   String get settingsGoalHint;
 
   /// No description provided for @settingsGoalNutrients.
@@ -2327,7 +2327,7 @@ abstract class AppLocalizations {
   /// No description provided for @factGoalDetail.
   ///
   /// In en, this message translates to:
-  /// **'Nutrients (default): coach optimises only for adequate supply, no deficit talk.\n\nBody goal/Both: coach is allowed to suggest moderate deficits, but only under clear safety guardrails — never below 1,800 kcal/day in lactation, deficit max 300-500 kcal/day, at the earliest 6-8 weeks postpartum, NEVER a deficit in pregnancy, micronutrients and protein stay on target. On workout days raise protein instead of widening the deficit. One nudge to coordinate with midwife or doctor.\n\nIn the app header the protein target is raised (lactation: 1.5 g/kg instead of 1.2; otherwise 1.6 g/kg instead of 0.8) for muscle preservation during the deficit. Carbs and fat stay.'**
+  /// **'Nutrients (default): coach optimises only for adequate supply, no deficit talk.\n\nBody goal/Both: coach is allowed to suggest moderate deficits, but only under clear safety guardrails - never below 1,800 kcal/day in lactation, deficit max 300-500 kcal/day, at the earliest 6-8 weeks postpartum, NEVER a deficit in pregnancy, micronutrients and protein stay on target. On workout days raise protein instead of widening the deficit. One nudge to coordinate with midwife or doctor.\n\nIn the app header the protein target is raised (lactation: 1.5 g/kg instead of 1.2; otherwise 1.6 g/kg instead of 0.8) for muscle preservation during the deficit. Carbs and fat stay.'**
   String get factGoalDetail;
 
   /// No description provided for @factGoalSource.

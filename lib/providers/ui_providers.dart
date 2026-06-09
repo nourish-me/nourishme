@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// UI-orchestration providers — pure presentation state that doesn't
+// UI-orchestration providers - pure presentation state that doesn't
 // belong with the data/repository providers in meal_providers.dart.
 // Split out per CODE_AUDIT.md section 3.4 #2: these serve a different
 // layer than the data providers, and grouping them here makes the
 // boundary explicit.
 //
 // What lives here: tab selection, theme, scroll requests, input focus,
-// input prefill, and the chat-question loading flag — all reactive
+// input prefill, and the chat-question loading flag - all reactive
 // state that exists to drive widgets, not to model the domain.
 //
 // What does NOT live here: anything sourced from Hive (meals, profile,
@@ -51,6 +51,6 @@ final mealInputPrefillProvider =
 
 // True while a chat-question coach call is in flight; drives the
 // CoachLoadingBanner above the input. Per-meal coach state is
-// tracked separately on inFlightMealIds in CoachSessionManager — this
+// tracked separately on inFlightMealIds in CoachSessionManager - this
 // provider is only for the chat path.
 final insightLoadingProvider = StateProvider<bool>((ref) => false);

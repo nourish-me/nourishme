@@ -26,11 +26,11 @@ Antworte AUSSCHLIESSLICH mit JSON, ohne Markdown-Codeblock, in diesem Schema:
 }
 
 Regeln:
-- Werte in "values" sind PRO KAPSEL/TABLETTE/PORTION (NICHT pro Tag) — das app rechnet × doses_per_day selbst.
+- Werte in "values" sind PRO KAPSEL/TABLETTE/PORTION (NICHT pro Tag) - das app rechnet × doses_per_day selbst.
 - Nur Keys aufnehmen die auf dem Etikett tatsächlich angegeben sind. Wenn z.B. kein DHA drin ist, lass den Key weg.
 - Einheiten genau einhalten: Folat in µg, Eisen in mg, Jod in µg, Vit D in µg, DHA in mg, B12 in µg, Calcium in mg, Cholin in mg, Zink in mg.
 - Wenn das Etikett "Folsäure" sagt, behandle das als folate_ug (Folat-Äquivalent).
-- Wenn die Tabelle "% NRV" oder "% RDA" zeigt, NICHT in % zurückgeben — nimm die absolute Menge daneben.
+- Wenn die Tabelle "% NRV" oder "% RDA" zeigt, NICHT in % zurückgeben - nimm die absolute Menge daneben.
 - name: Produktname KURZ, max 40 Zeichen.
 - doses_per_day: aus dem Text der Verzehrempfehlung lesen ("1 Kapsel täglich" → 1, "2 Tabletten am Tag" → 2). Wenn unklar, 1.
 - Wenn das Foto KEIN Supplement-Etikett zeigt oder unleserlich ist, antworte mit {"name": "", "doses_per_day": 1, "values": {}} und keiner weiteren Erklärung.

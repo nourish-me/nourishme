@@ -14,13 +14,13 @@ class MiniPctCell extends StatelessWidget {
   // Percent rounded to an integer (0..200+). The pct text itself is shown
   // unless [pctOverridesText] supplies a glyph (e.g. ✓ when met).
   final double percent;
-  // Color shared by the pct text and the bar fill — passed in so the
+  // Color shared by the pct text and the bar fill - passed in so the
   // parent owns the color rule.
   final Color color;
   // Bar track color, defaults to surfaceContainerHighest in build if
   // not provided.
   final Color? trackColor;
-  // Replaces the "%" text with a widget — used for the ✓ met-state
+  // Replaces the "%" text with a widget - used for the ✓ met-state
   // glyph. When non-null, [percent] is ignored for the right-side
   // label (it's still used for the bar width).
   final Widget? pctOverridesText;
@@ -90,7 +90,7 @@ class MiniPctCell extends StatelessWidget {
                     style: TextStyle(
                       // Same fontSize + height as the name so center-
                       // aligned Row keeps both texts on the same
-                      // visual baseline. Was 11 — caused a ~0.5px
+                      // visual baseline. Was 11 - caused a ~0.5px
                       // baseline drift relative to the 11.5 name.
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
@@ -103,7 +103,7 @@ class MiniPctCell extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            // The bar — solid track + solid fill for the normal case,
+            // The bar - solid track + solid fill for the normal case,
             // dashed track + thinner solid fill for awareness.
             SizedBox(
               height: 2.5,
@@ -165,7 +165,7 @@ class _DashedBarPainter extends CustomPainter {
       );
       x += dashLen + gapLen;
     }
-    // Solid fill over the dashes — keeps the "no hard target" cue
+    // Solid fill over the dashes - keeps the "no hard target" cue
     // visible at the gap end while still reporting the value.
     if (fillFraction > 0) {
       final fillPaint = Paint()

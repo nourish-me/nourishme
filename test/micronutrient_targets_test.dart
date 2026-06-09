@@ -6,10 +6,10 @@ import 'package:nurturetrack/services/micronutrient_targets.dart';
 // Locks the DGE 2025 / EFSA reference values + phase-classification math
 // against the Deep Research brief. If anyone bumps a number by accident
 // (DGE Erratum, EFSA revision, copy-paste mistake), these go red. The
-// underlying tracker UI relies on these numbers being exactly right —
+// underlying tracker UI relies on these numbers being exactly right -
 // silently wrong targets corrupt the most important feature signal.
 void main() {
-  group('MicronutrientTargets.forKey — phase classification', () {
+  group('MicronutrientTargets.forKey - phase classification', () {
     test('non-pregnant non-lactating uses baseline values', () {
       final p = _profile();
       expect(
@@ -58,7 +58,7 @@ void main() {
     test('lactation iodine is HIGHER than pregnancy (DGE 2025)', () {
       // Key correction from the Deep Research: DGE 2025 raised lactation
       // iodine ABOVE pregnancy iodine. The earlier values had pregnancy
-      // at 230 and lactation at 260 — both wrong now. Verify the new
+      // at 230 and lactation at 260 - both wrong now. Verify the new
       // canonical numbers.
       final pregnant = _profile(isPregnant: true, trimester: 1);
       final lactating = _profile(numChildrenNursing: 1);
@@ -87,7 +87,7 @@ void main() {
 
     test('isPregnant takes precedence over numChildrenNursing in classification',
         () {
-      // Edge case: rare but legal state — pregnant again while still
+      // Edge case: rare but legal state - pregnant again while still
       // nursing the previous child. Must classify as pregnant (the more
       // restrictive set) so the tracker uses pregnancy thresholds.
       final p = _profile(
@@ -116,9 +116,9 @@ void main() {
     });
   });
 
-  group('MicronutrientTargets.allFor — completeness', () {
+  group('MicronutrientTargets.allFor - completeness', () {
     test('returns all 9 tracked nutrients regardless of phase', () {
-      // Every phase has every nutrient with a target — no nutrient is
+      // Every phase has every nutrient with a target - no nutrient is
       // dropped in any phase. Keeps the Settings list stable.
       for (final p in [
         _profile(),
@@ -132,7 +132,7 @@ void main() {
     });
   });
 
-  group('sumMicronutrientsFor — daily aggregation', () {
+  group('sumMicronutrientsFor - daily aggregation', () {
     test('empty meal list → empty map', () {
       expect(sumMicronutrientsFor(const []), <String, double>{});
     });
@@ -184,7 +184,7 @@ void main() {
     });
   });
 
-  group('ActiveSupplement — JSON roundtrip', () {
+  group('ActiveSupplement - JSON roundtrip', () {
     test('roundtrip preserves name, values, dosesPerDay, addedAt', () {
       final original = ActiveSupplement(
         name: 'Femibion 2',
@@ -218,7 +218,7 @@ void main() {
     });
   });
 
-  group('UserProfileSettings — supplement field', () {
+  group('UserProfileSettings - supplement field', () {
     test('roundtrip with active supplement preserves all fields', () {
       final original = UserProfileSettings(
         ageYears: 34,

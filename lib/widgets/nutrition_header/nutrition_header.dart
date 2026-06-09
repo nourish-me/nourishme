@@ -13,7 +13,7 @@ import '../micronutrient/micronutrient_donut.dart' show
     micronutrientStateFor;
 import 'mini_pct_cell.dart';
 
-// Unified nutrition header — replaces the old standalone KcalSummary
+// Unified nutrition header - replaces the old standalone KcalSummary
 // toolbar in the Tagebuch AppBar bottom. Three tiers in one ~58px band:
 //
 //   1. kcal headline + 3px progress bar (intake colored by sweet-spot
@@ -32,7 +32,7 @@ import 'mini_pct_cell.dart';
 // callbacks exposed now).
 //
 // The micros tier auto-hides when MicronutrientDefaults.forProfile
-// returns nothing (i.e. neither-phase users) — header still shows kcal
+// returns nothing (i.e. neither-phase users) - header still shows kcal
 // + macros, just shorter.
 class NutritionHeader extends ConsumerWidget {
   final ValueChanged<String>? onMacroTap; // 'protein' | 'carbs' | 'fat' | 'kcal'
@@ -147,7 +147,7 @@ class _KcalTier extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
         child: Row(
           children: [
-            // Headline text — intake colored by corridor, rest muted. In
+            // Headline text - intake colored by corridor, rest muted. In
             // empty state, swap to "{target} kcal Ziel" so the day reads
             // as a target rather than a deficit.
             RichText(
@@ -199,7 +199,7 @@ class _KcalTier extends StatelessWidget {
                     ),
             ),
             const SizedBox(width: 10),
-            // Inline progress bar — always primary (pine) fill regardless
+            // Inline progress bar - always primary (pine) fill regardless
             // of corridor; the corridor signal lives in the headline color.
             Expanded(
               child: ClipRRect(
@@ -343,7 +343,7 @@ class _MicrosRow extends StatelessWidget {
     final isOver = state == MicronutrientState.over;
     final isAwareness = state == MicronutrientState.awareness;
     final isEmpty = state == MicronutrientState.empty;
-    // Empty-state target preview: same logic as macros — show the
+    // Empty-state target preview: same logic as macros - show the
     // day's reference value (e.g. "230 µg") instead of "0%" so the
     // cell anchors on the goal. Awareness nutrients keep the italic
     // treatment in the preview too.
@@ -354,7 +354,7 @@ class _MicrosRow extends StatelessWidget {
       overrideText = Text(
         '${_formatTargetValue(target.value)} ${target.unitLabel}',
         style: TextStyle(
-          // Match the name + pct fontSize (11.5) — see _macroCell note.
+          // Match the name + pct fontSize (11.5) - see _macroCell note.
           fontSize: 11.5,
           fontWeight: FontWeight.w600,
           color: scheme.onSurfaceVariant,
@@ -374,7 +374,7 @@ class _MicrosRow extends StatelessWidget {
       nameTrailing: [
         // Diet-adapted glyph only meaningful when the slot was chosen by
         // the default rule (vegan/vegetarian B12 swap). Once the user
-        // hand-picks micros, the glyph is misleading — suppress it.
+        // hand-picks micros, the glyph is misleading - suppress it.
         if (profile.selectedMicronutrients == null &&
             MicronutrientDefaults.isDietAdaptedSlot(key, profile))
           Icon(Icons.eco_outlined, size: 11, color: scheme.primary),

@@ -1,7 +1,7 @@
 import '../nutrition_facts.dart';
 
 // System prompt for parseMeal (German). Used for both text-only and
-// text-with-photo entries — the image is added to the user message;
+// text-with-photo entries - the image is added to the user message;
 // this prompt stays the same.
 //
 // Edits here go live the next time the app is built. If you change

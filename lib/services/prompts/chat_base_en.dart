@@ -1,7 +1,7 @@
 import '../nutrition_facts.dart';
 
 // System prompt base for the open-ended coach chat (English). See
-// chat_base_de.dart for the layering note — daily context is appended
+// chat_base_de.dart for the layering note - daily context is appended
 // at runtime in ClaudeClient.chat.
 
 final String chatPromptBaseEn = '''
