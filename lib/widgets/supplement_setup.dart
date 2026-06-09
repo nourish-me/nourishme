@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../l10n/app_localizations.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
+import '../models/meal_entry.dart' show MicronutrientKey;
 import '../services/claude_client.dart';
 import '../services/micronutrient_targets.dart';
 
@@ -90,24 +91,20 @@ Future<ActiveSupplement?> runSupplementSetup(
   if (!context.mounted) return null;
   Navigator.of(context, rootNavigator: true).pop(); // close loading
 
-  if (parsed == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errorMessage ?? '?'),
-        duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    return null;
-  }
-
-  // Step 4: review sheet, returns ActiveSupplement or null if cancelled.
+  // Step 4: review sheet. Open it even when Vision failed - the user can
+  // still type the values in manually instead of being kicked back with a
+  // snackbar. Surface the error inline above the form so they know the
+  // photo didn't help, then let them fill in what they know.
   return await showModalBottomSheet<ActiveSupplement>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
     useSafeArea: true,
-    builder: (sheetCtx) => _ReviewSheet(parsed: parsed!),
+    builder: (sheetCtx) => _ReviewSheet(
+      parsed: parsed ??
+          const SupplementParseResult(name: '', values: {}, dosesPerDay: 1),
+      parseError: parsed == null ? errorMessage : null,
+    ),
   );
 }
 
@@ -166,7 +163,14 @@ class _ReviewSheet extends StatefulWidget {
   // True when the sheet was opened to edit an existing supplement (no
   // fresh Vision parse). Only changes the header copy; logic is the same.
   final bool isEdit;
-  const _ReviewSheet({required this.parsed, this.isEdit = false});
+  // Set when Vision failed to read the label - shown inline as a hint
+  // above the form so the user knows the empty fields aren't a bug.
+  final String? parseError;
+  const _ReviewSheet({
+    required this.parsed,
+    this.isEdit = false,
+    this.parseError,
+  });
 
   @override
   State<_ReviewSheet> createState() => _ReviewSheetState();
@@ -184,9 +188,16 @@ class _ReviewSheetState extends State<_ReviewSheet> {
     super.initState();
     _name = TextEditingController(text: widget.parsed.name);
     _dosesPerDay = widget.parsed.dosesPerDay.clamp(1, 9);
+    // Show ALL nine canonical nutrient slots, pre-filled with whatever
+    // Vision parsed and otherwise blank. Lets the user manually type any
+    // value the Vision pass missed (or all of them, if the parse failed).
     _valueControllers = {
-      for (final entry in widget.parsed.values.entries)
-        entry.key: TextEditingController(text: _fmt(entry.value)),
+      for (final key in MicronutrientKey.all)
+        key: TextEditingController(
+          text: widget.parsed.values.containsKey(key)
+              ? _fmt(widget.parsed.values[key]!)
+              : '',
+        ),
     };
   }
 
@@ -248,6 +259,34 @@ class _ReviewSheetState extends State<_ReviewSheet> {
                   : l10n.supplementReviewHint,
               style: textTheme.bodySmall?.copyWith(color: scheme.outline),
             ),
+            if (widget.parseError != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: scheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline,
+                        size: 16, color: scheme.onTertiaryContainer),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        widget.parseError!,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: scheme.onTertiaryContainer,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             TextField(
               controller: _name,
