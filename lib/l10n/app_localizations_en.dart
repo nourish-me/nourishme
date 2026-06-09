@@ -1213,4 +1213,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsMilkBirthdatePickerHelp =>
       'When was your (youngest) child born?';
+
+  @override
+  String get settingsSectionIngredients => 'Ingredients today';
+
+  @override
+  String get settingsIngredientsHint =>
+      'Anything you want to use up today? The coach factors it into the next suggestion. Expires overnight.';
+
+  @override
+  String get settingsIngredientsPlaceholder => 'e.g. zucchini, chicken, yogurt';
 }

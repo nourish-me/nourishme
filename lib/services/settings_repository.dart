@@ -25,6 +25,14 @@ class SettingsRepository {
   // bundling concept exactly in the moment the user experiences it.
   static const _bundlingToastSeenKey = 'bundling_toast_seen';
 
+  // "What do you want to use up today?" feature (briefing
+  // coach_zutaten_ziel_logik). The coach asks at most once per day and
+  // prioritises listed ingredients in the next-meal suggestion. Both keys
+  // are stored as ISO-8601 dates; the ingredients text is plain free-form.
+  static const _coachIngredientsTextKey = 'coach_ingredients_text';
+  static const _coachIngredientsDateKey = 'coach_ingredients_date';
+  static const _coachLastAskedKey = 'coach_last_asked_ingredients_date';
+
   final Box<String> _box;
 
   SettingsRepository(this._box);
@@ -137,4 +145,59 @@ class SettingsRepository {
 
   Future<void> saveReminders(ReminderSettings r) =>
       _box.put(_remindersKey, jsonEncode(r.toJson()));
+
+  // ---- Coach "ingredients today" (briefing: coach_zutaten_ziel_logik) ----
+
+  // Returns the user's stated ingredients for *today*. Auto-expires across
+  // midnight: anything stored under yesterday's date returns null.
+  String? getCoachTodaysIngredients() {
+    final dateRaw = _box.get(_coachIngredientsDateKey);
+    final text = _box.get(_coachIngredientsTextKey);
+    if (dateRaw == null || text == null || text.isEmpty) return null;
+    final stored = DateTime.tryParse(dateRaw);
+    if (stored == null) return null;
+    final now = DateTime.now();
+    if (stored.year != now.year ||
+        stored.month != now.month ||
+        stored.day != now.day) {
+      return null;
+    }
+    return text;
+  }
+
+  Future<void> setCoachTodaysIngredients(String text) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) {
+      await _box.delete(_coachIngredientsTextKey);
+      await _box.delete(_coachIngredientsDateKey);
+      return;
+    }
+    await _box.put(_coachIngredientsTextKey, trimmed);
+    await _box.put(_coachIngredientsDateKey, _dayKey(DateTime.now()));
+  }
+
+  Future<void> clearCoachIngredients() async {
+    await _box.delete(_coachIngredientsTextKey);
+    await _box.delete(_coachIngredientsDateKey);
+  }
+
+  // True iff the coach already asked the "anything to use up?" question
+  // today. Used by the per-meal flow to ask at most once per day, even if
+  // the user ignores it.
+  bool wasCoachAskedToday() {
+    final raw = _box.get(_coachLastAskedKey);
+    if (raw == null) return false;
+    final stored = DateTime.tryParse(raw);
+    if (stored == null) return false;
+    final now = DateTime.now();
+    return stored.year == now.year &&
+        stored.month == now.month &&
+        stored.day == now.day;
+  }
+
+  Future<void> markCoachAskedToday() =>
+      _box.put(_coachLastAskedKey, _dayKey(DateTime.now()));
+
+  static String _dayKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 }

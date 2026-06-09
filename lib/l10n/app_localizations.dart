@@ -2233,6 +2233,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When was your (youngest) child born?'**
   String get settingsMilkBirthdatePickerHelp;
+
+  /// No description provided for @settingsSectionIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients today'**
+  String get settingsSectionIngredients;
+
+  /// No description provided for @settingsIngredientsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything you want to use up today? The coach factors it into the next suggestion. Expires overnight.'**
+  String get settingsIngredientsHint;
+
+  /// No description provided for @settingsIngredientsPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. zucchini, chicken, yogurt'**
+  String get settingsIngredientsPlaceholder;
 }
 
 class _AppLocalizationsDelegate

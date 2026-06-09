@@ -459,5 +459,9 @@
   "settingsMilkBirthdatePick": "Geburtsdatum eintragen",
   "settingsMilkBirthdateClear": "Geburtsdatum entfernen",
   "settingsMilkBirthdateAuto": "Alter wird daraus laufend berechnet.",
-  "settingsMilkBirthdatePickerHelp": "Wann wurde dein (jüngstes) Kind geboren?"
+  "settingsMilkBirthdatePickerHelp": "Wann wurde dein (jüngstes) Kind geboren?",
+
+  "settingsSectionIngredients": "Zutaten heute",
+  "settingsIngredientsHint": "Was möchtest du heute verbrauchen? Der Coach berücksichtigt das beim nächsten Vorschlag. Verfällt über Nacht.",
+  "settingsIngredientsPlaceholder": "z.B. Zucchini, Hähnchen, Joghurt"
 }

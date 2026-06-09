@@ -178,6 +178,17 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         ? _microNudgeFor(profile, mealsForTotal, last, isDe: isDe)
         : null;
 
+    // "What do you want to use up today?" — coach asks at most once a day,
+    // and skips the ask entirely when ingredients are already stored. The
+    // ask flips on only for live saves (not for edit-regenerates) so the
+    // regen path doesn't double-prompt.
+    final settingsRepo = _ref.read(settingsRepositoryProvider);
+    final ingredients = settingsRepo.getCoachTodaysIngredients();
+    final askedToday = settingsRepo.wasCoachAskedToday();
+    final askForIngredients = requestFollowUps != false &&
+        !askedToday &&
+        ingredients == null;
+
     try {
       final response = await client.generatePerMealResponse(
         mealRawText: combinedRawText,
@@ -209,6 +220,8 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
             requestFollowUps ?? mealsForTotal.length % 3 == 0,
         weightTrend: notableTrend,
         microNudge: microNudge,
+        ingredients: ingredients,
+        askForIngredients: askForIngredients,
       );
       final coachAt = coachAnchorFor(last.createdAt);
       await threadRepo.add(ThreadItem.coachResponse(
@@ -221,6 +234,11 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
       if (meals.length > 1) {
         analytics.capture('coach_session_fired',
             properties: {'item_count': meals.length});
+      }
+      // The "anything to use up?" question counts as asked even if the
+      // user doesn't answer in this turn — prevents nagging.
+      if (askForIngredients) {
+        await settingsRepo.markCoachAskedToday();
       }
     } catch (e, stack) {
       debugPrint('Coach call failed for ${meals.length} meal(s): $e\n$stack');

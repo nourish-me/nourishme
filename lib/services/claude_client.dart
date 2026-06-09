@@ -456,6 +456,11 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     bool requestFollowUps = false,
     String? weightTrend,
     String? microNudge,
+    // "What do you want to use up today?" feature. ingredients carries the
+    // user's stated list (free text) if any; askForIngredients flips on
+    // when we haven't asked today yet and have no stored list.
+    String? ingredients,
+    bool askForIngredients = false,
   }) async {
     final isDe = _isGerman(locale);
     // The coach reasons about meal timing ("breakfast", "next meal") from
@@ -541,6 +546,16 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     }
     if (microNudge != null && microNudge.isNotEmpty) {
       finalUserMessage += '\n\n$microNudge';
+    }
+    if (ingredients != null && ingredients.isNotEmpty) {
+      finalUserMessage += isDe
+          ? '\n\nVorhandene Zutaten: $ingredients. Beim NÄCHSTEN Vorschlag priorisieren. Nährstoffziele und Bewertung des aktuellen Gerichts haben Vorrang. Passt eine Zutat nicht sinnvoll, weglassen. Kurz erwähnen, welche Zutaten du verwendet hast.'
+          : '\n\nAvailable ingredients: $ingredients. Prioritise in the NEXT suggestion. Nutrient goals and the current meal review take precedence; drop an ingredient if it does not fit. Briefly note which ingredients you used.';
+    }
+    if (askForIngredients) {
+      finalUserMessage += isDe
+          ? '\n\nFrage die Nutzerin am Ende kurz und beiläufig, ob sie heute etwas Bestimmtes verbrauchen möchte, das du beim nächsten Vorschlag berücksichtigst.'
+          : '\n\nAt the end, briefly and casually ask the user whether there is anything in particular she wants to use up today for you to factor into the next suggestion.';
     }
     if (requestFollowUps) {
       finalUserMessage += isDe ? followUpInstructionDe : followUpInstructionEn;

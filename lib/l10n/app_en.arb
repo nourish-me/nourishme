@@ -602,5 +602,9 @@
   "settingsMilkBirthdatePick": "Pick birth date",
   "settingsMilkBirthdateClear": "Clear birth date",
   "settingsMilkBirthdateAuto": "Age bucket follows automatically.",
-  "settingsMilkBirthdatePickerHelp": "When was your (youngest) child born?"
+  "settingsMilkBirthdatePickerHelp": "When was your (youngest) child born?",
+
+  "settingsSectionIngredients": "Ingredients today",
+  "settingsIngredientsHint": "Anything you want to use up today? The coach factors it into the next suggestion. Expires overnight.",
+  "settingsIngredientsPlaceholder": "e.g. zucchini, chicken, yogurt"
 }
