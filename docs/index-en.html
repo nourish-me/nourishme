@@ -1045,12 +1045,12 @@
       </div>
       <div class="story-content">
         <span class="mono">Why NourishMe exists</span>
-        <h2>14 weeks ago I had twins. <em>Leo and Carl.</em></h2>
+        <h2><span id="weeks-since-birth">17</span> weeks ago I had twins. <em>Leo and Carl.</em></h2>
         <p>
           From the first week of my pregnancy, one question stayed with me: am I actually eating enough, for all three of us? Every nutrient goes to the babies first. I had to stay on top of my own intake for the whole thing to keep running.
         </p>
         <p>
-          And there was just nothing out there that could tell me. Diet apps cut blind, whether you're nursing or not. NourishMe knows the difference. Pregnancy apps clocked out the day you gave birth. Breastfeeding apps slapped on a flat +500 kcal, one baby or twins, nursing or pumping, didn't matter.
+          And there was just nothing out there that could tell me. Diet apps cut blind, whether you're nursing or not. NourishMe only cuts as far as your milk and your own supply safely allow. Pregnancy apps clocked out the day you gave birth. Breastfeeding apps slapped on a flat +500 kcal, one baby or twins, nursing or pumping, didn't matter.
         </p>
         <p>
           So I started building one myself. That's how <b>NourishMe</b> came to be.
@@ -1244,6 +1244,21 @@
       render();
     });
   });
+})();
+
+// Twins-age headline: refresh the "X weeks ago" count from Carl + Leo's
+// birth date (2026-02-09). Falls back to the hardcoded number in the
+// HTML if JS is off or the count is outside the plausible 1-52 week
+// range (after that the founder copy needs a manual rewrite —
+// months/years don't read as crisp as "X weeks ago").
+(function () {
+  var el = document.getElementById('weeks-since-birth');
+  if (!el) return;
+  var birth = new Date('2026-02-09T00:00:00');
+  var weeks = Math.floor(
+    (Date.now() - birth.getTime()) / (1000 * 60 * 60 * 24 * 7)
+  );
+  if (weeks > 0 && weeks <= 52) el.textContent = weeks;
 })();
 </script>
 

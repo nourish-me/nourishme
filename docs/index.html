@@ -1045,12 +1045,12 @@
       </div>
       <div class="story-content">
         <span class="mono">Warum es NourishMe gibt</span>
-        <h2>Vor 14 Wochen habe ich Zwillinge bekommen. <em>Carl und Leo.</em></h2>
+        <h2>Vor <span id="weeks-since-birth">17</span> Wochen habe ich Zwillinge bekommen. <em>Carl und Leo.</em></h2>
         <p>
           Schon ab der ersten Schwangerschaftswoche ließ mich eine Frage nicht los: Esse ich gerade genug für uns drei? Jeder Nährstoff geht erst an den Nachwuchs. Ich muss selbst gut versorgt sein, damit das System läuft.
         </p>
         <p>
-          Eine App, die mir das beantworten konnte, gab es nicht. Diät-Apps kürzen blind, egal ob du stillst. NourishMe kennt den Unterschied. Apps für Schwangere enden am Tag der Geburt. Apps fürs Stillen rechnen pauschal +500 kcal, egal ob ein Kind oder Zwillinge, egal ob Stillen oder Pumpen.
+          Eine App, die mir das beantworten konnte, gab es nicht. Diät-Apps kürzen blind, egal ob du stillst. NourishMe kürzt nur so weit, wie deine Milch und deine eigene Versorgung es sicher zulassen. Apps für Schwangere enden am Tag der Geburt. Apps fürs Stillen rechnen pauschal +500 kcal, egal ob ein Kind oder Zwillinge, egal ob Stillen oder Pumpen.
         </p>
         <p>
           Also habe ich angefangen, mir selbst eine zu bauen. So ist <b>NourishMe</b> entstanden.
@@ -1244,6 +1244,21 @@
       render();
     });
   });
+})();
+
+// Twins-age headline: refresh the "Vor X Wochen" count from Carl + Leo's
+// birth date (2026-02-09). Falls back to the hardcoded number in the
+// HTML if JS is off or the count outside the plausible 1-52 week range
+// (after that the founder copy needs a manual rewrite — months/years
+// don't read as crisp as "vor X Wochen").
+(function () {
+  var el = document.getElementById('weeks-since-birth');
+  if (!el) return;
+  var birth = new Date('2026-02-09T00:00:00');
+  var weeks = Math.floor(
+    (Date.now() - birth.getTime()) / (1000 * 60 * 60 * 24 * 7)
+  );
+  if (weeks > 0 && weeks <= 52) el.textContent = weeks;
 })();
 </script>
 
