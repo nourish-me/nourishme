@@ -1324,6 +1324,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supplementRemove => 'Remove supplement';
 
   @override
+  String get supplementEdit => 'Edit';
+
+  @override
+  String get supplementEditTitle => 'Edit supplement';
+
+  @override
+  String get supplementEditHint =>
+      'Adjust name, doses or values directly. No new photo needed.';
+
+  @override
+  String get supplementAddAnotherCta => 'Add another supplement';
+
+  @override
   String supplementCurrentLabel(String name) {
     return 'Current: $name';
   }

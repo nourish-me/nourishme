@@ -646,6 +646,10 @@
   "supplementCancel": "Discard",
   "supplementRetry": "Different photo",
   "supplementRemove": "Remove supplement",
+  "supplementEdit": "Edit",
+  "supplementEditTitle": "Edit supplement",
+  "supplementEditHint": "Adjust name, doses or values directly. No new photo needed.",
+  "supplementAddAnotherCta": "Add another supplement",
   "supplementCurrentLabel": "Current: {name}",
   "@supplementCurrentLabel": {
     "placeholders": {

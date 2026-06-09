@@ -377,15 +377,18 @@ class MicronutrientDisplay {
   static MicronutrientDisplay? forKey(String key) => _table[key];
 }
 
-// True when the active supplement contributes a non-zero amount for
-// [nutrientKey]. Used to surface the "+" marker on the matching cell.
+// True when at least one active supplement contributes a non-zero amount
+// for [nutrientKey]. Used to surface the "+" marker on the matching cell.
 bool nutrientHasSupplementContribution(
     String nutrientKey, UserProfileSettings profile) {
-  final v = profile.activeSupplement?.values[nutrientKey];
-  return v != null && v > 0;
+  for (final s in profile.activeSupplements) {
+    final v = s.values[nutrientKey];
+    if (v != null && v > 0) return true;
+  }
+  return false;
 }
 
-// Fold a day's meals + the active supplement into the running total for
+// Fold a day's meals + every active supplement into the running total for
 // [nutrientKey]. Used by NutritionHeader's micros tier to drive the cell
 // progress.
 double dailyIntakeFor(
@@ -394,7 +397,8 @@ double dailyIntakeFor(
     final v = m.micronutrients?[nutrientKey];
     return sum + (v ?? 0);
   });
-  final supplementSum = profile.activeSupplement?.values[nutrientKey] ?? 0;
+  final supplementSum = profile.activeSupplements.fold<double>(
+      0, (sum, s) => sum + (s.values[nutrientKey] ?? 0));
   return mealsSum + supplementSum;
 }
 

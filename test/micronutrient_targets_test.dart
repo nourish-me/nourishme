@@ -218,8 +218,8 @@ void main() {
     });
   });
 
-  group('UserProfileSettings - supplement field', () {
-    test('roundtrip with active supplement preserves all fields', () {
+  group('UserProfileSettings - supplements field', () {
+    test('roundtrip with one supplement preserves all fields', () {
       final original = UserProfileSettings(
         ageYears: 34,
         heightCm: 167,
@@ -229,65 +229,95 @@ void main() {
         milkSharePercent: 100,
         childrenAgeGroup: 0,
         dailyMilkVolumeMl: 1500,
-        activeSupplement: ActiveSupplement(
-          name: 'Femibion 2',
-          values: const {'folate_ug': 400, 'iodine_ug': 150},
+        activeSupplements: [
+          ActiveSupplement(
+            name: 'Femibion 2',
+            values: const {'folate_ug': 400, 'iodine_ug': 150},
+            dosesPerDay: 1,
+            addedAt: DateTime(2026, 6, 6),
+          ),
+        ],
+      );
+      final back = UserProfileSettings.fromJson(original.toJson());
+      expect(back.activeSupplements.length, 1);
+      expect(back.activeSupplements.first.name, 'Femibion 2');
+      expect(back.activeSupplements.first.values['folate_ug'], 400);
+    });
+
+    test('roundtrip with multiple supplements preserves order + content', () {
+      final original = _profile().copyWith(activeSupplements: [
+        ActiveSupplement(
+          name: 'Folio',
+          values: const {'folate_ug': 800},
           dosesPerDay: 1,
-          addedAt: DateTime(2026, 6, 6),
+          addedAt: DateTime(2026, 6, 1),
         ),
-      );
+        ActiveSupplement(
+          name: 'Omega-3',
+          values: const {'dha_mg': 200},
+          dosesPerDay: 2,
+          addedAt: DateTime(2026, 6, 2),
+        ),
+      ]);
       final back = UserProfileSettings.fromJson(original.toJson());
-      expect(back.activeSupplement, isNotNull);
-      expect(back.activeSupplement!.name, 'Femibion 2');
-      expect(back.activeSupplement!.values['folate_ug'], 400);
+      expect(back.activeSupplements.length, 2);
+      expect(back.activeSupplements[0].name, 'Folio');
+      expect(back.activeSupplements[1].name, 'Omega-3');
+      expect(back.activeSupplements[1].dosesPerDay, 2);
     });
 
-    test('roundtrip without active supplement leaves field null', () {
-      final original = UserProfileSettings(
-        ageYears: 34,
-        heightCm: 167,
-        weightKg: 56,
-        activityFactor: 1.375,
-        numChildrenNursing: 0,
-        milkSharePercent: 0,
-        childrenAgeGroup: 0,
-        // activeSupplement omitted
-      );
-      final back = UserProfileSettings.fromJson(original.toJson());
-      expect(back.activeSupplement, isNull);
+    test('legacy JSON with single activeSupplement migrates to a 1-list', () {
+      final legacyJson = {
+        'ageYears': 30,
+        'heightCm': 165.0,
+        'weightKg': 60.0,
+        'activityFactor': 1.375,
+        'numChildrenNursing': 1,
+        'milkSharePercent': 100,
+        'childrenAgeGroup': 0,
+        'activeSupplement': {
+          'name': 'Old format',
+          'values': {'iron_mg': 14.0},
+          'dosesPerDay': 1,
+          'addedAt': '2026-05-01T00:00:00.000',
+        },
+      };
+      final p = UserProfileSettings.fromJson(legacyJson);
+      expect(p.activeSupplements.length, 1);
+      expect(p.activeSupplements.first.name, 'Old format');
     });
 
-    test('copyWith without activeSupplement arg leaves existing supplement',
-        () {
-      final p = _profile().copyWith(
-        activeSupplement: ActiveSupplement(
+    test('roundtrip with no supplements leaves an empty list', () {
+      final original = _profile();
+      final back = UserProfileSettings.fromJson(original.toJson());
+      expect(back.activeSupplements, isEmpty);
+    });
+
+    test('copyWith without activeSupplements arg leaves existing list', () {
+      final p = _profile().copyWith(activeSupplements: [
+        ActiveSupplement(
           name: 'Elevit',
           values: const {'folate_ug': 800},
           dosesPerDay: 1,
           addedAt: DateTime(2026, 6, 6),
         ),
-      );
-      // Calling copyWith with no activeSupplement arg should leave the
-      // existing supplement intact (not silently clear it).
+      ]);
       final modified = p.copyWith(weightKg: 60);
-      expect(modified.activeSupplement?.name, 'Elevit');
-      expect(modified.weightKg, 60);
+      expect(modified.activeSupplements.length, 1);
+      expect(modified.activeSupplements.first.name, 'Elevit');
     });
 
-    test('copyWith with explicit null clears the supplement', () {
-      final p = _profile().copyWith(
-        activeSupplement: ActiveSupplement(
+    test('copyWith with empty list clears supplements', () {
+      final p = _profile().copyWith(activeSupplements: [
+        ActiveSupplement(
           name: 'Elevit',
           values: const {'folate_ug': 800},
           dosesPerDay: 1,
           addedAt: DateTime(2026, 6, 6),
         ),
-      );
-      // The sentinel-based copyWith API lets the caller pass an explicit
-      // null to clear, distinct from "omit to leave alone". This is the
-      // path the "delete supplement" UI button will use.
-      final cleared = p.copyWith(activeSupplement: null);
-      expect(cleared.activeSupplement, isNull);
+      ]);
+      final cleared = p.copyWith(activeSupplements: const []);
+      expect(cleared.activeSupplements, isEmpty);
     });
   });
 }

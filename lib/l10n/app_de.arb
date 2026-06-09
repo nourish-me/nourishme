@@ -503,6 +503,10 @@
   "supplementCancel": "Verwerfen",
   "supplementRetry": "Anderes Foto",
   "supplementRemove": "Supplement entfernen",
+  "supplementEdit": "Bearbeiten",
+  "supplementEditTitle": "Supplement bearbeiten",
+  "supplementEditHint": "Passe Name, Dosen oder Werte direkt an. Kein neues Foto nötig.",
+  "supplementAddAnotherCta": "Weiteres Supplement hinzufügen",
   "supplementCurrentLabel": "Aktuell: {name}",
   "@supplementCurrentLabel": {
     "placeholders": {

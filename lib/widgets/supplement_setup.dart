@@ -111,6 +111,31 @@ Future<ActiveSupplement?> runSupplementSetup(
   );
 }
 
+// Direct edit on an existing supplement - no photo, no Vision call.
+// Reuses the same _ReviewSheet UI but skips the parse step. Returns the
+// edited supplement or null if cancelled.
+Future<ActiveSupplement?> showSupplementEditSheet(
+  BuildContext context,
+  ActiveSupplement current,
+) {
+  // Hand the existing supplement to the sheet by adapting it to the same
+  // SupplementParseResult shape the review UI already speaks. The added-at
+  // timestamp on the original is preserved by the caller (Settings does
+  // index-based replace), the sheet only edits the editable fields.
+  final asResult = SupplementParseResult(
+    name: current.name,
+    values: Map<String, double>.from(current.values),
+    dosesPerDay: current.dosesPerDay,
+  );
+  return showModalBottomSheet<ActiveSupplement>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    useSafeArea: true,
+    builder: (_) => _ReviewSheet(parsed: asResult, isEdit: true),
+  );
+}
+
 class _LoadingDialog extends StatelessWidget {
   final String text;
   const _LoadingDialog({required this.text});
@@ -138,7 +163,10 @@ class _LoadingDialog extends StatelessWidget {
 
 class _ReviewSheet extends StatefulWidget {
   final SupplementParseResult parsed;
-  const _ReviewSheet({required this.parsed});
+  // True when the sheet was opened to edit an existing supplement (no
+  // fresh Vision parse). Only changes the header copy; logic is the same.
+  final bool isEdit;
+  const _ReviewSheet({required this.parsed, this.isEdit = false});
 
   @override
   State<_ReviewSheet> createState() => _ReviewSheetState();
@@ -208,12 +236,16 @@ class _ReviewSheetState extends State<_ReviewSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              l10n.supplementReviewTitle,
+              widget.isEdit
+                  ? l10n.supplementEditTitle
+                  : l10n.supplementReviewTitle,
               style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.supplementReviewHint,
+              widget.isEdit
+                  ? l10n.supplementEditHint
+                  : l10n.supplementReviewHint,
               style: textTheme.bodySmall?.copyWith(color: scheme.outline),
             ),
             const SizedBox(height: 16),

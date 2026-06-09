@@ -2432,6 +2432,30 @@ abstract class AppLocalizations {
   /// **'Remove supplement'**
   String get supplementRemove;
 
+  /// No description provided for @supplementEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get supplementEdit;
+
+  /// No description provided for @supplementEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit supplement'**
+  String get supplementEditTitle;
+
+  /// No description provided for @supplementEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust name, doses or values directly. No new photo needed.'**
+  String get supplementEditHint;
+
+  /// No description provided for @supplementAddAnotherCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another supplement'**
+  String get supplementAddAnotherCta;
+
   /// No description provided for @supplementCurrentLabel.
   ///
   /// In en, this message translates to:

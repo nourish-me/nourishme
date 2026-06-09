@@ -163,10 +163,11 @@ final userProfileProvider = StreamProvider<UserProfileSettings>((ref) {
 final todayMicronutrientsProvider = Provider<Map<String, double>>((ref) {
   final meals = ref.watch(todayMealsProvider);
   final totals = sumMicronutrientsFor(meals);
-  final supplement =
-      ref.watch(userProfileProvider).valueOrNull?.activeSupplement;
-  if (supplement != null) {
-    for (final entry in supplement.values.entries) {
+  final supplements =
+      ref.watch(userProfileProvider).valueOrNull?.activeSupplements ??
+          const [];
+  for (final s in supplements) {
+    for (final entry in s.values.entries) {
       totals[entry.key] = (totals[entry.key] ?? 0) + entry.value;
     }
   }

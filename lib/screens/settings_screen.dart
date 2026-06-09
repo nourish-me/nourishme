@@ -65,9 +65,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   DateTime? _youngestChildBirthdate;
   // Coach focus: 'nutrients' (default), 'body', or 'both'.
   late String _goal;
-  // Snapshot of the current supplement so Settings can show + edit + clear
-  // it without leaving the screen. _save persists this back to the profile.
-  ActiveSupplement? _supplement;
+  // Snapshot of the user's supplements so Settings can show + add + edit +
+  // remove without leaving the screen. _save persists back to the profile.
+  late List<ActiveSupplement> _supplements;
   // Hand-picked micronutrient subset for the diary header. null = follow
   // phase/diet defaults; non-null overrides them (capped at 3 by the UI).
   List<String>? _selectedMicros;
@@ -116,7 +116,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _selectedMicros =
         p.selectedMicronutrients == null ? null : [...p.selectedMicronutrients!];
     _goal = p.goal;
-    _supplement = p.activeSupplement;
+    _supplements = [...p.activeSupplements];
     _initialProfileJson = jsonEncode(p.toJson());
 
     for (final c in [_height, _weight, _dietaryNotes]) {
@@ -207,7 +207,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         selectedMicronutrients:
             _selectedMicros == null ? null : List<String>.from(_selectedMicros!),
         goal: _goal,
-        activeSupplement: _supplement,
+        activeSupplements: List<ActiveSupplement>.from(_supplements),
       );
 
   void _onSharePercentChanged(int v) {
@@ -489,14 +489,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 _SupplementSection(
-                  supplement: _supplement,
-                  onStartSetup: () async {
+                  supplements: _supplements,
+                  onAdd: () async {
                     final result = await runSupplementSetup(context, ref);
                     if (result != null && mounted) {
-                      setState(() => _supplement = result);
+                      setState(() => _supplements = [..._supplements, result]);
                     }
                   },
-                  onClear: () => setState(() => _supplement = null),
+                  onEdit: (index, edited) =>
+                      setState(() => _supplements = [
+                            for (var i = 0; i < _supplements.length; i++)
+                              if (i == index) edited else _supplements[i],
+                          ]),
+                  onRemove: (index) => setState(() => _supplements = [
+                        for (var i = 0; i < _supplements.length; i++)
+                          if (i != index) _supplements[i],
+                      ]),
                 ),
                 const SizedBox(height: 12),
                 _MicronutrientsSection(
@@ -1966,13 +1974,61 @@ class _GoalSection extends StatelessWidget {
 }
 
 class _SupplementSection extends StatelessWidget {
-  final ActiveSupplement? supplement;
-  final VoidCallback onStartSetup;
-  final VoidCallback onClear;
+  final List<ActiveSupplement> supplements;
+  final VoidCallback onAdd;
+  final void Function(int index, ActiveSupplement edited) onEdit;
+  final void Function(int index) onRemove;
   const _SupplementSection({
+    required this.supplements,
+    required this.onAdd,
+    required this.onEdit,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return _Section(
+      title: l10n.supplementSectionTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < supplements.length; i++) ...[
+            _SupplementListItem(
+              supplement: supplements[i],
+              onEdit: () async {
+                final edited =
+                    await showSupplementEditSheet(context, supplements[i]);
+                if (edited != null) onEdit(i, edited);
+              },
+              onRemove: () => onRemove(i),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(supplements.isEmpty
+                  ? l10n.supplementAddCta
+                  : l10n.supplementAddAnotherCta),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SupplementListItem extends StatelessWidget {
+  final ActiveSupplement supplement;
+  final VoidCallback onEdit;
+  final VoidCallback onRemove;
+  const _SupplementListItem({
     required this.supplement,
-    required this.onStartSetup,
-    required this.onClear,
+    required this.onEdit,
+    required this.onRemove,
   });
 
   @override
@@ -1980,61 +2036,64 @@ class _SupplementSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return _Section(
-      title: l10n.supplementSectionTitle,
-      child: supplement == null
-          ? Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.tonalIcon(
-                onPressed: onStartSetup,
-                icon: const Icon(Icons.medication_outlined, size: 18),
-                label: Text(l10n.supplementAddCta),
-              ),
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.supplementCurrentLabel(supplement!.name),
-                  style: textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  l10n.supplementCurrentDoses(supplement!.dosesPerDay),
-                  style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final e in supplement!.values.entries)
-                      _SupplementValueChip(nutrientKey: e.key, value: e.value),
+                    Text(
+                      supplement.name,
+                      style: textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      l10n.supplementCurrentDoses(supplement.dosesPerDay),
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: scheme.outline),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                // Stacked vertically because both labels are long ("Anderes
-                // Foto", "Supplement entfernen") and the side-by-side layout
-                // wrapped/clipped on iPhone widths.
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: onStartSetup,
-                    icon: const Icon(Icons.edit_outlined, size: 16),
-                    label: Text(l10n.supplementRetry),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: onClear,
-                    icon: const Icon(Icons.close, size: 16),
-                    label: Text(l10n.supplementRemove),
-                  ),
-                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                tooltip: l10n.supplementEdit,
+                onPressed: onEdit,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                tooltip: l10n.supplementRemove,
+                onPressed: onRemove,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+            ],
+          ),
+          if (supplement.values.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final e in supplement.values.entries)
+                  _SupplementValueChip(nutrientKey: e.key, value: e.value),
               ],
             ),
+          ],
+        ],
+      ),
     );
   }
 }

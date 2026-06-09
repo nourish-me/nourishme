@@ -47,13 +47,12 @@ class UserProfileSettings {
   final Set<String> restrictions;
   final String dietaryNotes;
 
-  // Daily supplement (e.g. prenatal multivitamin). Photographed once by
-  // the user; Claude Vision parses the nutrient table into structured
-  // values. Those values get added to every day's micronutrient totals
-  // alongside dietary intake. Null when the user hasn't configured one.
-  // v1 supports a single active supplement; multi-supplement is a
-  // post-launch follow-up.
-  final ActiveSupplement? activeSupplement;
+  // Daily supplements (e.g. prenatal multivitamin + omega-3 + vitamin D).
+  // Photographed by the user; Claude Vision parses each nutrient table
+  // into structured values. Values get added to every day's micronutrient
+  // totals alongside dietary intake. Empty list when the user has none
+  // configured.
+  final List<ActiveSupplement> activeSupplements;
 
   // User-picked list of MicronutrientKey strings to show in the diary
   // header. Null means "use the phase/diet default" (MicronutrientDefaults
@@ -88,7 +87,7 @@ class UserProfileSettings {
     this.dietStyle = DietStyle.omnivore,
     this.restrictions = const {},
     this.dietaryNotes = '',
-    this.activeSupplement,
+    this.activeSupplements = const [],
     this.selectedMicronutrients,
     this.goal = CoachGoal.nutrients,
   });
@@ -199,13 +198,14 @@ class UserProfileSettings {
     String? dietStyle,
     Set<String>? restrictions,
     String? dietaryNotes,
-    // copyWith for nullable fields uses a Object-typed sentinel so the
+    // copyWith for nullable fields uses an Object-typed sentinel so the
     // caller can distinguish "leave alone" from "explicitly clear to
-    // null". Needed for activeSupplement so the "delete supplement"
-    // action can pass `activeSupplement: null` and have it actually
-    // null out the field instead of being interpreted as "keep
-    // existing".
-    Object? activeSupplement = _unset,
+    // null". Needed for selectedMicronutrients so the "reset to phase
+    // defaults" action can pass `selectedMicronutrients: null` and have
+    // it actually null out the field instead of being interpreted as
+    // "keep existing". activeSupplements is non-nullable (defaults to
+    // an empty list) and uses the regular `??` pattern.
+    List<ActiveSupplement>? activeSupplements,
     Object? selectedMicronutrients = _unset,
     String? goal,
   }) =>
@@ -230,9 +230,7 @@ class UserProfileSettings {
         dietStyle: dietStyle ?? this.dietStyle,
         restrictions: restrictions ?? this.restrictions,
         dietaryNotes: dietaryNotes ?? this.dietaryNotes,
-        activeSupplement: identical(activeSupplement, _unset)
-            ? this.activeSupplement
-            : activeSupplement as ActiveSupplement?,
+        activeSupplements: activeSupplements ?? this.activeSupplements,
         selectedMicronutrients: identical(selectedMicronutrients, _unset)
             ? this.selectedMicronutrients
             : selectedMicronutrients as List<String>?,
@@ -259,8 +257,8 @@ class UserProfileSettings {
         'dietStyle': dietStyle,
         'restrictions': restrictions.toList(),
         'dietaryNotes': dietaryNotes,
-        if (activeSupplement != null)
-          'activeSupplement': activeSupplement!.toJson(),
+        if (activeSupplements.isNotEmpty)
+          'activeSupplements': activeSupplements.map((s) => s.toJson()).toList(),
         if (selectedMicronutrients != null)
           'selectedMicronutrients': selectedMicronutrients,
         'goal': goal,
@@ -295,10 +293,24 @@ class UserProfileSettings {
               .toSet() ??
           const {},
       dietaryNotes: json['dietaryNotes'] as String? ?? '',
-      activeSupplement: (json['activeSupplement'] as Map<String, dynamic>?) != null
-          ? ActiveSupplement.fromJson(
-              json['activeSupplement'] as Map<String, dynamic>)
-          : null,
+      // Backwards-compat: pre-multi profiles saved a single `activeSupplement`
+      // object; new code uses `activeSupplements` (list). Read both; the list
+      // wins if both are present.
+      activeSupplements: () {
+        final list = json['activeSupplements'] as List?;
+        if (list != null) {
+          return list
+              .whereType<Map>()
+              .map((m) =>
+                  ActiveSupplement.fromJson(Map<String, dynamic>.from(m)))
+              .toList();
+        }
+        final single = json['activeSupplement'] as Map<String, dynamic>?;
+        if (single != null) {
+          return [ActiveSupplement.fromJson(single)];
+        }
+        return const <ActiveSupplement>[];
+      }(),
       selectedMicronutrients: (json['selectedMicronutrients'] as List?)
           ?.whereType<String>()
           .toList(),

@@ -63,9 +63,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Coach focus chosen during onboarding. Defaults to nutrients so a user
   // who just taps through gets the safer no-deficit-talk coach.
   String _goal = CoachGoal.nutrients;
-  // Optional supplement captured during onboarding via Vision-parse. Null
-  // when the user skipped that step or doesn't take one.
-  ActiveSupplement? _supplement;
+  // Supplements captured during onboarding via Vision-parse. Empty list
+  // when the user skipped the step.
+  List<ActiveSupplement> _supplements = const [];
   int _trimester = 1;
 
   // Body fields are pre-filled with neutral defaults so the user can advance
@@ -227,7 +227,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _isLactating = true;
       _phaseExplicitlyNeither = false;
       _goal = CoachGoal.nutrients;
-      _supplement = null;
+      _supplements = const [];
       _trimester = 1;
       _birthdate = DateTime(
           DateTime.now().year - 30, DateTime.now().month, DateTime.now().day);
@@ -291,7 +291,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         dailyMilkVolumeMl: _isLactating ? _dailyVolumeMl : 0,
         milkSupplementKcal: 0, // derived from volume
         goal: _goal,
-        activeSupplement: _supplement,
+        activeSupplements: List<ActiveSupplement>.from(_supplements),
       );
 
   Future<void> _finish() async {
@@ -449,15 +449,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           setState(() => _dailyVolumeMl = v),
                     ),
                     _SupplementStep(
-                      supplement: _supplement,
-                      onStartSetup: () async {
+                      supplements: _supplements,
+                      onAdd: () async {
                         final result =
                             await runSupplementSetup(context, ref);
                         if (result != null && mounted) {
-                          setState(() => _supplement = result);
+                          setState(() =>
+                              _supplements = [..._supplements, result]);
                         }
                       },
-                      onClear: () => setState(() => _supplement = null),
+                      onEdit: (index, edited) =>
+                          setState(() => _supplements = [
+                                for (var i = 0; i < _supplements.length; i++)
+                                  if (i == index) edited else _supplements[i],
+                              ]),
+                      onRemove: (index) =>
+                          setState(() => _supplements = [
+                                for (var i = 0; i < _supplements.length; i++)
+                                  if (i != index) _supplements[i],
+                              ]),
                       onSkip: _next,
                     ),
                     _SummaryStep(
@@ -1524,16 +1534,18 @@ class _GoalStep extends StatelessWidget {
 }
 
 class _SupplementStep extends StatelessWidget {
-  final ActiveSupplement? supplement;
-  final VoidCallback onStartSetup;
-  final VoidCallback onClear;
+  final List<ActiveSupplement> supplements;
+  final VoidCallback onAdd;
+  final void Function(int index, ActiveSupplement edited) onEdit;
+  final void Function(int index) onRemove;
   // "Nein, nehme keins" should feel like a real skip target, not just a
   // text label - parent wires this up to advance past this step directly.
   final VoidCallback onSkip;
   const _SupplementStep({
-    required this.supplement,
-    required this.onStartSetup,
-    required this.onClear,
+    required this.supplements,
+    required this.onAdd,
+    required this.onEdit,
+    required this.onRemove,
     required this.onSkip,
   });
 
@@ -1558,15 +1570,29 @@ class _SupplementStep extends StatelessWidget {
             style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
           ),
           const SizedBox(height: 24),
-          if (supplement == null) ...[
-            Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.tonalIcon(
-                onPressed: onStartSetup,
-                icon: const Icon(Icons.medication_outlined, size: 18),
-                label: Text(l10n.supplementAddCta),
-              ),
+          for (var i = 0; i < supplements.length; i++) ...[
+            _OnboardingSupplementListItem(
+              supplement: supplements[i],
+              onEdit: () async {
+                final edited =
+                    await showSupplementEditSheet(context, supplements[i]);
+                if (edited != null) onEdit(i, edited);
+              },
+              onRemove: () => onRemove(i),
             ),
+            const SizedBox(height: 8),
+          ],
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.medication_outlined, size: 18),
+              label: Text(supplements.isEmpty
+                  ? l10n.supplementAddCta
+                  : l10n.supplementAddAnotherCta),
+            ),
+          ),
+          if (supplements.isEmpty) ...[
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
@@ -1575,48 +1601,68 @@ class _SupplementStep extends StatelessWidget {
                 child: Text(l10n.supplementSkipCta),
               ),
             ),
-          ] else ...[
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.supplementCurrentLabel(supplement!.name),
-                    style: textTheme.bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  Text(
-                    l10n.supplementCurrentDoses(supplement!.dosesPerDay),
-                    style:
-                        textTheme.bodySmall?.copyWith(color: scheme.outline),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: onStartSetup,
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: Text(l10n.supplementRetry),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: onClear,
-                      icon: const Icon(Icons.close, size: 16),
-                      label: Text(l10n.supplementRemove),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _OnboardingSupplementListItem extends StatelessWidget {
+  final ActiveSupplement supplement;
+  final VoidCallback onEdit;
+  final VoidCallback onRemove;
+  const _OnboardingSupplementListItem({
+    required this.supplement,
+    required this.onEdit,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  supplement.name,
+                  style: textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  l10n.supplementCurrentDoses(supplement.dosesPerDay),
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: scheme.outline),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            tooltip: l10n.supplementEdit,
+            onPressed: onEdit,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18),
+            tooltip: l10n.supplementRemove,
+            onPressed: onRemove,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
         ],
       ),
     );
