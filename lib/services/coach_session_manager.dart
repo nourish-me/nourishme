@@ -286,9 +286,13 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         goalGuardrails: goalGuardrails,
       );
       final coachAt = coachAnchorFor(last.createdAt);
+      // Safety net for the em-dash habit: even with the explicit prompt
+      // instruction, the model still sneaks them in sometimes. Replace
+      // before persisting so they never make it to the diary.
+      final cleaned = response.trim().replaceAll('—', '-');
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,
-        text: response.trim(),
+        text: cleaned,
         at: coachAt,
       ));
       analytics.capture('coach_reply',
