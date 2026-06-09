@@ -1230,4 +1230,20 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settingsIngredientsPlaceholder =>
       'z.B. Zucchini, Hähnchen, Joghurt';
+
+  @override
+  String get settingsSectionGoal => 'Coach-Ziel';
+
+  @override
+  String get settingsGoalHint =>
+      'Worauf soll der Coach optimieren? Bei Körper-Optionen bleibt die Versorgung des Babys oberste Priorität, ein moderates Defizit (max. 300-500 kcal, nie unter 1.800 kcal/Tag) ist nur ab 6-8 Wochen postpartum erlaubt.';
+
+  @override
+  String get settingsGoalNutrients => 'Nährstoffe';
+
+  @override
+  String get settingsGoalBody => 'Körper';
+
+  @override
+  String get settingsGoalBoth => 'Beides';
 }

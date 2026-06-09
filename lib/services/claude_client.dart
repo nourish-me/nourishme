@@ -461,6 +461,10 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     // when we haven't asked today yet and have no stored list.
     String? ingredients,
     bool askForIngredients = false,
+    // Goal-driven body-composition guardrail block. Caller assembles the
+    // full multi-line string (with the validated 1800/300-500/6-8w/etc
+    // numbers) so this method stays a pure passthrough.
+    String? goalGuardrails,
   }) async {
     final isDe = _isGerman(locale);
     // The coach reasons about meal timing ("breakfast", "next meal") from
@@ -556,6 +560,9 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
       finalUserMessage += isDe
           ? '\n\nFrage die Nutzerin am Ende kurz und beiläufig, ob sie heute etwas Bestimmtes verbrauchen möchte, das du beim nächsten Vorschlag berücksichtigst.'
           : '\n\nAt the end, briefly and casually ask the user whether there is anything in particular she wants to use up today for you to factor into the next suggestion.';
+    }
+    if (goalGuardrails != null && goalGuardrails.isNotEmpty) {
+      finalUserMessage += '\n\n$goalGuardrails';
     }
     if (requestFollowUps) {
       finalUserMessage += isDe ? followUpInstructionDe : followUpInstructionEn;

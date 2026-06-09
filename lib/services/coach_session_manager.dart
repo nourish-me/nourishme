@@ -102,6 +102,55 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         'If the current meal fits, name one specific food for the next meal; otherwise skip it.';
   }
 
+  // Returns the validated body-composition guardrail block to attach to
+  // the per-meal prompt, or null when guardrails should NOT fire:
+  //   - goal == nutrients (user didn't opt in)
+  //   - pregnancy (no deficit recommendation in pregnancy at all, per
+  //     zahlen_review Vorab-Unterscheidung)
+  //   - lactating but <6 weeks postpartum (need to recover + establish
+  //     supply before any deficit talk)
+  //   - phase is neither pregnant nor lactating (post-weaning is fine,
+  //     full guardrail block still applies)
+  //
+  // All numeric values are the fachlich bestätigten 2026-06-09 figures.
+  static String? _goalGuardrailsFor(
+    UserProfileSettings profile, {
+    required bool isDe,
+  }) {
+    if (profile.goal == CoachGoal.nutrients) return null;
+    if (profile.isPregnant) return null;
+    final isLactating = profile.numChildrenNursing > 0;
+    if (isLactating && profile.youngestChildBirthdate != null) {
+      final daysPostpartum =
+          DateTime.now().difference(profile.youngestChildBirthdate!).inDays;
+      if (daysPostpartum < 42) return null; // <6 weeks
+    }
+    if (isDe) {
+      return 'Ziel der Nutzerin: ${profile.goal}. '
+          'Bei Körperkomposition/Gewicht:\n'
+          '- nur MODERATER Kalorienrahmen.\n'
+          '- Stillzeit: nie unter 1800 kcal/Tag, Defizit max. ~300-500 kcal '
+          '(stärkere Defizite können die Milchproduktion beeinträchtigen).\n'
+          '- Frühestens 6-8 Wochen postpartum aktiv Defizit, vorher nur '
+          'Erholung und Milchaufbau.\n'
+          '- Protein und Mikronährstoffe (Eisen, Calcium, Jod, DHA) immer '
+          'auf Soll halten, auch im Defizit.\n'
+          '- An Sport-Tagen Protein erhöhen statt Defizit vergrößern.\n'
+          '- Einmal kurz auf Absprache mit Hebamme/Ärztin hinweisen.';
+    }
+    return 'User goal: ${profile.goal}. '
+        'For body composition / weight:\n'
+        '- only a MODERATE calorie frame.\n'
+        '- Lactation: never below 1800 kcal/day, deficit max ~300-500 kcal '
+        '(larger deficits can affect milk supply).\n'
+        '- Active deficit only from 6-8 weeks postpartum onward; before '
+        'that, focus on recovery and establishing milk supply.\n'
+        '- Keep protein and micronutrients (iron, calcium, iodine, DHA) '
+        'on target even during a deficit.\n'
+        '- On workout days raise protein instead of widening the deficit.\n'
+        '- Once, briefly note to coordinate with midwife/doctor.';
+  }
+
   static String _fmtVal(double v) {
     if (v >= 50) return v.round().toString();
     if (v == v.roundToDouble()) return v.toStringAsFixed(0);
@@ -189,6 +238,13 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         !askedToday &&
         ingredients == null;
 
+    // Body-composition guardrails from the briefing
+    // coach_zutaten_ziel_logik (Abschnitt 3) + zahlen_review (all 7 values
+    // confirmed 2026-06-09). Only attached when the user opted into the
+    // body or both goal AND it is actually safe in the current phase.
+    final goalGuardrails =
+        profile != null ? _goalGuardrailsFor(profile, isDe: isDe) : null;
+
     try {
       final response = await client.generatePerMealResponse(
         mealRawText: combinedRawText,
@@ -222,6 +278,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         microNudge: microNudge,
         ingredients: ingredients,
         askForIngredients: askForIngredients,
+        goalGuardrails: goalGuardrails,
       );
       final coachAt = coachAnchorFor(last.createdAt);
       await threadRepo.add(ThreadItem.coachResponse(

@@ -1223,4 +1223,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsIngredientsPlaceholder => 'e.g. zucchini, chicken, yogurt';
+
+  @override
+  String get settingsSectionGoal => 'Coach focus';
+
+  @override
+  String get settingsGoalHint =>
+      'What should the coach optimise for? For body-focused options the baby\'s supply stays the top priority — a moderate deficit (max 300-500 kcal, never below 1,800 kcal/day) is allowed only from 6-8 weeks postpartum.';
+
+  @override
+  String get settingsGoalNutrients => 'Nutrients';
+
+  @override
+  String get settingsGoalBody => 'Body';
+
+  @override
+  String get settingsGoalBoth => 'Both';
 }

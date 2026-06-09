@@ -65,6 +65,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // expires overnight). Held in a TextEditingController so unsaved edits
   // count as dirty just like other text fields.
   late TextEditingController _coachIngredients;
+  // Coach focus: 'nutrients' (default), 'body', or 'both'.
+  late String _goal;
   // Hand-picked micronutrient subset for the diary header. null = follow
   // phase/diet defaults; non-null overrides them (capped at 3 by the UI).
   List<String>? _selectedMicros;
@@ -112,6 +114,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _coachIngredients = TextEditingController(
         text: ref.read(settingsRepositoryProvider).getCoachTodaysIngredients() ??
             '');
+    _goal = p.goal;
     _initialProfileJson = jsonEncode(p.toJson());
 
     for (final c in [_height, _weight, _dietaryNotes, _coachIngredients]) {
@@ -201,6 +204,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         dietaryNotes: _dietaryNotes.text.trim(),
         selectedMicronutrients:
             _selectedMicros == null ? null : List<String>.from(_selectedMicros!),
+        goal: _goal,
       );
 
   void _onSharePercentChanged(int v) {
@@ -501,6 +505,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 _IngredientsTodaySection(controller: _coachIngredients),
+                const SizedBox(height: 12),
+                _GoalSection(
+                  goal: _goal,
+                  onChanged: (v) => setState(() => _goal = v),
+                ),
                 const SizedBox(height: 12),
                 const _FavoritesSection(),
                 const SizedBox(height: 16),
@@ -1941,6 +1950,51 @@ class _IngredientsTodaySection extends StatelessWidget {
             decoration: InputDecoration(
               hintText: l10n.settingsIngredientsPlaceholder,
               border: const OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GoalSection extends StatelessWidget {
+  final String goal;
+  final ValueChanged<String> onChanged;
+  const _GoalSection({required this.goal, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return _Section(
+      title: l10n.settingsSectionGoal,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.settingsGoalHint,
+            style: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<String>(
+              segments: [
+                ButtonSegment(
+                    value: CoachGoal.nutrients,
+                    label: Text(l10n.settingsGoalNutrients)),
+                ButtonSegment(
+                    value: CoachGoal.body,
+                    label: Text(l10n.settingsGoalBody)),
+                ButtonSegment(
+                    value: CoachGoal.both,
+                    label: Text(l10n.settingsGoalBoth)),
+              ],
+              selected: {goal},
+              showSelectedIcon: false,
+              onSelectionChanged: (s) => onChanged(s.first),
             ),
           ),
         ],

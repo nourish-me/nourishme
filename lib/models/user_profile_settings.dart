@@ -62,6 +62,13 @@ class UserProfileSettings {
   // UI; the model itself does not enforce the cap.
   final List<String>? selectedMicronutrients;
 
+  // Coaching focus. 'nutrients' (default) → coach optimises for supply
+  // alone, no calorie deficit talk. 'body' → coach is allowed to suggest
+  // a moderate deficit but only within the validated lactation safety
+  // guardrails (≥1800 kcal, max ~300-500 deficit, ≥6-8 weeks postpartum,
+  // never in pregnancy). 'both' → same guardrails as 'body'.
+  final String goal;
+
   const UserProfileSettings({
     required this.ageYears,
     this.birthdate,
@@ -83,6 +90,7 @@ class UserProfileSettings {
     this.dietaryNotes = '',
     this.activeSupplement,
     this.selectedMicronutrients,
+    this.goal = CoachGoal.nutrients,
   });
 
   // Age in completed years, computed from birthdate if available, otherwise
@@ -199,6 +207,7 @@ class UserProfileSettings {
     // existing".
     Object? activeSupplement = _unset,
     Object? selectedMicronutrients = _unset,
+    String? goal,
   }) =>
       UserProfileSettings(
         ageYears: ageYears ?? this.ageYears,
@@ -227,6 +236,7 @@ class UserProfileSettings {
         selectedMicronutrients: identical(selectedMicronutrients, _unset)
             ? this.selectedMicronutrients
             : selectedMicronutrients as List<String>?,
+        goal: goal ?? this.goal,
       );
 
   Map<String, dynamic> toJson() => {
@@ -253,6 +263,7 @@ class UserProfileSettings {
           'activeSupplement': activeSupplement!.toJson(),
         if (selectedMicronutrients != null)
           'selectedMicronutrients': selectedMicronutrients,
+        'goal': goal,
       };
 
   factory UserProfileSettings.fromJson(Map<String, dynamic> json) {
@@ -291,6 +302,7 @@ class UserProfileSettings {
       selectedMicronutrients: (json['selectedMicronutrients'] as List?)
           ?.whereType<String>()
           .toList(),
+      goal: (json['goal'] as String?) ?? CoachGoal.nutrients,
     );
   }
 }
@@ -343,6 +355,17 @@ class ActiveSupplement {
 // Canonical strings for the user's diet style. Stored in
 // UserProfileSettings.dietStyle and threaded into the Coach prompts so
 // suggestions match. Free-form alternatives go into dietaryNotes.
+// Coaching focus the user selects in Settings (briefing
+// coach_zutaten_ziel_logik). Drives whether the per-meal prompt receives
+// the body-composition guardrail block.
+class CoachGoal {
+  static const nutrients = 'nutrients';
+  static const body = 'body';
+  static const both = 'both';
+
+  static const all = [nutrients, body, both];
+}
+
 class DietStyle {
   static const omnivore = 'omnivore';
   static const vegetarian = 'vegetarian';
