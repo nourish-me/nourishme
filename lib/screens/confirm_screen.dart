@@ -290,15 +290,16 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       'method': widget.source.analyticsLabel,
       'edited': widget.existingMealId != null,
     });
-    // Smart-skip: if a reminder is about to fire for a slot the user has
-    // now covered, cancel today's occurrence and re-anchor its daily
-    // chain to tomorrow. Fire-and-forget so the save UX isn't gated on
-    // the notification plugin round-trip.
-    NotificationScheduler.skipImminentReminders(
+    // Smart-skip: if this meal covers a reminder slot (by time-of-day
+    // bucket), cancel today's occurrence of that slot and re-anchor its
+    // daily chain to tomorrow. Fire-and-forget so the save UX isn't gated
+    // on the notification plugin round-trip.
+    NotificationScheduler.skipCoveredReminder(
+      mealAt: meal.createdAt,
       settings: reminderSettings,
       l10n: reminderL10n,
     ).catchError((Object e, StackTrace _) {
-      debugPrint('skipImminentReminders failed: $e');
+      debugPrint('skipCoveredReminder failed: $e');
     });
     // Track how often the food-safety feature actually surfaces a warning, so
     // we can tell whether it earns its keep.

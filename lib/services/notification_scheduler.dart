@@ -140,32 +140,54 @@ class NotificationScheduler {
     return fire;
   }
 
-  // Called after a meal_logged event. Cancels any enabled reminder whose
-  // today-fire is within [windowMinutes] of NOW (i.e. would buzz the user
-  // for a meal she just covered) and re-anchors that slot's daily chain
-  // to tomorrow's same time. `matchDateTimeComponents.time` restores the
-  // daily-recurring behavior from the new anchor, so future days keep
-  // firing on schedule.
+  // Called after a meal_logged event. Cancels today's fire of the reminder
+  // slot whose coverage bucket contains the meal's time-of-day, and re-anchors
+  // that slot's daily chain to tomorrow's same time. `matchDateTimeComponents
+  // .time` restores the daily-recurring behavior from the new anchor, so
+  // future days keep firing on schedule.
+  //
+  // Coverage buckets (see [slotForMealTime]) partition the day along midpoints
+  // between adjacent slot times: a meal at 12:00 with slots at 10:30 and 12:30
+  // covers the 12:30 lunch slot (closer), not the 10:30 midmorning slot.
   //
   // Semantics:
-  //  - "Skip" only catches slots whose today-fire is still in the future.
-  //    A retroactively-logged meal whose time is in the past doesn't try
-  //    to skip an already-fired reminder.
-  //  - Logging more than [windowMinutes] ahead of a slot does NOT skip it.
-  //    Tradeoff: occasional false-negative (rare) over false-positive
-  //    (would skip a reminder the user genuinely wanted).
+  //  - Only meals logged on today count - past-day retroactive saves don't
+  //    touch today's reminder chain (their date != today). Same-day past-time
+  //    logs (e.g. "I forgot breakfast, logging at 11" with breakfast slot 8:00)
+  //    still cover their slot because we match by time-of-day, not by "is the
+  //    fire still in the future"; but we only re-anchor slots whose today-fire
+  //    is still pending - already-fired slots are left alone.
+  //  - One meal covers exactly one slot (the nearest by midpoint), so a heavy
+  //    lunch can't accidentally suppress that afternoon's snack reminder.
   //  - Idempotent: safe to call multiple times for the same slot within
   //    the same minute (e.g. bundle session: each meal-save calls it).
-  static Future<void> skipImminentReminders({
+  static Future<void> skipCoveredReminder({
+    required DateTime mealAt,
     required ReminderSettings settings,
     required AppLocalizations l10n,
-    int windowMinutes = 60,
   }) async {
     await init();
     if (!settings.masterEnabled) return;
 
     final now = tz.TZDateTime.now(tz.local);
-    final windowEnd = now.add(Duration(minutes: windowMinutes));
+    // Only act on today's saves. Retroactively logging yesterday's lunch must
+    // not retro-skip yesterday's reminder (it already fired) or skip today's.
+    if (mealAt.year != now.year ||
+        mealAt.month != now.month ||
+        mealAt.day != now.day) {
+      return;
+    }
+    final covered = slotForMealTime(mealAt, settings);
+    if (covered == null) return;
+    final entry = settings.entries.firstWhere(
+      (e) => e.slot == covered,
+      orElse: () => const ReminderEntry(
+          slot: ReminderSlot.breakfast, enabled: false, hour: 0, minute: 0),
+    );
+    if (!entry.enabled) return;
+    final todayFire = tz.TZDateTime(
+        tz.local, now.year, now.month, now.day, entry.hour, entry.minute);
+    if (!todayFire.isAfter(now)) return; // already-fired slot
 
     final details = NotificationDetails(
       iOS: const DarwinNotificationDetails(
@@ -182,26 +204,43 @@ class NotificationScheduler {
       ),
     );
 
-    for (final entry in settings.entries) {
-      if (!entry.enabled) continue;
-      final todayFire = tz.TZDateTime(
-          tz.local, now.year, now.month, now.day, entry.hour, entry.minute);
-      if (!todayFire.isAfter(now)) continue; // already-fired slot
-      if (todayFire.isAfter(windowEnd)) continue; // outside skip window
+    await _plugin.cancel(entry.slot.index);
+    final tomorrowFire = todayFire.add(const Duration(days: 1));
+    await _plugin.zonedSchedule(
+      entry.slot.index,
+      ReminderCopy.titleFor(entry.slot, l10n),
+      ReminderCopy.bodyFor(entry.slot, l10n),
+      tomorrowFire,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
 
-      await _plugin.cancel(entry.slot.index);
-      final tomorrowFire = todayFire.add(const Duration(days: 1));
-      await _plugin.zonedSchedule(
-        entry.slot.index,
-        ReminderCopy.titleFor(entry.slot, l10n),
-        ReminderCopy.bodyFor(entry.slot, l10n),
-        tomorrowFire,
-        details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
+  // Returns the slot whose coverage bucket contains [mealAt]'s time-of-day,
+  // or null when no slot is enabled. Buckets partition the day along the
+  // midpoints between adjacent enabled slots: a meal at 12:00 with enabled
+  // slots at 10:30 and 12:30 falls into the 12:30 bucket (midpoint 11:30),
+  // covering the lunch slot. Pure / no plugin access, exposed for tests.
+  static ReminderSlot? slotForMealTime(
+      DateTime mealAt, ReminderSettings settings) {
+    final enabled = settings.entries.where((e) => e.enabled).toList()
+      ..sort((a, b) => (a.hour * 60 + a.minute)
+          .compareTo(b.hour * 60 + b.minute));
+    if (enabled.isEmpty) return null;
+    final mealMin = mealAt.hour * 60 + mealAt.minute;
+    ReminderEntry best = enabled.first;
+    int bestDist = (mealMin - (enabled.first.hour * 60 + enabled.first.minute))
+        .abs();
+    for (final e in enabled.skip(1)) {
+      final dist = (mealMin - (e.hour * 60 + e.minute)).abs();
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = e;
+      }
     }
+    return best.slot;
   }
 }
