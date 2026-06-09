@@ -783,14 +783,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         scheme: scheme,
         textTheme: textTheme,
         onAdd: isPastDay ? () => _logForDay(day) : null,
+        subtitle: items.isEmpty && isPastDay
+            ? AppLocalizations.of(context).homeEmptyDayText
+            : null,
       ));
       if (items.isEmpty) {
-        // Today's row still gets the quick-add affordance.
-        widgets.add(EmptyDay(
-          scheme: scheme,
-          textTheme: textTheme,
-          onAdd: () => _logForDay(day),
-        ));
         widgets.add(const SizedBox(height: 8));
         continue;
       }

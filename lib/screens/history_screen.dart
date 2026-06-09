@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/meal_entry.dart';
+import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
 import '../services/calorie_target.dart';
+import '../services/micronutrient_targets.dart';
 import '../utils/date_format.dart';
 import '../widgets/empty/empty_history.dart';
 import '../widgets/kcal_summary.dart';
@@ -18,6 +21,8 @@ class HistoryScreen extends ConsumerWidget {
     final grouped = ref.watch(mealsByDayProvider);
     final target = ref.watch(calorieTargetProvider);
     final macroTargets = ref.watch(macroTargetsProvider);
+    final profile = ref.watch(userProfileProvider).valueOrNull;
+    final locale = Localizations.localeOf(context).languageCode;
     final recentDays = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
     void openDay(DateTime day) {
@@ -70,6 +75,9 @@ class HistoryScreen extends ConsumerWidget {
                 final carbs =
                     meals.fold<double>(0, (sum, m) => sum + m.carbsG);
                 final fat = meals.fold<double>(0, (sum, m) => sum + m.fatG);
+                final pills = profile == null
+                    ? const <_MicroPill>[]
+                    : _computeMicroPills(profile, meals, locale);
                 return _DayCard(
                   day: day,
                   mealCount: meals.length,
@@ -79,6 +87,7 @@ class HistoryScreen extends ConsumerWidget {
                   totalFat: fat,
                   target: target,
                   macroTargets: macroTargets,
+                  microPills: pills,
                   onTap: () => openDay(day),
                 );
               },
@@ -94,6 +103,69 @@ class HistoryScreen extends ConsumerWidget {
 // KcalSummary used in the Tagebuch toolbar. Tapping it opens that day in
 // the Tagebuch where the actual meal entries live (Slide-Actions, Coach
 // bubbles etc. are handled there).
+// One micronutrient pill: short label + percent of target reached.
+// Pre-computed in the screen so _DayCard stays a pure presentation widget.
+class _MicroPill {
+  final String name;
+  final int pct;
+  const _MicroPill({required this.name, required this.pct});
+}
+
+List<_MicroPill> _computeMicroPills(
+    UserProfileSettings profile, List<MealEntry> meals, String locale) {
+  final keys = profile.selectedMicronutrients ??
+      MicronutrientDefaults.forProfile(profile);
+  final pills = <_MicroPill>[];
+  for (final key in keys) {
+    final t = MicronutrientTargets.forKey(key, profile);
+    final d = MicronutrientDisplay.forKey(key);
+    if (t == null || d == null || t.value <= 0) continue;
+    final intake = dailyIntakeFor(key, meals, profile);
+    final pct = (intake / t.value * 100).round();
+    pills.add(_MicroPill(name: d.nameForLocale(locale), pct: pct));
+  }
+  return pills;
+}
+
+class _MicroPillChip extends StatelessWidget {
+  final _MicroPill pill;
+  final ColorScheme scheme;
+  const _MicroPillChip({required this.pill, required this.scheme});
+
+  @override
+  Widget build(BuildContext context) {
+    // Three-state color: empty / on-track / over. Quietly tints the chip
+    // background so a row of pills reads "where am I today" at a glance.
+    final Color bg;
+    final Color fg;
+    if (pill.pct < 50) {
+      bg = scheme.surfaceContainerHighest;
+      fg = scheme.onSurfaceVariant;
+    } else if (pill.pct < 120) {
+      bg = scheme.primaryContainer;
+      fg = scheme.onPrimaryContainer;
+    } else {
+      bg = scheme.tertiaryContainer;
+      fg = scheme.onTertiaryContainer;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        '${pill.name} ${pill.pct}%',
+        style: TextStyle(
+          color: fg,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
 class _DayCard extends StatelessWidget {
   final DateTime day;
   final int mealCount;
@@ -103,6 +175,7 @@ class _DayCard extends StatelessWidget {
   final double totalFat;
   final int target;
   final MacroTargets macroTargets;
+  final List<_MicroPill> microPills;
   final VoidCallback onTap;
 
   const _DayCard({
@@ -114,6 +187,7 @@ class _DayCard extends StatelessWidget {
     required this.totalFat,
     required this.target,
     required this.macroTargets,
+    required this.microPills,
     required this.onTap,
   });
 
@@ -173,6 +247,17 @@ class _DayCard extends StatelessWidget {
                   fat: totalFat,
                   macroTargets: macroTargets,
                 ),
+                if (microPills.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final pill in microPills)
+                        _MicroPillChip(pill: pill, scheme: scheme),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

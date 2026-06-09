@@ -17,12 +17,17 @@ class DaySeparator extends StatelessWidget {
   // only fires when the day has zero entries). Null on today's separator
   // (the regular input bar at the bottom handles that) and on future days.
   final VoidCallback? onAdd;
+  // Quiet line shown right under the separator. Used for past days with no
+  // entries to make the empty state legible without a separate EmptyDay
+  // widget block.
+  final String? subtitle;
   const DaySeparator({
     super.key,
     required this.day,
     required this.scheme,
     required this.textTheme,
     this.onAdd,
+    this.subtitle,
   });
 
   @override
@@ -30,32 +35,48 @@ class DaySeparator extends StatelessWidget {
     final label = formatDayHeader(context, day);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: Divider(color: scheme.outlineVariant, thickness: 0.5),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              label,
-              style: textTheme.labelSmall?.copyWith(
-                color: scheme.outline,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+          Row(
+            children: [
+              Expanded(
+                child: Divider(color: scheme.outlineVariant, thickness: 0.5),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  label,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.outline,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Divider(color: scheme.outlineVariant, thickness: 0.5),
+              ),
+              if (onAdd != null)
+                InkWell(
+                  onTap: onAdd,
+                  borderRadius: BorderRadius.circular(14),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 2),
+                    child: Icon(Icons.add, size: 16, color: scheme.primary),
+                  ),
+                ),
+            ],
           ),
-          Expanded(
-            child: Divider(color: scheme.outlineVariant, thickness: 0.5),
-          ),
-          if (onAdd != null)
-            InkWell(
-              onTap: onAdd,
-              borderRadius: BorderRadius.circular(14),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                child: Icon(Icons.add, size: 16, color: scheme.primary),
+          if (subtitle != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                subtitle!,
+                style: textTheme.bodySmall?.copyWith(
+                  color: scheme.outline,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ),
         ],
@@ -123,48 +144,6 @@ class EmptyDayRange extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         child: inner,
-      ),
-    );
-  }
-}
-
-class EmptyDay extends StatelessWidget {
-  final ColorScheme scheme;
-  final TextTheme textTheme;
-  final VoidCallback onAdd;
-  const EmptyDay({
-    super.key,
-    required this.scheme,
-    required this.textTheme,
-    required this.onAdd,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onAdd,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              AppLocalizations.of(context).homeEmptyDayText,
-              style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-            ),
-            const SizedBox(width: 8),
-            Icon(Icons.add, size: 16, color: scheme.primary),
-            const SizedBox(width: 2),
-            Text(
-              AppLocalizations.of(context).homeEmptyDayAdd,
-              style: textTheme.bodySmall?.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
