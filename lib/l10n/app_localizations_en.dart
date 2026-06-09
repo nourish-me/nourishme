@@ -1239,4 +1239,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsGoalBoth => 'Both';
+
+  @override
+  String get settingsPhaseNeither => 'Neither';
+
+  @override
+  String get settingsPhaseNeitherHint =>
+      'Currently neither pregnant nor producing breast milk, e.g. after weaning or before a pregnancy.';
+
+  @override
+  String get onboardingPhaseNeither => 'Neither';
+
+  @override
+  String get onboardingPhaseNeitherHint =>
+      'I\'m neither pregnant nor producing breast milk.';
 }

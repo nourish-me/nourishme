@@ -2281,6 +2281,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Both'**
   String get settingsGoalBoth;
+
+  /// No description provided for @settingsPhaseNeither.
+  ///
+  /// In en, this message translates to:
+  /// **'Neither'**
+  String get settingsPhaseNeither;
+
+  /// No description provided for @settingsPhaseNeitherHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently neither pregnant nor producing breast milk, e.g. after weaning or before a pregnancy.'**
+  String get settingsPhaseNeitherHint;
+
+  /// No description provided for @onboardingPhaseNeither.
+  ///
+  /// In en, this message translates to:
+  /// **'Neither'**
+  String get onboardingPhaseNeither;
+
+  /// No description provided for @onboardingPhaseNeitherHint.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m neither pregnant nor producing breast milk.'**
+  String get onboardingPhaseNeitherHint;
 }
 
 class _AppLocalizationsDelegate

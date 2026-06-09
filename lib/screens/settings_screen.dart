@@ -90,8 +90,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _height = TextEditingController(text: p.heightCm.toStringAsFixed(0));
     _weight = TextEditingController(text: p.weightKg.toStringAsFixed(1));
     _activityFactor = p.activityFactor;
-    // Lactation wins if user has children; pregnant otherwise (or default lactating).
-    _phase = p.numChildrenNursing > 0 ? 'lactating' : (p.isPregnant ? 'pregnant' : 'lactating');
+    // Lactation wins if user has children; pregnant if flagged; else
+    // 'neither' (was 'lactating' default before the 3rd option existed,
+    // which surfaced fields the user couldn't fill in).
+    _phase = p.numChildrenNursing > 0
+        ? 'lactating'
+        : (p.isPregnant ? 'pregnant' : 'neither');
     _trimester = p.trimester ?? 1;
     _numChildren = p.numChildrenNursing > 0 ? p.numChildrenNursing : 1;
     _milkSharePercent = p.milkSharePercent;
@@ -670,6 +674,13 @@ class _PhaseSection extends StatelessWidget {
             subtitle: l10n.settingsPhasePregnantHint,
             selected: phase == 'pregnant',
             onTap: () => onPhaseChanged('pregnant'),
+          ),
+          _PhaseChoice(
+            value: 'neither',
+            label: l10n.settingsPhaseNeither,
+            subtitle: l10n.settingsPhaseNeitherHint,
+            selected: phase == 'neither',
+            onTap: () => onPhaseChanged('neither'),
           ),
           if (phase == 'pregnant') ...[
             const SizedBox(height: 12),

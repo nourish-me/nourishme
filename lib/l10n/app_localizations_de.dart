@@ -1246,4 +1246,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsGoalBoth => 'Beides';
+
+  @override
+  String get settingsPhaseNeither => 'Weder noch';
+
+  @override
+  String get settingsPhaseNeitherHint =>
+      'Aktuell weder schwanger noch stillend, z.B. nach dem Abstillen oder vor einer Schwangerschaft.';
+
+  @override
+  String get onboardingPhaseNeither => 'Weder noch';
+
+  @override
+  String get onboardingPhaseNeitherHint =>
+      'Weder schwanger noch produziere ich Muttermilch.';
 }

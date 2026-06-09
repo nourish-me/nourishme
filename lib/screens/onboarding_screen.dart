@@ -46,6 +46,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Phase
   bool _isPregnant = false;
   bool _isLactating = true;
+  // Becomes true the moment the user actively picks "neither" on the
+  // phase step. Lets us treat "both toggles off" as a valid choice the
+  // user really made, distinct from "user hasn't answered yet".
+  bool _phaseExplicitlyNeither = false;
   int _trimester = 1;
 
   // Body fields are pre-filled with neutral defaults so the user can advance
@@ -108,7 +112,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     switch (_step) {
       case 1:
         // At least one of pregnant/lactating must be picked.
-        return _isPregnant || _isLactating;
+        return _isPregnant || _isLactating || _phaseExplicitlyNeither;
       case 2:
         // Birthdate is pre-filled, height/weight have defaults, always
         // advanceable. User can still adjust before continuing.
@@ -182,6 +186,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _step = 0;
       _isPregnant = false;
       _isLactating = true;
+      _phaseExplicitlyNeither = false;
       _trimester = 1;
       _birthdate = DateTime(
           DateTime.now().year - 30, DateTime.now().month, DateTime.now().day);
@@ -321,9 +326,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     _PhaseStep(
                       isPregnant: _isPregnant,
                       isLactating: _isLactating,
+                      isNeither: _phaseExplicitlyNeither &&
+                          !_isPregnant &&
+                          !_isLactating,
                       onChange: (preg, lact) => setState(() {
                         _isPregnant = preg;
                         _isLactating = lact;
+                        // Any active toggle invalidates the "neither" pick.
+                        if (preg || lact) _phaseExplicitlyNeither = false;
+                      }),
+                      onPickNeither: () => setState(() {
+                        _isPregnant = false;
+                        _isLactating = false;
+                        _phaseExplicitlyNeither = true;
                       }),
                     ),
                     _BodyStep(
@@ -591,11 +606,15 @@ class _WelcomeStep extends StatelessWidget {
 class _PhaseStep extends StatelessWidget {
   final bool isPregnant;
   final bool isLactating;
+  final bool isNeither;
   final void Function(bool pregnant, bool lactating) onChange;
+  final VoidCallback onPickNeither;
   const _PhaseStep({
     required this.isPregnant,
     required this.isLactating,
+    required this.isNeither,
     required this.onChange,
+    required this.onPickNeither,
   });
 
   @override
@@ -634,6 +653,15 @@ class _PhaseStep extends StatelessWidget {
             fact: energyPregnancyFact(l10n),
             leading: NMIcons.pregnancy(size: 28),
           ),
+          const SizedBox(height: 12),
+          _PhaseChoice(
+            label: l10n.onboardingPhaseNeither,
+            description: l10n.onboardingPhaseNeitherHint,
+            selected: isNeither,
+            onTap: onPickNeither,
+            fact: null,
+            leading: const Icon(Icons.remove_circle_outline, size: 28),
+          ),
           const SizedBox(height: 16),
           if (isPregnant && isLactating)
             Container(
@@ -669,7 +697,8 @@ class _PhaseChoice extends StatelessWidget {
   final String description;
   final bool selected;
   final VoidCallback onTap;
-  final NutritionFact fact;
+  // Nullable: the "neither" choice has no associated nutrition fact.
+  final NutritionFact? fact;
   final Widget? leading;
   const _PhaseChoice({
     required this.label,
@@ -737,7 +766,7 @@ class _PhaseChoice extends StatelessWidget {
                   ],
                 ),
               ),
-              InfoButton(fact: fact),
+              if (fact != null) InfoButton(fact: fact!),
             ],
           ),
         ),
@@ -950,6 +979,14 @@ class _PhaseDetailsStep extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
+        if (!isPregnant && !isLactating)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Text(
+              l10n.onboardingPhaseNeitherHint,
+              style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
+            ),
+          ),
         if (isPregnant) ...[
           Row(
             children: [
