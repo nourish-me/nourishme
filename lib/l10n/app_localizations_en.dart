@@ -1281,10 +1281,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get supplementOnboardingBody =>
-      'Folic acid, prenatal multivitamin, or similar? Snap a photo of the nutrition label and the app will add the values to your daily totals automatically.';
+      'Folic acid, prenatal multivitamin, or similar? Snap a photo of the nutrition table on the back of the box and the app adds the values to your daily totals automatically.';
 
   @override
-  String get supplementAddCta => 'Photograph label';
+  String get supplementAddCta => 'Photograph nutrition table';
 
   @override
   String get supplementSkipCta => 'No, not taking one';

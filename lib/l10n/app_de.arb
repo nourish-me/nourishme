@@ -489,8 +489,8 @@
 
   "supplementSectionTitle": "Nahrungsergänzung",
   "supplementOnboardingTitle": "Nimmst du ein Supplement?",
-  "supplementOnboardingBody": "Folio, Femibion oder ähnliches? Fotografiere das Nährwert-Etikett, dann rechnet die App die Werte automatisch jeden Tag mit.",
-  "supplementAddCta": "Etikett fotografieren",
+  "supplementOnboardingBody": "Folio, Femibion oder ähnliches? Fotografiere die Nährwerttabelle auf der Rückseite der Packung, dann rechnet die App die Werte automatisch jeden Tag mit.",
+  "supplementAddCta": "Nährwerttabelle fotografieren",
   "supplementSkipCta": "Nein, nehme keins",
   "supplementSourceCamera": "Kamera",
   "supplementSourceGallery": "Aus Galerie",

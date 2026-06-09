@@ -2013,24 +2013,25 @@ class _SupplementSection extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onStartSetup,
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: Text(l10n.supplementRetry),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onClear,
-                        icon: const Icon(Icons.close, size: 16),
-                        label: Text(l10n.supplementRemove),
-                      ),
-                    ),
-                  ],
+                // Stacked vertically because both labels are long ("Anderes
+                // Foto", "Supplement entfernen") and the side-by-side layout
+                // wrapped/clipped on iPhone widths.
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onStartSetup,
+                    icon: const Icon(Icons.edit_outlined, size: 16),
+                    label: Text(l10n.supplementRetry),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onClear,
+                    icon: const Icon(Icons.close, size: 16),
+                    label: Text(l10n.supplementRemove),
+                  ),
                 ),
               ],
             ),

@@ -1286,10 +1286,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get supplementOnboardingBody =>
-      'Folio, Femibion oder ähnliches? Fotografiere das Nährwert-Etikett, dann rechnet die App die Werte automatisch jeden Tag mit.';
+      'Folio, Femibion oder ähnliches? Fotografiere die Nährwerttabelle auf der Rückseite der Packung, dann rechnet die App die Werte automatisch jeden Tag mit.';
 
   @override
-  String get supplementAddCta => 'Etikett fotografieren';
+  String get supplementAddCta => 'Nährwerttabelle fotografieren';
 
   @override
   String get supplementSkipCta => 'Nein, nehme keins';

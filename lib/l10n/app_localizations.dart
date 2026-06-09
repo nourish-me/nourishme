@@ -2351,13 +2351,13 @@ abstract class AppLocalizations {
   /// No description provided for @supplementOnboardingBody.
   ///
   /// In en, this message translates to:
-  /// **'Folic acid, prenatal multivitamin, or similar? Snap a photo of the nutrition label and the app will add the values to your daily totals automatically.'**
+  /// **'Folic acid, prenatal multivitamin, or similar? Snap a photo of the nutrition table on the back of the box and the app adds the values to your daily totals automatically.'**
   String get supplementOnboardingBody;
 
   /// No description provided for @supplementAddCta.
   ///
   /// In en, this message translates to:
-  /// **'Photograph label'**
+  /// **'Photograph nutrition table'**
   String get supplementAddCta;
 
   /// No description provided for @supplementSkipCta.

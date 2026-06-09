@@ -458,6 +458,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         }
                       },
                       onClear: () => setState(() => _supplement = null),
+                      onSkip: _next,
                     ),
                     _SummaryStep(
                       profile: _buildProfile(),
@@ -614,7 +615,7 @@ class _WelcomeStep extends StatelessWidget {
           child: RichText(
             textAlign: TextAlign.center,
             text: TextSpan(
-              style: textTheme.displayMedium?.copyWith(
+              style: textTheme.displaySmall?.copyWith(
                 color: scheme.onSurface,
                 fontSize: 40,
               ),
@@ -639,7 +640,7 @@ class _WelcomeStep extends StatelessWidget {
             child: Text(
               AppLocalizations.of(context).onboardingTagline,
               textAlign: TextAlign.center,
-              style: textTheme.headlineSmall?.copyWith(
+              style: textTheme.titleLarge?.copyWith(
                 color: scheme.onSurfaceVariant,
                 fontSize: 22,
                 height: 1.3,
@@ -691,7 +692,7 @@ class _PhaseStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l10n.onboardingPhaseQuestion,
-              style: textTheme.headlineSmall
+              style: textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Text(
@@ -880,7 +881,7 @@ class _BodyStep extends StatelessWidget {
           children: [
             Expanded(
               child: Text(l10n.onboardingBasicsTitle,
-                  style: textTheme.headlineSmall
+                  style: textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.w700)),
             ),
             InfoButton(
@@ -1029,7 +1030,7 @@ class _PhaseDetailsStep extends StatelessWidget {
           children: [
             Expanded(
               child: Text(l10n.onboardingDetailsTitle,
-                  style: textTheme.headlineSmall
+                  style: textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.w700)),
             ),
             InfoButton(
@@ -1203,7 +1204,7 @@ class _SummaryStep extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           l10n.settingsTodayTarget,
-          style: textTheme.headlineMedium?.copyWith(
+          style: textTheme.titleLarge?.copyWith(
             color: scheme.onSurface,
           ),
         ),
@@ -1224,7 +1225,7 @@ class _SummaryStep extends StatelessWidget {
                 children: [
                   Text(
                     formatKcal(total),
-                    style: textTheme.displayLarge?.copyWith(
+                    style: textTheme.displaySmall?.copyWith(
                       color: scheme.primary,
                       fontSize: 64,
                       fontWeight: FontWeight.w700,
@@ -1444,7 +1445,7 @@ class _NumberStepper extends StatelessWidget {
             icon: const Icon(Icons.remove_circle_outline),
             onPressed: value > min ? () => onChanged(value - 1) : null,
           ),
-          Text(value.toString(), style: textTheme.headlineSmall),
+          Text(value.toString(), style: textTheme.titleLarge),
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: value < max ? () => onChanged(value + 1) : null,
@@ -1479,7 +1480,7 @@ class _GoalStep extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.onboardingGoalTitle,
-                  style: textTheme.headlineSmall
+                  style: textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
@@ -1526,10 +1527,14 @@ class _SupplementStep extends StatelessWidget {
   final ActiveSupplement? supplement;
   final VoidCallback onStartSetup;
   final VoidCallback onClear;
+  // "Nein, nehme keins" should feel like a real skip target, not just a
+  // text label - parent wires this up to advance past this step directly.
+  final VoidCallback onSkip;
   const _SupplementStep({
     required this.supplement,
     required this.onStartSetup,
     required this.onClear,
+    required this.onSkip,
   });
 
   @override
@@ -1544,7 +1549,7 @@ class _SupplementStep extends StatelessWidget {
         children: [
           Text(
             l10n.supplementOnboardingTitle,
-            style: textTheme.headlineSmall
+            style: textTheme.titleLarge
                 ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
@@ -1563,9 +1568,12 @@ class _SupplementStep extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              l10n.supplementSkipCta,
-              style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: onSkip,
+                child: Text(l10n.supplementSkipCta),
+              ),
             ),
           ] else ...[
             Container(
@@ -1588,24 +1596,22 @@ class _SupplementStep extends StatelessWidget {
                         textTheme.bodySmall?.copyWith(color: scheme.outline),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: onStartSetup,
-                          icon: const Icon(Icons.edit_outlined, size: 16),
-                          label: Text(l10n.supplementRetry),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: onClear,
-                          icon: const Icon(Icons.close, size: 16),
-                          label: Text(l10n.supplementRemove),
-                        ),
-                      ),
-                    ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: onStartSetup,
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      label: Text(l10n.supplementRetry),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: onClear,
+                      icon: const Icon(Icons.close, size: 16),
+                      label: Text(l10n.supplementRemove),
+                    ),
                   ),
                 ],
               ),
