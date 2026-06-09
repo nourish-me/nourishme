@@ -225,7 +225,7 @@
 
   "settingsMilkChildren": "Kinder, die du mit Milch versorgst",
   "settingsMilkAgeLabel": "Alter der Kinder",
-  "settingsMilkVolume": "Muttermilch pro Tag",
+  "settingsMilkVolume": "Muttermilch, die du täglich produzierst",
   "settingsMilkVolumePerDay": "{volume} ml/Tag → +{supplement} kcal/Tag",
   "settingsMilkVolumeInfoSummary": "Energiekosten der Synthese: ~0,84 kcal pro ml Milch.",
   "settingsMilkVolumeInfoDetail": "Wenn du pumpst und dein Volumen kennst, trage es exakt ein. Anteil-Slider darüber liefert sonst eine Schätzung.",

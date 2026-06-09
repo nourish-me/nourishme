@@ -1253,7 +1253,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMilkVolume.
   ///
   /// In en, this message translates to:
-  /// **'Breast milk per day'**
+  /// **'Breast milk you produce per day'**
   String get settingsMilkVolume;
 
   /// No description provided for @settingsMilkVolumePerDay.
