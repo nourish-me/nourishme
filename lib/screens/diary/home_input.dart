@@ -191,6 +191,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       portionUnit: favorite.portionUnit,
       portionAlias: null,
       safetyWarnings: favorite.safetyWarnings,
+      micronutrients: favorite.micronutrients,
     );
     await showModalBottomSheet<MealEntry>(
       context: context,
@@ -379,6 +380,11 @@ class _HomeInputState extends ConsumerState<HomeInput> {
 
     await threadRepo
         .add(ThreadItem.userQuestion(text: text, at: DateTime.now()));
+    // User just sent a chat question. Bump the scroll request so the diary
+    // jumps to the question even if they were reading yesterday's entries -
+    // the ambient "only follow if near bottom" rule would otherwise drop
+    // both their question and the eventual reply silently below the fold.
+    ref.read(scrollToBottomRequestProvider.notifier).state++;
     ref.read(analyticsServiceProvider).capture('coach_chat_sent');
     loadingNotifier.state = true;
     var replyOk = true;

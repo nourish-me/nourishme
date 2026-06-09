@@ -49,6 +49,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Last scroll-to-day target we already scheduled a scroll for; prevents
   // double-firing when the provider value bounces through rebuilds.
   DateTime? _handledScrollToDay;
+  // Last scrollToBottomRequest bump value we already acted on. Used to skip
+  // the existing bump on first build (initial state == 0) so we don't
+  // jump to bottom every time the diary opens.
+  int? _handledScrollToBottomBump;
   // Direction-aware jump FAB. Tracks the last meaningful scroll direction
   // so the FAB matches the user's intent: scrolling down → offer "jump to
   // bottom", scrolling up → offer "jump to top". Hidden when at the edge
@@ -514,6 +518,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ref.read(scrollToDayProvider.notifier).state = null;
           _handledScrollToDay = null;
         }
+      });
+    }
+
+    // Explicit "scroll to bottom" request - currently bumped when the user
+    // submits a chat question. Bypasses the ambient "near-bottom-only"
+    // heuristic so a question typed while scrolled into yesterday still
+    // surfaces the question (and the eventual reply) for the user.
+    final scrollBottomBump = ref.watch(scrollToBottomRequestProvider);
+    if (_handledScrollToBottomBump == null) {
+      _handledScrollToBottomBump = scrollBottomBump;
+    } else if (scrollBottomBump != _handledScrollToBottomBump) {
+      _handledScrollToBottomBump = scrollBottomBump;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToBottom();
       });
     }
 

@@ -54,3 +54,13 @@ final mealInputPrefillProvider =
 // tracked separately on inFlightMealIds in CoachSessionManager - this
 // provider is only for the chat path.
 final insightLoadingProvider = StateProvider<bool>((ref) => false);
+
+// One-shot bump that signals the diary to scroll to the bottom of today
+// (most recent item) regardless of the user's current scroll position.
+// Used when an action the user actively initiated would otherwise leave
+// their reply off-screen: typing a chat question while scrolled into
+// yesterday's entries should still surface the reply when it lands.
+// The auto-scroll dispatcher's "only follow if near bottom" heuristic
+// is the right default for ambient updates but the wrong call for
+// explicit user actions.
+final scrollToBottomRequestProvider = StateProvider<int>((ref) => 0);

@@ -330,6 +330,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         portionAmount: portion,
         portionUnit: widget.parsed.portionUnit,
         safetyWarnings: widget.parsed.safetyWarnings,
+        micronutrients: widget.parsed.micronutrients,
       );
       await ref.read(favoriteRepositoryProvider).save(favorite);
     }
