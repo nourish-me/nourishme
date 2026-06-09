@@ -57,7 +57,7 @@ class EmptySafety extends StatelessWidget {
             textAlign: TextAlign.center,
             style: textTheme.titleLarge?.copyWith(
               fontStyle: FontStyle.italic,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: scheme.onSurface,
             ),
           ),

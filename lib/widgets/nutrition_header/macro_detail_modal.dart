@@ -85,7 +85,7 @@ class _MacroDetailSheet extends ConsumerWidget {
                         '$intake / $target $unit',
                         style: textTheme.titleMedium?.copyWith(
                           color: accent,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
@@ -229,7 +229,7 @@ class _HeroDonut extends StatelessWidget {
             '${percent.round()}%',
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: color,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),

@@ -93,7 +93,7 @@ class MiniPctCell extends StatelessWidget {
                       // visual baseline. Was 11 - caused a ~0.5px
                       // baseline drift relative to the 11.5 name.
                       fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: color,
                       fontStyle: italic ? FontStyle.italic : FontStyle.normal,
                       height: 1.1,

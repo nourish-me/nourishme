@@ -222,8 +222,8 @@ class _TipPage extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             tip.title,
-            style: textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+            style: textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 12),

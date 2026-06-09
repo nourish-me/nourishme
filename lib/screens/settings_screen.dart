@@ -627,7 +627,7 @@ class _Section extends StatelessWidget {
                     // with the body labels below it).
                     style: textTheme.titleMedium?.copyWith(
                       color: scheme.onSurface,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -1845,7 +1845,7 @@ class _NumberStepper extends StatelessWidget {
             icon: const Icon(Icons.remove_circle_outline),
             onPressed: value > min ? () => onChanged(value - 1) : null,
           ),
-          Text(value.toString(), style: textTheme.headlineSmall),
+          Text(value.toString(), style: textTheme.titleLarge),
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: value < max ? () => onChanged(value + 1) : null,

@@ -77,7 +77,7 @@ class CoachBubble extends ConsumerWidget {
                   styleSheet:
                       MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
                     p: TextStyle(color: fg, height: 1.35),
-                    strong: TextStyle(color: fg, fontWeight: FontWeight.w700),
+                    strong: TextStyle(color: fg, fontWeight: FontWeight.w600),
                     em: TextStyle(color: fg, fontStyle: FontStyle.italic),
                     listBullet: TextStyle(color: fg),
                     blockSpacing: 6,

@@ -250,7 +250,7 @@ class _ReviewSheetState extends State<_ReviewSheet> {
               widget.isEdit
                   ? l10n.supplementEditTitle
                   : l10n.supplementReviewTitle,
-              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(

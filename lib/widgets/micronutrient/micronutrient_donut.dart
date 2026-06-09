@@ -155,7 +155,7 @@ class _PercentText extends StatelessWidget {
             text: '${percent.round()}',
             style: TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: color,
               fontStyle: italic ? FontStyle.italic : FontStyle.normal,
               height: 1.0,
@@ -166,7 +166,7 @@ class _PercentText extends StatelessWidget {
             text: '%',
             style: TextStyle(
               fontSize: 8,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: color,
               fontStyle: italic ? FontStyle.italic : FontStyle.normal,
               height: 1.0,

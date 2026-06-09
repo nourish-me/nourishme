@@ -411,7 +411,7 @@ class _ChartBar extends StatelessWidget {
           weekday,
           style: textTheme.labelSmall?.copyWith(
             color: isToday ? scheme.primary : scheme.outline,
-            fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: isToday ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ],
@@ -446,9 +446,9 @@ class _StreakCard extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               stats.streak.toString(),
-              style: textTheme.displayMedium?.copyWith(
+              style: textTheme.displaySmall?.copyWith(
                 color: NMColors.moss,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontStyle: FontStyle.italic,
                 fontSize: 28,
               ),
@@ -578,7 +578,7 @@ class _StatRow extends StatelessWidget {
           value,
           style: textTheme.labelMedium?.copyWith(
             color: scheme.onSurface,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(width: 6),
@@ -702,7 +702,7 @@ class _TopMealsCard extends StatelessWidget {
                     '${i + 1}',
                     style: textTheme.labelSmall?.copyWith(
                       color: scheme.onSecondaryContainer,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -771,9 +771,9 @@ class _WeightCard extends ConsumerWidget {
               children: [
                 Text(
                   '${entries.last.weightKg.toStringAsFixed(1)} kg',
-                  style: textTheme.headlineMedium?.copyWith(
+                  style: textTheme.titleLarge?.copyWith(
                     color: scheme.onSurface,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),

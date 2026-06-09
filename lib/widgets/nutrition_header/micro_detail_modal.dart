@@ -123,7 +123,7 @@ class _MicroDetailSheet extends ConsumerWidget {
                         '${_fmt(intake)} / ${_fmt(target.value)} ${target.unitLabel}',
                         style: textTheme.titleMedium?.copyWith(
                           color: accent,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
@@ -340,7 +340,7 @@ class _LactationFraming extends StatelessWidget {
                       : l10n.microDetailBufferedTitle,
                   style: textTheme.titleSmall?.copyWith(
                     color: scheme.onSurface,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -468,7 +468,7 @@ class _SourceRow extends StatelessWidget {
             style: textTheme.bodySmall?.copyWith(
               fontFamily: 'monospace',
               color: scheme.primary,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const Spacer(),
@@ -520,7 +520,7 @@ class _HeroDonut extends StatelessWidget {
             '${percent.round()}%',
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: color,
               fontStyle: dashed ? FontStyle.italic : FontStyle.normal,
               fontFeatures: const [FontFeature.tabularFigures()],

@@ -703,7 +703,7 @@ class _PhaseStep extends StatelessWidget {
         children: [
           Text(l10n.onboardingPhaseQuestion,
               style: textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700)),
+                  ?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
             l10n.onboardingPhaseExplainer,
@@ -892,7 +892,7 @@ class _BodyStep extends StatelessWidget {
             Expanded(
               child: Text(l10n.onboardingBasicsTitle,
                   style: textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w700)),
+                      ?.copyWith(fontWeight: FontWeight.w600)),
             ),
             InfoButton(
               fact: NutritionFact(
@@ -1041,7 +1041,7 @@ class _PhaseDetailsStep extends StatelessWidget {
             Expanded(
               child: Text(l10n.onboardingDetailsTitle,
                   style: textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w700)),
+                      ?.copyWith(fontWeight: FontWeight.w600)),
             ),
             InfoButton(
               fact: isPregnant
@@ -1238,7 +1238,7 @@ class _SummaryStep extends StatelessWidget {
                     style: textTheme.displaySmall?.copyWith(
                       color: scheme.primary,
                       fontSize: 64,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       fontStyle: FontStyle.italic,
                       height: 1.0,
                     ),
@@ -1491,7 +1491,7 @@ class _GoalStep extends StatelessWidget {
                 child: Text(
                   l10n.onboardingGoalTitle,
                   style: textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                      ?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
               InfoButton(fact: goalFact(l10n)),
@@ -1562,7 +1562,7 @@ class _SupplementStep extends StatelessWidget {
           Text(
             l10n.supplementOnboardingTitle,
             style: textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w700),
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
@@ -1639,7 +1639,7 @@ class _OnboardingSupplementListItem extends StatelessWidget {
                 Text(
                   supplement.name,
                   style: textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                      ?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   l10n.supplementCurrentDoses(supplement.dosesPerDay),

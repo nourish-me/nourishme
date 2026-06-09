@@ -164,7 +164,7 @@ class _KcalTier extends StatelessWidget {
                           text: formatKcal(targetKcal),
                           style: TextStyle(
                             color: scheme.onSurface,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             fontSize: 13.5,
                           ),
                         ),
@@ -183,7 +183,7 @@ class _KcalTier extends StatelessWidget {
                           text: formatKcal(totalKcal),
                           style: TextStyle(
                             color: intakeColor,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             fontSize: 13.5,
                           ),
                         ),
@@ -192,7 +192,7 @@ class _KcalTier extends StatelessWidget {
                           text: '${pct.round()}%',
                           style: TextStyle(
                             color: intakeColor,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
