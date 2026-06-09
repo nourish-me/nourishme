@@ -507,10 +507,15 @@ class _ProgressHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: onBack,
-              ),
+              // Keep a 48-px slot so the progress dots stay centered even
+              // on the first step where the back button isn't shown.
+              if (onBack != null)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: onBack,
+                )
+              else
+                const SizedBox(width: 48),
               Expanded(
                 child: Center(
                   child: Text(
