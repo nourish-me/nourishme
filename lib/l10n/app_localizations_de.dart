@@ -1221,6 +1221,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wann wurde dein (jüngstes) Kind geboren?';
 
   @override
+  String get settingsMilkBirthdateUseBucket => 'Lieber nur das Alter wählen?';
+
+  @override
+  String get settingsMilkBirthdateBackToDate => 'Genauer mit Geburtsdatum?';
+
+  @override
+  String get settingsMilkBirthdateAgeMonthsOne => '1 Monat alt';
+
+  @override
+  String settingsMilkBirthdateAgeMonths(int months) {
+    return '$months Monate alt';
+  }
+
+  @override
   String get settingsSectionGoal => 'Coach-Ziel';
 
   @override

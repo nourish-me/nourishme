@@ -1215,6 +1215,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'When was your (youngest) child born?';
 
   @override
+  String get settingsMilkBirthdateUseBucket => 'Pick the age bracket instead?';
+
+  @override
+  String get settingsMilkBirthdateBackToDate =>
+      'More precise with a birth date?';
+
+  @override
+  String get settingsMilkBirthdateAgeMonthsOne => '1 month old';
+
+  @override
+  String settingsMilkBirthdateAgeMonths(int months) {
+    return '$months months old';
+  }
+
+  @override
   String get settingsSectionGoal => 'Coach focus';
 
   @override

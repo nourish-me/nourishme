@@ -460,6 +460,15 @@
   "settingsMilkBirthdateClear": "Geburtsdatum entfernen",
   "settingsMilkBirthdateAuto": "Alter wird daraus laufend berechnet.",
   "settingsMilkBirthdatePickerHelp": "Wann wurde dein (jüngstes) Kind geboren?",
+  "settingsMilkBirthdateUseBucket": "Lieber nur das Alter wählen?",
+  "settingsMilkBirthdateBackToDate": "Genauer mit Geburtsdatum?",
+  "settingsMilkBirthdateAgeMonthsOne": "1 Monat alt",
+  "settingsMilkBirthdateAgeMonths": "{months} Monate alt",
+  "@settingsMilkBirthdateAgeMonths": {
+    "placeholders": {
+      "months": {"type": "int"}
+    }
+  },
 
 "settingsSectionGoal": "Coach-Ziel",
   "settingsGoalHint": "Worauf soll der Coach optimieren? Bei Körper-Optionen bleibt die Versorgung des Babys oberste Priorität, ein moderates Defizit (max. 300-500 kcal, nie unter 1.800 kcal/Tag) ist nur ab 6-8 Wochen postpartum erlaubt.",

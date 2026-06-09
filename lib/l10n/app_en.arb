@@ -603,6 +603,15 @@
   "settingsMilkBirthdateClear": "Clear birth date",
   "settingsMilkBirthdateAuto": "Age bucket follows automatically.",
   "settingsMilkBirthdatePickerHelp": "When was your (youngest) child born?",
+  "settingsMilkBirthdateUseBucket": "Pick the age bracket instead?",
+  "settingsMilkBirthdateBackToDate": "More precise with a birth date?",
+  "settingsMilkBirthdateAgeMonthsOne": "1 month old",
+  "settingsMilkBirthdateAgeMonths": "{months} months old",
+  "@settingsMilkBirthdateAgeMonths": {
+    "placeholders": {
+      "months": {"type": "int"}
+    }
+  },
 
 "settingsSectionGoal": "Coach focus",
   "settingsGoalHint": "What should the coach optimise for? For body-focused options the baby's supply stays the top priority - a moderate deficit (max 300-500 kcal, never below 1,800 kcal/day) is allowed only from 6-8 weeks postpartum.",

@@ -2234,6 +2234,30 @@ abstract class AppLocalizations {
   /// **'When was your (youngest) child born?'**
   String get settingsMilkBirthdatePickerHelp;
 
+  /// No description provided for @settingsMilkBirthdateUseBucket.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the age bracket instead?'**
+  String get settingsMilkBirthdateUseBucket;
+
+  /// No description provided for @settingsMilkBirthdateBackToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'More precise with a birth date?'**
+  String get settingsMilkBirthdateBackToDate;
+
+  /// No description provided for @settingsMilkBirthdateAgeMonthsOne.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month old'**
+  String get settingsMilkBirthdateAgeMonthsOne;
+
+  /// No description provided for @settingsMilkBirthdateAgeMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} months old'**
+  String settingsMilkBirthdateAgeMonths(int months);
+
   /// No description provided for @settingsSectionGoal.
   ///
   /// In en, this message translates to:

@@ -21,6 +21,7 @@ import '../services/calorie_target.dart';
 import '../services/nutrition_facts.dart';
 import '../utils/number_format.dart';
 import '../utils/profile_labels.dart';
+import '../widgets/child_age_input.dart';
 import '../widgets/info_button.dart';
 import 'favorite_edit_sheet.dart';
 import 'onboarding_screen.dart';
@@ -1219,8 +1220,6 @@ class _MilkSection extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final ageLabels = childAgeLabelsOf(l10n);
-    final ageGroups = ChildAgeGroup.allFor(ageLabels);
     return _Section(
       title: l10n.settingsSectionMilk,
       info: InfoButton(fact: energyLactationFact(l10n)),
@@ -1247,30 +1246,12 @@ class _MilkSection extends StatelessWidget {
               style: textTheme.bodyMedium,
             ),
             const SizedBox(height: 6),
-            SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<int>(
-                segments: List.generate(
-                  ageGroups.length,
-                  (i) => ButtonSegment(
-                    value: i,
-                    label: Text(ageGroups[i].label),
-                  ),
-                ),
-                selected: {ageGroup},
-                showSelectedIcon: false,
-                // Bucket is derived from birth date when present; lock the
-                // segmented picker so users can't accidentally desync it.
-                onSelectionChanged: youngestChildBirthdate != null
-                    ? null
-                    : (s) => onAgeChanged(s.first),
-              ),
-            ),
-            const SizedBox(height: 8),
-            _BirthdateRow(
+            ChildAgeInput(
+              bucket: ageGroup,
+              onBucketChanged: onAgeChanged,
               birthdate: youngestChildBirthdate,
-              onPick: onPickBirthdate,
-              onClear: onClearBirthdate,
+              onPickBirthdate: onPickBirthdate,
+              onClearBirthdate: onClearBirthdate,
             ),
             const SizedBox(height: 16),
             Text(
@@ -1963,65 +1944,6 @@ class _GoalSection extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _BirthdateRow extends StatelessWidget {
-  final DateTime? birthdate;
-  final VoidCallback onPick;
-  final VoidCallback onClear;
-  const _BirthdateRow({
-    required this.birthdate,
-    required this.onPick,
-    required this.onClear,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-    final df = intl.DateFormat.yMd(
-        Localizations.localeOf(context).languageCode);
-    if (birthdate == null) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: TextButton.icon(
-          onPressed: onPick,
-          icon: const Icon(Icons.cake_outlined, size: 18),
-          label: Text(l10n.settingsMilkBirthdatePick),
-        ),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${l10n.settingsMilkBirthdateLabel}: ${df.format(birthdate!)}',
-                style: textTheme.bodyMedium,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              tooltip: l10n.settingsMilkBirthdatePick,
-              onPressed: onPick,
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, size: 18),
-              tooltip: l10n.settingsMilkBirthdateClear,
-              onPressed: onClear,
-            ),
-          ],
-        ),
-        Text(
-          l10n.settingsMilkBirthdateAuto,
-          style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-        ),
-      ],
     );
   }
 }

@@ -14,6 +14,7 @@ import '../services/nutrition_facts.dart';
 import '../services/notification_scheduler.dart';
 import '../utils/number_format.dart';
 import '../utils/profile_labels.dart';
+import '../widgets/child_age_input.dart';
 import '../widgets/info_button.dart';
 import '../widgets/nm_icons.dart';
 import 'main_scaffold.dart';
@@ -988,8 +989,6 @@ class _PhaseDetailsStep extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final ageLabels = childAgeLabelsOf(l10n);
-    final ageGroups = ChildAgeGroup.allFor(ageLabels);
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       children: [
@@ -1067,33 +1066,12 @@ class _PhaseDetailsStep extends StatelessWidget {
             style: textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: SegmentedButton<int>(
-              segments: List.generate(
-                ageGroups.length,
-                (i) => ButtonSegment(
-                  value: i,
-                  label: Text(ageGroups[i].label),
-                ),
-              ),
-              selected: {childAgeGroup},
-              showSelectedIcon: false,
-              onSelectionChanged: youngestChildBirthdate != null
-                  ? null
-                  : (s) => onAgeGroupChanged(s.first),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            ageGroups[childAgeGroup].hint,
-            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-          ),
-          const SizedBox(height: 8),
-          _OnboardingBirthdateRow(
+          ChildAgeInput(
+            bucket: childAgeGroup,
+            onBucketChanged: onAgeGroupChanged,
             birthdate: youngestChildBirthdate,
-            onPick: onPickBirthdate,
-            onClear: onClearBirthdate,
+            onPickBirthdate: onPickBirthdate,
+            onClearBirthdate: onClearBirthdate,
           ),
           const SizedBox(height: 20),
           Text(
@@ -1511,60 +1489,3 @@ class _GoalStep extends StatelessWidget {
   }
 }
 
-class _OnboardingBirthdateRow extends StatelessWidget {
-  final DateTime? birthdate;
-  final VoidCallback onPick;
-  final VoidCallback onClear;
-  const _OnboardingBirthdateRow({
-    required this.birthdate,
-    required this.onPick,
-    required this.onClear,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-    if (birthdate == null) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: TextButton.icon(
-          onPressed: onPick,
-          icon: const Icon(Icons.cake_outlined, size: 18),
-          label: Text(l10n.settingsMilkBirthdatePick),
-        ),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${l10n.settingsMilkBirthdateLabel}: '
-                '${_formatBirthdate(context, birthdate!)}',
-                style: textTheme.bodyMedium,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              tooltip: l10n.settingsMilkBirthdatePick,
-              onPressed: onPick,
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, size: 18),
-              tooltip: l10n.settingsMilkBirthdateClear,
-              onPressed: onClear,
-            ),
-          ],
-        ),
-        Text(
-          l10n.settingsMilkBirthdateAuto,
-          style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-        ),
-      ],
-    );
-  }
-}
