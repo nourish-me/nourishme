@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -115,13 +116,15 @@ Future<void> main() async {
     return;
   }
 
+  final info = await PackageInfo.fromPlatform();
   await SentryFlutter.init(
     (options) {
       options.dsn = sentryDsn;
       // Tag every event with the build's identity so we can filter beta
       // crashes from later production ones once the App Store version
-      // ships. Bump the release string when the version changes.
-      options.release = 'nourishme@1.0.0+18';
+      // ships. Pulled from PackageInfo so a pubspec version bump auto-
+      // syncs to Sentry without a hardcoded string drift.
+      options.release = 'nourishme@${info.version}+${info.buildNumber}';
       options.environment = 'beta';
       // Trace sampling stays off — we only care about crashes + errors,
       // not performance traces. Keeps the free-tier event budget intact.
