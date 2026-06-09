@@ -546,6 +546,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
+  String get settingsHubAboutYou => 'About you';
+
+  @override
+  String get settingsHubAboutYouSummary => 'Profile, phase, activity';
+
+  @override
+  String get settingsHubCoach => 'Coach & nutrition';
+
+  @override
+  String get settingsHubCoachSummary => 'Goal, macros, micros, supplements';
+
+  @override
+  String get settingsHubApp => 'App';
+
+  @override
+  String get settingsHubAppSummary => 'Reminders, favourites, theme';
+
+  @override
   String get settingsSectionProfile => 'Your profile';
 
   @override

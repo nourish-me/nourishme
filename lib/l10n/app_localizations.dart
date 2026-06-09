@@ -1064,6 +1064,42 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
+  /// No description provided for @settingsHubAboutYou.
+  ///
+  /// In en, this message translates to:
+  /// **'About you'**
+  String get settingsHubAboutYou;
+
+  /// No description provided for @settingsHubAboutYouSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile, phase, activity'**
+  String get settingsHubAboutYouSummary;
+
+  /// No description provided for @settingsHubCoach.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach & nutrition'**
+  String get settingsHubCoach;
+
+  /// No description provided for @settingsHubCoachSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal, macros, micros, supplements'**
+  String get settingsHubCoachSummary;
+
+  /// No description provided for @settingsHubApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get settingsHubApp;
+
+  /// No description provided for @settingsHubAppSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders, favourites, theme'**
+  String get settingsHubAppSummary;
+
   /// No description provided for @settingsSectionProfile.
   ///
   /// In en, this message translates to:

@@ -553,6 +553,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsTitle => 'Einstellungen';
 
   @override
+  String get settingsHubAboutYou => 'Über dich';
+
+  @override
+  String get settingsHubAboutYouSummary => 'Profil, Phase, Aktivität';
+
+  @override
+  String get settingsHubCoach => 'Coach & Ernährung';
+
+  @override
+  String get settingsHubCoachSummary => 'Ziel, Makros, Mikros, Supplements';
+
+  @override
+  String get settingsHubApp => 'App';
+
+  @override
+  String get settingsHubAppSummary => 'Erinnerungen, Favoriten, Design';
+
+  @override
   String get settingsSectionProfile => 'Dein Profil';
 
   @override

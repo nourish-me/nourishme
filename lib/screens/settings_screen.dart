@@ -74,6 +74,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _initialized = false;
   String? _initialProfileJson;
   bool _justSaved = false;
+  // Bumped on every setState so detail-page routes pushed on top of the
+  // hub can ListenableBuilder-rebuild against the shared state. Without
+  // this, a slider drag inside a detail page would only rebuild the hub
+  // (which is hidden underneath) and leave the visible detail screen
+  // stuck on the old value.
+  final ValueNotifier<int> _stateVersion = ValueNotifier(0);
+
+  @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    _stateVersion.value++;
+  }
 
   @override
   void dispose() {
@@ -82,6 +94,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _weight.dispose();
       _dietaryNotes.dispose();
     }
+    _stateVersion.dispose();
     super.dispose();
   }
 
@@ -305,7 +318,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return discard ?? false;
   }
 
-  Future<void> _save() async {
+  // Persists the current edit state without closing any route. Detail pages
+  // call this from their own Save button and decide for themselves whether
+  // to pop the detail or stay open. Mutates _initialProfileJson so the
+  // dirty check resets to clean immediately after a successful save.
+  Future<void> _persist() async {
     final l10n = AppLocalizations.of(context);
     final newProfile = _currentProfile();
     await ref.read(settingsRepositoryProvider).saveProfile(newProfile);
@@ -327,11 +344,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
-    _justSaved = true;
-    Navigator.pop(context);
-    // Surface confirmation on the parent scaffold (Verlauf / Tagebuch) so the
-    // user lands back, sees the updated kcal/macros toolbar AND a brief
-    // "Gespeichert" cue tying the two together.
+    _initialProfileJson = jsonEncode(newProfile.toJson()); // mark clean
+    _stateVersion.value++;
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Text(l10n.settingsSavedSnackbar),
@@ -403,197 +417,342 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               navigator.pop();
             }
           },
-          child: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            behavior: HitTestBehavior.opaque,
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text(AppLocalizations.of(context).settingsTitle),
-                centerTitle: false,
-              ),
-            body: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              children: [
-                _OutcomeCard(profile: _currentProfile()),
-                const SizedBox(height: 16),
-                _PhaseSection(
-                  phase: _phase,
-                  onPhaseChanged: (v) => setState(() => _phase = v),
-                  trimester: _trimester,
-                  onTrimesterChanged: (v) => setState(() => _trimester = v),
-                ),
-                const SizedBox(height: 12),
-                _GoalSection(
-                  goal: _goal,
-                  onChanged: (v) => setState(() => _goal = v),
-                ),
-                const SizedBox(height: 12),
-                _Section(
-                  title: AppLocalizations.of(context).settingsSectionProfile,
-                  child: _ProfileFields(
-                    birthdate: _birthdate,
-                    onBirthdateTap: _pickBirthdate,
-                    height: _height,
-                    weight: _weight,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _ActivitySection(
-                  activityFactor: _activityFactor,
-                  onChanged: (v) => setState(() => _activityFactor = v),
-                ),
-                if (_isLactating) ...[
-                  const SizedBox(height: 12),
-                  _MilkSection(
-                    numChildren: _numChildren,
-                    onChildrenChanged: _onNumChildrenChanged,
-                    ageGroup: _childrenAgeGroup,
-                    onAgeChanged: _onAgeGroupChanged,
-                    youngestChildBirthdate: _youngestChildBirthdate,
-                    onPickBirthdate: _pickYoungestChildBirthdate,
-                    onClearBirthdate: () =>
-                        setState(() => _youngestChildBirthdate = null),
-                    sharePercent: _milkSharePercent,
-                    onShareChanged: _onSharePercentChanged,
-                    dailyVolumeMl: _dailyVolumeMl,
-                    onVolumeChanged: (v) => setState(() => _dailyVolumeMl = v),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                _MacroSplitSection(
-                  profile: _currentProfile(),
-                  proteinPct: _customProteinPct,
-                  fatPct: _customFatPct,
-                  onProteinChanged: _onProteinPctChanged,
-                  onFatChanged: _onFatPctChanged,
-                  onReset: () => setState(() {
-                    _customProteinPct = 0;
-                    _customFatPct = 0;
-                  }),
-                ),
-                const SizedBox(height: 12),
-                _DietSection(
-                  dietStyle: _dietStyle,
-                  onDietStyleChanged: (v) => setState(() => _dietStyle = v),
-                  restrictions: _restrictions,
-                  onRestrictionToggled: (tag, picked) {
-                    setState(() {
-                      if (picked) {
-                        _restrictions = {..._restrictions, tag};
-                      } else {
-                        _restrictions = {..._restrictions}..remove(tag);
-                      }
-                    });
-                  },
-                  notesController: _dietaryNotes,
-                ),
-                const SizedBox(height: 12),
-                _SupplementSection(
-                  supplements: _supplements,
-                  onAdd: () async {
-                    final result = await runSupplementSetup(context, ref);
-                    if (result != null && mounted) {
-                      setState(() => _supplements = [..._supplements, result]);
-                    }
-                  },
-                  onEdit: (index, edited) =>
-                      setState(() => _supplements = [
-                            for (var i = 0; i < _supplements.length; i++)
-                              if (i == index) edited else _supplements[i],
-                          ]),
-                  onRemove: (index) => setState(() => _supplements = [
-                        for (var i = 0; i < _supplements.length; i++)
-                          if (i != index) _supplements[i],
-                      ]),
-                ),
-                const SizedBox(height: 12),
-                _MicronutrientsSection(
-                  selected: _selectedMicros,
-                  onToggle: (key) {
-                    setState(() {
-                      final current = _selectedMicros ?? <String>[];
-                      final next = [...current];
-                      if (next.contains(key)) {
-                        next.remove(key);
-                      } else if (next.length < 3) {
-                        next.add(key);
-                      }
-                      _selectedMicros = next.isEmpty && _selectedMicros == null
-                          ? null
-                          : next;
-                    });
-                  },
-                  onReset: () => setState(() => _selectedMicros = null),
-                ),
-                const SizedBox(height: 12),
-                const _FavoritesSection(),
-                const SizedBox(height: 16),
-                const _RemindersSection(),
-                const SizedBox(height: 16),
-                _ThemeSection(),
-                const SizedBox(height: 16),
-                const _PrivacySection(),
-                const SizedBox(height: 16),
-                // Lets the user revisit the first-run tips deck. The deck
-                // sets hasSeenTipsV1 on dismiss, so launching it from here
-                // simply re-runs the same screen.
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TipsScreen()),
-                  ),
-                  icon: const Icon(Icons.lightbulb_outline),
-                  label:
-                      Text(AppLocalizations.of(context).settingsButtonShowTips),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () => FeedbackSender.openFeedbackMail(
-                    AppLocalizations.of(context),
-                  ),
-                  icon: const Icon(Icons.mail_outline),
-                  label: Text(AppLocalizations.of(context).settingsButtonFeedback),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: _resetApp,
-                  icon: const Icon(Icons.restore_outlined),
-                  label: Text(AppLocalizations.of(context).settingsButtonReset),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                    foregroundColor:
-                        Theme.of(context).colorScheme.error,
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.error.withValues(
-                            alpha: 0.5,
-                          ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-            bottomNavigationBar: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: FilledButton(
-                  onPressed: _save,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                  child: Text(AppLocalizations.of(context).settingsButtonSave),
-                ),
-              ),
-            ),
-            ),
-          ),
+          child: _buildHub(context),
         );
       },
+    );
+  }
+
+  Widget _buildHub(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.settingsTitle),
+        centerTitle: false,
+      ),
+      body: ListenableBuilder(
+        listenable: _stateVersion,
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            _OutcomeCard(profile: _currentProfile()),
+            const SizedBox(height: 16),
+            _HubTile(
+              icon: Icons.person_outline,
+              title: l10n.settingsHubAboutYou,
+              subtitle: l10n.settingsHubAboutYouSummary,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => _buildAboutYouPage()),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _HubTile(
+              icon: Icons.restaurant_menu_outlined,
+              title: l10n.settingsHubCoach,
+              subtitle: l10n.settingsHubCoachSummary,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => _buildCoachPage()),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _HubTile(
+              icon: Icons.tune_outlined,
+              title: l10n.settingsHubApp,
+              subtitle: l10n.settingsHubAppSummary,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => _buildAppPage()),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Bottom Save button used inside every detail page. Persists the entire
+  // profile (any field the user touched in any page is committed in one go),
+  // shows the confirmation snackbar, then pops the detail back to the hub
+  // so the user lands on the updated OutcomeCard.
+  Widget _detailSaveButton(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: FilledButton(
+          onPressed: () async {
+            final navigator = Navigator.of(context);
+            await _persist();
+            if (mounted) navigator.pop();
+          },
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+          child: Text(AppLocalizations.of(context).settingsButtonSave),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAboutYouPage() {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context).settingsHubAboutYou),
+        ),
+        body: ListenableBuilder(
+          listenable: _stateVersion,
+          builder: (context, _) => ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            children: [
+              _PhaseSection(
+                phase: _phase,
+                onPhaseChanged: (v) => setState(() => _phase = v),
+                trimester: _trimester,
+                onTrimesterChanged: (v) => setState(() => _trimester = v),
+              ),
+              const SizedBox(height: 12),
+              _Section(
+                title: AppLocalizations.of(context).settingsSectionProfile,
+                child: _ProfileFields(
+                  birthdate: _birthdate,
+                  onBirthdateTap: _pickBirthdate,
+                  height: _height,
+                  weight: _weight,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _ActivitySection(
+                activityFactor: _activityFactor,
+                onChanged: (v) => setState(() => _activityFactor = v),
+              ),
+              if (_isLactating) ...[
+                const SizedBox(height: 12),
+                _MilkSection(
+                  numChildren: _numChildren,
+                  onChildrenChanged: _onNumChildrenChanged,
+                  ageGroup: _childrenAgeGroup,
+                  onAgeChanged: _onAgeGroupChanged,
+                  youngestChildBirthdate: _youngestChildBirthdate,
+                  onPickBirthdate: _pickYoungestChildBirthdate,
+                  onClearBirthdate: () =>
+                      setState(() => _youngestChildBirthdate = null),
+                  sharePercent: _milkSharePercent,
+                  onShareChanged: _onSharePercentChanged,
+                  dailyVolumeMl: _dailyVolumeMl,
+                  onVolumeChanged: (v) => setState(() => _dailyVolumeMl = v),
+                ),
+              ],
+            ],
+          ),
+        ),
+        bottomNavigationBar: _detailSaveButton(context),
+      ),
+    );
+  }
+
+  Widget _buildCoachPage() {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context).settingsHubCoach),
+        ),
+        body: ListenableBuilder(
+          listenable: _stateVersion,
+          builder: (context, _) => ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            children: [
+              _GoalSection(
+                goal: _goal,
+                onChanged: (v) => setState(() => _goal = v),
+              ),
+              const SizedBox(height: 12),
+              _MacroSplitSection(
+                profile: _currentProfile(),
+                proteinPct: _customProteinPct,
+                fatPct: _customFatPct,
+                onProteinChanged: _onProteinPctChanged,
+                onFatChanged: _onFatPctChanged,
+                onReset: () => setState(() {
+                  _customProteinPct = 0;
+                  _customFatPct = 0;
+                }),
+              ),
+              const SizedBox(height: 12),
+              _DietSection(
+                dietStyle: _dietStyle,
+                onDietStyleChanged: (v) => setState(() => _dietStyle = v),
+                restrictions: _restrictions,
+                onRestrictionToggled: (tag, picked) {
+                  setState(() {
+                    if (picked) {
+                      _restrictions = {..._restrictions, tag};
+                    } else {
+                      _restrictions = {..._restrictions}..remove(tag);
+                    }
+                  });
+                },
+                notesController: _dietaryNotes,
+              ),
+              const SizedBox(height: 12),
+              _MicronutrientsSection(
+                selected: _selectedMicros,
+                onToggle: (key) {
+                  setState(() {
+                    final current = _selectedMicros ?? <String>[];
+                    final next = [...current];
+                    if (next.contains(key)) {
+                      next.remove(key);
+                    } else if (next.length < 3) {
+                      next.add(key);
+                    }
+                    _selectedMicros = next.isEmpty && _selectedMicros == null
+                        ? null
+                        : next;
+                  });
+                },
+                onReset: () => setState(() => _selectedMicros = null),
+              ),
+              const SizedBox(height: 12),
+              _SupplementSection(
+                supplements: _supplements,
+                onAdd: () async {
+                  final result = await runSupplementSetup(context, ref);
+                  if (result != null && mounted) {
+                    setState(() => _supplements = [..._supplements, result]);
+                  }
+                },
+                onEdit: (index, edited) =>
+                    setState(() => _supplements = [
+                          for (var i = 0; i < _supplements.length; i++)
+                            if (i == index) edited else _supplements[i],
+                        ]),
+                onRemove: (index) => setState(() => _supplements = [
+                      for (var i = 0; i < _supplements.length; i++)
+                        if (i != index) _supplements[i],
+                    ]),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: _detailSaveButton(context),
+      ),
+    );
+  }
+
+  // App page sections all self-persist (Reminders, Theme, Privacy via their
+  // own writers; Favorites is read-only here). No global Save button needed -
+  // tipps/feedback/reset live here as standalone actions.
+  Widget _buildAppPage() {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.settingsHubApp)),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          const _RemindersSection(),
+          const SizedBox(height: 12),
+          const _FavoritesSection(),
+          const SizedBox(height: 12),
+          _ThemeSection(),
+          const SizedBox(height: 12),
+          const _PrivacySection(),
+          const SizedBox(height: 24),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const TipsScreen()),
+            ),
+            icon: const Icon(Icons.lightbulb_outline),
+            label: Text(l10n.settingsButtonShowTips),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => FeedbackSender.openFeedbackMail(l10n),
+            icon: const Icon(Icons.mail_outline),
+            label: Text(l10n.settingsButtonFeedback),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: _resetApp,
+            icon: const Icon(Icons.restore_outlined),
+            label: Text(l10n.settingsButtonReset),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              foregroundColor: Theme.of(context).colorScheme.error,
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Hub-level drill-down tile. Renders as a tappable card with icon + title +
+// short summary line so the hub reads as "3 small cards" rather than a dense
+// menu list.
+class _HubTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  const _HubTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerLow,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+          child: Row(
+            children: [
+              Icon(icon, color: scheme.primary, size: 26),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: scheme.outline),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
