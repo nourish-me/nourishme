@@ -1256,4 +1256,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get onboardingGoalSubtitle =>
       'Du kannst das jederzeit in den Einstellungen ändern.';
+
+  @override
+  String get coachIngredientsReplyHint => 'z.B. Zucchini, Hähnchen';
 }

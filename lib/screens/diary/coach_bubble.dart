@@ -16,7 +16,17 @@ import '../../utils/coach_followups.dart';
 class CoachBubble extends ConsumerWidget {
   final String text;
   final bool isAnswer;
-  const CoachBubble({super.key, required this.text, required this.isAnswer});
+  // mealId is the meal this coach reply was generated for. Used to anchor
+  // the inline "ingredients today" reply input under THIS bubble when the
+  // coach asked the question with this meal. Null is fine (older code
+  // paths, fallback bubbles).
+  final String? mealId;
+  const CoachBubble({
+    super.key,
+    required this.text,
+    required this.isAnswer,
+    this.mealId,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,6 +40,12 @@ class CoachBubble extends ConsumerWidget {
     final fg = isDark ? scheme.onSurface : scheme.onSecondaryContainer;
     final iconColor = scheme.secondary;
     final split = splitCoachResponse(text);
+    // Inline ingredient-reply input: only on the bubble the coach actually
+    // asked under, and only until the user submits an answer.
+    final ask = ref.watch(coachAskStateProvider);
+    final showIngredientsInput = mealId != null &&
+        ask.askedMealId == mealId &&
+        ask.ingredients == null;
     return Container(
       decoration: BoxDecoration(
         color: bg,
@@ -69,6 +85,13 @@ class CoachBubble extends ConsumerWidget {
               ),
             ],
           ),
+          if (showIngredientsInput) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 26),
+              child: _IngredientsReplyInput(fg: fg, scheme: scheme),
+            ),
+          ],
           if (split.followUps.isNotEmpty) ...[
             const SizedBox(height: 10),
             Padding(
@@ -111,6 +134,96 @@ class CoachBubble extends ConsumerWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _IngredientsReplyInput extends ConsumerStatefulWidget {
+  final Color fg;
+  final ColorScheme scheme;
+  const _IngredientsReplyInput({required this.fg, required this.scheme});
+
+  @override
+  ConsumerState<_IngredientsReplyInput> createState() =>
+      _IngredientsReplyInputState();
+}
+
+class _IngredientsReplyInputState
+    extends ConsumerState<_IngredientsReplyInput> {
+  late final TextEditingController _c;
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final text = _c.text.trim();
+    if (text.isEmpty || _submitting) return;
+    setState(() => _submitting = true);
+    await ref
+        .read(coachAskStateProvider.notifier)
+        .submitIngredients(text);
+    // No need to clear — the bubble will rebuild without this input
+    // once provider state reflects the saved ingredients.
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _c,
+            enabled: !_submitting,
+            textInputAction: TextInputAction.send,
+            onSubmitted: (_) => _submit(),
+            style: TextStyle(color: widget.fg, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: l10n.coachIngredientsReplyHint,
+              hintStyle: TextStyle(
+                color: widget.fg.withValues(alpha: 0.5),
+                fontSize: 14,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide:
+                    BorderSide(color: widget.scheme.secondary.withValues(alpha: 0.5)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide:
+                    BorderSide(color: widget.scheme.secondary.withValues(alpha: 0.5)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: widget.scheme.secondary),
+              ),
+              isDense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.arrow_upward, size: 18),
+          color: widget.scheme.secondary,
+          onPressed: _submitting ? null : _submit,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+      ],
     );
   }
 }

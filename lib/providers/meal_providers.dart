@@ -29,6 +29,37 @@ final favoriteRepositoryProvider = Provider<FavoriteRepository>((ref) {
   throw UnimplementedError('Override in main() with the opened box');
 });
 
+// In-thread "anything to use up today?" state shared between the
+// CoachSessionManager (which writes when it asks) and CoachBubble
+// (which reads to decide whether to render the inline reply input).
+class CoachAskState {
+  final String? askedMealId;
+  final String? ingredients;
+  const CoachAskState({this.askedMealId, this.ingredients});
+
+  factory CoachAskState.from(SettingsRepository repo) => CoachAskState(
+        askedMealId: repo.getCoachLastAskedAtMealId(),
+        ingredients: repo.getCoachTodaysIngredients(),
+      );
+}
+
+class CoachAskNotifier extends StateNotifier<CoachAskState> {
+  CoachAskNotifier(this._repo) : super(CoachAskState.from(_repo));
+  final SettingsRepository _repo;
+
+  void reload() => state = CoachAskState.from(_repo);
+
+  Future<void> submitIngredients(String text) async {
+    await _repo.setCoachTodaysIngredients(text);
+    reload();
+  }
+}
+
+final coachAskStateProvider =
+    StateNotifierProvider<CoachAskNotifier, CoachAskState>(
+  (ref) => CoachAskNotifier(ref.read(settingsRepositoryProvider)),
+);
+
 final favoritesProvider = StreamProvider<List<FavoriteMeal>>((ref) {
   return ref.watch(favoriteRepositoryProvider).watch();
 });

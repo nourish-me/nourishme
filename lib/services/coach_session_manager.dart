@@ -298,9 +298,13 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
             properties: {'item_count': meals.length});
       }
       // The "anything to use up?" question counts as asked even if the
-      // user doesn't answer in this turn — prevents nagging.
+      // user doesn't answer in this turn — prevents nagging. Anchor the
+      // ask to this meal's id so the diary can render the reply input
+      // right under THIS coach bubble (not under every later one too).
       if (askForIngredients) {
         await settingsRepo.markCoachAskedToday();
+        await settingsRepo.setCoachLastAskedAtMealId(last.id);
+        _ref.read(coachAskStateProvider.notifier).reload();
       }
     } catch (e, stack) {
       debugPrint('Coach call failed for ${meals.length} meal(s): $e\n$stack');

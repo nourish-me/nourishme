@@ -812,11 +812,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               widgets.add(const CoachThinkingBubble());
             }
           case ThreadItemType.coachResponse:
-            widgets.add(CoachBubble(text: item.text ?? '', isAnswer: false));
+            widgets.add(CoachBubble(
+              text: item.text ?? '',
+              isAnswer: false,
+              mealId: item.mealId,
+            ));
           case ThreadItemType.userQuestion:
             widgets.add(UserBubble(text: item.text ?? ''));
           case ThreadItemType.coachAnswer:
-            widgets.add(CoachBubble(text: item.text ?? '', isAnswer: true));
+            widgets.add(CoachBubble(
+              text: item.text ?? '',
+              isAnswer: true,
+              mealId: item.mealId,
+            ));
         }
         widgets.add(const SizedBox(height: 8));
       }

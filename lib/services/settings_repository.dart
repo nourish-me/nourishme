@@ -32,6 +32,10 @@ class SettingsRepository {
   static const _coachIngredientsTextKey = 'coach_ingredients_text';
   static const _coachIngredientsDateKey = 'coach_ingredients_date';
   static const _coachLastAskedKey = 'coach_last_asked_ingredients_date';
+  // Meal-thread anchor for the "anything to use up today?" question so the
+  // diary can render an inline reply input directly under THAT coach
+  // bubble (not under every coach bubble of the day).
+  static const _coachLastAskedMealIdKey = 'coach_last_asked_meal_id';
 
   final Box<String> _box;
 
@@ -197,6 +201,17 @@ class SettingsRepository {
 
   Future<void> markCoachAskedToday() =>
       _box.put(_coachLastAskedKey, _dayKey(DateTime.now()));
+
+  // Returns the meal-id the coach last asked under, but only if that ask
+  // was still today (yesterday's anchor would render an input in a
+  // history view, which is wrong).
+  String? getCoachLastAskedAtMealId() {
+    if (!wasCoachAskedToday()) return null;
+    return _box.get(_coachLastAskedMealIdKey);
+  }
+
+  Future<void> setCoachLastAskedAtMealId(String mealId) =>
+      _box.put(_coachLastAskedMealIdKey, mealId);
 
   static String _dayKey(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';

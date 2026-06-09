@@ -2299,6 +2299,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can change this any time in Settings.'**
   String get onboardingGoalSubtitle;
+
+  /// No description provided for @coachIngredientsReplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. zucchini, chicken'**
+  String get coachIngredientsReplyHint;
 }
 
 class _AppLocalizationsDelegate

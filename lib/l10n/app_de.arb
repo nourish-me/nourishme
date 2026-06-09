@@ -473,5 +473,7 @@
   "onboardingPhaseNeitherHint": "Weder schwanger noch produziere ich Muttermilch.",
 
   "onboardingGoalTitle": "Worauf willst du dich konzentrieren?",
-  "onboardingGoalSubtitle": "Du kannst das jederzeit in den Einstellungen ändern."
+  "onboardingGoalSubtitle": "Du kannst das jederzeit in den Einstellungen ändern.",
+
+  "coachIngredientsReplyHint": "z.B. Zucchini, Hähnchen"
 }

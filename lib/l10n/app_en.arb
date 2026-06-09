@@ -616,5 +616,7 @@
   "onboardingPhaseNeitherHint": "I'm neither pregnant nor producing breast milk.",
 
   "onboardingGoalTitle": "What do you want to focus on?",
-  "onboardingGoalSubtitle": "You can change this any time in Settings."
+  "onboardingGoalSubtitle": "You can change this any time in Settings.",
+
+  "coachIngredientsReplyHint": "e.g. zucchini, chicken"
 }
