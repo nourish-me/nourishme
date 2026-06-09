@@ -197,6 +197,42 @@ void main() {
       final m = calculateMacroTargets(p, 2200);
       expect(m.proteinG, inInclusiveRange(63, 67)); // ~1.0 g/kg, not 1.5+
     });
+
+    test('BMI > 25 caps protein-base weight at normal weight (DGE Fußnote a)',
+        () {
+      // 165 cm, 90 kg → BMI 33. Normal weight at BMI 25 = 25 × 1.65² ≈ 68 kg.
+      // Lactating → 1.2 g/kg of 68 kg ≈ 81 g, not 1.2 × 90 = 108 g.
+      final p = _profile(
+        numChildrenNursing: 1,
+        weightKg: 90,
+        heightCm: 165,
+      );
+      final m = calculateMacroTargets(p, 2500);
+      expect(m.proteinG, inInclusiveRange(79, 84));
+    });
+
+    test('BMI < 25 keeps actual weight as protein base', () {
+      // 170 cm, 60 kg → BMI 20.8 (under 25). No cap, regular 1.2 × 60 = 72 g.
+      final p = _profile(
+        numChildrenNursing: 1,
+        weightKg: 60,
+        heightCm: 170,
+      );
+      final m = calculateMacroTargets(p, 2500);
+      expect(m.proteinG, inInclusiveRange(70, 76));
+    });
+
+    test('goal=body + overweight: bump applies to capped weight, not actual',
+        () {
+      // 165 cm, 90 kg, body goal: protein 1.5 × 68 = 102 g (not 1.5 × 90 = 135).
+      final p = _profile(
+        numChildrenNursing: 1,
+        weightKg: 90,
+        heightCm: 165,
+      ).copyWith(goal: CoachGoal.body);
+      final m = calculateMacroTargets(p, 2700);
+      expect(m.proteinG, inInclusiveRange(99, 104));
+    });
   });
 
   group('JSON roundtrip (UserProfileSettings)', () {

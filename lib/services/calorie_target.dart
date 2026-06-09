@@ -76,7 +76,19 @@ class MacroTargets {
   if (profile.goal != CoachGoal.nutrients && !profile.isPregnant) {
     proteinPerKg = lactating ? 1.5 : 1.6;
   }
-  final proteinG = profile.weightKg * proteinPerKg;
+  // DGE 2025 Referenzwerte Protein, Fussnote a: bei Übergewicht (BMI > 25)
+  // wird der Protein-Bedarf vom Normalgewicht abgeleitet, nicht vom Ist-
+  // Gewicht. Ohne diesen Cap überschätzt die App den Protein-Bedarf bei
+  // BMI > 25 systematisch (z.B. eine Frau mit 90 kg / 165 cm: BMI 33,
+  // 90 × 1,2 = 108 g vom Ist-Gewicht; korrekter Wert: 25 × 1,65² = 68 kg
+  // → 68 × 1,2 = 81 g).
+  final heightM = profile.heightCm / 100;
+  final normalWeightAtBmi25 = heightM > 0 ? 25 * heightM * heightM : 0.0;
+  final effectiveWeight =
+      profile.weightKg > normalWeightAtBmi25 && normalWeightAtBmi25 > 0
+          ? normalWeightAtBmi25
+          : profile.weightKg;
+  final proteinG = effectiveWeight * proteinPerKg;
   final proteinKcal = proteinG * 4;
   final proteinPctRaw = targetKcal > 0
       ? (proteinKcal / targetKcal * 100).round().clamp(5, 50)
