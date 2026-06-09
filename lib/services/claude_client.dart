@@ -128,10 +128,31 @@ class MealParseResult {
           ? null
           : parsed['portion_alias'] as String?,
       safetyWarnings: List<String>.from(parsed['safety_warnings'] as List? ?? const []),
-      micronutrients: (parsed['micronutrients'] as Map?)?.map(
-        (k, v) => MapEntry(k as String, (v as num).toDouble()),
-      ),
+      micronutrients: _parseMicronutrients(parsed['micronutrients']),
     );
+  }
+
+  // Tolerant parse of the parser's micronutrient block. The model is asked
+  // for numbers, but occasionally returns a stringified number ("120") or
+  // outright garbage for a key. A hard `(v as num)` cast there throws an
+  // uncaught CastError that kills the WHOLE meal save (the user's core
+  // action) over a single bad nutrient. Instead: coerce numeric strings,
+  // and silently skip any value we can't read as a number, so one malformed
+  // entry never blocks logging the meal. Returns null only when the block is
+  // absent or not a map (preserving the "absent == 0" aggregation contract).
+  static Map<String, double>? _parseMicronutrients(Object? raw) {
+    if (raw is! Map) return null;
+    final out = <String, double>{};
+    raw.forEach((key, value) {
+      if (key is! String) return;
+      final n = value is num
+          ? value.toDouble()
+          : value is String
+              ? double.tryParse(value.trim())
+              : null;
+      if (n != null) out[key] = n;
+    });
+    return out;
   }
 }
 

@@ -110,4 +110,33 @@ void main() {
       expect(r.fatG, 5.0);
     });
   });
+
+  group('fromModelText - micronutrients are crash-safe', () {
+    test('stringified numeric value is coerced, not crashed', () {
+      final r = MealParseResult.fromModelText(
+        '{"summary": "x", "micronutrients": {"folate_ug": "120"}}',
+      );
+      expect(r.micronutrients, {'folate_ug': 120.0});
+    });
+
+    test('one garbage value is skipped, the meal still saves', () {
+      // Regression: a non-numeric micronutrient used to throw an uncaught
+      // CastError and kill the whole meal save. Now the bad entry is dropped
+      // and the valid one survives.
+      final r = MealParseResult.fromModelText(
+        '{"summary": "Joghurt", "kcal": 150, '
+        '"micronutrients": {"folate_ug": 120, "iron_mg": "oops"}}',
+      );
+      expect(r.isMeal, true); // did not throw, meal is intact
+      expect(r.kcal, 150);
+      expect(r.micronutrients, {'folate_ug': 120.0});
+    });
+
+    test('non-map micronutrients block degrades to null', () {
+      final r = MealParseResult.fromModelText(
+        '{"summary": "x", "micronutrients": "not a map"}',
+      );
+      expect(r.micronutrients, isNull);
+    });
+  });
 }
