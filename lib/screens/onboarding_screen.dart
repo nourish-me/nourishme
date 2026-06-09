@@ -17,6 +17,7 @@ import '../utils/profile_labels.dart';
 import '../widgets/child_age_input.dart';
 import '../widgets/info_button.dart';
 import '../widgets/nm_icons.dart';
+import '../widgets/supplement_setup.dart';
 import 'main_scaffold.dart';
 
 // First-launch setup. Five steps with a thin progress bar at the top. Each
@@ -39,13 +40,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     'goal',
     'body',
     'phase_details',
+    'supplement',
     'summary',
   ];
 
   // Step indices we branch on. Keeping these in one place keeps the
-  // _skipPhaseDetails branching readable when the step list grows.
+  // skip branching readable when the step list grows.
   static const _phaseDetailsStepIndex = 4;
-  static const _summaryStepIndex = 5;
+  static const _supplementStepIndex = 5;
+  static const _summaryStepIndex = 6;
 
   final _controller = PageController();
   int _step = 0;
@@ -60,6 +63,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Coach focus chosen during onboarding. Defaults to nutrients so a user
   // who just taps through gets the safer no-deficit-talk coach.
   String _goal = CoachGoal.nutrients;
+  // Optional supplement captured during onboarding via Vision-parse. Null
+  // when the user skipped that step or doesn't take one.
+  ActiveSupplement? _supplement;
   int _trimester = 1;
 
   // Body fields are pre-filled with neutral defaults so the user can advance
@@ -116,7 +122,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
-  int get _totalSteps => 6;
+  int get _totalSteps => 7;
 
   bool get _canAdvance {
     switch (_step) {
@@ -161,7 +167,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _next() {
     if (_step < _totalSteps - 1) {
       var target = _step + 1;
-      if (target == _phaseDetailsStepIndex && _skipPhaseDetails) target += 1;
+      // PhaseDetails + Supplement are both skipped for the "neither" phase
+      // (no nursing context to configure, no supplements relevant when
+      // there's no baby).
+      while ((target == _phaseDetailsStepIndex && _skipPhaseDetails) ||
+          (target == _supplementStepIndex && _skipPhaseDetails)) {
+        target += 1;
+      }
       setState(() => _step = target);
       _trackStepView();
       _controller.animateToPage(
@@ -177,7 +189,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _back() {
     if (_step == 0) return;
     var target = _step - 1;
-    if (target == _phaseDetailsStepIndex && _skipPhaseDetails) target -= 1;
+    while ((target == _phaseDetailsStepIndex && _skipPhaseDetails) ||
+        (target == _supplementStepIndex && _skipPhaseDetails)) {
+      target -= 1;
+    }
     setState(() => _step = target);
     _controller.animateToPage(
       _step,
@@ -212,6 +227,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _isLactating = true;
       _phaseExplicitlyNeither = false;
       _goal = CoachGoal.nutrients;
+      _supplement = null;
       _trimester = 1;
       _birthdate = DateTime(
           DateTime.now().year - 30, DateTime.now().month, DateTime.now().day);
@@ -275,6 +291,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         dailyMilkVolumeMl: _isLactating ? _dailyVolumeMl : 0,
         milkSupplementKcal: 0, // derived from volume
         goal: _goal,
+        activeSupplement: _supplement,
       );
 
   Future<void> _finish() async {
@@ -430,6 +447,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       dailyVolumeMl: _dailyVolumeMl,
                       onVolumeChanged: (v) =>
                           setState(() => _dailyVolumeMl = v),
+                    ),
+                    _SupplementStep(
+                      supplement: _supplement,
+                      onStartSetup: () async {
+                        final result =
+                            await runSupplementSetup(context, ref);
+                        if (result != null && mounted) {
+                          setState(() => _supplement = result);
+                        }
+                      },
+                      onClear: () => setState(() => _supplement = null),
                     ),
                     _SummaryStep(
                       profile: _buildProfile(),
@@ -1488,6 +1516,101 @@ class _GoalStep extends StatelessWidget {
             l10n.onboardingGoalSubtitle,
             style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SupplementStep extends StatelessWidget {
+  final ActiveSupplement? supplement;
+  final VoidCallback onStartSetup;
+  final VoidCallback onClear;
+  const _SupplementStep({
+    required this.supplement,
+    required this.onStartSetup,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.supplementOnboardingTitle,
+            style: textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.supplementOnboardingBody,
+            style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
+          ),
+          const SizedBox(height: 24),
+          if (supplement == null) ...[
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.tonalIcon(
+                onPressed: onStartSetup,
+                icon: const Icon(Icons.medication_outlined, size: 18),
+                label: Text(l10n.supplementAddCta),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.supplementSkipCta,
+              style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+            ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.supplementCurrentLabel(supplement!.name),
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  Text(
+                    l10n.supplementCurrentDoses(supplement!.dosesPerDay),
+                    style:
+                        textTheme.bodySmall?.copyWith(color: scheme.outline),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onStartSetup,
+                          icon: const Icon(Icons.edit_outlined, size: 16),
+                          label: Text(l10n.supplementRetry),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onClear,
+                          icon: const Icon(Icons.close, size: 16),
+                          label: Text(l10n.supplementRemove),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -23,6 +23,7 @@ import '../utils/number_format.dart';
 import '../utils/profile_labels.dart';
 import '../widgets/child_age_input.dart';
 import '../widgets/info_button.dart';
+import '../widgets/supplement_setup.dart';
 import 'favorite_edit_sheet.dart';
 import 'onboarding_screen.dart';
 
@@ -64,6 +65,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   DateTime? _youngestChildBirthdate;
   // Coach focus: 'nutrients' (default), 'body', or 'both'.
   late String _goal;
+  // Snapshot of the current supplement so Settings can show + edit + clear
+  // it without leaving the screen. _save persists this back to the profile.
+  ActiveSupplement? _supplement;
   // Hand-picked micronutrient subset for the diary header. null = follow
   // phase/diet defaults; non-null overrides them (capped at 3 by the UI).
   List<String>? _selectedMicros;
@@ -112,6 +116,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _selectedMicros =
         p.selectedMicronutrients == null ? null : [...p.selectedMicronutrients!];
     _goal = p.goal;
+    _supplement = p.activeSupplement;
     _initialProfileJson = jsonEncode(p.toJson());
 
     for (final c in [_height, _weight, _dietaryNotes]) {
@@ -202,6 +207,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         selectedMicronutrients:
             _selectedMicros == null ? null : List<String>.from(_selectedMicros!),
         goal: _goal,
+        activeSupplement: _supplement,
       );
 
   void _onSharePercentChanged(int v) {
@@ -480,6 +486,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     });
                   },
                   notesController: _dietaryNotes,
+                ),
+                const SizedBox(height: 12),
+                _SupplementSection(
+                  supplement: _supplement,
+                  onStartSetup: () async {
+                    final result = await runSupplementSetup(context, ref);
+                    if (result != null && mounted) {
+                      setState(() => _supplement = result);
+                    }
+                  },
+                  onClear: () => setState(() => _supplement = null),
                 ),
                 const SizedBox(height: 12),
                 _MicronutrientsSection(
@@ -1943,6 +1960,114 @@ class _GoalSection extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SupplementSection extends StatelessWidget {
+  final ActiveSupplement? supplement;
+  final VoidCallback onStartSetup;
+  final VoidCallback onClear;
+  const _SupplementSection({
+    required this.supplement,
+    required this.onStartSetup,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return _Section(
+      title: l10n.supplementSectionTitle,
+      child: supplement == null
+          ? Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.tonalIcon(
+                onPressed: onStartSetup,
+                icon: const Icon(Icons.medication_outlined, size: 18),
+                label: Text(l10n.supplementAddCta),
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.supplementCurrentLabel(supplement!.name),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  l10n.supplementCurrentDoses(supplement!.dosesPerDay),
+                  style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final e in supplement!.values.entries)
+                      _SupplementValueChip(nutrientKey: e.key, value: e.value),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onStartSetup,
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: Text(l10n.supplementRetry),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onClear,
+                        icon: const Icon(Icons.close, size: 16),
+                        label: Text(l10n.supplementRemove),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _SupplementValueChip extends StatelessWidget {
+  final String nutrientKey;
+  final double value;
+  const _SupplementValueChip({required this.nutrientKey, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final display = MicronutrientDisplay.forKey(nutrientKey);
+    final locale = Localizations.localeOf(context).languageCode;
+    final label = display?.nameForLocale(locale) ?? nutrientKey;
+    final unit = display?.unitLabel ?? '';
+    final vStr = value >= 50
+        ? value.round().toString()
+        : value == value.roundToDouble()
+            ? value.toStringAsFixed(0)
+            : value.toStringAsFixed(1);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        '$label $vStr $unit',
+        style: TextStyle(
+          color: scheme.onSurfaceVariant,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

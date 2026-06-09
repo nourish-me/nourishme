@@ -1274,6 +1274,66 @@ class AppLocalizationsEn extends AppLocalizations {
       'Noted. I\'ll factor it in next time.';
 
   @override
+  String get supplementSectionTitle => 'Supplement';
+
+  @override
+  String get supplementOnboardingTitle => 'Are you taking a supplement?';
+
+  @override
+  String get supplementOnboardingBody =>
+      'Folic acid, prenatal multivitamin, or similar? Snap a photo of the nutrition label and the app will add the values to your daily totals automatically.';
+
+  @override
+  String get supplementAddCta => 'Photograph label';
+
+  @override
+  String get supplementSkipCta => 'No, not taking one';
+
+  @override
+  String get supplementSourceCamera => 'Camera';
+
+  @override
+  String get supplementSourceGallery => 'From gallery';
+
+  @override
+  String get supplementParsing => 'Reading label...';
+
+  @override
+  String get supplementReviewTitle => 'Check the values';
+
+  @override
+  String get supplementReviewHint =>
+      'Values from your label. You can edit the name and amounts before saving.';
+
+  @override
+  String get supplementFieldName => 'Name';
+
+  @override
+  String get supplementFieldDoses => 'Doses per day';
+
+  @override
+  String get supplementSave => 'Save';
+
+  @override
+  String get supplementCancel => 'Discard';
+
+  @override
+  String get supplementRetry => 'Different photo';
+
+  @override
+  String get supplementRemove => 'Remove supplement';
+
+  @override
+  String supplementCurrentLabel(String name) {
+    return 'Current: $name';
+  }
+
+  @override
+  String supplementCurrentDoses(int doses) {
+    return '$doses doses per day';
+  }
+
+  @override
   String get factGoalTopic => 'Coach focus';
 
   @override

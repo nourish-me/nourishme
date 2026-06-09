@@ -630,6 +630,35 @@
   "coachIngredientsReplyHint": "e.g. zucchini, chicken",
   "coachIngredientsSavedSnack": "Noted. I'll factor it in next time.",
 
+  "supplementSectionTitle": "Supplement",
+  "supplementOnboardingTitle": "Are you taking a supplement?",
+  "supplementOnboardingBody": "Folic acid, prenatal multivitamin, or similar? Snap a photo of the nutrition label and the app will add the values to your daily totals automatically.",
+  "supplementAddCta": "Photograph label",
+  "supplementSkipCta": "No, not taking one",
+  "supplementSourceCamera": "Camera",
+  "supplementSourceGallery": "From gallery",
+  "supplementParsing": "Reading label...",
+  "supplementReviewTitle": "Check the values",
+  "supplementReviewHint": "Values from your label. You can edit the name and amounts before saving.",
+  "supplementFieldName": "Name",
+  "supplementFieldDoses": "Doses per day",
+  "supplementSave": "Save",
+  "supplementCancel": "Discard",
+  "supplementRetry": "Different photo",
+  "supplementRemove": "Remove supplement",
+  "supplementCurrentLabel": "Current: {name}",
+  "@supplementCurrentLabel": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "supplementCurrentDoses": "{doses} doses per day",
+  "@supplementCurrentDoses": {
+    "placeholders": {
+      "doses": {"type": "int"}
+    }
+  },
+
   "factGoalTopic": "Coach focus",
   "factGoalSummary": "Nutrients vs. body goal: what changes",
   "factGoalDetail": "Nutrients (default): coach optimises only for adequate supply, no deficit talk.\n\nBody goal/Both: coach is allowed to suggest moderate deficits, but only under clear safety guardrails - never below 1,800 kcal/day in lactation, deficit max 300-500 kcal/day, at the earliest 6-8 weeks postpartum, NEVER a deficit in pregnancy, micronutrients and protein stay on target. On workout days raise protein instead of widening the deficit. One nudge to coordinate with midwife or doctor.\n\nIn the app header the protein target is raised (lactation: 1.5 g/kg instead of 1.2; otherwise 1.6 g/kg instead of 0.8) for muscle preservation during the deficit. Carbs and fat stay.",

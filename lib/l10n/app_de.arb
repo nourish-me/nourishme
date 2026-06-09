@@ -487,6 +487,35 @@
   "coachIngredientsReplyHint": "z.B. Zucchini, Hähnchen",
   "coachIngredientsSavedSnack": "Notiert. Beim nächsten Tipp denke ich dran.",
 
+  "supplementSectionTitle": "Nahrungsergänzung",
+  "supplementOnboardingTitle": "Nimmst du ein Supplement?",
+  "supplementOnboardingBody": "Folio, Femibion oder ähnliches? Fotografiere das Nährwert-Etikett, dann rechnet die App die Werte automatisch jeden Tag mit.",
+  "supplementAddCta": "Etikett fotografieren",
+  "supplementSkipCta": "Nein, nehme keins",
+  "supplementSourceCamera": "Kamera",
+  "supplementSourceGallery": "Aus Galerie",
+  "supplementParsing": "Etikett wird ausgelesen...",
+  "supplementReviewTitle": "Werte prüfen",
+  "supplementReviewHint": "Werte aus deinem Etikett. Du kannst Name und Mengen vor dem Speichern anpassen.",
+  "supplementFieldName": "Name",
+  "supplementFieldDoses": "Dosen pro Tag",
+  "supplementSave": "Speichern",
+  "supplementCancel": "Verwerfen",
+  "supplementRetry": "Anderes Foto",
+  "supplementRemove": "Supplement entfernen",
+  "supplementCurrentLabel": "Aktuell: {name}",
+  "@supplementCurrentLabel": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "supplementCurrentDoses": "{doses} Dosen pro Tag",
+  "@supplementCurrentDoses": {
+    "placeholders": {
+      "doses": {"type": "int"}
+    }
+  },
+
   "factGoalTopic": "Coach-Ziel",
   "factGoalSummary": "Nährstoffe vs. Körperziel: was sich ändert",
   "factGoalDetail": "Nährstoffe (Standard): Coach optimiert nur auf ausreichende Versorgung, kein Defizit-Talk.\n\nKörperziel/Beides: Coach darf moderate Defizite vorschlagen, aber nur unter klaren Sicherheits-Leitplanken: nie unter 1.800 kcal/Tag in der Stillzeit, Defizit max. 300-500 kcal/Tag, frühestens 6-8 Wochen postpartum, in der Schwangerschaft NIE ein Defizit, Mikronährstoffe und Protein bleiben auf Soll. An Sport-Tagen Protein erhöhen statt Defizit vergrößern. Ein Hinweis, mit Hebamme oder Ärztin abzustimmen.\n\nIm App-Header wird das Protein-Ziel angehoben (Stillzeit: 1,5 g/kg statt 1,2; sonst 1,6 g/kg statt 0,8) zur Muskel-Erhaltung im Defizit. Carbs und Fett bleiben.",

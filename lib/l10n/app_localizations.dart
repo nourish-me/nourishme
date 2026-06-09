@@ -2336,6 +2336,114 @@ abstract class AppLocalizations {
   /// **'Noted. I\'ll factor it in next time.'**
   String get coachIngredientsSavedSnack;
 
+  /// No description provided for @supplementSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplement'**
+  String get supplementSectionTitle;
+
+  /// No description provided for @supplementOnboardingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you taking a supplement?'**
+  String get supplementOnboardingTitle;
+
+  /// No description provided for @supplementOnboardingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Folic acid, prenatal multivitamin, or similar? Snap a photo of the nutrition label and the app will add the values to your daily totals automatically.'**
+  String get supplementOnboardingBody;
+
+  /// No description provided for @supplementAddCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph label'**
+  String get supplementAddCta;
+
+  /// No description provided for @supplementSkipCta.
+  ///
+  /// In en, this message translates to:
+  /// **'No, not taking one'**
+  String get supplementSkipCta;
+
+  /// No description provided for @supplementSourceCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get supplementSourceCamera;
+
+  /// No description provided for @supplementSourceGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'From gallery'**
+  String get supplementSourceGallery;
+
+  /// No description provided for @supplementParsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading label...'**
+  String get supplementParsing;
+
+  /// No description provided for @supplementReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the values'**
+  String get supplementReviewTitle;
+
+  /// No description provided for @supplementReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Values from your label. You can edit the name and amounts before saving.'**
+  String get supplementReviewHint;
+
+  /// No description provided for @supplementFieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get supplementFieldName;
+
+  /// No description provided for @supplementFieldDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses per day'**
+  String get supplementFieldDoses;
+
+  /// No description provided for @supplementSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get supplementSave;
+
+  /// No description provided for @supplementCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get supplementCancel;
+
+  /// No description provided for @supplementRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Different photo'**
+  String get supplementRetry;
+
+  /// No description provided for @supplementRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove supplement'**
+  String get supplementRemove;
+
+  /// No description provided for @supplementCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {name}'**
+  String supplementCurrentLabel(String name);
+
+  /// No description provided for @supplementCurrentDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'{doses} doses per day'**
+  String supplementCurrentDoses(int doses);
+
   /// No description provided for @factGoalTopic.
   ///
   /// In en, this message translates to:

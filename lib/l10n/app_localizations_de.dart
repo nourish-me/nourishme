@@ -1279,6 +1279,66 @@ class AppLocalizationsDe extends AppLocalizations {
       'Notiert. Beim nächsten Tipp denke ich dran.';
 
   @override
+  String get supplementSectionTitle => 'Nahrungsergänzung';
+
+  @override
+  String get supplementOnboardingTitle => 'Nimmst du ein Supplement?';
+
+  @override
+  String get supplementOnboardingBody =>
+      'Folio, Femibion oder ähnliches? Fotografiere das Nährwert-Etikett, dann rechnet die App die Werte automatisch jeden Tag mit.';
+
+  @override
+  String get supplementAddCta => 'Etikett fotografieren';
+
+  @override
+  String get supplementSkipCta => 'Nein, nehme keins';
+
+  @override
+  String get supplementSourceCamera => 'Kamera';
+
+  @override
+  String get supplementSourceGallery => 'Aus Galerie';
+
+  @override
+  String get supplementParsing => 'Etikett wird ausgelesen...';
+
+  @override
+  String get supplementReviewTitle => 'Werte prüfen';
+
+  @override
+  String get supplementReviewHint =>
+      'Werte aus deinem Etikett. Du kannst Name und Mengen vor dem Speichern anpassen.';
+
+  @override
+  String get supplementFieldName => 'Name';
+
+  @override
+  String get supplementFieldDoses => 'Dosen pro Tag';
+
+  @override
+  String get supplementSave => 'Speichern';
+
+  @override
+  String get supplementCancel => 'Verwerfen';
+
+  @override
+  String get supplementRetry => 'Anderes Foto';
+
+  @override
+  String get supplementRemove => 'Supplement entfernen';
+
+  @override
+  String supplementCurrentLabel(String name) {
+    return 'Aktuell: $name';
+  }
+
+  @override
+  String supplementCurrentDoses(int doses) {
+    return '$doses Dosen pro Tag';
+  }
+
+  @override
   String get factGoalTopic => 'Coach-Ziel';
 
   @override
