@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:hive/hive.dart';
 
 import '../models/thread_item.dart';
@@ -46,7 +47,16 @@ class ThreadRepository {
       return i.timestamp;
     }
 
-    items.sort((a, b) => sortKey(a).compareTo(sortKey(b)));
+    // Use a stable sort so two items with identical timestamps preserve
+    // insertion order. Default List.sort uses an unstable algorithm; for
+    // the bundled scan + text save flow where both meals can land at the
+    // same minute (user manually picks 12:30 for both), unstable sort
+    // randomly flipped barcode and text on top of each other - the bug
+    // tracked in #39 ("text lands above the barcode entry").
+    mergeSort<ThreadItem>(
+      items,
+      compare: (a, b) => sortKey(a).compareTo(sortKey(b)),
+    );
     return items;
   }
 
