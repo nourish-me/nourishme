@@ -168,7 +168,7 @@ class _KcalTier extends StatelessWidget {
                             fontSize: 13.5,
                           ),
                         ),
-                        const TextSpan(text: ' kcal Ziel'),
+                        TextSpan(text: l10n.nutritionHeaderKcalTarget),
                       ],
                     )
                   : TextSpan(

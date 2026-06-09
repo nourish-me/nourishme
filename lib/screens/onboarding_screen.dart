@@ -1345,28 +1345,20 @@ class _SummaryStep extends StatelessWidget {
         // the Loslegen CTA records the acceptance timestamp in _finish so
         // we keep an audit trail without a separate checkbox UI.
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
           decoration: BoxDecoration(
             color: scheme.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(color: scheme.outlineVariant, width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.info_outline,
-                      size: 20, color: scheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.onboardingDisclaimerTitle,
-                    style: textTheme.bodyLarge
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                ],
+              Text(
+                l10n.onboardingDisclaimerTitle,
+                style: textTheme.titleMedium,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 l10n.onboardingDisclaimerBody,
                 style: textTheme.bodySmall?.copyWith(

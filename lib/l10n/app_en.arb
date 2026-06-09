@@ -525,6 +525,7 @@
   "nutritionMacroProtein": "Protein",
   "nutritionMacroCarbs": "Carbs",
   "nutritionMacroFat": "Fat",
+  "nutritionHeaderKcalTarget": " kcal target",
 
   "macroDetailKcalName": "Calories",
   "macroDetailProteinName": "Protein",
@@ -614,7 +615,7 @@
   },
 
 "settingsSectionGoal": "Coach focus",
-  "settingsGoalHint": "What should the coach optimise for? For body-focused options the baby's supply stays the top priority - a moderate deficit (max 300-500 kcal, never below 1,800 kcal/day) is allowed only from 6-8 weeks postpartum.",
+  "settingsGoalHint": "What should the coach optimise for? Details and safety guardrails behind the info icon.",
   "settingsGoalNutrients": "Nutrients",
   "settingsGoalBody": "Body goal",
   "settingsGoalBoth": "Both",

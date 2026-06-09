@@ -1101,6 +1101,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionMacroFat => 'Fat';
 
   @override
+  String get nutritionHeaderKcalTarget => ' kcal target';
+
+  @override
   String get macroDetailKcalName => 'Calories';
 
   @override
@@ -1234,7 +1237,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsGoalHint =>
-      'What should the coach optimise for? For body-focused options the baby\'s supply stays the top priority - a moderate deficit (max 300-500 kcal, never below 1,800 kcal/day) is allowed only from 6-8 weeks postpartum.';
+      'What should the coach optimise for? Details and safety guardrails behind the info icon.';
 
   @override
   String get settingsGoalNutrients => 'Nutrients';

@@ -2048,6 +2048,12 @@ abstract class AppLocalizations {
   /// **'Fat'**
   String get nutritionMacroFat;
 
+  /// No description provided for @nutritionHeaderKcalTarget.
+  ///
+  /// In en, this message translates to:
+  /// **' kcal target'**
+  String get nutritionHeaderKcalTarget;
+
   /// No description provided for @macroDetailKcalName.
   ///
   /// In en, this message translates to:
@@ -2267,7 +2273,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsGoalHint.
   ///
   /// In en, this message translates to:
-  /// **'What should the coach optimise for? For body-focused options the baby\'s supply stays the top priority - a moderate deficit (max 300-500 kcal, never below 1,800 kcal/day) is allowed only from 6-8 weeks postpartum.'**
+  /// **'What should the coach optimise for? Details and safety guardrails behind the info icon.'**
   String get settingsGoalHint;
 
   /// No description provided for @settingsGoalNutrients.
