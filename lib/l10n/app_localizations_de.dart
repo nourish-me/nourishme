@@ -1254,6 +1254,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsGoalBoth => 'Beides';
 
   @override
+  String get settingsGoalMacroImplication =>
+      'Mehr Protein für Muskelschutz im Defizit. Im Bereich Makros sichtbar und anpassbar.';
+
+  @override
   String get settingsPhaseNeither => 'Weder noch';
 
   @override

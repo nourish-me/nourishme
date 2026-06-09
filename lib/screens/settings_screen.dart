@@ -1967,6 +1967,41 @@ class _GoalSection extends StatelessWidget {
               onSelectionChanged: (s) => onChanged(s.first),
             ),
           ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            alignment: Alignment.topCenter,
+            child: goal == CoachGoal.nutrients
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.fitness_center,
+                              size: 16, color: scheme.onPrimaryContainer),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              l10n.settingsGoalMacroImplication,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: scheme.onPrimaryContainer,
+                                height: 1.35,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
         ],
       ),
     );

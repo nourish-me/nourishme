@@ -619,6 +619,8 @@
   "settingsGoalNutrients": "Nutrients",
   "settingsGoalBody": "Body goal",
   "settingsGoalBoth": "Both",
+  "settingsGoalMacroImplication": "More protein to preserve muscle in a deficit. Visible and adjustable in the Macros section.",
+  "@settingsGoalMacroImplication": {},
 
   "settingsPhaseNeither": "Neither",
   "settingsPhaseNeitherHint": "Currently neither pregnant nor producing breast milk, e.g. after weaning or before a pregnancy.",

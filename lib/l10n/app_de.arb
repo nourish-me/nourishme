@@ -476,6 +476,8 @@
   "settingsGoalNutrients": "Nährstoffe",
   "settingsGoalBody": "Körperziel",
   "settingsGoalBoth": "Beides",
+  "settingsGoalMacroImplication": "Mehr Protein für Muskelschutz im Defizit. Im Bereich Makros sichtbar und anpassbar.",
+  "@settingsGoalMacroImplication": {},
 
   "settingsPhaseNeither": "Weder noch",
   "settingsPhaseNeitherHint": "Aktuell weder schwanger noch stillend, z.B. nach dem Abstillen oder vor einer Schwangerschaft.",

@@ -2294,6 +2294,12 @@ abstract class AppLocalizations {
   /// **'Both'**
   String get settingsGoalBoth;
 
+  /// No description provided for @settingsGoalMacroImplication.
+  ///
+  /// In en, this message translates to:
+  /// **'More protein to preserve muscle in a deficit. Visible and adjustable in the Macros section.'**
+  String get settingsGoalMacroImplication;
+
   /// No description provided for @settingsPhaseNeither.
   ///
   /// In en, this message translates to:
