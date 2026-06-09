@@ -464,7 +464,7 @@
 "settingsSectionGoal": "Coach-Ziel",
   "settingsGoalHint": "Worauf soll der Coach optimieren? Bei Körper-Optionen bleibt die Versorgung des Babys oberste Priorität, ein moderates Defizit (max. 300-500 kcal, nie unter 1.800 kcal/Tag) ist nur ab 6-8 Wochen postpartum erlaubt.",
   "settingsGoalNutrients": "Nährstoffe",
-  "settingsGoalBody": "Körper",
+  "settingsGoalBody": "Körperziel",
   "settingsGoalBoth": "Beides",
 
   "settingsPhaseNeither": "Weder noch",
@@ -475,5 +475,11 @@
   "onboardingGoalTitle": "Worauf willst du dich konzentrieren?",
   "onboardingGoalSubtitle": "Du kannst das jederzeit in den Einstellungen ändern.",
 
-  "coachIngredientsReplyHint": "z.B. Zucchini, Hähnchen"
+  "coachIngredientsReplyHint": "z.B. Zucchini, Hähnchen",
+  "coachIngredientsSavedSnack": "Notiert. Beim nächsten Tipp denke ich dran.",
+
+  "factGoalTopic": "Coach-Ziel",
+  "factGoalSummary": "Nährstoffe vs. Körperziel: was sich ändert",
+  "factGoalDetail": "Nährstoffe (Standard): Coach optimiert nur auf ausreichende Versorgung, kein Defizit-Talk.\n\nKörperziel/Beides: Coach darf moderate Defizite vorschlagen, aber nur unter klaren Sicherheits-Leitplanken: nie unter 1.800 kcal/Tag in der Stillzeit, Defizit max. 300-500 kcal/Tag, frühestens 6-8 Wochen postpartum, in der Schwangerschaft NIE ein Defizit, Mikronährstoffe und Protein bleiben auf Soll. An Sport-Tagen Protein erhöhen statt Defizit vergrößern. Ein Hinweis, mit Hebamme oder Ärztin abzustimmen.\n\nIm App-Header wird das Protein-Ziel angehoben (Stillzeit: 1,5 g/kg statt 1,2; sonst 1,6 g/kg statt 0,8) zur Muskel-Erhaltung im Defizit. Carbs und Fett bleiben.",
+  "factGoalSource": "Leitplanken bestätigt von Ernährungsberaterin Juni 2026, basierend auf DGE 2025, EFSA 2017, CDC. Protein-Anhebung im Körperziel: Standard-Recomp-Empfehlung (1,5-1,8 g/kg), defensiv im Stillzeit-Range"
 }

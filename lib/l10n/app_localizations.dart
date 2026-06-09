@@ -2255,7 +2255,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsGoalBody.
   ///
   /// In en, this message translates to:
-  /// **'Body'**
+  /// **'Body goal'**
   String get settingsGoalBody;
 
   /// No description provided for @settingsGoalBoth.
@@ -2305,6 +2305,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. zucchini, chicken'**
   String get coachIngredientsReplyHint;
+
+  /// No description provided for @coachIngredientsSavedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Noted. I\'ll factor it in next time.'**
+  String get coachIngredientsSavedSnack;
+
+  /// No description provided for @factGoalTopic.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach focus'**
+  String get factGoalTopic;
+
+  /// No description provided for @factGoalSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrients vs. body goal: what changes'**
+  String get factGoalSummary;
+
+  /// No description provided for @factGoalDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrients (default): coach optimises only for adequate supply, no deficit talk.\n\nBody goal/Both: coach is allowed to suggest moderate deficits, but only under clear safety guardrails — never below 1,800 kcal/day in lactation, deficit max 300-500 kcal/day, at the earliest 6-8 weeks postpartum, NEVER a deficit in pregnancy, micronutrients and protein stay on target. On workout days raise protein instead of widening the deficit. One nudge to coordinate with midwife or doctor.\n\nIn the app header the protein target is raised (lactation: 1.5 g/kg instead of 1.2; otherwise 1.6 g/kg instead of 0.8) for muscle preservation during the deficit. Carbs and fat stay.'**
+  String get factGoalDetail;
+
+  /// No description provided for @factGoalSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardrails validated by Ernährungsberaterin June 2026, based on DGE 2025, EFSA 2017, CDC. Body-goal protein bump: standard recomp recommendation (1.5-1.8 g/kg), defensive within the lactation range'**
+  String get factGoalSource;
 }
 
 class _AppLocalizationsDelegate

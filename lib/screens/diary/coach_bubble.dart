@@ -3,6 +3,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../main.dart' show rootScaffoldMessengerKey;
 import '../../providers/meal_providers.dart';
 import '../../providers/ui_providers.dart';
 import '../../utils/coach_followups.dart';
@@ -172,8 +173,18 @@ class _IngredientsReplyInputState
     await ref
         .read(coachAskStateProvider.notifier)
         .submitIngredients(text);
-    // No need to clear — the bubble will rebuild without this input
-    // once provider state reflects the saved ingredients.
+    // Confirm-cue so the user knows the answer landed — without one the
+    // input just vanishes and feels like the app dropped the input.
+    final l10n = AppLocalizations.of(context);
+    rootScaffoldMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(l10n.coachIngredientsSavedSnack),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    // No need to clear the controller — the bubble rebuilds without this
+    // input once provider state reflects the saved ingredients.
   }
 
   @override

@@ -1933,6 +1933,7 @@ class _GoalSection extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return _Section(
       title: l10n.settingsSectionGoal,
+      info: InfoButton(fact: goalFact(l10n)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

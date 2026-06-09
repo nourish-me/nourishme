@@ -1463,9 +1463,18 @@ class _GoalStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.onboardingGoalTitle,
-              style: textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w700)),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.onboardingGoalTitle,
+                  style: textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              InfoButton(fact: goalFact(l10n)),
+            ],
+          ),
           const SizedBox(height: 8),
           Text(
             l10n.settingsGoalHint,

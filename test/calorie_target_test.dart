@@ -167,6 +167,36 @@ void main() {
       // protein_g = 2000 * 0.25 / 4 = 125
       expect(m.proteinG, 125);
     });
+
+    test('goal=body in lactation bumps protein from 1.2 to 1.5 g/kg', () {
+      final base = _profile(numChildrenNursing: 1, weightKg: 60);
+      final body = base.copyWith(goal: CoachGoal.body);
+      final mBase = calculateMacroTargets(base, 2500);
+      final mBody = calculateMacroTargets(body, 2500);
+      // 1.5 / 1.2 = 1.25 → ~25% bump on the same target kcal.
+      expect(mBody.proteinG, greaterThan(mBase.proteinG));
+      // 60 kg * 1.5 = 90 g; with rounding around the pct conversion.
+      expect(mBody.proteinG, inInclusiveRange(88, 92));
+    });
+
+    test('goal=both post-weaning bumps protein from 0.8 to 1.6 g/kg', () {
+      final base = _profile(numChildrenNursing: 0, weightKg: 60);
+      final both = base.copyWith(goal: CoachGoal.both);
+      // 60 * 1.6 = 96 g protein at the higher rate.
+      final m = calculateMacroTargets(both, 2000);
+      expect(m.proteinG, inInclusiveRange(94, 98));
+    });
+
+    test('goal=body in pregnancy does NOT bump protein (no deficit talk)', () {
+      // Pregnancy excluded from body-goal override — protein stays at the
+      // trimester-specific DGE value.
+      final p = _pregnant(trimester: 3).copyWith(
+        weightKg: 65,
+        goal: CoachGoal.body,
+      );
+      final m = calculateMacroTargets(p, 2200);
+      expect(m.proteinG, inInclusiveRange(63, 67)); // ~1.0 g/kg, not 1.5+
+    });
   });
 
   group('JSON roundtrip (UserProfileSettings)', () {

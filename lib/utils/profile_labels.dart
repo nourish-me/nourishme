@@ -50,3 +50,10 @@ NutritionFact proteinLactationFact(AppLocalizations l10n) => NutritionFact(
       detail: l10n.factProteinLactationDetail,
       source: l10n.factProteinLactationSource,
     );
+
+NutritionFact goalFact(AppLocalizations l10n) => NutritionFact(
+      topic: l10n.factGoalTopic,
+      summary: l10n.factGoalSummary,
+      detail: l10n.factGoalDetail,
+      source: l10n.factGoalSource,
+    );

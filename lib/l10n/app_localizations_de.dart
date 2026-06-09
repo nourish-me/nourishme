@@ -1231,7 +1231,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsGoalNutrients => 'Nährstoffe';
 
   @override
-  String get settingsGoalBody => 'Körper';
+  String get settingsGoalBody => 'Körperziel';
 
   @override
   String get settingsGoalBoth => 'Beides';
@@ -1259,4 +1259,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get coachIngredientsReplyHint => 'z.B. Zucchini, Hähnchen';
+
+  @override
+  String get coachIngredientsSavedSnack =>
+      'Notiert. Beim nächsten Tipp denke ich dran.';
+
+  @override
+  String get factGoalTopic => 'Coach-Ziel';
+
+  @override
+  String get factGoalSummary => 'Nährstoffe vs. Körperziel: was sich ändert';
+
+  @override
+  String get factGoalDetail =>
+      'Nährstoffe (Standard): Coach optimiert nur auf ausreichende Versorgung, kein Defizit-Talk.\n\nKörperziel/Beides: Coach darf moderate Defizite vorschlagen, aber nur unter klaren Sicherheits-Leitplanken: nie unter 1.800 kcal/Tag in der Stillzeit, Defizit max. 300-500 kcal/Tag, frühestens 6-8 Wochen postpartum, in der Schwangerschaft NIE ein Defizit, Mikronährstoffe und Protein bleiben auf Soll. An Sport-Tagen Protein erhöhen statt Defizit vergrößern. Ein Hinweis, mit Hebamme oder Ärztin abzustimmen.\n\nIm App-Header wird das Protein-Ziel angehoben (Stillzeit: 1,5 g/kg statt 1,2; sonst 1,6 g/kg statt 0,8) zur Muskel-Erhaltung im Defizit. Carbs und Fett bleiben.';
+
+  @override
+  String get factGoalSource =>
+      'Leitplanken bestätigt von Ernährungsberaterin Juni 2026, basierend auf DGE 2025, EFSA 2017, CDC. Protein-Anhebung im Körperziel: Standard-Recomp-Empfehlung (1,5-1,8 g/kg), defensiv im Stillzeit-Range';
 }
