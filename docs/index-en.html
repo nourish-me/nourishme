@@ -494,39 +494,28 @@
   }
 
   /* ─────────── Demo video ─────────── */
-  /* Two-column on desktop (copy left, player right), single column on
-     mobile (copy on top, player below). Player stays click-to-play
+  /* Centered single column. The player IS the section - no pitch text
+     above it, since the play button is its own call to action. Just a
+     compact mono label so the section has a name. Click-to-play
      (preload="none") so the 10 MB MP4 doesn't load on page open; the
      poster image is grabbed at the 3 s mark so the box previews the
      app shape, not a black rectangle. */
   .demo {
-    padding: 72px 0;
+    padding: 64px 0 72px;
     background: var(--paper);
     border-top: 0.5px solid var(--rule);
+    text-align: center;
   }
-  .demo-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.1fr;
-    gap: 56px;
-    align-items: center;
-  }
-  .demo-copy .mono { color: var(--ink-mute); }
-  .demo-copy h2 {
-    margin: 10px 0 18px;
-    letter-spacing: -0.01em;
-  }
-  .demo-copy p {
-    color: var(--ink-soft);
-    font-size: 17px;
-    line-height: 1.55;
-    margin: 0 0 14px;
-    max-width: 460px;
+  .demo .mono {
+    color: var(--ink-mute);
+    display: inline-block;
+    margin-bottom: 24px;
   }
   .demo-player {
-    /* Portrait video (888x1108 ~= 4:5). Capping at 480 px keeps the
-       1108/888 * 480 = 600 px height inside one screenful on desktop
-       and prevents the section from dominating taller than the hero. */
-    max-width: 480px;
+    /* Portrait video (888x1108 ~= 4:5). 500 px wide gives ~625 px
+       height on desktop - prominent without dominating taller than
+       the hero section above it. */
+    max-width: 500px;
     width: 100%;
     margin: 0 auto;
     border-radius: 32px;
@@ -732,11 +721,9 @@
     .selector-output-numbers { border-left: none; border-top: 0.5px solid var(--rule); padding-left: 0; padding-top: 18px; text-align: left; }
     .story-grid { grid-template-columns: 1fr; gap: 28px; }
     .story-photo { width: 180px; height: 220px; }
-    /* Demo: stack copy on top, player below. Center both since the
-       text loses its left-anchor without the right column. */
-    .demo-grid { grid-template-columns: 1fr; gap: 32px; text-align: center; }
-    .demo-copy p { margin-left: auto; margin-right: auto; }
-    .demo-player { max-width: min(380px, 86vw); }
+    /* Demo: smaller player on phones so it doesn't fill the screen. */
+    .demo { padding: 52px 0 56px; }
+    .demo-player { max-width: min(380px, 86vw); border-radius: 26px; }
     .basis-list { grid-template-columns: 1fr; }
     .beta h2 { font-size: 30px; }
   }
@@ -1113,13 +1100,8 @@
 
 <!-- ─────────── Demo video ─────────── -->
 <section class="demo">
-  <div class="wrap demo-grid">
-    <div class="demo-copy">
-      <span class="mono">See it in action</span>
-      <h2 class="section-title">One minute, the app live.</h2>
-      <p>From onboarding through the first logged meal to the coach reply.</p>
-      <p>Skip the long explanation: just watch how logging feels, what comes back after each meal, and how the micronutrients track live.</p>
-    </div>
+  <div class="wrap">
+    <span class="mono">60-second demo</span>
     <div class="demo-player">
       <video
         src="video/demo.mp4"
