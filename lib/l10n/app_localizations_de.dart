@@ -360,11 +360,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schreib nur den Anfang („Sky…“) und du siehst Vorschläge aus deiner Historie. Tap → fertig, mit den Marken-Werten von letztem Mal. Je öfter du loggst, desto besser kennt dich die App.';
 
   @override
-  String get tip4Title => 'Coach-Antworten antippbar';
+  String get tip4Title => 'Mikros live im Diary';
 
   @override
   String get tip4Body =>
-      'Manche Coach-Antworten haben Chip-Vorschläge drunter. Tippe einen → die Frage steht halb fertig in deinem Eingabefeld.';
+      'Tap auf einen Mikro-Wert im Header zeigt Details. Welche 3 Mikros oben erscheinen, wählst du in den Einstellungen unter Coach & Ernährung → Mikronährstoffe. Supplements? Foto vom Etikett, die App liest die Werte und zählt sie zur Tagesversorgung.';
 
   @override
   String get tip5Title => 'Verpasste Mahlzeit nachtragen';

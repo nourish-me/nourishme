@@ -74,40 +74,46 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
     final localeCode =
         Localizations.localeOf(context).languageCode.toLowerCase();
     final assetSuffix = localeCode.startsWith('de') ? 'de' : 'en';
+    // Tip order is deliberate: foto+text first (most-used input), then the
+    // three text-entry helpers grouped (barcode → natural language →
+    // brand autocomplete), then the rarely-discovered features (retro-log,
+    // micros). tip4 was originally "coach replies tappable" - dropped per
+    // beta feedback in favour of the micros pointer, which testers were
+    // overlooking. tip4's old SVG is reused as a placeholder for the new
+    // micros tip (showed coach-chip motif, not perfect but close); swap
+    // when design ships a dedicated micros illustration.
     final tips = <_Tip>[
       _Tip(
         asset: 'assets/illustrations/tip1_$assetSuffix.svg',
-        title: l10n.tip1Title,
+        title: l10n.tip1Title, // Foto + text
         body: l10n.tip1Body,
       ),
       _Tip(
         asset: 'assets/illustrations/tip2_$assetSuffix.svg',
-        title: l10n.tip2Title,
+        title: l10n.tip2Title, // Barcode trains brands
         body: l10n.tip2Body,
       ),
       _Tip(
+        // Placeholder: tip3 SVG is the typing/autocomplete motif, close
+        // enough to natural-language entry.
         asset: 'assets/illustrations/tip3_$assetSuffix.svg',
-        title: l10n.tip3Title,
+        title: l10n.tip6Title, // Just say what you ate (natural language)
+        body: l10n.tip6Body,
+      ),
+      _Tip(
+        asset: 'assets/illustrations/tip3_$assetSuffix.svg',
+        title: l10n.tip3Title, // Brand autocomplete from history
         body: l10n.tip3Body,
       ),
       _Tip(
-        asset: 'assets/illustrations/tip4_$assetSuffix.svg',
-        title: l10n.tip4Title,
-        body: l10n.tip4Body,
-      ),
-      _Tip(
         asset: 'assets/illustrations/tip5_$assetSuffix.svg',
-        title: l10n.tip5Title,
+        title: l10n.tip5Title, // Retro-log a past day
         body: l10n.tip5Body,
       ),
-      // Reuses tip3's illustration as a placeholder - tip3 already shows
-      // the typing/autocomplete motif which is close enough to natural-
-      // language entry for the beta. Swap to a dedicated tip6_*.svg when
-      // the design is ready (chat bubble + ✓ icon would fit).
       _Tip(
-        asset: 'assets/illustrations/tip3_$assetSuffix.svg',
-        title: l10n.tip6Title,
-        body: l10n.tip6Body,
+        asset: 'assets/illustrations/tip4_$assetSuffix.svg',
+        title: l10n.tip4Title, // Micros + supplement scan + customise
+        body: l10n.tip4Body,
       ),
     ];
     final lastIndex = tips.length - 1;

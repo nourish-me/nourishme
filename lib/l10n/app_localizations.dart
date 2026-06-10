@@ -731,13 +731,13 @@ abstract class AppLocalizations {
   /// No description provided for @tip4Title.
   ///
   /// In en, this message translates to:
-  /// **'Coach replies are tappable'**
+  /// **'Micros live in the diary'**
   String get tip4Title;
 
   /// No description provided for @tip4Body.
   ///
   /// In en, this message translates to:
-  /// **'Some coach replies have chip suggestions beneath them. Tap one → the question is already half-typed in your input.'**
+  /// **'Tap a micro in the header for details. Pick which 3 appear under Settings → Coach & nutrition → Micronutrients. Taking a supplement? Snap its nutrition label and the app reads the values and folds them into your day total.'**
   String get tip4Body;
 
   /// No description provided for @tip5Title.

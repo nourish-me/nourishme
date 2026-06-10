@@ -356,11 +356,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Just type the first few letters (“Sky…”) and you\'ll see suggestions from your history. Tap → done, with the brand values from last time. The more you log, the better the app knows you.';
 
   @override
-  String get tip4Title => 'Coach replies are tappable';
+  String get tip4Title => 'Micros live in the diary';
 
   @override
   String get tip4Body =>
-      'Some coach replies have chip suggestions beneath them. Tap one → the question is already half-typed in your input.';
+      'Tap a micro in the header for details. Pick which 3 appear under Settings → Coach & nutrition → Micronutrients. Taking a supplement? Snap its nutrition label and the app reads the values and folds them into your day total.';
 
   @override
   String get tip5Title => 'Log a missed meal later';
