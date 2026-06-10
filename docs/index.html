@@ -494,38 +494,45 @@
   }
 
   /* ─────────── Demo video ─────────── */
-  /* Click-to-play (preload="none") so the 10 MB file doesn't load on
-     page open. Poster image is a frame from the 3 s mark to give a
-     sense of the app shape before play. Max-width keeps the player
-     ergonomic on desktop without ballooning into a billboard. */
+  /* Two-column on desktop (copy left, player right), single column on
+     mobile (copy on top, player below). Player stays click-to-play
+     (preload="none") so the 10 MB MP4 doesn't load on page open; the
+     poster image is grabbed at the 3 s mark so the box previews the
+     app shape, not a black rectangle. */
   .demo {
     padding: 72px 0;
     background: var(--paper);
     border-top: 0.5px solid var(--rule);
   }
-  .demo-head {
-    text-align: center;
-    max-width: 640px;
-    margin: 0 auto 36px;
+  .demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 56px;
+    align-items: center;
   }
-  .demo-head .mono { color: var(--ink-mute); }
-  .demo-head h2 {
-    margin: 10px 0 12px;
+  .demo-copy .mono { color: var(--ink-mute); }
+  .demo-copy h2 {
+    margin: 10px 0 18px;
     letter-spacing: -0.01em;
   }
-  .demo-head p {
+  .demo-copy p {
     color: var(--ink-soft);
     font-size: 17px;
-    line-height: 1.5;
-    margin: 0;
+    line-height: 1.55;
+    margin: 0 0 14px;
+    max-width: 460px;
   }
   .demo-player {
-    max-width: 420px;
+    /* Portrait video (888x1108 ~= 4:5). Capping at 480 px keeps the
+       1108/888 * 480 = 600 px height inside one screenful on desktop
+       and prevents the section from dominating taller than the hero. */
+    max-width: 480px;
+    width: 100%;
     margin: 0 auto;
-    border-radius: 28px;
+    border-radius: 32px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(30, 74, 69, 0.18),
-                0 4px 12px rgba(30, 74, 69, 0.10);
+    box-shadow: 0 24px 70px rgba(30, 74, 69, 0.20),
+                0 6px 16px rgba(30, 74, 69, 0.10);
     background: var(--ink);
   }
   .demo-player video {
@@ -725,6 +732,11 @@
     .selector-output-numbers { border-left: none; border-top: 0.5px solid var(--rule); padding-left: 0; padding-top: 18px; text-align: left; }
     .story-grid { grid-template-columns: 1fr; gap: 28px; }
     .story-photo { width: 180px; height: 220px; }
+    /* Demo: stack copy on top, player below. Center both since the
+       text loses its left-anchor without the right column. */
+    .demo-grid { grid-template-columns: 1fr; gap: 32px; text-align: center; }
+    .demo-copy p { margin-left: auto; margin-right: auto; }
+    .demo-player { max-width: min(380px, 86vw); }
     .basis-list { grid-template-columns: 1fr; }
     .beta h2 { font-size: 30px; }
   }
@@ -1101,11 +1113,12 @@
 
 <!-- ─────────── Demo video ─────────── -->
 <section class="demo">
-  <div class="wrap">
-    <div class="demo-head">
+  <div class="wrap demo-grid">
+    <div class="demo-copy">
       <span class="mono">Sieh es in Aktion</span>
       <h2 class="section-title">Eine Minute, die App live.</h2>
-      <p>Vom Onboarding über die erste geloggte Mahlzeit bis zur Coach-Antwort. Tippe auf Play.</p>
+      <p>Vom Onboarding über die erste geloggte Mahlzeit bis zur Coach-Antwort.</p>
+      <p>Statt langer Erklärungen: schau dir an, wie sich das Loggen anfühlt, was nach jeder Mahlzeit zurückkommt und wie die Mikronährstoffe live mitlaufen.</p>
     </div>
     <div class="demo-player">
       <video
