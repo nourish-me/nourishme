@@ -51,8 +51,11 @@ Stand: Juni 2026. Pflege diese Datei, wenn ein Punkt erledigt ist.
 - **Coach-Kombinier-Logik (`submitMeals`).** Summen, kombinierter Text,
   Tages-Total-Anker. Als reine Funktion rausziehen, dann testen (Muster wie
   `fromModelText`).
-- **Repository-CRUD (Meal/Favorite/Weight).** Per Hive-Harness, billig,
-  Muster aus `thread_ordering_test.dart`.
+- ~~**Repository-CRUD (Meal/Favorite/Weight).**~~ Erledigt: `repositories_test.dart`
+  mit 15 Cases pro Repo (save-upsert, sort-Reihenfolge, delete-no-op,
+  clearAll, watch-Stream initial+update). Pattern aus `thread_ordering_test.dart`
+  (Tmp-Dir + scoped Box). Favorite-Test pinnt zusätzlich die jetzt
+  persistierten Micronutrients (Folgeauftrag aus #46).
 
 ## Tier 4 — später oder blockiert
 
