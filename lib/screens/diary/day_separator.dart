@@ -118,6 +118,11 @@ class EmptyDayRange extends StatelessWidget {
     final fromLabel = _format(start, context);
     final toLabel = _format(end, context);
     final label = dayCount == 1 ? fromLabel : null;
+    // Trailing + icon mirrors the DaySeparator's affordance for past days
+    // with content. Without it, beta testers didn't realise the empty-day
+    // range was tappable - the label alone reads as descriptive metadata,
+    // not as a CTA. The icon is the visual contract: "this row routes
+    // somewhere where you can add a meal".
     final inner = Row(
       children: [
         Expanded(
@@ -137,6 +142,13 @@ class EmptyDayRange extends StatelessWidget {
         Expanded(
           child: Container(height: 1, color: scheme.outlineVariant),
         ),
+        if (onTap != null) ...[
+          const SizedBox(width: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Icon(Icons.add, size: 16, color: scheme.primary),
+          ),
+        ],
       ],
     );
     return InkWell(
