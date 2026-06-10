@@ -7,6 +7,7 @@ import '../models/meal_entry.dart';
 import '../models/weight_entry.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
+import '../services/meal_aggregation.dart';
 import '../theme/nourishme_colors.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
@@ -142,14 +143,14 @@ class _Stats {
     final lastSeven = <_DayTotal>[];
     for (int i = 6; i >= 0; i--) {
       final d = today.subtract(Duration(days: i));
-      final items = byDay[d] ?? const [];
+      final t = dayTotal(byDay[d] ?? const []);
       lastSeven.add(_DayTotal(
         day: d,
-        kcal: items.fold<int>(0, (s, m) => s + m.kcal),
-        proteinG: items.fold<double>(0, (s, m) => s + m.proteinG),
-        carbsG: items.fold<double>(0, (s, m) => s + m.carbsG),
-        fatG: items.fold<double>(0, (s, m) => s + m.fatG),
-        mealCount: items.length,
+        kcal: t.kcal,
+        proteinG: t.proteinG,
+        carbsG: t.carbsG,
+        fatG: t.fatG,
+        mealCount: t.mealCount,
       ));
     }
 
@@ -165,7 +166,7 @@ class _Stats {
         if (i == 0) continue;
         break;
       }
-      final kcal = items.fold<int>(0, (s, m) => s + m.kcal);
+      final kcal = dayTotal(items).kcal;
       final ratio = targetKcal > 0 ? kcal / targetKcal : 0;
       if (ratio >= 0.80 && ratio <= 1.10) {
         streak++;

@@ -37,9 +37,14 @@ Stand: Juni 2026. Pflege diese Datei, wenn ein Punkt erledigt ist.
 ## Tier 2 — hoher Wert, gut testbar
 
 - **Paywall / Receipt-Quota.** Umsatzrelevant. Quota-Mathematik und
-  Receipt-Hash sind reine Logik, gut zu pinnen.
-- **Tages-Aggregation (Provider).** Die Zahlen, die die Nutzerin sieht
-  (Tagessummen, `mealsByDay`). Reine Logik.
+  Receipt-Hash sind reine Logik, gut zu pinnen. (Wartet auf Task #34
+  Pricing-Implementierung; aktuell kein Code dafür.)
+- ~~**Tages-Aggregation (Provider).**~~ Erledigt: `dayTotal`,
+  `groupMealsByDay`, `mealsForDay` in `lib/services/meal_aggregation.dart`
+  rausgezogen, Provider + history/trends-Screens umgestellt. Tests in
+  `meal_aggregation_test.dart` lockern Mitternachts-Edge-Cases (inkl.
+  Regression: `isAfter(startOfDay)` schloss 00:00-Saves stillschweigend
+  aus, neu: inklusive untere Grenze).
 
 ## Tier 3 — solide Mittelschicht
 

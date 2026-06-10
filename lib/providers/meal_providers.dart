@@ -8,6 +8,7 @@ import '../models/weight_entry.dart';
 import '../services/analytics_service.dart';
 import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
+import '../services/meal_aggregation.dart';
 import '../services/micronutrient_targets.dart';
 import '../services/open_food_facts_client.dart';
 import '../services/favorite_repository.dart';
@@ -131,21 +132,12 @@ final mealsProvider = StreamProvider<List<MealEntry>>((ref) {
 
 final todayMealsProvider = Provider<List<MealEntry>>((ref) {
   final all = ref.watch(mealsProvider).valueOrNull ?? const [];
-  final now = DateTime.now();
-  final startOfDay = DateTime(now.year, now.month, now.day);
-  return all.where((m) => m.createdAt.isAfter(startOfDay)).toList();
+  return mealsForDay(all, DateTime.now());
 });
 
 final yesterdayMealsProvider = Provider<List<MealEntry>>((ref) {
   final all = ref.watch(mealsProvider).valueOrNull ?? const [];
-  final now = DateTime.now();
-  final startOfYesterday = DateTime(now.year, now.month, now.day - 1);
-  final startOfToday = DateTime(now.year, now.month, now.day);
-  return all
-      .where((m) =>
-          m.createdAt.isAfter(startOfYesterday) &&
-          m.createdAt.isBefore(startOfToday))
-      .toList();
+  return mealsForDay(all, DateTime.now().subtract(const Duration(days: 1)));
 });
 
 final userProfileProvider = StreamProvider<UserProfileSettings>((ref) {
@@ -228,14 +220,5 @@ final mealHistorySuggestionsProvider =
 
 final mealsByDayProvider = Provider<Map<DateTime, List<MealEntry>>>((ref) {
   final all = ref.watch(mealsProvider).valueOrNull ?? const [];
-  final grouped = <DateTime, List<MealEntry>>{};
-  for (final meal in all) {
-    final day = DateTime(
-      meal.createdAt.year,
-      meal.createdAt.month,
-      meal.createdAt.day,
-    );
-    grouped.putIfAbsent(day, () => []).add(meal);
-  }
-  return grouped;
+  return groupMealsByDay(all);
 });

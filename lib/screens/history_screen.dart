@@ -7,6 +7,7 @@ import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
 import '../services/calorie_target.dart';
+import '../services/meal_aggregation.dart';
 import '../services/micronutrient_targets.dart';
 import '../utils/date_format.dart';
 import '../widgets/empty/empty_history.dart';
@@ -69,22 +70,17 @@ class HistoryScreen extends ConsumerWidget {
               itemBuilder: (context, i) {
                 final day = recentDays[i];
                 final meals = grouped[day]!;
-                final total = meals.fold<int>(0, (sum, m) => sum + m.kcal);
-                final protein =
-                    meals.fold<double>(0, (sum, m) => sum + m.proteinG);
-                final carbs =
-                    meals.fold<double>(0, (sum, m) => sum + m.carbsG);
-                final fat = meals.fold<double>(0, (sum, m) => sum + m.fatG);
+                final total = dayTotal(meals);
                 final pills = profile == null
                     ? const <_MicroPill>[]
                     : _computeMicroPills(profile, meals, locale);
                 return _DayCard(
                   day: day,
-                  mealCount: meals.length,
-                  totalKcal: total,
-                  totalProtein: protein,
-                  totalCarbs: carbs,
-                  totalFat: fat,
+                  mealCount: total.mealCount,
+                  totalKcal: total.kcal,
+                  totalProtein: total.proteinG,
+                  totalCarbs: total.carbsG,
+                  totalFat: total.fatG,
                   target: target,
                   macroTargets: macroTargets,
                   microPills: pills,
