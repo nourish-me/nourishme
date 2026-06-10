@@ -14,15 +14,25 @@ Stand: Juni 2026. Pflege diese Datei, wenn ein Punkt erledigt ist.
 - KI-Antwort-Parsing `fromModelText`: kaputtes JSON, fehlende Felder,
   crash-sichere Micronutrients (`claude_client_parse_meal_test.dart`)
 - Thread-Ordering + Mitternachts-Anker `coachAnchorFor` (`thread_ordering_test.dart`)
+- **Deterministische Safety-Regeln** (`safety_rules.dart`, `safety_rules_test.dart`):
+  6 belegte Regeln (Koffein, Alkohol, rohe Tierprodukte, Quecksilberfisch,
+  Leber/Vitamin A, Kräuter), phasen-/trimester-genau, Falschtreffer-Schutz.
+  Verdrahtet als deterministischer Boden in `safetyCheck` UND `parseMeal`
+  (`allWarnings` + `mergeWarnings`). Grundlage: `docs/safety-rules-reference.md`.
 
-## Tier 1 — zuerst (höchstes Risiko)
+## Tier 1 — offene Safety-Schritte
 
-**Safety-Warnungen (`ClaudeClient.safetyCheck`).** Koffein/Alkohol/Listeria/
-Quecksilberfisch-Hinweise für Schwangere. Ein Fehler schadet direkt.
-Aktuell schlecht testbar, weil im Ermessen des Modells.
-- Schritt 1: die bekannten, endlichen Regeln in deterministischen Code ziehen.
-- Schritt 2: diese reinen Regeln testen.
-- Läuft mit der Safety-/Ernährungs-Review-Session zusammen.
+- **Fachliche Abnahme (KEIN Code, höchste Priorität vor Launch).** Eine Hebamme
+  oder Ernährungsfachkraft prüft die 6 Regeln in `docs/safety-rules-reference.md`,
+  besonders die bewussten Grenzfälle (Salami inkludiert; Salbei/Pfefferminze nur
+  weicher Hinweis). Asynchron, parallel anstoßen.
+- ~~**Parse-Prompt-Dedup.**~~ Erledigt: `parse_de.dart` und `parse_en.dart`
+  bekommen jetzt dieselbe "Standard-Risiken werden separat geprüft, nicht
+  wiederholen"-Anweisung wie `safetyCheck`. Die 6 expliziten Schwellen-Bullets
+  sind weg; SafetyRules-Floor + Merge in `parseMeal` setzt sie deterministisch.
+- **Bewusst NICHT abgedeckt:** der freie Coach-Chat. Die Regeln greifen nur bei
+  der Lebensmittel-Prüfung (Scan + Logging), nicht bei beliebigen Chat-Aussagen
+  des Modells. Falls gewünscht, eigener, größerer Schritt.
 
 ## Tier 2 — hoher Wert, gut testbar
 

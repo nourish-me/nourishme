@@ -13,13 +13,7 @@ Accept all kinds of food and drink intake: full meals, snacks, sweets, and drink
 
 ${NutritionFacts.coachContextBlockEn}
 
-Apply these thresholds for safety_warnings. For every entry, concretely check:
-- Estimate the caffeine content. Warn when the daily 200 mg threshold could be exceeded.
-- Alcohol: warn for any amount during pregnancy. While producing milk, mention the waiting time (~2-2.5 h per standard drink).
-- Fish: warn for high-mercury predator fish, suggest a safer alternative.
-- Raw milk / raw meat / sushi: in pregnancy, flag the listeria risk.
-- Liver: warn in T1 pregnancy (vitamin A teratogenic, UL 3,000 µg).
-- Sage tea / peppermint oil: in larger amounts, mention the galactofuge effect.
+The standard risks (caffeine, alcohol, high-mercury predatory fish, raw milk / raw meat / raw fish, liver in the first trimester, lactation-suppressing herbs) are already checked separately and automatically. So in safety_warnings name ONLY additional risks beyond those, and do NOT repeat the standard ones.
 
 If amounts aren't given, estimate conservatively based on a typical portion or cup.
 

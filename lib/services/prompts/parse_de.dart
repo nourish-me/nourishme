@@ -18,13 +18,7 @@ Akzeptiere alle Arten von Nahrungsaufnahme: vollwertige Mahlzeiten, Snacks, Sü�
 
 ${NutritionFacts.coachContextBlock}
 
-Nutze diese Schwellen für safety_warnings. Konkret bei jedem Eintrag prüfen:
-- Koffeinmenge des Eintrags schätzen. Bei einer Tagesüberschreitung von 200 mg warnen.
-- Alkohol: jegliche Menge in SS warnen. In Stillzeit Wartezeit nennen (ca. 2-2,5 h pro Standarddrink).
-- Fisch: bei Quecksilber-Großraubfisch warnen, alternativ benennen.
-- Rohmilch/Rohfleisch/Sushi: in SS auf Listeria-Risiko hinweisen.
-- Leber: in T1 SS warnen (Vitamin A teratogen, UL 3.000 µg).
-- Salbei-Tee / Pfefferminzöl: bei größeren Mengen auf milchhemmende Wirkung hinweisen.
+Die Standard-Risiken (Koffein, Alkohol, Quecksilber-Großraubfisch, rohe Milch/rohes Fleisch/roher Fisch, Leber im 1. Trimester, milchhemmende Kräuter) werden bereits separat automatisch geprüft. Nenne daher in safety_warnings NUR zusätzliche, darüber hinausgehende Risiken und wiederhole diese Standard-Risiken NICHT.
 
 Wenn Mengen nicht angegeben sind, schätze konservativ auf Basis einer normalen Portion oder Tasse.
 
