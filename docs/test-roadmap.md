@@ -48,9 +48,13 @@ Stand: Juni 2026. Pflege diese Datei, wenn ein Punkt erledigt ist.
 
 ## Tier 3 — solide Mittelschicht
 
-- **Coach-Kombinier-Logik (`submitMeals`).** Summen, kombinierter Text,
-  Tages-Total-Anker. Als reine Funktion rausziehen, dann testen (Muster wie
-  `fromModelText`).
+- ~~**Coach-Kombinier-Logik (`submitMeals`).**~~ Erledigt:
+  `combineMealsForCoach` + `dayTotalsForCoach` in
+  `lib/services/coach_meal_bundle.dart` rausgezogen aus
+  `CoachSessionManager._runCallFor`. 13 Cases in
+  `coach_meal_bundle_test.dart` lockern den join+sum+warning-union sowie
+  die Stream-Race-defensive Tages-Total-Merge (Bundle-Meal nicht in byDay
+  → wird trotzdem gezählt, kein Double-Count wenn doch in byDay).
 - ~~**Repository-CRUD (Meal/Favorite/Weight).**~~ Erledigt: `repositories_test.dart`
   mit 15 Cases pro Repo (save-upsert, sort-Reihenfolge, delete-no-op,
   clearAll, watch-Stream initial+update). Pattern aus `thread_ordering_test.dart`

@@ -10,6 +10,7 @@ import '../providers/meal_providers.dart';
 import '../utils/weight_trend.dart';
 import 'calorie_target.dart';
 import 'claude_client.dart';
+import 'coach_meal_bundle.dart';
 import 'micronutrient_targets.dart';
 
 // Tracks which meal IDs currently have a coach call in flight. Most calls
@@ -195,22 +196,14 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         : null;
 
     final last = meals.last;
-    // Combined fields for the bundled call. For a single meal the
-    // joins/folds collapse to that meal's own values.
-    final combinedRawText = meals
-        .map((m) => m.rawText)
-        .where((s) => s.isNotEmpty)
-        .join(', ');
-    final combinedSummary = meals.map((m) => m.summary).join(', ');
-    final sumKcal = meals.fold<int>(0, (s, m) => s + m.kcal);
-    final sumProtein = meals.fold<double>(0, (s, m) => s + m.proteinG);
-    final sumCarbs = meals.fold<double>(0, (s, m) => s + m.carbsG);
-    final sumFat = meals.fold<double>(0, (s, m) => s + m.fatG);
-    final unionWarnings =
-        meals.expand((m) => m.safetyWarnings).toSet().toList();
-
-    // Day totals anchored to the most recent meal's day so retro-logged
-    // past-day meals still reason against that day's running total.
+    // Bundle + day totals via the pure helpers in coach_meal_bundle.dart so
+    // the joining / summing / safety-warning-dedupe / stream-race-defensive
+    // day merge can be unit-tested without this whole async stack.
+    final bundle = combineMealsForCoach(meals);
+    final totals = dayTotalsForCoach(byDay: byDay, bundle: meals);
+    // mealsForTotal is still needed downstream for the micro-nudge call,
+    // which inspects each meal's per-meal micronutrient estimate. Same
+    // shape as inside dayTotalsForCoach.
     final mealDayKey =
         DateTime(last.createdAt.year, last.createdAt.month, last.createdAt.day);
     final sameDay = byDay[mealDayKey] ?? const <MealEntry>[];
@@ -218,9 +211,6 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         .where((m) => !sameDay.any((s) => s.id == m.id))
         .toList(growable: false);
     final mealsForTotal = [...sameDay, ...extras];
-    final totalKcal = mealsForTotal.fold<int>(0, (s, m) => s + m.kcal);
-    final totalProtein =
-        mealsForTotal.fold<double>(0, (s, m) => s + m.proteinG);
 
     // Single source of truth (calorie_target.dart): DGE g/kg for the phase +
     // goal on the BMI-25-capped reference weight. Replaces the old naive
@@ -256,16 +246,16 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
 
     try {
       final response = await client.generatePerMealResponse(
-        mealRawText: combinedRawText,
-        mealSummary: combinedSummary,
-        mealKcal: sumKcal,
-        mealProteinG: sumProtein,
-        mealCarbsG: sumCarbs,
-        mealFatG: sumFat,
-        safetyWarnings: unionWarnings,
-        totalKcalToday: totalKcal,
+        mealRawText: bundle.rawText,
+        mealSummary: bundle.summary,
+        mealKcal: bundle.kcal,
+        mealProteinG: bundle.proteinG,
+        mealCarbsG: bundle.carbsG,
+        mealFatG: bundle.fatG,
+        safetyWarnings: bundle.safetyWarnings,
+        totalKcalToday: totals.kcal,
         targetKcal: target,
-        totalProteinToday: totalProtein,
+        totalProteinToday: totals.proteinG,
         proteinTargetG: proteinTargetG,
         numChildrenNursing: profile?.numChildrenNursing ?? 0,
         milkSharePercent: profile?.milkSharePercent ?? 0,
