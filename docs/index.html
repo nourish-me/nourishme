@@ -493,6 +493,47 @@
     color: var(--ink-soft); font-size: 16px; line-height: 1.5; margin: 0;
   }
 
+  /* ─────────── Demo video ─────────── */
+  /* Click-to-play (preload="none") so the 10 MB file doesn't load on
+     page open. Poster image is a frame from the 3 s mark to give a
+     sense of the app shape before play. Max-width keeps the player
+     ergonomic on desktop without ballooning into a billboard. */
+  .demo {
+    padding: 72px 0;
+    background: var(--paper);
+    border-top: 0.5px solid var(--rule);
+  }
+  .demo-head {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto 36px;
+  }
+  .demo-head .mono { color: var(--ink-mute); }
+  .demo-head h2 {
+    margin: 10px 0 12px;
+    letter-spacing: -0.01em;
+  }
+  .demo-head p {
+    color: var(--ink-soft);
+    font-size: 17px;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .demo-player {
+    max-width: 420px;
+    margin: 0 auto;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(30, 74, 69, 0.18),
+                0 4px 12px rgba(30, 74, 69, 0.10);
+    background: var(--ink);
+  }
+  .demo-player video {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
   /* ─────────── Story ─────────── */
   .story {
     padding: 72px 0;
@@ -1033,6 +1074,28 @@
         </div>
       </li>
     </ol>
+  </div>
+</section>
+
+<!-- ─────────── Demo video ─────────── -->
+<section class="demo">
+  <div class="wrap">
+    <div class="demo-head">
+      <span class="mono">Sieh es in Aktion</span>
+      <h2 class="section-title">Eine Minute, die App live.</h2>
+      <p>Vom Onboarding über die erste geloggte Mahlzeit bis zur Coach-Antwort. Tippe auf Play.</p>
+    </div>
+    <div class="demo-player">
+      <video
+        src="video/demo.mp4"
+        poster="video/demo-poster.jpg"
+        preload="none"
+        controls
+        playsinline
+        muted
+        aria-label="NourishMe Demo: Onboarding, Mahlzeit loggen, Coach-Antwort"
+      ></video>
+    </div>
   </div>
 </section>
 
