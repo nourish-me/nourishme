@@ -62,26 +62,43 @@ class MiniPctCell extends StatelessWidget {
           children: [
             Row(
               children: [
-                Flexible(
-                  child: Text(
-                    name,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.1,
-                      color: scheme.onSurface,
-                      fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-                      height: 1.1,
-                    ),
+                // Name + trailing markers grouped under one Expanded so the
+                // whole "left side" takes the cell width MINUS the pct text
+                // and a small gap. Previously the row was
+                //   [Flexible name, ...trailing, Spacer, pct]
+                // and Spacer (Expanded flex:1, tight) was a flex sibling to
+                // the Flexible (flex:1, loose) name. Both got half the
+                // remaining width, so "Protein" ellipsis-truncated to 30+ pt
+                // even on cells where the right half sat empty. Now the gap
+                // is a fixed 6 pt; everything else goes to the name.
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          name,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.1,
+                            color: scheme.onSurface,
+                            fontStyle:
+                                italic ? FontStyle.italic : FontStyle.normal,
+                            height: 1.1,
+                          ),
+                        ),
+                      ),
+                      ...nameTrailing.map((w) => Padding(
+                            padding: const EdgeInsets.only(left: 3),
+                            child: w,
+                          )),
+                    ],
                   ),
                 ),
-                ...nameTrailing.map((w) => Padding(
-                      padding: const EdgeInsets.only(left: 3),
-                      child: w,
-                    )),
-                const Spacer(),
+                const SizedBox(width: 6),
                 if (pctOverridesText != null)
                   pctOverridesText!
                 else
