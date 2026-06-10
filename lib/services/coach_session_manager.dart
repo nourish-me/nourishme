@@ -8,6 +8,7 @@ import '../models/thread_item.dart';
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../utils/weight_trend.dart';
+import 'calorie_target.dart';
 import 'claude_client.dart';
 import 'micronutrient_targets.dart';
 
@@ -221,8 +222,11 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     final totalProtein =
         mealsForTotal.fold<double>(0, (s, m) => s + m.proteinG);
 
-    final proteinTargetG =
-        profile != null ? (profile.weightKg * 1.2).round() : 80;
+    // Single source of truth (calorie_target.dart): DGE g/kg for the phase +
+    // goal on the BMI-25-capped reference weight. Replaces the old naive
+    // weight × 1.2, which ignored the cap and the phase and over-targeted
+    // protein for overweight users.
+    final proteinTargetG = profile != null ? proteinTargetGrams(profile) : 80;
 
     // Build the optional micronutrient-nudge for the coach: list active
     // micros that are still under 70% of target AFTER 14:00 local time of

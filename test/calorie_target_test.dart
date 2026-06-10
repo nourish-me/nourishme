@@ -235,6 +235,39 @@ void main() {
     });
   });
 
+  group('proteinTargetGrams (single source for the coach protein goal)', () {
+    test('lactating, normal weight: 1.2 × 65 = 78 g', () {
+      final p = _profile(numChildrenNursing: 1, weightKg: 65, heightCm: 165)
+          .copyWith(goal: CoachGoal.nutrients);
+      expect(proteinTargetGrams(p), 78);
+    });
+
+    test('lactating + overweight: capped to BMI-25 weight → 82 g, not 108', () {
+      // 90 kg / 165 cm, BMI 33 → reference 68 kg → 1.2 × 68 ≈ 82 g. This is the
+      // bug the nutritionist flagged: the coach used to state 108 g here.
+      final p = _profile(numChildrenNursing: 1, weightKg: 90, heightCm: 165)
+          .copyWith(goal: CoachGoal.nutrients);
+      expect(proteinTargetGrams(p), 82);
+    });
+
+    test('non-pregnant non-lactating baseline: 0.8 × 60 = 48 g', () {
+      final p = _profile(numChildrenNursing: 0, weightKg: 60, heightCm: 165)
+          .copyWith(goal: CoachGoal.nutrients);
+      expect(proteinTargetGrams(p), 48);
+    });
+
+    test('pregnancy T2: 0.9 × 60 = 54 g (goal ignored in pregnancy)', () {
+      expect(proteinTargetGrams(_pregnant(trimester: 2)), 54);
+    });
+
+    test('body goal + overweight lactating: bump on the capped weight → 102 g',
+        () {
+      final p = _profile(numChildrenNursing: 1, weightKg: 90, heightCm: 165)
+          .copyWith(goal: CoachGoal.body);
+      expect(proteinTargetGrams(p), 102);
+    });
+  });
+
   group('JSON roundtrip (UserProfileSettings)', () {
     test('round-trips lossless including birthdate', () {
       final original = UserProfileSettings(

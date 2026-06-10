@@ -61,34 +61,10 @@ class MacroTargets {
 // not from the same brief - flagged in the Settings info card.
 ({int proteinPct, int fatPct, int carbsPct}) autoMacroSplit(
     UserProfileSettings profile, int targetKcal) {
-  final lactating = profile.numChildrenNursing > 0;
-  double proteinPerKg = 0.8;
-  if (lactating) {
-    proteinPerKg = 1.2;
-  } else if (profile.isPregnant) {
-    final t = profile.trimester ?? 1;
-    if (t >= 3) {
-      proteinPerKg = 1.0;
-    } else if (t == 2) {
-      proteinPerKg = 0.9;
-    }
-  }
-  if (profile.goal != CoachGoal.nutrients && !profile.isPregnant) {
-    proteinPerKg = lactating ? 1.5 : 1.6;
-  }
-  // DGE 2025 Referenzwerte Protein, Fussnote a: bei Übergewicht (BMI > 25)
-  // wird der Protein-Bedarf vom Normalgewicht abgeleitet, nicht vom Ist-
-  // Gewicht. Ohne diesen Cap überschätzt die App den Protein-Bedarf bei
-  // BMI > 25 systematisch (z.B. eine Frau mit 90 kg / 165 cm: BMI 33,
-  // 90 × 1,2 = 108 g vom Ist-Gewicht; korrekter Wert: 25 × 1,65² = 68 kg
-  // → 68 × 1,2 = 81 g).
-  final heightM = profile.heightCm / 100;
-  final normalWeightAtBmi25 = heightM > 0 ? 25 * heightM * heightM : 0.0;
-  final effectiveWeight =
-      profile.weightKg > normalWeightAtBmi25 && normalWeightAtBmi25 > 0
-          ? normalWeightAtBmi25
-          : profile.weightKg;
-  final proteinG = effectiveWeight * proteinPerKg;
+  // Protein g/kg (phase + goal) on the BMI-25-capped reference weight lives in
+  // proteinTargetGrams / its helpers below — one source of truth shared with
+  // the coach's stated protein goal (CoachSessionManager).
+  final proteinG = _proteinReferenceWeight(profile) * _proteinPerKg(profile);
   final proteinKcal = proteinG * 4;
   final proteinPctRaw = targetKcal > 0
       ? (proteinKcal / targetKcal * 100).round().clamp(5, 50)
@@ -117,3 +93,48 @@ MacroTargets calculateMacroTargets(UserProfileSettings profile, int targetKcal) 
     fatG: (targetKcal * fPct / 100 / 9).round(),
   );
 }
+
+// --- Protein target: single source of truth ---------------------------------
+
+// DGE g protein per kg body weight for the user's phase and goal. Baseline 0.8;
+// lactation 1.2; pregnancy T2 0.9 / T3 1.0; body-composition goal raises to
+// 1.5 (lactation) / 1.6 (otherwise). Pregnancy is never bumped for a goal.
+double _proteinPerKg(UserProfileSettings profile) {
+  final lactating = profile.numChildrenNursing > 0;
+  double perKg = 0.8;
+  if (lactating) {
+    perKg = 1.2;
+  } else if (profile.isPregnant) {
+    final t = profile.trimester ?? 1;
+    if (t >= 3) {
+      perKg = 1.0;
+    } else if (t == 2) {
+      perKg = 0.9;
+    }
+  }
+  if (profile.goal != CoachGoal.nutrients && !profile.isPregnant) {
+    perKg = lactating ? 1.5 : 1.6;
+  }
+  return perKg;
+}
+
+// Reference body weight for the protein target. DGE 2025 Referenzwerte Protein,
+// Fussnote a: at overweight (BMI > 25) protein need is derived from normal
+// weight, not actual weight. Without this cap the app over-targets protein at
+// BMI > 25 (e.g. 90 kg / 165 cm, BMI 33: 90 × 1.2 = 108 g from actual weight;
+// correct: weight at BMI 25 = 25 × 1.65 × 1.65 ≈ 68 kg → 68 × 1.2 ≈ 82 g).
+double _proteinReferenceWeight(UserProfileSettings profile) {
+  final heightM = profile.heightCm / 100;
+  final normalWeightAtBmi25 = heightM > 0 ? 25 * heightM * heightM : 0.0;
+  return profile.weightKg > normalWeightAtBmi25 && normalWeightAtBmi25 > 0
+      ? normalWeightAtBmi25
+      : profile.weightKg;
+}
+
+/// Canonical daily protein target in grams: DGE g/kg for the phase/goal applied
+/// to the BMI-25-capped reference weight. Single source of truth for both the
+/// macro split (autoMacroSplit) and the coach's stated protein goal. Previously
+/// the coach used a naive weight × 1.2 that ignored the cap and the phase,
+/// over-targeting protein for overweight users.
+int proteinTargetGrams(UserProfileSettings profile) =>
+    (_proteinReferenceWeight(profile) * _proteinPerKg(profile)).round();
