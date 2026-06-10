@@ -1,0 +1,296 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nurturetrack/services/safety_rules.dart';
+
+// Pins the deterministic caffeine rule (docs/safety-rules-reference.md, rule 1).
+// This is the safety layer that must NOT depend on the model remembering to
+// warn: known caffeine sources trigger the 200 mg/day limit, phase-gated.
+void main() {
+  const pregnant = SafetyPhase(isPregnant: true, trimester: 2);
+  const pregnantT1 = SafetyPhase(isPregnant: true, trimester: 1);
+  const pregnantNoTri = SafetyPhase(isPregnant: true);
+  const lactating = SafetyPhase(isLactating: true);
+  const neither = SafetyPhase();
+
+  group('caffeine rule — triggers', () {
+    test('pregnant + coffee → German warning', () {
+      final w = SafetyRules.caffeine('Großer Kaffee', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('200 mg'));
+      expect(w, startsWith('Koffein'));
+    });
+
+    test('lactating + espresso → English warning', () {
+      final w = SafetyRules.caffeine('double espresso', lactating, locale: 'en');
+      expect(w, isNotNull);
+      expect(w, contains('200 mg'));
+      expect(w, startsWith('Caffeine'));
+    });
+
+    test('detection is case-insensitive', () {
+      expect(
+        SafetyRules.caffeine('ENERGY drink', pregnant, locale: 'en'),
+        isNotNull,
+      );
+    });
+
+    test('matcha and cola are recognised caffeine sources', () {
+      expect(SafetyRules.caffeine('Matcha Latte', pregnant), isNotNull);
+      expect(SafetyRules.caffeine('Cola', lactating), isNotNull);
+    });
+  });
+
+  group('caffeine rule — no warning', () {
+    test('phase not relevant (neither pregnant nor lactating) → null', () {
+      expect(SafetyRules.caffeine('Espresso', neither, locale: 'de'), isNull);
+    });
+
+    test('no caffeine source in product → null', () {
+      expect(SafetyRules.caffeine('Apfel mit Quark', pregnant), isNull);
+    });
+
+    test('herbal tea is not flagged (bare "Tee" is intentionally not a trigger)',
+        () {
+      expect(SafetyRules.caffeine('Kamillentee', pregnant), isNull);
+    });
+
+    test('substring trap: "Tomate" must NOT match the "mate" keyword', () {
+      expect(SafetyRules.caffeine('Tomate mit Mozzarella', pregnant), isNull);
+    });
+
+    test('but a real "Mate" drink IS flagged', () {
+      expect(SafetyRules.caffeine('Club Mate', pregnant), isNotNull);
+    });
+  });
+
+  group('alcohol rule — phase-specific message', () {
+    test('pregnant → "avoid completely" message (German)', () {
+      final w = SafetyRules.alcohol('Rotwein', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('ganz meiden'));
+    });
+
+    test('lactating → "wait per drink" message (English)', () {
+      final w = SafetyRules.alcohol('a glass of wine', lactating, locale: 'en');
+      expect(w, isNotNull);
+      expect(w, contains('per standard drink'));
+    });
+
+    test('German compound "Glühwein" is recognised', () {
+      expect(SafetyRules.alcohol('Glühwein', pregnant), isNotNull);
+    });
+
+    test('English "beer" is recognised', () {
+      expect(SafetyRules.alcohol('cold beer', lactating), isNotNull);
+    });
+  });
+
+  group('alcohol rule — no warning', () {
+    test('phase not relevant → null', () {
+      expect(SafetyRules.alcohol('Rotwein', neither), isNull);
+    });
+
+    test('compound trap: "Schweinebraten" must NOT match "wein"', () {
+      expect(SafetyRules.alcohol('Schweinebraten', pregnant), isNull);
+    });
+
+    test('short-word traps: "Rumpsteak" / "Ingwer Shot" do not match rum/gin',
+        () {
+      expect(SafetyRules.alcohol('Rumpsteak', pregnant), isNull);
+      expect(SafetyRules.alcohol('Ingwer Shot', pregnant), isNull);
+    });
+
+    test('alcohol-free variant is never flagged', () {
+      expect(SafetyRules.alcohol('alkoholfreies Bier', pregnant), isNull);
+    });
+  });
+
+  group('raw animal products rule — pregnancy only', () {
+    test('pregnant + sushi → warning', () {
+      final w = SafetyRules.rawAnimalProducts('Sushi Platte', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('Listerien'));
+    });
+
+    test('pregnant + Räucherlachs / Rohmilchkäse / Tiramisu → warning', () {
+      expect(SafetyRules.rawAnimalProducts('Räucherlachs', pregnant), isNotNull);
+      expect(SafetyRules.rawAnimalProducts('Rohmilchkäse', pregnant), isNotNull);
+      expect(SafetyRules.rawAnimalProducts('Tiramisu', pregnant), isNotNull);
+    });
+
+    test('LACTATING + sushi → null (this risk is pregnancy-specific)', () {
+      expect(SafetyRules.rawAnimalProducts('Sushi', lactating), isNull);
+    });
+
+    test('neither phase → null', () {
+      expect(SafetyRules.rawAnimalProducts('Sushi', neither), isNull);
+    });
+  });
+
+  group('raw animal products rule — no false positives', () {
+    test('"Omelett" must not match "mett"', () {
+      expect(SafetyRules.rawAnimalProducts('Omelett', pregnant), isNull);
+    });
+
+    test('"Brioche" must not match "brie"', () {
+      expect(SafetyRules.rawAnimalProducts('Brioche', pregnant), isNull);
+    });
+
+    test('"Tatarensauce" must not match "tatar"', () {
+      expect(SafetyRules.rawAnimalProducts('Tatarensauce', pregnant), isNull);
+    });
+
+    test('cooked salmon is fine (bare "Lachs" is not a trigger)', () {
+      expect(SafetyRules.rawAnimalProducts('gekochter Lachs', pregnant), isNull);
+    });
+  });
+
+  group('mercury fish rule — phase-specific message', () {
+    test('pregnant → "avoid" message', () {
+      final w = SafetyRules.mercuryFish('Thunfisch', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('meiden'));
+    });
+
+    test('lactating → "limit" message', () {
+      final w = SafetyRules.mercuryFish('tuna steak', lactating, locale: 'en');
+      expect(w, isNotNull);
+      expect(w, contains('limit'));
+    });
+
+    test('German compound "Thunfischsalat" is caught', () {
+      expect(SafetyRules.mercuryFish('Thunfischsalat', pregnant), isNotNull);
+    });
+
+    test('shark / swordfish / pike are caught', () {
+      expect(SafetyRules.mercuryFish('Haifischsteak', pregnant), isNotNull);
+      expect(SafetyRules.mercuryFish('Schwertfisch', pregnant), isNotNull);
+      expect(SafetyRules.mercuryFish('Hechtsuppe', pregnant), isNotNull);
+    });
+  });
+
+  group('mercury fish rule — no false positives', () {
+    test('regular "Makrele" is NOT flagged (only Königsmakrele is)', () {
+      expect(SafetyRules.mercuryFish('geräucherte Makrele', pregnant), isNull);
+      expect(SafetyRules.mercuryFish('Königsmakrele', pregnant), isNotNull);
+    });
+
+    test('low-mercury fish (Lachs, Forelle, Kabeljau) are fine', () {
+      expect(SafetyRules.mercuryFish('Lachs', pregnant), isNull);
+      expect(SafetyRules.mercuryFish('Forelle', pregnant), isNull);
+      expect(SafetyRules.mercuryFish('Kabeljau', pregnant), isNull);
+    });
+
+    test('phase not relevant → null', () {
+      expect(SafetyRules.mercuryFish('Thunfisch', neither), isNull);
+    });
+  });
+
+  group('liver / vitamin A rule — first trimester only', () {
+    test('pregnant T1 + Leber → warning', () {
+      final w = SafetyRules.liverVitaminA('Leber', pregnantT1, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('1. Trimester'));
+    });
+
+    test('compounds Kalbsleber / Leberwurst / foie gras are caught', () {
+      expect(SafetyRules.liverVitaminA('Kalbsleber', pregnantT1), isNotNull);
+      expect(SafetyRules.liverVitaminA('Leberwurst', pregnantT1), isNotNull);
+      expect(SafetyRules.liverVitaminA('foie gras', pregnantT1), isNotNull);
+    });
+
+    test('unknown trimester defaults to 1 (warns)', () {
+      expect(SafetyRules.liverVitaminA('Leber', pregnantNoTri), isNotNull);
+    });
+
+    test('T2/T3 do NOT warn (liver is a useful vitamin A source then)', () {
+      expect(SafetyRules.liverVitaminA('Leber', pregnant), isNull); // T2
+      expect(
+        SafetyRules.liverVitaminA(
+            'Leber', const SafetyPhase(isPregnant: true, trimester: 3)),
+        isNull,
+      );
+    });
+  });
+
+  group('liver / vitamin A rule — no false positives', () {
+    test('"Leberkäse" has no liver and must NOT trigger', () {
+      expect(SafetyRules.liverVitaminA('Leberkäse', pregnantT1), isNull);
+      expect(SafetyRules.liverVitaminA('Leberkässemmel', pregnantT1), isNull);
+    });
+
+    test('lactating only → null (this is a pregnancy concern)', () {
+      expect(SafetyRules.liverVitaminA('Leber', lactating), isNull);
+    });
+  });
+
+  group('lactation herbs rule — soft, large-amount only', () {
+    test('everyday cup of sage tea is NOT flagged (no over-warning)', () {
+      // The whole point: weak evidence, so a normal tea must stay silent.
+      expect(SafetyRules.lactationHerbs('Salbeitee', lactating), isNull);
+      expect(SafetyRules.lactationHerbs('eine Tasse Pfefferminztee', lactating),
+          isNull);
+    });
+
+    test('large/medicinal amount → gentle note (not a warning)', () {
+      final w =
+          SafetyRules.lactationHerbs('Abstilltee mit Salbei', lactating, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, startsWith('Hinweis'));
+      expect(w, contains('Alltagsmengen sind unkritisch'));
+    });
+
+    test('sage concentrate / peppermint oil are flagged', () {
+      expect(SafetyRules.lactationHerbs('Salbei-Konzentrat', lactating),
+          isNotNull);
+      expect(SafetyRules.lactationHerbs('Pfefferminzöl Kapseln', lactating),
+          isNotNull);
+    });
+
+    test('olive-oil trap: "Salbeibutter mit Olivenöl" must not trigger', () {
+      expect(
+        SafetyRules.lactationHerbs('Salbeibutter mit Olivenöl', lactating),
+        isNull,
+      );
+    });
+
+    test('not lactating → null even for a concentrate', () {
+      expect(SafetyRules.lactationHerbs('Salbei-Konzentrat', pregnantT1), isNull);
+    });
+  });
+
+  group('allWarnings — runs every rule', () {
+    test('a product hitting two categories returns both, in rule order', () {
+      final w = SafetyRules.allWarnings('Espresso mit Thunfisch', pregnant);
+      expect(w.length, 2);
+      expect(w.first.toLowerCase(), contains('caffeine')); // default locale en
+      expect(w[1].toLowerCase(), contains('mercury'));
+    });
+
+    test('nothing relevant → empty list', () {
+      expect(SafetyRules.allWarnings('Apfel', pregnant), isEmpty);
+    });
+
+    test('phase gating still applies inside allWarnings', () {
+      // Sushi is pregnancy-only; for a lactating user it must not appear.
+      expect(SafetyRules.allWarnings('Sushi', lactating), isEmpty);
+    });
+  });
+
+  group('mergeWarnings — deterministic floor + model extras', () {
+    test('deterministic first, then model extras', () {
+      expect(SafetyRules.mergeWarnings(['A', 'B'], ['C']), ['A', 'B', 'C']);
+    });
+
+    test('exact duplicates from the model are dropped', () {
+      expect(SafetyRules.mergeWarnings(['A'], ['A', 'B']), ['A', 'B']);
+    });
+
+    test('deterministic warnings survive an empty model result', () {
+      expect(SafetyRules.mergeWarnings(['A'], const []), ['A']);
+    });
+
+    test('empty deterministic + model extras keeps the extras', () {
+      expect(SafetyRules.mergeWarnings(const [], ['X']), ['X']);
+    });
+  });
+}

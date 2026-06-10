@@ -139,4 +139,16 @@ void main() {
       expect(r.micronutrients, isNull);
     });
   });
+
+  group('copyWith', () {
+    test('replaces safetyWarnings, preserves everything else', () {
+      final base = MealParseResult.fromModelText(
+        '{"summary": "Apfel", "kcal": 95, "safety_warnings": ["a"]}',
+      );
+      final updated = base.copyWith(safetyWarnings: ['a', 'b']);
+      expect(updated.safetyWarnings, ['a', 'b']);
+      expect(updated.summary, 'Apfel');
+      expect(updated.kcal, 95);
+    });
+  });
 }

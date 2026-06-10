@@ -14,6 +14,7 @@ import 'prompts/per_meal_de.dart';
 import 'prompts/per_meal_en.dart';
 import 'prompts/supplement_de.dart';
 import 'prompts/supplement_en.dart';
+import 'safety_rules.dart';
 
 // Exception with a human-readable message safe to surface in the UI. The
 // caller can show e.userMessage directly; the technical detail is kept for
@@ -154,6 +155,23 @@ class MealParseResult {
     });
     return out;
   }
+
+  /// Returns a copy with [safetyWarnings] replaced. Used to fold the
+  /// deterministic safety-rule warnings into a parsed meal.
+  MealParseResult copyWith({List<String>? safetyWarnings}) => MealParseResult(
+        isMeal: isMeal,
+        rejectionReason: rejectionReason,
+        summary: summary,
+        kcal: kcal,
+        proteinG: proteinG,
+        carbsG: carbsG,
+        fatG: fatG,
+        portionAmount: portionAmount,
+        portionUnit: portionUnit,
+        portionAlias: portionAlias,
+        safetyWarnings: safetyWarnings ?? this.safetyWarnings,
+        micronutrients: micronutrients,
+      );
 }
 
 class ChatTurn {
@@ -391,7 +409,25 @@ class ClaudeClient {
       cacheSystem: true,
     );
 
-    return MealParseResult.fromModelText(text);
+    final result = MealParseResult.fromModelText(text);
+    // A non-meal (no parseable nutrition) routes to the coach chat; running
+    // food-safety rules on it would mis-fire (e.g. on the question "darf ich
+    // Kaffee trinken?"), so only apply the deterministic floor to real meals.
+    if (!result.isMeal) return result;
+    final deterministic = SafetyRules.allWarnings(
+      '$userText ${result.summary}',
+      SafetyPhase(
+        isPregnant: isPregnant,
+        trimester: trimester,
+        isLactating: isLactating,
+      ),
+      locale: locale,
+    );
+    if (deterministic.isEmpty) return result;
+    return result.copyWith(
+      safetyWarnings:
+          SafetyRules.mergeWarnings(deterministic, result.safetyWarnings),
+    );
   }
 
   // Safety-only check for a known product (e.g. one scanned via Open Food
@@ -418,11 +454,21 @@ class ClaudeClient {
             : 'neither pregnant nor producing milk';
     final system = isDe
         ? '''Du bist ein Food-Safety-Prüfer. Die Nutzerin ist: $phaseDe.
-Prüfe das genannte Produkt auf gesundheitsrelevante Risiken in dieser Phase: Koffein (Tagesgrenze 200 mg), Alkohol (in der Schwangerschaft meiden, beim Milchproduzieren Wartezeit ca. 2-2,5 h pro Standarddrink), Quecksilber-Großraubfisch, rohe Milch / rohes Fleisch / roher Fisch (Listeria), Leber im 1. Trimester (Vitamin A), milchhemmende Kräuter (Salbei, Pfefferminze in größeren Mengen).
+Die Standard-Risiken (Koffein, Alkohol, Quecksilber-Großraubfisch, rohe Milch/rohes Fleisch/roher Fisch, Leber im 1. Trimester, milchhemmende Kräuter) werden bereits separat automatisch geprüft. Nenne daher NUR zusätzliche, darüber hinausgehende Risiken und wiederhole diese Standard-Risiken NICHT.
 Antworte AUSSCHLIESSLICH mit einem JSON-Array kurzer deutscher Warn-Strings, z.B. ["Koffein: ca. 80 mg pro Dose, achte auf die Tagesgrenze von 200 mg"]. Wenn nichts kritisch ist, antworte mit []. Vermeide das Wort "Stillen", nutze "während du Muttermilch produzierst".'''
         : '''You are a food-safety checker. The user is: $phaseEn.
-Check the named product for health-relevant risks in this phase: caffeine (200 mg daily limit), alcohol (avoid in pregnancy, ~2-2.5 h wait per standard drink while producing milk), high-mercury predatory fish, raw milk / raw meat / raw fish (listeria), liver in the first trimester (vitamin A), lactation-suppressing herbs (sage, peppermint in larger amounts).
+The standard risks (caffeine, alcohol, high-mercury predatory fish, raw milk / raw meat / raw fish, liver in the first trimester, lactation-suppressing herbs) are already checked separately and automatically. So name ONLY additional risks beyond those, and do NOT repeat the standard ones.
 Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: ~80 mg per can, mind the 200 mg daily limit"]. If nothing is critical, reply with []. Avoid the word "breastfeeding"; use "while you're producing breast milk".''';
+    // Deterministic floor: the known, finite risks (see safety_rules.dart) are
+    // computed locally and ALWAYS returned, even if the model call below fails
+    // or misses something. The model only adds extra, fuzzier warnings on top.
+    final phase = SafetyPhase(
+      isPregnant: isPregnant,
+      trimester: trimester,
+      isLactating: isLactating,
+    );
+    final deterministic =
+        SafetyRules.allWarnings(productName, phase, locale: locale);
     try {
       final raw = (await _post(
         systemPrompt: system,
@@ -435,16 +481,18 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
           .trim();
       final start = raw.indexOf('[');
       final end = raw.lastIndexOf(']');
-      if (start == -1 || end == -1) return const [];
+      if (start == -1 || end == -1) return deterministic;
       final list = jsonDecode(raw.substring(start, end + 1)) as List;
-      return list
+      final modelWarnings = list
           .whereType<String>()
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty)
           .toList();
+      return SafetyRules.mergeWarnings(deterministic, modelWarnings);
     } catch (e) {
       debugPrint('safetyCheck failed for "$productName": $e');
-      return const [];
+      // Model failed, but the deterministic rules still stand.
+      return deterministic;
     }
   }
 
