@@ -200,6 +200,14 @@
   "homeScrollToTop": "Jump to top",
   "homeScrollToBottom": "Jump to today",
   "homeTimePickerHelp": "Pick a time",
+  "homeDatePickerHelp": "Pick a date",
+  "@homeDatePickerHelp": {},
+  "settingsWeightLoggedOn": "Weighed on: {date}",
+  "@settingsWeightLoggedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
   "homeTimeSuffix": "",
   "homePastDayHeader": "Entry for {day}",
   "@homePastDayHeader": {

@@ -824,6 +824,18 @@ abstract class AppLocalizations {
   /// **'Pick a time'**
   String get homeTimePickerHelp;
 
+  /// No description provided for @homeDatePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get homeDatePickerHelp;
+
+  /// No description provided for @settingsWeightLoggedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighed on: {date}'**
+  String settingsWeightLoggedOn(String date);
+
   /// No description provided for @homeTimeSuffix.
   ///
   /// In en, this message translates to:

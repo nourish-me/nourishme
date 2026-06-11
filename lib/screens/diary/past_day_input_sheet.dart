@@ -4,9 +4,13 @@ import '../../l10n/app_localizations.dart';
 import '../../utils/date_format.dart';
 
 // Bottom sheet opened when the user taps an empty past day in the diary.
-// Wraps a text field + time picker. Pops with a (text, time) record so
-// the parent (HomeScreen) can run the normal parseMeal → ConfirmScreen
-// flow with the chosen day + time.
+// Wraps a text field + date + time picker. Pops with a (text, day, time)
+// record so the parent (HomeScreen) can run the normal parseMeal →
+// ConfirmScreen flow with the chosen day + time.
+//
+// The date is editable IN the sheet so a user who tapped Donnerstag in
+// the diary but actually meant Freitag doesn't have to back out and
+// re-pick - they switch the day right here.
 class PastDayInputSheet extends StatefulWidget {
   final TextEditingController controller;
   final DateTime day;
@@ -18,9 +22,16 @@ class PastDayInputSheet extends StatefulWidget {
 }
 
 class _PastDayInputSheetState extends State<PastDayInputSheet> {
+  late DateTime _day;
   // Defaults to noon so the entry lands somewhere reasonable if the user
   // doesn't bother to set a time.
   TimeOfDay _time = const TimeOfDay(hour: 12, minute: 0);
+
+  @override
+  void initState() {
+    super.initState();
+    _day = widget.day;
+  }
 
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
@@ -31,9 +42,21 @@ class _PastDayInputSheetState extends State<PastDayInputSheet> {
     if (picked != null) setState(() => _time = picked);
   }
 
+  Future<void> _pickDay() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _day,
+      firstDate: DateTime(now.year - 2),
+      lastDate: now,
+      helpText: AppLocalizations.of(context).homeDatePickerHelp,
+    );
+    if (picked != null) setState(() => _day = picked);
+  }
+
   void _submit() {
     Navigator.of(context).pop(
-      (text: widget.controller.text, time: _time),
+      (text: widget.controller.text, day: _day, time: _time),
     );
   }
 
@@ -58,7 +81,7 @@ class _PastDayInputSheetState extends State<PastDayInputSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.homePastDayHeader(formatDayHeader(context, widget.day)),
+                l10n.homePastDayHeader(formatDayHeader(context, _day)),
                 style: textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
@@ -80,28 +103,59 @@ class _PastDayInputSheetState extends State<PastDayInputSheet> {
                 ),
               ),
               const SizedBox(height: 10),
-              InkWell(
-                onTap: _pickTime,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-                  child: Row(
-                    children: [
-                      Icon(Icons.schedule_outlined,
-                          size: 18, color: scheme.outline),
-                      const SizedBox(width: 8),
-                      Text(
-                        _formatTime(_time, l10n.homeTimeSuffix),
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: scheme.onSurface),
+              Row(
+                children: [
+                  // Day pill: lets the user fix the case where they
+                  // tapped Donnerstag in the diary but meant Freitag,
+                  // without having to back out of the sheet and re-pick.
+                  InkWell(
+                    onTap: _pickDay,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(Icons.event_outlined,
+                              size: 18, color: scheme.outline),
+                          const SizedBox(width: 8),
+                          Text(
+                            formatDayHeader(context, _day),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: scheme.onSurface),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.edit_outlined,
+                              size: 14, color: scheme.outline),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      Icon(Icons.edit_outlined,
-                          size: 14, color: scheme.outline),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  InkWell(
+                    onTap: _pickTime,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(Icons.schedule_outlined,
+                              size: 18, color: scheme.outline),
+                          const SizedBox(width: 8),
+                          Text(
+                            _formatTime(_time, l10n.homeTimeSuffix),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: scheme.onSurface),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.edit_outlined,
+                              size: 14, color: scheme.outline),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               Row(

@@ -149,6 +149,14 @@
   "homeScrollToTop": "Nach ganz oben",
   "homeScrollToBottom": "Zu heute",
   "homeTimePickerHelp": "Uhrzeit wählen",
+  "homeDatePickerHelp": "Datum wählen",
+  "@homeDatePickerHelp": {},
+  "settingsWeightLoggedOn": "Gewogen am: {date}",
+  "@settingsWeightLoggedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
   "homeTimeSuffix": " Uhr",
   "homePastDayHeader": "Eintrag für {day}",
   "homePastDayBody": "Was hast du gegessen oder getrunken?",

@@ -418,6 +418,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeTimePickerHelp => 'Uhrzeit wählen';
 
   @override
+  String get homeDatePickerHelp => 'Datum wählen';
+
+  @override
+  String settingsWeightLoggedOn(String date) {
+    return 'Gewogen am: $date';
+  }
+
+  @override
   String get homeTimeSuffix => ' Uhr';
 
   @override

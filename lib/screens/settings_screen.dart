@@ -74,6 +74,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _initialized = false;
   String? _initialProfileJson;
   bool _justSaved = false;
+  // Override for the next weight-history entry's recordedAt. Null = use
+  // DateTime.now() on save. Set when the user taps the "Gewogen am"
+  // pill that appears under the weight field after they actually change
+  // its value (e.g. "ich habe mich heute morgen gewogen, sitze aber
+  // erst jetzt abends in Settings" - they pick this morning's date so
+  // the trends chart shows the right anchor point).
+  DateTime? _weightRecordedAt;
   // Bumped on every setState so detail-page routes pushed on top of the
   // hub can ListenableBuilder-rebuild against the shared state. Without
   // this, a slider drag inside a detail page would only rebuild the hub
@@ -180,6 +187,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           sharePercent: _milkSharePercent,
         );
       });
+    }
+  }
+
+  // True when the user has changed the weight value vs the snapshot we
+  // hydrated from. Drives the visibility of the "Gewogen am" date pill -
+  // showing it for every Settings open would just add noise when the user
+  // wasn't touching weight at all.
+  bool get _weightChanged {
+    final initial = _initialProfileJson;
+    if (initial == null) return false;
+    final prev = (jsonDecode(initial) as Map<String, dynamic>)['weightKg'] as num?;
+    if (prev == null) return false;
+    return prev.toDouble() != _parseDouble(_weight.text, 65);
+  }
+
+  Future<void> _pickWeightRecordedAt() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _weightRecordedAt ?? now,
+      firstDate: DateTime(now.year - 1),
+      lastDate: now,
+      helpText: AppLocalizations.of(context).homeDatePickerHelp,
+    );
+    if (picked != null && mounted) {
+      setState(() => _weightRecordedAt = picked);
     }
   }
 
@@ -337,11 +370,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await ref.read(weightRepositoryProvider).save(WeightEntry(
             id: 'w-${DateTime.now().microsecondsSinceEpoch}',
             weightKg: newProfile.weightKg,
-            recordedAt: DateTime.now(),
+            recordedAt: _weightRecordedAt ?? DateTime.now(),
           ));
       ref.read(analyticsServiceProvider).capture('weight_logged',
           properties: {'source': 'settings'});
     }
+    _weightRecordedAt = null; // reset for the next edit cycle
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
     _initialProfileJson = jsonEncode(newProfile.toJson()); // mark clean
@@ -519,6 +553,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onBirthdateTap: _pickBirthdate,
                   height: _height,
                   weight: _weight,
+                  weightChanged: _weightChanged,
+                  weightRecordedAt: _weightRecordedAt,
+                  onPickWeightDate: _pickWeightRecordedAt,
                 ),
               ),
               const SizedBox(height: 12),
@@ -938,11 +975,22 @@ class _ProfileFields extends StatelessWidget {
   final VoidCallback onBirthdateTap;
   final TextEditingController height;
   final TextEditingController weight;
+  // Surfaced ONLY when the user has changed the weight value: lets them
+  // log "I weighed myself this morning" with this morning's date instead
+  // of the default DateTime.now() of the save moment. weightRecordedAt
+  // is the picked override (or null = default to now); onPickWeightDate
+  // opens the date picker.
+  final bool weightChanged;
+  final DateTime? weightRecordedAt;
+  final VoidCallback onPickWeightDate;
   const _ProfileFields({
     required this.birthdate,
     required this.onBirthdateTap,
     required this.height,
     required this.weight,
+    required this.weightChanged,
+    required this.weightRecordedAt,
+    required this.onPickWeightDate,
   });
 
   @override
@@ -1002,8 +1050,50 @@ class _ProfileFields extends StatelessWidget {
             ),
           ],
         ),
+        if (weightChanged) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: onPickWeightDate,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.event_outlined,
+                        size: 16, color: scheme.outline),
+                    const SizedBox(width: 6),
+                    Text(
+                      _weightDateLabel(context, weightRecordedAt),
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  String _weightDateLabel(BuildContext context, DateTime? picked) {
+    final l10n = AppLocalizations.of(context);
+    final date = picked ?? DateTime.now();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+    final delta = today.difference(day).inDays;
+    final base = delta == 0
+        ? l10n.todayHeader
+        : delta == 1
+            ? l10n.yesterdayHeader
+            : '${date.day}.${date.month}.${date.year}';
+    return l10n.settingsWeightLoggedOn(base);
   }
 }
 

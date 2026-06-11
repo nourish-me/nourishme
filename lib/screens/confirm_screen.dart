@@ -461,14 +461,51 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
   }
 
+  // Separate date picker so a meal logged on the wrong day (e.g. logged
+  // this morning when it should have been yesterday evening) can be moved
+  // without re-creating the entry. Time stays untouched here; user edits
+  // it on the neighbouring time pill if needed.
+  //
+  // Bounds: two years back covers retroactive corrections for any
+  // realistic case; lastDate is today (no future meals - logging
+  // something that hasn't happened doesn't make sense for the daily
+  // running total).
+  Future<void> _pickMealDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _mealTime,
+      firstDate: DateTime(now.year - 2),
+      lastDate: now,
+      helpText: AppLocalizations.of(context).homeDatePickerHelp,
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _mealTime = DateTime(picked.year, picked.month, picked.day,
+            _mealTime.hour, _mealTime.minute);
+        _userTouched = true;
+      });
+    }
+  }
+
   String _formatMealTime() {
     final hh = _mealTime.hour.toString().padLeft(2, '0');
     final mm = _mealTime.minute.toString().padLeft(2, '0');
+    return '$hh:$mm';
+  }
+
+  // Compact day label for the date pill. "Heute" / "Gestern" for the
+  // common cases stay readable at a glance; older days fall back to
+  // day.month so the pill stays short.
+  String _formatMealDate(BuildContext context) {
     final now = DateTime.now();
-    final isToday = _mealTime.year == now.year &&
-        _mealTime.month == now.month &&
-        _mealTime.day == now.day;
-    return isToday ? '$hh:$mm' : '${_mealTime.day}.${_mealTime.month}. · $hh:$mm';
+    final today = DateTime(now.year, now.month, now.day);
+    final mealDay = DateTime(_mealTime.year, _mealTime.month, _mealTime.day);
+    final delta = today.difference(mealDay).inDays;
+    final l10n = AppLocalizations.of(context);
+    if (delta == 0) return l10n.todayHeader;
+    if (delta == 1) return l10n.yesterdayHeader;
+    return '${_mealTime.day}.${_mealTime.month}.';
   }
 
   Widget _buildBody(BuildContext context) {
@@ -575,31 +612,28 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        // Meal time, editable here (moved out of the cramped home input row).
-        // Defaults to now for fresh entries, or the entry's day for past-day
-        // / edit flows.
+        // Meal date + time, editable here (moved out of the cramped home
+        // input row). Two pills so a meal saved on the wrong day can be
+        // re-anchored: tap the left pill for date, the right one for time.
+        // ThreadRepository.updateMealItemTime handles the cross-day move
+        // (incl. its coach response) when _save commits.
         Align(
           alignment: Alignment.centerLeft,
-          child: Material(
-            color: scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: _pickMealTime,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.schedule,
-                        size: 16, color: scheme.onSurfaceVariant),
-                    const SizedBox(width: 6),
-                    Text(_formatMealTime(), style: textTheme.labelLarge),
-                  ],
-                ),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _DateTimePill(
+                icon: Icons.event_outlined,
+                label: _formatMealDate(context),
+                onTap: _pickMealDate,
               ),
-            ),
+              _DateTimePill(
+                icon: Icons.schedule,
+                label: _formatMealTime(),
+                onTap: _pickMealTime,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 12),
@@ -1081,6 +1115,45 @@ class _ActionRow extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+// Compact pill used for the two date / time edit affordances above the
+// confirm form. Shape matches the pre-#39 single time pill so it stays
+// consistent with the rest of the sheet.
+class _DateTimePill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _DateTimePill({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Material(
+      color: scheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: scheme.onSurfaceVariant),
+              const SizedBox(width: 6),
+              Text(label, style: textTheme.labelLarge),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

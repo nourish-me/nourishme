@@ -269,7 +269,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _logForDay(DateTime day) async {
     final controller = TextEditingController();
     final entry =
-        await showModalBottomSheet<({String text, TimeOfDay time})?>(
+        await showModalBottomSheet<({String text, DateTime day, TimeOfDay time})?>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
@@ -293,8 +293,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             isLactating: (profile?.numChildrenNursing ?? 0) > 0,
           );
       if (!mounted || !parsed.isMeal) return;
+      // entry.day - user may have changed the date inside the sheet
+      // (e.g. tapped Donnerstag in the diary then realised it should
+      // have been Freitag).
       final createdAt = DateTime(
-          day.year, day.month, day.day, entry.time.hour, entry.time.minute);
+          entry.day.year, entry.day.month, entry.day.day,
+          entry.time.hour, entry.time.minute);
       if (!mounted) return;
       await showModalBottomSheet<MealEntry>(
         context: context,
