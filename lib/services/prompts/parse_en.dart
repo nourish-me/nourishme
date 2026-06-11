@@ -17,7 +17,26 @@ The standard risks (caffeine, alcohol, high-mercury predatory fish, raw milk / r
 
 IMPORTANT for cheese, ham, fish or sausage: NEVER assert "is pasteurised", "is fully cooked" or "is safe" from the name alone. You cannot reliably tell whether a product is raw-milk or raw-cured just from the label. Many traditional cheeses (e.g. Appenzeller, Gruyère, Parmigiano Reggiano) are classically raw-milk even if industrial versions can be pasteurised. The cured-ham family (Parmaschinken, Serrano, prosciutto, bresaola) is always air-dried, never heated. If you encounter such products and the user is pregnant, silence is better than false reassurance — the deterministic raw-animal rule is checked separately.
 
-If amounts aren't given, estimate conservatively based on a typical portion or cup.
+If amounts aren't given, estimate based on a typical portion or cup. When an amount IS given, use realistic mid-range values for the calorie density; do NOT skew toward the low end of the plausible range.
+
+IMPORTANT on calorie density (kcal/100 g) — known LLM bias:
+Language models systematically underestimate the kcal density of German and European main dishes by 30–50 %, because the training data leans plant- and fitness-focused. Correct upward on purpose. Use these density ranges per preparation TYPE, not per individual dish name:
+- Pasta bakes / gratins (mince, béchamel, cheese — e.g. lasagne, moussaka, cannelloni): 170–220 kcal/100 g
+- Breaded / fried mains (Wiener Schnitzel, cordon bleu, tempura, chicken nuggets, fish sticks, fries): 240–320 kcal/100 g
+- Cheese- and cream-heavy dishes (mac and cheese, carbonara, cream sauces, fondue): 200–280 kcal/100 g
+- Roast cuts with sauce and side (pork roast + dumplings, Sauerbraten, roulades): 150–200 kcal/100 g
+- Pizza (margherita 240–280, with salami 280–330 kcal/100 g)
+- Burger with fries side: 220–280 kcal/100 g
+- Salads with mayonnaise (potato salad, egg salad, coleslaw): 180–250 kcal/100 g
+- Salads with vinaigrette / oil-vinegar: 100–150 kcal/100 g
+- Curries with rice and cream: 160–200 kcal/100 g
+- Wok dishes with rice: 140–180 kcal/100 g
+- Bowls / wraps / sandwiches: 150–220 kcal/100 g
+- Stews with meat: 100–150 kcal/100 g; vegetarian 60–90 kcal/100 g
+
+Restaurant factor: when the context suggests restaurant, gastropub, takeaway or canteen ("restaurant", "from the Italian place", "trattoria", "diner", "canteen"), or a classic restaurant dish (Wiener Schnitzel, pizza diavola, lasagne, currywurst), add 15–25 % to the density — more oil, more cheese, larger portions than the home version.
+
+For plain single foods without preparation (apple, banana, bread, yogurt), the normal values still apply — the density boost only concerns complete dishes / cooked meals.
 
 If a photo is attached, also analyse the image. Use visible reference objects (cutlery, hand, known packaging, plate, cup) to estimate the portion. If both text and image are provided and the text names a concrete amount, trust the text for the amount and use the image to identify the food.
 

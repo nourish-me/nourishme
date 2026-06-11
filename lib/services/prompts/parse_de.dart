@@ -22,7 +22,26 @@ Die Standard-Risiken (Koffein, Alkohol, Quecksilber-Großraubfisch, rohe Milch/r
 
 WICHTIG bei Käse, Schinken, Fisch oder Wurst: Behaupte NIE pauschal "ist pasteurisiert", "ist durcherhitzt" oder "ist sicher". Du kannst aus dem Namen allein NICHT zuverlässig ableiten, ob das Produkt aus Rohmilch ist oder rohgepökelt wurde. Viele traditionelle Käsesorten (z.B. Appenzeller, Gruyère, Parmigiano Reggiano) sind klassisch aus Rohmilch, auch wenn industrielle Versionen pasteurisiert sein können. Roh-Schinken-Familie (Parmaschinken, Serrano, Bresaola, Bündnerfleisch) ist immer luftgetrocknet und nicht erhitzt. Wenn du auf solche Produkte triffst und die Nutzerin schwanger ist, ist das Schweigen besser als eine falsche Beruhigung — die deterministische Roh-Tier-Regel wird ohnehin getrennt geprüft.
 
-Wenn Mengen nicht angegeben sind, schätze konservativ auf Basis einer normalen Portion oder Tasse.
+Wenn Mengen nicht angegeben sind, schätze auf Basis einer normalen Portion oder Tasse. Wenn eine Mengenangabe vorhanden ist, nutze realistische Mittelwerte für die Kalorien-Dichte; tendiere NICHT zum unteren Rand des Plausibilitäts-Range.
+
+WICHTIG zur Kalorien-Dichte (kcal/100 g) — bekannter LLM-Bias:
+Sprachmodelle unterschätzen deutsche und europäische Hauptgerichte systematisch um 30–50 %, weil die Trainingsdaten zu pflanzen- und fitness-lastig sind. Korrigiere bewusst nach oben. Orientiere dich an diesen Density-Bereichen je nach Zubereitungsart, NICHT pro konkretem Gericht:
+- Pasta-Aufläufe / Gratins (mit Hackfleisch, Béchamel, Käse — z.B. Lasagne, Moussaka, Cannelloni): 170–220 kcal/100 g
+- Panierte und frittierte Hauptgerichte (Wiener Schnitzel, Cordon bleu, Tempura, Hähnchen-Nuggets, Fischstäbchen, Pommes): 240–320 kcal/100 g
+- Käse- und sahnelastige Gerichte (Käsespätzle, Rahmsoße, Carbonara, Käsefondue): 200–280 kcal/100 g
+- Bratenstücke mit Soße und Beilage (Schweinebraten + Knödel, Sauerbraten + Spätzle, Rouladen): 150–200 kcal/100 g
+- Pizza (Margherita 240–280, mit Salami 280–330 kcal/100 g)
+- Burger mit Pommes-Beilage: 220–280 kcal/100 g
+- Salate mit Mayonnaise (Kartoffelsalat klassisch, Eiersalat, Coleslaw): 180–250 kcal/100 g
+- Salate mit Vinaigrette / Essig-Öl: 100–150 kcal/100 g
+- Currys mit Reis und Sahne: 160–200 kcal/100 g
+- Wok-Gerichte mit Reis: 140–180 kcal/100 g
+- Bowls / Wraps / Sandwiches: 150–220 kcal/100 g
+- Eintöpfe mit Fleisch: 100–150 kcal/100 g; vegetarisch 60–90 kcal/100 g
+
+Restaurant-Faktor: wenn der Kontext auf Restaurant, Gasthaus, Imbiss oder Mensa hindeutet (Wörter wie "Restaurant", "vom Italiener", "Gasthaus", "im Lokal", "Kantine", "Mensa", oder ein klassisches Restaurant-Gericht wie "Wiener Schnitzel", "Pizza Diavolo", "Lasagne", "Currywurst"), schlage 15–25 % auf die kcal-Dichte auf — mehr Öl, mehr Käse, größere Portionen als hausgemacht.
+
+Für einzelne Lebensmittel ohne Zubereitung (Apfel, Banane, Brot, Joghurt) bleiben die normalen Werte gültig — der Density-Aufschlag betrifft nur komplette Speisen / Gerichte.
 
 Wenn ein Bild beigefügt ist, analysiere zusätzlich das Foto. Nutze sichtbare Referenzobjekte (Besteck, Hand, bekannte Verpackungen, Teller, Tasse) für die Portionsschätzung. Wenn Text und Bild vorhanden sind und der Text eine konkrete Menge nennt, vertraue dem Text bei der Menge und nutze das Bild zur Identifikation der Speise.
 
