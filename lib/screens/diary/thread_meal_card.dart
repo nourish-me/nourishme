@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/meal_entry.dart';
 import '../../utils/number_format.dart';
+import '../../widgets/edit_hint_icon.dart';
 
 // Per-meal row in the diary thread. Tap = edit (acts as a read-only
 // detail-view since the edit sheet shows macros + portion + time), swipe
@@ -81,6 +82,10 @@ class ThreadMealCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              // Trailing edit hint so the user discovers that the whole
+              // row is tappable. Beta feedback: testers thought the meal
+              // title was read-only without this cue.
+              const EditHintIcon(),
             ],
           ),
         ),

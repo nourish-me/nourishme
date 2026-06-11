@@ -22,6 +22,7 @@ import '../services/nutrition_facts.dart';
 import '../utils/number_format.dart';
 import '../utils/profile_labels.dart';
 import '../widgets/child_age_input.dart';
+import '../widgets/edit_hint_icon.dart';
 import '../widgets/info_button.dart';
 import '../widgets/supplement_setup.dart';
 import 'favorite_edit_sheet.dart';
@@ -2048,7 +2049,10 @@ class _FavoritesSection extends ConsumerWidget {
                       style: textTheme.bodySmall
                           ?.copyWith(color: scheme.outline),
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    // Convention: edit_outlined (via EditHintIcon) for
+                    // rows whose tap opens an edit sheet; chevron_right
+                    // is reserved for drill-into-a-page navigation.
+                    trailing: const EditHintIcon(),
                     onTap: () {
                       showModalBottomSheet<void>(
                         context: context,
