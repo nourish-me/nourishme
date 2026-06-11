@@ -18,6 +18,7 @@ Evidenz-Spalte ist bewusst dabei: nicht alle "Regeln" sind gleich gut belegt.
 | 4 | Quecksilber-Raubfisch | v.a. Schwangerschaft (Stillzeit einschränken) | Thunfisch, Hai, Schwertfisch, Hecht, Königsmakrele meiden; Methylquecksilber passiert Plazenta | stark | BfR |
 | 5 | Leber / hochdosiertes Vitamin A | v.a. **1. Trimester** | Leber im 1. Trimester einschränken (Retinol teratogen); keine Vitamin-A-Hochdosis-Supplemente | moderat/differenziert | BfR |
 | 6 | Milchhemmende Kräuter (Salbei, Pfefferminze) | Stillzeit | nur in **großen/medizinischen Mengen** relevant; Alltagsmengen unkritisch | **schwach** | Gesund ins Leben |
+| 7 | Algen & Algenprodukte | v.a. Schwangerschaft | abgeraten: stark schwankende und teilweise sehr hohe Jodgehalte (über UL), zusätzlich Arsen und andere Kontaminanten. Triggert z.B. bei Nori, Wakame, Kombu, Algensalat, Algen-Tabletten, Algen-Smoothie | stark | DGE |
 
 ## Wichtiger Befund für eure aktuelle Logik
 
@@ -46,4 +47,5 @@ explizit großen Mengen. Die anderen fünf Regeln sind solide.
 - BfR, Quecksilber/Raubfisch in Schwangerschaft & Stillzeit: https://www.bfr.bund.de/cm/343/fischverzehr-in-schwangerschaft-und-stillzeit-einige-fischarten-weisen-hohe-methylquecksilber-gehalte-auf.pdf
 - BfR, Schwangere (Risikobewertung Überblick): https://www.bfr.bund.de/en/about-us/risk-assessment/pregnant-people/
 - DGE, Handlungsempfehlungen Ernährung in der Schwangerschaft: https://www.dge.de/gesunde-ernaehrung/gezielte-ernaehrung/ernaehrung-in-schwangerschaft-und-stillzeit/handlungsempfehlungen-ernaehrung-in-der-schwangerschaft/
+- DGE, Handlungsempfehlung Schwangerschaft, Abschnitt Algen/Algenprodukte: https://www.dge.de/gesunde-ernaehrung/gezielte-ernaehrung/ernaehrung-in-schwangerschaft-und-stillzeit/handlungsempfehlungen-ernaehrung-in-der-schwangerschaft/#c3154
 - Gesund ins Leben (BLE), Fragen & Mythen rund ums Stillen (Salbei/Pfefferminze): https://www.gesund-ins-leben.de/fuer-familien/das-1-lebensjahr/fragen-und-mythen-rund-ums-stillen/

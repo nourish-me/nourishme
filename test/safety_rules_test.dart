@@ -361,6 +361,51 @@ void main() {
     });
   });
 
+  group('algae / seaweed rule — pregnancy only (DGE)', () {
+    test('pregnant + Nori-Sushi → warning (iodine swings + arsenic per DGE)',
+        () {
+      final w = SafetyRules.algae('Sushi mit Nori', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('Jod'));
+    });
+
+    test('all the named seaweeds fire: Algen-Smoothie, Algensalat, Wakame, '
+        'Kombu, Kelp, Dulse, Spirulina, Chlorella', () {
+      for (final p in [
+        'Algen-Smoothie',
+        'Algensalat',
+        'Algenprodukte vom Markt',
+        'Wakame Suppe',
+        'Kombu Brühe',
+        'kelp tablets',
+        'dulse flakes',
+        'Spirulina Pulver',
+        'Chlorella Tabletten',
+      ]) {
+        expect(SafetyRules.algae(p, pregnant), isNotNull,
+            reason: '$p should fire the algae rule in pregnancy');
+      }
+    });
+
+    test('LACTATING → null (DGE scopes the recommendation to pregnancy)', () {
+      expect(SafetyRules.algae('Algensalat', lactating), isNull);
+      expect(SafetyRules.algae('Nori', lactating), isNull);
+    });
+
+    test('neither phase → null', () {
+      expect(SafetyRules.algae('Spirulina', neither), isNull);
+    });
+  });
+
+  group('algae rule — no false positives', () {
+    test('"Algerien" / "algerische Küche" must NOT trip "algen" (substring '
+        'guard: we list "algen" plural, not bare "alge", so the geo word '
+        'is safe)', () {
+      expect(SafetyRules.algae('Algerien-Reise', pregnant), isNull);
+      expect(SafetyRules.algae('algerische Küche', pregnant), isNull);
+    });
+  });
+
   group('allWarnings — runs every rule', () {
     test('a product hitting two categories returns both, in rule order', () {
       final w = SafetyRules.allWarnings('Espresso mit Thunfisch', pregnant);

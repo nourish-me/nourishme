@@ -319,6 +319,34 @@ class SafetyRules {
         : 'Note: large amounts of sage/peppermint may theoretically lower milk supply. Everyday amounts are fine.';
   }
 
+  // Algae / seaweed products. DGE recommends pregnant users avoid these:
+  // iodine content swings wildly between batches (often above the 600 µg/d
+  // UL in a single serving) and many products carry arsenic and other
+  // contaminants. Listed by the names most likely to appear in user logs;
+  // "algen" (plural, NOT bare "alge") catches "Algensalat", "Algen-Smoothie",
+  // "Algenprodukte" without false-positiving "Algerien" (which contains
+  // "alge" but not "algen"). "algae" / "seaweed" cover the English forms.
+  static const _algaeTokens = <String>[
+    'algen', 'algae', 'seaweed',
+    'nori', 'wakame', 'kombu', 'kelp', 'dulse', 'arame', 'hijiki',
+    'spirulina', 'chlorella',
+  ];
+
+  /// Rule 7 — algae / seaweed products. Pregnancy-only (DGE
+  /// recommendation): unpredictable iodine load + arsenic + other
+  /// contaminants. Sushi rolls with nori are the most common everyday hit;
+  /// algae supplements (spirulina/chlorella tablets) the most concentrated
+  /// one. Returns null in lactation or for non-pregnant users — the source
+  /// scopes this to pregnancy.
+  static String? algae(String product, SafetyPhase phase,
+      {String locale = 'en'}) {
+    if (!phase.isPregnant) return null;
+    if (!_algaeTokens.any((k) => _tokenContains(product, k))) return null;
+    return locale.toLowerCase().startsWith('de')
+        ? 'Algen/Algenprodukte: in der Schwangerschaft besser meiden. Jodgehalt schwankt stark und liegt oft über der Tagesobergrenze, dazu Arsen und andere Kontaminanten (DGE).'
+        : 'Algae/seaweed products: better avoided in pregnancy. Iodine content varies wildly and often exceeds the daily upper limit, plus arsenic and other contaminants (DGE).';
+  }
+
   /// Runs every deterministic rule against [product] and returns the warnings
   /// that fired, in a stable order. These known, hard risks always appear here
   /// regardless of what the language model returns.
@@ -332,6 +360,7 @@ class SafetyRules {
       mercuryFish(product, phase, locale: locale),
       liverVitaminA(product, phase, locale: locale),
       lactationHerbs(product, phase, locale: locale),
+      algae(product, phase, locale: locale),
     ]) {
       if (w != null) out.add(w);
     }
