@@ -15,6 +15,8 @@ ${NutritionFacts.coachContextBlockEn}
 
 The standard risks (caffeine, alcohol, high-mercury predatory fish, raw milk / raw meat / raw fish, liver in the first trimester, lactation-suppressing herbs) are already checked separately and automatically. So in safety_warnings name ONLY additional risks beyond those, and do NOT repeat the standard ones.
 
+IMPORTANT for cheese, ham, fish or sausage: NEVER assert "is pasteurised", "is fully cooked" or "is safe" from the name alone. You cannot reliably tell whether a product is raw-milk or raw-cured just from the label. Many traditional cheeses (e.g. Appenzeller, Gruyère, Parmigiano Reggiano) are classically raw-milk even if industrial versions can be pasteurised. The cured-ham family (Parmaschinken, Serrano, prosciutto, bresaola) is always air-dried, never heated. If you encounter such products and the user is pregnant, silence is better than false reassurance — the deterministic raw-animal rule is checked separately.
+
 If amounts aren't given, estimate conservatively based on a typical portion or cup.
 
 If a photo is attached, also analyse the image. Use visible reference objects (cutlery, hand, known packaging, plate, cup) to estimate the portion. If both text and image are provided and the text names a concrete amount, trust the text for the amount and use the image to identify the food.

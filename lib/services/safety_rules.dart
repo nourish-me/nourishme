@@ -39,13 +39,39 @@ class SafetyRules {
     'schwarztee', 'black tea', 'grüntee', 'gruentee', 'green tea',
   ];
 
-  /// Whole-word/phrase match against a product string. Lowercases, replaces any
-  /// run of non-letters (incl. German umlauts kept) with a single space, pads
-  /// with spaces, then looks for the space-delimited keyword. This avoids the
-  /// substring trap (e.g. "Tomate" must not match "mate").
+  /// Whole-word/phrase match against a product string. Lowercases, strips
+  /// non-German accents (é/è/à/ô/ç/ñ → e/a/o/c/n) so French / Italian /
+  /// Spanish cheese and ham names match regardless of how the user types
+  /// them ("Gruyère" / "Gruyere" both work), replaces any run of remaining
+  /// non-letters (German umlauts kept) with a single space, pads with
+  /// spaces, then looks for the space-delimited keyword. This avoids the
+  /// substring trap (e.g. "Tomate" must not match "mate") AND avoids
+  /// silently dropping accented characters into whitespace, which used to
+  /// break "Gruyère" → "gruy re" and miss the keyword entirely.
+  ///
+  /// Keywords in this file are kept in their ASCII / German-umlaut form
+  /// (no foreign accents); _stripForeignAccents normalises the product
+  /// side to match.
+  static String _stripForeignAccents(String s) {
+    const map = {
+      'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'å': 'a',
+      'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+      'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+      'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
+      'ú': 'u', 'ù': 'u', 'û': 'u',
+      'ç': 'c', 'ñ': 'n', 'ý': 'y', 'ÿ': 'y',
+    };
+    var result = s.toLowerCase();
+    map.forEach((accented, plain) {
+      result = result.replaceAll(accented, plain);
+    });
+    return result;
+  }
+
   static bool _containsWord(String product, String keyword) {
+    final normalised = _stripForeignAccents(product);
     final cleaned = ' '
-        '${product.toLowerCase().replaceAll(RegExp('[^a-zäöüß ]+'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim()}'
+        '${normalised.replaceAll(RegExp('[^a-zäöüß ]+'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim()}'
         ' ';
     return cleaned.contains(' $keyword ');
   }
@@ -113,15 +139,68 @@ class SafetyRules {
   // off "mett", "Brioche" off "brie", "Tatarensauce" off "tatar". Bare
   // "lachs"/"salmon" is intentionally NOT a keyword — only the raw/smoked
   // forms (Räucherlachs, Graved) are risky; cooked salmon is fine.
+  //
+  // Selection logic — we deliberately do NOT list every cheese / cured meat
+  // that could be raw-milk. Generic words like "Parmesan" or "Mozzarella"
+  // would false-positive on industrial pasteurised versions sold under the
+  // same name. We only list keywords where either (a) the standard
+  // traditional product IS raw-milk / raw / cold-smoked even in the
+  // pasteurised-by-default supermarket landscape (Appenzeller, Gruyère,
+  // Parmaschinken, Matjes), or (b) the wash-rind cheeses where the risk is
+  // structural (rind biology), independent of milk treatment.
+  //
+  // Origin of the additional entries: beta tester logged "Brötchen mit
+  // Appenzeller Käse" in pregnancy and the LLM confidently replied
+  // "ist pasteurisiert" — Appenzeller is traditionally raw-milk. So the
+  // list is expanded, and per_meal_de/en + parse_de/en prompts are tightened
+  // to never assert pasteurisation status from a cheese/meat/fish name.
   static const _rawAnimalKeywords = <String>[
+    // Raw milk + raw-milk-direct (Vorzugsmilch is a German specialty that
+    // is genuinely unpasteurised and sold legally - easy to miss).
     'rohmilch', 'rohmilchkäse', 'rohmilchkaese', 'raw milk',
+    'vorzugsmilch', 'hofmilch',
+    // Raw / cured meats, including Italian / Swiss / Spanish cured ham
+    // family - all traditionally air-cured raw, listeria + toxoplasma.
     'mett', 'mettwurst', 'tatar', 'hackepeter', 'carpaccio', 'rohwurst', 'salami',
+    'rohschinken', 'parmaschinken', 'prosciutto', 'serrano', 'serranoschinken',
+    'coppa', 'bresaola', 'bündnerfleisch', 'buendnerfleisch', 'pancetta',
+    'lachsschinken',
+    // Wild / game (toxoplasma). Bare "wild" matches the German word for
+    // game/venison; "wild boar"/"wildschwein" cover the explicit cases.
+    'wild', 'wildbraten', 'wildschwein', 'reh', 'rehbraten', 'hirsch',
+    // Raw / cold-smoked / pickled fish - the cooked/hot-smoked versions of
+    // many of these are fine, but the marketing names blur the line, so we
+    // warn on the names that ARE the cold-cured form (Matjes, Bismarck,
+    // Rollmops, Bückling are all uncooked-cured by definition).
     'sushi', 'sashimi', 'roher fisch', 'raw fish', 'roher lachs',
     'räucherlachs', 'raeucherlachs', 'räucherfisch', 'raeucherfisch',
     'graved', 'gravlax', 'smoked salmon',
+    'matjes', 'bismarckhering', 'rollmops', 'bückling', 'bueckling',
+    'roher hering', 'sauerlappen',
+    // Raw molluscs (norovirus, hepatitis A on top of listeria).
+    'auster', 'austern', 'oyster', 'oysters',
+    // Cheeses. Wash-rind (Munster, Limburger, Reblochon, Vacherin, Romadur,
+    // Handkäse) carry the structural rind-biology risk; the raw-milk hard
+    // cheeses (Appenzeller, Gruyère, Comté, Parmigiano Reggiano, Pecorino,
+    // Manchego, Beaufort, Bergkäse) are listed by their traditional names.
+    // We list "Parmigiano Reggiano" explicitly but NOT bare "Parmesan" -
+    // the latter is sold pre-grated and industrially pasteurised in
+    // Germany, hitting it would mis-fire.
     'weichkäse', 'weichkaese', 'camembert', 'brie', 'briekäse', 'briekaese',
     'gorgonzola', 'roquefort', 'blauschimmel',
+    'munster', 'limburger', 'reblochon', 'vacherin', 'romadur', 'handkäse',
+    'handkaese',
+    'appenzeller', 'gruyere', 'comte',
+    'parmigiano reggiano', 'pecorino', 'manchego', 'beaufort',
+    'bergkäse', 'bergkaese', 'cantal',
+    // Egg-based raw sauces / desserts. Keywords kept in ASCII form;
+    // _stripForeignAccents normalises "Béarnaise" → "bearnaise" at match
+    // time so listing only "bearnaise" here covers both spellings.
     'rohes ei', 'raw egg', 'tiramisu', 'mousse', 'feinkostsalat',
+    'hollandaise', 'sauce hollandaise', 'bearnaise', 'sauce bearnaise',
+    // Sprouts / seedlings - frequent salmonella source.
+    'sprossen', 'bohnensprossen', 'alfalfa', 'alfalfasprossen', 'mungo',
+    'mungosprossen', 'mungbohnensprossen',
   ];
 
   /// Rule 3 — raw animal products (listeria / toxoplasma). Unlike caffeine and

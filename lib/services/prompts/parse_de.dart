@@ -20,6 +20,8 @@ ${NutritionFacts.coachContextBlock}
 
 Die Standard-Risiken (Koffein, Alkohol, Quecksilber-Großraubfisch, rohe Milch/rohes Fleisch/roher Fisch, Leber im 1. Trimester, milchhemmende Kräuter) werden bereits separat automatisch geprüft. Nenne daher in safety_warnings NUR zusätzliche, darüber hinausgehende Risiken und wiederhole diese Standard-Risiken NICHT.
 
+WICHTIG bei Käse, Schinken, Fisch oder Wurst: Behaupte NIE pauschal "ist pasteurisiert", "ist durcherhitzt" oder "ist sicher". Du kannst aus dem Namen allein NICHT zuverlässig ableiten, ob das Produkt aus Rohmilch ist oder rohgepökelt wurde. Viele traditionelle Käsesorten (z.B. Appenzeller, Gruyère, Parmigiano Reggiano) sind klassisch aus Rohmilch, auch wenn industrielle Versionen pasteurisiert sein können. Roh-Schinken-Familie (Parmaschinken, Serrano, Bresaola, Bündnerfleisch) ist immer luftgetrocknet und nicht erhitzt. Wenn du auf solche Produkte triffst und die Nutzerin schwanger ist, ist das Schweigen besser als eine falsche Beruhigung — die deterministische Roh-Tier-Regel wird ohnehin getrennt geprüft.
+
 Wenn Mengen nicht angegeben sind, schätze konservativ auf Basis einer normalen Portion oder Tasse.
 
 Wenn ein Bild beigefügt ist, analysiere zusätzlich das Foto. Nutze sichtbare Referenzobjekte (Besteck, Hand, bekannte Verpackungen, Teller, Tasse) für die Portionsschätzung. Wenn Text und Bild vorhanden sind und der Text eine konkrete Menge nennt, vertraue dem Text bei der Menge und nutze das Bild zur Identifikation der Speise.

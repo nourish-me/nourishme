@@ -142,6 +142,109 @@ void main() {
     test('cooked salmon is fine (bare "Lachs" is not a trigger)', () {
       expect(SafetyRules.rawAnimalProducts('gekochter Lachs', pregnant), isNull);
     });
+
+    test('"Parmesan" alone is NOT a keyword (industrial grated parmesan in '
+        'Germany is pasteurised) - only "Parmigiano Reggiano" triggers', () {
+      expect(SafetyRules.rawAnimalProducts('Parmesan', pregnant), isNull);
+      expect(SafetyRules.rawAnimalProducts('Parmigiano Reggiano', pregnant),
+          isNotNull);
+    });
+
+    test('"Mozzarella" alone is NOT a keyword (supermarket mozzarella is '
+        'pasteurised); the raw-milk Italian fresh cheeses live with the '
+        'LLM via the prompt rule, not the deterministic list', () {
+      expect(SafetyRules.rawAnimalProducts('Mozzarella', pregnant), isNull);
+    });
+
+    test('Emmentaler alone is NOT a keyword (modern supermarket Emmentaler '
+        'is pasteurised - only the listed traditional raw-milk hard cheeses '
+        'fire deterministically)', () {
+      expect(SafetyRules.rawAnimalProducts('Emmentaler', pregnant), isNull);
+    });
+  });
+
+  group('raw animal products rule — added beta-feedback keywords', () {
+    test('Appenzeller in pregnancy → warning (the Brötchen mit Appenzeller '
+        'incident that triggered this expansion: a beta tester logged the '
+        'cheese and got a false "ist pasteurisiert" reply from the LLM; '
+        'Appenzeller is classically raw-milk)', () {
+      expect(SafetyRules.rawAnimalProducts(
+          'Brötchen mit Appenzeller Käse', pregnant), isNotNull);
+    });
+
+    test('Other raw-milk hard cheeses fire: Gruyère, Comté, Pecorino, '
+        'Manchego, Beaufort, Bergkäse', () {
+      for (final cheese in [
+        'Gruyère', 'Gruyere', 'Comté', 'Pecorino',
+        'Manchego', 'Beaufort', 'Bergkäse',
+      ]) {
+        expect(SafetyRules.rawAnimalProducts(cheese, pregnant), isNotNull,
+            reason: '$cheese should fire the raw-animal rule in pregnancy');
+      }
+    });
+
+    test('Wash-rind / smear-rind cheeses (highest structural listeria '
+        'risk, independent of milk treatment): Munster, Limburger, '
+        'Reblochon, Vacherin, Romadur, Handkäse', () {
+      for (final cheese in [
+        'Munster', 'Limburger', 'Reblochon',
+        'Vacherin Mont d\'Or', 'Romadur', 'Handkäse',
+      ]) {
+        expect(SafetyRules.rawAnimalProducts(cheese, pregnant), isNotNull,
+            reason: '$cheese should fire the raw-animal rule in pregnancy');
+      }
+    });
+
+    test('Air-cured ham family (always raw, never heated): Parmaschinken, '
+        'Serrano, Bresaola, Bündnerfleisch, Coppa', () {
+      for (final meat in [
+        'Parmaschinken', 'Serrano-Schinken', 'Bresaola',
+        'Bündnerfleisch', 'Coppa', 'Rohschinken', 'Lachsschinken',
+      ]) {
+        expect(SafetyRules.rawAnimalProducts(meat, pregnant), isNotNull,
+            reason: '$meat should fire the raw-animal rule in pregnancy');
+      }
+    });
+
+    test('Wild / game (toxoplasma): Reh, Hirsch, Wildschwein, Wildbraten', () {
+      for (final game in ['Reh', 'Rehbraten', 'Hirsch', 'Wildschwein',
+        'Wildbraten']) {
+        expect(SafetyRules.rawAnimalProducts(game, pregnant), isNotNull,
+            reason: '$game should fire the raw-animal rule in pregnancy');
+      }
+    });
+
+    test('Cold-cured / pickled fish: Matjes, Bismarckhering, Rollmops, '
+        'Bückling', () {
+      for (final fish in ['Matjes', 'Bismarckhering', 'Rollmops', 'Bückling']) {
+        expect(SafetyRules.rawAnimalProducts(fish, pregnant), isNotNull,
+            reason: '$fish should fire the raw-animal rule in pregnancy');
+      }
+    });
+
+    test('Raw molluscs (norovirus + listeria): Austern / oysters', () {
+      expect(SafetyRules.rawAnimalProducts('Austern', pregnant), isNotNull);
+      expect(SafetyRules.rawAnimalProducts('raw oysters', pregnant), isNotNull);
+    });
+
+    test('Raw-egg sauces: Hollandaise, Béarnaise', () {
+      expect(SafetyRules.rawAnimalProducts(
+          'Sauce Hollandaise', pregnant), isNotNull);
+      expect(SafetyRules.rawAnimalProducts('Béarnaise', pregnant), isNotNull);
+    });
+
+    test('Sprouts (salmonella): Sprossen, Bohnensprossen, Alfalfa', () {
+      for (final s in ['Sprossen', 'Bohnensprossen', 'Alfalfa', 'Mungo']) {
+        expect(SafetyRules.rawAnimalProducts(s, pregnant), isNotNull,
+            reason: '$s should fire the raw-animal rule in pregnancy');
+      }
+    });
+
+    test('Vorzugsmilch / Hofmilch (legally-sold German unpasteurised milk)', () {
+      expect(SafetyRules.rawAnimalProducts('Vorzugsmilch', pregnant), isNotNull);
+      expect(SafetyRules.rawAnimalProducts('Hofmilch frisch vom Bauern',
+          pregnant), isNotNull);
+    });
   });
 
   group('mercury fish rule — phase-specific message', () {
