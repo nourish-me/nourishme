@@ -93,6 +93,8 @@ class MicronutrientKey {
   static const calciumMg = 'calcium_mg';
   static const cholineMg = 'choline_mg';
   static const zincMg = 'zinc_mg';
+  static const fiberG = 'fiber_g';
+  static const vitaminAUg = 'vitamin_a_ug';
 
   // All keys in display order (matches the order the parser is asked to
   // populate them; matches the Settings list).
@@ -106,5 +108,7 @@ class MicronutrientKey {
     calciumMg,
     cholineMg,
     zincMg,
+    fiberG,
+    vitaminAUg,
   ];
 }

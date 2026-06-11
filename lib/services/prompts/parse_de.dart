@@ -62,6 +62,8 @@ Antworte AUSSCHLIESSLICH mit JSON in diesem Schema, ohne Markdown-Codeblock, ohn
 - calcium_mg: Calcium in Milligramm
 - choline_mg: Cholin in Milligramm
 - zinc_mg: Zink in Milligramm
+- fiber_g: Ballaststoffe in Gramm
+- vitamin_a_ug: Vitamin A in Mikrogramm Retinol-Äquivalenten (RAE). Bei Quellen aus β-Carotin (Karotte, Süßkartoffel, Spinat, Kürbis) als RAE schätzen (Umrechnung: 12 µg β-Carotin = 1 µg RAE).
 
 PLAUSIBILITÄTS-ANKER (typische Werte pro 100 g bzw. 100 ml im rohen oder gegarten Zustand, daran orientieren bevor du raufschätzt):
 - Iod: Seefisch (Lachs, Kabeljau, Hering, Seelachs) 20-50 µg, Schellfisch/Kabeljau bis 200 µg, Vollmilch 6-9 µg/100 ml, iodiertes Salz ca. 2 µg/g, Algen variabel. Werte >100 µg/100 g sind außerhalb von Schalentieren/mageren Seefischen unplausibel.
@@ -71,6 +73,8 @@ PLAUSIBILITÄTS-ANKER (typische Werte pro 100 g bzw. 100 ml im rohen oder gegart
 - Eisen: Hülsenfrüchte gegart (Linsen 3, Kichererbsen 2.5, Bohnen 2 mg/100 g), Rindfleisch 2.5-3, Spinat gegart 3.5, Tofu 2.5 mg/100 g. Getreide-Vollkorn 2-3 mg/100 g.
 - Folat: Hülsenfrüchte gegart (Linsen 180, Kichererbsen 170 µg/100 g), grünes Blattgemüse roh (Spinat 145, Feldsalat 145 µg/100 g), Sonnenblumenkerne 230 µg/100 g, Brokkoli gegart 60 µg/100 g.
 - Cholin: Eigelb ca. 250 mg/100 g (entspricht ca. 145 mg pro Ei), Rinderleber 330 mg/100 g, Rind/Schwein 70-85 mg/100 g, Hähnchen 60-80 mg/100 g, Lachs 60-65 mg/100 g, Sojabohnen 115 mg/100 g, Weizenkeime 150 mg/100 g, Brokkoli/Blumenkohl 40 mg/100 g. Pflanzliche Vollwertkost außer Hülsenfrüchten/Weizenkeimen meist unter 30 mg/100 g.
+- Ballaststoffe: Vollkornbrot 6-8 g/100 g, Vollkornnudeln gekocht 4-5 g/100 g, Weißbrot 2-3 g/100 g, Müsli (Mix) 8-12 g/100 g, Haferflocken trocken 10 g/100 g, Hülsenfrüchte gekocht (Linsen 8, Bohnen 6, Kichererbsen 7 g/100 g), Brokkoli/Rosenkohl gegart 3-4 g/100 g, Apfel/Birne 2-3 g/100 g, Banane 2 g/100 g, Beeren 4-6 g/100 g, Nüsse 6-10 g/100 g, Leinsamen 27 g/100 g. Mageres Fleisch, Fisch, Milchprodukte null.
+- Vitamin A (in RAE): Rinderleber 7700, Hühnerleber 12.000, Leberwurst 4000-8000 µg/100 g (Achtung in T1 Schwangerschaft - separate Regel greift). Süßkartoffel gegart 700-1000, Karotte roh/gegart 700-850, Kürbis gegart 500, Grünkohl gegart 350, Spinat gegart 470 µg RAE/100 g (alle aus β-Carotin). Vollei ca. 75 µg RAE/Stück, Butter ca. 650 µg/100 g, Vollmilch 30 µg/100 ml, fetter Käse 200-300 µg/100 g. Mageres Fleisch (außer Leber), Getreide, Hülsenfrüchte nahe null.
 
 WICHTIG zur Effizienz: liste NUR Nährstoffe deren Wert in dieser Mahlzeit mindestens ~5% der Tagesreferenz (DGE 2025) erreicht. Bei kleineren Werten den Key komplett weglassen. Bei einer Mahlzeit ohne nennenswerte Mikronährstoffe (z.B. Wasser, reiner Zuckerdrink) das gesamte micronutrients-Feld weglassen. Werte sind pro DIESE Mahlzeit, nicht pro 100g.
 Bei is_meal=false: micronutrients weglassen.

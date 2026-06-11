@@ -193,6 +193,43 @@ class MicronutrientTargets {
       _Phase.lactation: const MicronutrientTarget(
           key: MicronutrientKey.zincMg, value: 11, unitLabel: 'mg', source: 'DGE 2025'),
     },
+    MicronutrientKey.fiberG: {
+      // DGE 2025: 30 g/day for adults, no increment in pregnancy or
+      // lactation. Tracked here because beta feedback flagged it as
+      // missing - the actual VALUE of tracking fiber for moms is
+      // constipation prevention in pregnancy (11-38 % of pregnant women
+      // report constipation; soluble fibre is the best-evidenced lifestyle
+      // remedy). The number stays 30 g across phases; the relevance shifts.
+      _Phase.baseline: const MicronutrientTarget(
+          key: MicronutrientKey.fiberG, value: 30, unitLabel: 'g', source: 'DGE 2025'),
+      _Phase.pregnancyT1: const MicronutrientTarget(
+          key: MicronutrientKey.fiberG, value: 30, unitLabel: 'g', source: 'DGE 2025'),
+      _Phase.pregnancyT2: const MicronutrientTarget(
+          key: MicronutrientKey.fiberG, value: 30, unitLabel: 'g', source: 'DGE 2025'),
+      _Phase.pregnancyT3: const MicronutrientTarget(
+          key: MicronutrientKey.fiberG, value: 30, unitLabel: 'g', source: 'DGE 2025'),
+      _Phase.lactation: const MicronutrientTarget(
+          key: MicronutrientKey.fiberG, value: 30, unitLabel: 'g', source: 'DGE 2025'),
+    },
+    MicronutrientKey.vitaminAUg: {
+      // DGE 2025: 700 µg RAE/day for adult women. Pregnancy increment
+      // applies only from T2 onward (T1 stays at baseline because
+      // preformed retinol over the UL 3000 µg is teratogenic).
+      // Lactation almost doubles vs baseline because mature milk drains
+      // ~370 µg RAE/day. UL 3000 µg drives hasUpperLimit: true on the
+      // display side (this is where Vit A behaves DIFFERENTLY from iron
+      // overload - the line is sharper).
+      _Phase.baseline: const MicronutrientTarget(
+          key: MicronutrientKey.vitaminAUg, value: 700, unitLabel: 'µg', source: 'DGE 2025'),
+      _Phase.pregnancyT1: const MicronutrientTarget(
+          key: MicronutrientKey.vitaminAUg, value: 700, unitLabel: 'µg', source: 'DGE 2025'),
+      _Phase.pregnancyT2: const MicronutrientTarget(
+          key: MicronutrientKey.vitaminAUg, value: 800, unitLabel: 'µg', source: 'DGE 2025'),
+      _Phase.pregnancyT3: const MicronutrientTarget(
+          key: MicronutrientKey.vitaminAUg, value: 800, unitLabel: 'µg', source: 'DGE 2025'),
+      _Phase.lactation: const MicronutrientTarget(
+          key: MicronutrientKey.vitaminAUg, value: 1300, unitLabel: 'µg', source: 'DGE 2025'),
+    },
   };
 }
 
@@ -372,6 +409,13 @@ class MicronutrientDisplay {
         awareness: true),
     MicronutrientKey.zincMg: MicronutrientDisplay(
         shortNameDe: 'Zink', shortNameEn: 'Zinc', unitLabel: 'mg'),
+    MicronutrientKey.fiberG: MicronutrientDisplay(
+        shortNameDe: 'Ballast.', shortNameEn: 'Fibre', unitLabel: 'g'),
+    MicronutrientKey.vitaminAUg: MicronutrientDisplay(
+        shortNameDe: 'Vit A',
+        shortNameEn: 'Vit A',
+        unitLabel: 'µg',
+        hasUpperLimit: true),
   };
 
   static MicronutrientDisplay? forKey(String key) => _table[key];

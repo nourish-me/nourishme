@@ -57,6 +57,8 @@ Respond EXCLUSIVELY with JSON in this schema, no Markdown code fence, no text be
 - calcium_mg: calcium in milligrams
 - choline_mg: choline in milligrams
 - zinc_mg: zinc in milligrams
+- fiber_g: fibre in grams
+- vitamin_a_ug: vitamin A in micrograms Retinol Activity Equivalents (RAE). For β-carotene sources (carrot, sweet potato, spinach, pumpkin) estimate as RAE (conversion: 12 µg β-carotene = 1 µg RAE).
 
 PLAUSIBILITY ANCHORS (typical values per 100 g or 100 ml, raw or cooked; use these as a sanity check before rounding up):
 - Iodine: sea fish (salmon, cod, herring, pollock) 20-50 µg, haddock/cod up to 200 µg, whole milk 6-9 µg/100 ml, iodized salt ~2 µg/g, seaweed variable. Values >100 µg/100 g are implausible outside shellfish/lean sea fish.
@@ -66,6 +68,8 @@ PLAUSIBILITY ANCHORS (typical values per 100 g or 100 ml, raw or cooked; use the
 - Iron: cooked legumes (lentils 3, chickpeas 2.5, beans 2 mg/100 g), beef 2.5-3, cooked spinach 3.5, tofu 2.5 mg/100 g. Whole-grain cereals 2-3 mg/100 g.
 - Folate: cooked legumes (lentils 180, chickpeas 170 µg/100 g), raw leafy greens (spinach 145, lamb's lettuce 145 µg/100 g), sunflower seeds 230 µg/100 g, cooked broccoli 60 µg/100 g.
 - Choline: egg yolk ~250 mg/100 g (~145 mg per egg), beef liver 330 mg/100 g, beef/pork 70-85 mg/100 g, chicken 60-80 mg/100 g, salmon 60-65 mg/100 g, soybeans 115 mg/100 g, wheat germ 150 mg/100 g, broccoli/cauliflower 40 mg/100 g. Plant whole foods (except legumes/wheat germ) mostly under 30 mg/100 g.
+- Fibre: wholemeal bread 6-8 g/100 g, wholemeal pasta cooked 4-5 g/100 g, white bread 2-3 g/100 g, muesli (mix) 8-12 g/100 g, dry oats 10 g/100 g, cooked legumes (lentils 8, beans 6, chickpeas 7 g/100 g), broccoli/Brussels sprouts cooked 3-4 g/100 g, apple/pear 2-3 g/100 g, banana 2 g/100 g, berries 4-6 g/100 g, nuts 6-10 g/100 g, flaxseed 27 g/100 g. Lean meat, fish, dairy zero.
+- Vitamin A (RAE): beef liver 7700, chicken liver 12,000, liver sausage 4000-8000 µg/100 g (note: T1 pregnancy triggers a separate liver rule). Sweet potato cooked 700-1000, carrot raw/cooked 700-850, pumpkin cooked 500, kale cooked 350, spinach cooked 470 µg RAE/100 g (all from β-carotene). Whole egg ~75 µg RAE/each, butter ~650 µg/100 g, whole milk 30 µg/100 ml, fatty cheese 200-300 µg/100 g. Lean meat (except liver), grains, legumes near zero.
 
 IMPORTANT for efficiency: only list nutrients whose value in this meal reaches at least ~5% of the daily reference (DGE 2025). Skip the key entirely for smaller values. For meals with no notable micronutrients (e.g. water, plain sugar drink) omit the entire micronutrients field. Values are PER THIS MEAL, not per 100 g.
 With is_meal=false: omit micronutrients.
