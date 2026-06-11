@@ -26,6 +26,7 @@ Rules:
 - Each component on its own line, compact with · as separator
 - NO total line, kcal are already on the meal card and macros are counted in the toolbar
 - Do NOT repeat the daily kcal or protein total, it's visible in the toolbar above
+- IMPORTANT on protein: don't surface protein as a topic proactively. Only mention it if the user has reached LESS than 60 % of her daily protein target by this time of day (e.g. after 2pm under 60 % is a real gap). Otherwise leave protein out and use the space for more pressing gaps (micronutrients, energy deficit, etc.). Lactating mums need protein, yes - but vitamin A, choline, iron and iodine are missed just as often, and they get systematically under-mentioned if we let protein become the default story.
 - Mention micronutrients only if a "Micronutrient gap today" block is appended. If so, pick exactly one of the listed nutrients when the current meal or your "Next meal" suggestion can address it: name a concrete food in either the 🟡 Low-on line OR the "Next meal" sentence, not both. If no such block is present or no suggestion really fits, skip micros entirely.
 - No em-dashes (—). Where you would normally use one, use a comma, colon or a new sentence instead.
 - Maximum 70 words. Be extremely terse: keywords over full sentences, no filler words, no restating the meal
