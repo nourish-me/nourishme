@@ -690,7 +690,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // meals-only mode (same as actual coach bubbles) so the
           // filtered view stays a plain log of what was eaten.
           if (!mealsOnly && inFlightMealIds.contains(meal.id)) {
-            widgets.add(const SizedBox(height: 8));
             widgets.add(const CoachThinkingBubble());
           }
         case ThreadItemType.coachResponse:
@@ -698,17 +697,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             text: item.text ?? '',
             isAnswer: false,
             mealId: item.mealId,
+            timestamp: item.timestamp,
           ));
         case ThreadItemType.userQuestion:
-          widgets.add(UserBubble(text: item.text ?? ''));
+          widgets.add(UserBubble(
+            text: item.text ?? '',
+            timestamp: item.timestamp,
+          ));
         case ThreadItemType.coachAnswer:
           widgets.add(CoachBubble(
             text: item.text ?? '',
             isAnswer: true,
             mealId: item.mealId,
+            timestamp: item.timestamp,
           ));
       }
-      widgets.add(const SizedBox(height: 8));
     }
     return widgets;
   }

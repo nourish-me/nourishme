@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../main.dart' show rootScaffoldMessengerKey;
@@ -9,10 +10,53 @@ import '../../providers/ui_providers.dart';
 import '../../utils/coach_followups.dart';
 
 // Coach + user bubbles rendered inline in the diary thread, plus the
-// rose-tinted thinking placeholder shown while a coach call is in
-// flight, plus the standalone loading banner above the chat input.
-// All grouped here because they share the coach-conversation visual
-// language (amber container + tertiary tone for placeholders).
+// transient placeholder shown while a coach call is in flight, plus
+// the loading banner above the chat input.
+//
+// Time-Ledger layout (phase 4 of the Claude Design diary refactor):
+// all three coach surfaces share the 44 px time column with the meal
+// rows, sit on the same hairline-divider rhythm, and use a borderless
+// amber-tinted "Bahn" (lane) for the body area instead of a card with
+// rounded corners. The time column reads top-to-bottom across coach
+// and meal entries as one continuous track.
+
+// Shared column width so meal rows, coach bubbles, and user bubbles
+// align on the same vertical track.
+const double _timeColumnWidth = 44;
+
+String _formatTimeLabel(DateTime t) {
+  final tod = TimeOfDay.fromDateTime(t);
+  return '${tod.hour.toString().padLeft(2, '0')}:${tod.minute.toString().padLeft(2, '0')}';
+}
+
+Widget _timeCell({
+  required String label,
+  required ColorScheme scheme,
+  required TextTheme textTheme,
+}) {
+  return SizedBox(
+    width: _timeColumnWidth,
+    child: Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        label,
+        style: GoogleFonts.jetBrainsMono(
+          textStyle: textTheme.labelSmall?.copyWith(
+            color: scheme.outline,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.4,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+BoxDecoration _ledgerRowDecoration(ColorScheme scheme) => BoxDecoration(
+      border: Border(
+        bottom: BorderSide(color: scheme.outlineVariant, width: 0.5),
+      ),
+    );
 
 class CoachBubble extends ConsumerWidget {
   final String text;
@@ -22,118 +66,152 @@ class CoachBubble extends ConsumerWidget {
   // coach asked the question with this meal. Null is fine (older code
   // paths, fallback bubbles).
   final String? mealId;
+  // Timestamp of the coach reply so the row aligns on the time ledger.
+  final DateTime timestamp;
   const CoachBubble({
     super.key,
     required this.text,
     required this.isAnswer,
+    required this.timestamp,
     this.mealId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Light mode keeps the warm amber-container chip look. Dark mode uses
-    // a quieter neutral surface with an amber left rule, otherwise the
-    // saturated dark-amber container reads as heavy/dominant against the
-    // ink background.
-    final bg = isDark ? scheme.surfaceContainerLow : scheme.secondaryContainer;
-    final fg = isDark ? scheme.onSurface : scheme.onSecondaryContainer;
+    // Borderless amber lane: subtle secondaryContainer tint, no border,
+    // no border-radius. Quieter in dark mode where the saturated
+    // secondaryContainer reads as heavy against the ink background.
+    final laneTint = scheme.secondaryContainer
+        .withValues(alpha: isDark ? 0.35 : 0.55);
+    final fg = scheme.onSurface;
     final iconColor = scheme.secondary;
     final split = splitCoachResponse(text);
-    // Inline ingredient-reply input: only on the bubble the coach actually
-    // asked under, and only until the user submits an answer.
     final ask = ref.watch(coachAskStateProvider);
     final showIngredientsInput = mealId != null &&
         ask.askedMealId == mealId &&
         ask.ingredients == null;
-    return Container(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-        border: isDark
-            ? Border(left: BorderSide(color: scheme.secondary, width: 3))
-            : null,
-      ),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  Icons.tips_and_updates_outlined,
-                  size: 16,
-                  color: iconColor,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: MarkdownBody(
-                  data: split.body,
-                  styleSheet:
-                      MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                    p: TextStyle(color: fg, height: 1.35),
-                    strong: TextStyle(color: fg, fontWeight: FontWeight.w600),
-                    em: TextStyle(color: fg, fontStyle: FontStyle.italic),
-                    listBullet: TextStyle(color: fg),
-                    blockSpacing: 6,
+    return DecoratedBox(
+      decoration: _ledgerRowDecoration(scheme),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _timeCell(
+              label: _formatTimeLabel(timestamp),
+              scheme: scheme,
+              textTheme: textTheme,
+            ),
+            Expanded(
+              child: ColoredBox(
+                color: laneTint,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Icon(
+                              Icons.tips_and_updates_outlined,
+                              size: 16,
+                              color: iconColor,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: MarkdownBody(
+                              data: split.body,
+                              styleSheet: MarkdownStyleSheet.fromTheme(
+                                      Theme.of(context))
+                                  .copyWith(
+                                p: TextStyle(color: fg, height: 1.35),
+                                strong: TextStyle(
+                                    color: fg,
+                                    fontWeight: FontWeight.w600),
+                                em: TextStyle(
+                                    color: fg,
+                                    fontStyle: FontStyle.italic),
+                                listBullet: TextStyle(color: fg),
+                                blockSpacing: 6,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (showIngredientsInput) ...[
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 26),
+                          child: _IngredientsReplyInput(
+                              fg: fg, scheme: scheme),
+                        ),
+                      ],
+                      if (split.followUps.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 26),
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              for (final chip in split.followUps)
+                                ActionChip(
+                                  label: Text(chip),
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  labelStyle: TextStyle(
+                                    color: fg,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  backgroundColor: Colors.transparent,
+                                  side: BorderSide(
+                                    color: scheme.secondary
+                                        .withValues(alpha: 0.5),
+                                    width: 0.8,
+                                  ),
+                                  onPressed: () {
+                                    final next = ref
+                                            .read(mealInputPrefillProvider
+                                                .notifier)
+                                            .state
+                                            ?.version ??
+                                        0;
+                                    ref
+                                        .read(mealInputPrefillProvider
+                                            .notifier)
+                                        .state = MealInputPrefill(
+                                            text: chip,
+                                            version: next + 1);
+                                    ref
+                                        .read(mealInputFocusRequestProvider
+                                            .notifier)
+                                        .state++;
+                                    ref
+                                        .read(analyticsServiceProvider)
+                                        .capture('coach_chip_tapped');
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
-          if (showIngredientsInput) ...[
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 26),
-              child: _IngredientsReplyInput(fg: fg, scheme: scheme),
             ),
           ],
-          if (split.followUps.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 26),
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final chip in split.followUps)
-                    ActionChip(
-                      label: Text(chip),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize:
-                          MaterialTapTargetSize.shrinkWrap,
-                      labelStyle: TextStyle(
-                        color: fg,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      backgroundColor: bg,
-                      side: BorderSide(
-                        color: scheme.secondary.withValues(alpha: 0.5),
-                        width: 0.8,
-                      ),
-                      onPressed: () {
-                        final next = ref.read(
-                                mealInputPrefillProvider.notifier).state?.version ?? 0;
-                        ref.read(mealInputPrefillProvider.notifier).state =
-                            MealInputPrefill(text: chip, version: next + 1);
-                        ref
-                            .read(mealInputFocusRequestProvider.notifier)
-                            .state++;
-                        ref.read(analyticsServiceProvider).capture(
-                            'coach_chip_tapped');
-                      },
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -170,9 +248,6 @@ class _IngredientsReplyInputState
     final text = _c.text.trim();
     if (text.isEmpty || _submitting) return;
     setState(() => _submitting = true);
-    // Snapshot the localized snackbar text BEFORE the await — using
-    // BuildContext across an async gap risks looking up a deactivated
-    // element if the bubble unmounted while the write was in flight.
     final snackText = AppLocalizations.of(context).coachIngredientsSavedSnack;
     await ref
         .read(coachAskStateProvider.notifier)
@@ -184,8 +259,6 @@ class _IngredientsReplyInputState
         behavior: SnackBarBehavior.floating,
       ),
     );
-    // No need to clear the controller - the bubble rebuilds without this
-    // input once provider state reflects the saved ingredients.
   }
 
   @override
@@ -242,38 +315,46 @@ class _IngredientsReplyInputState
 
 class UserBubble extends StatelessWidget {
   final String text;
-  const UserBubble({super.key, required this.text});
+  final DateTime timestamp;
+  const UserBubble({super.key, required this.text, required this.timestamp});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Align(
-      alignment: Alignment.centerRight,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.78,
-        ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: scheme.primaryContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            text,
-            style: TextStyle(color: scheme.onPrimaryContainer),
-          ),
+    final textTheme = Theme.of(context).textTheme;
+    return DecoratedBox(
+      decoration: _ledgerRowDecoration(scheme),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _timeCell(
+              label: _formatTimeLabel(timestamp),
+              scheme: scheme,
+              textTheme: textTheme,
+            ),
+            Expanded(
+              child: Text(
+                text,
+                textAlign: TextAlign.right,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: scheme.primary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// Quiet rose-tinted placeholder shown inline in the diary while a coach
-// call is in flight for a given meal. The caller already gates rendering
-// on the in-flight set, so this widget just draws - no provider lookup.
-// Visual is intentionally quieter than CoachBubble so a real reply
-// still stands out when it replaces this placeholder.
+// Quiet placeholder shown inline in the diary while a coach call is in
+// flight for a given meal. Sits on the same time-ledger row as a coach
+// reply; the time column is left empty (no timestamp yet) and a small
+// spinner replaces the tip icon.
 class CoachThinkingBubble extends StatelessWidget {
   const CoachThinkingBubble({super.key});
 
@@ -282,33 +363,51 @@ class CoachThinkingBubble extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.tertiaryContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 12,
-            height: 12,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: scheme.onTertiaryContainer,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              l10n.homeCoachThinking,
-              style: textTheme.bodySmall?.copyWith(
-                color: scheme.onTertiaryContainer,
-                fontStyle: FontStyle.italic,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final laneTint = scheme.tertiaryContainer
+        .withValues(alpha: isDark ? 0.35 : 0.5);
+    return DecoratedBox(
+      decoration: _ledgerRowDecoration(scheme),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Empty time column - the reply hasn't been written yet.
+            const SizedBox(width: _timeColumnWidth),
+            Expanded(
+              child: ColoredBox(
+                color: laneTint,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: scheme.onTertiaryContainer,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          l10n.homeCoachThinking,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: scheme.onTertiaryContainer,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
