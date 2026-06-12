@@ -13,13 +13,10 @@ import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
 import '../services/claude_client.dart';
 import '../services/coach_session_manager.dart';
-import '../utils/date_format.dart';
 import '../widgets/empty/empty_today.dart';
 import 'confirm_screen.dart';
 import 'diary/coach_bubble.dart';
-import 'diary/day_separator.dart';
 import 'diary/home_input.dart';
-import 'diary/past_day_input_sheet.dart';
 import 'diary/thread_meal_card.dart';
 import 'settings_screen.dart';
 
@@ -32,7 +29,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scroll = ScrollController();
-  final Map<String, GlobalKey> _dayHeaderKeys = {};
   final Map<String, GlobalKey> _mealKeys = {};
   // True while a programmatic scroll is running. Suppresses both the
   // scroll-up-to-load-more trigger and the auto-follow-to-bottom on item add,
@@ -77,12 +73,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _scroll.dispose();
     super.dispose();
   }
-
-  String _keyStr(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  GlobalKey _keyForDay(DateTime d) =>
-      _dayHeaderKeys.putIfAbsent(_keyStr(d), () => GlobalKey());
 
   GlobalKey _keyForMeal(String mealId) =>
       _mealKeys.putIfAbsent(mealId, () => GlobalKey());
@@ -234,98 +224,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _programmaticScroll = false;
   }
 
-  Future<void> _scrollToDay(DateTime d) => _scrollKeyToTop(_keyForDay(d));
-
   Future<void> _scrollToNewMeal(String mealId) async {
     final key = _mealKeys[mealId];
     if (key == null) return;
     await _scrollKeyToTop(key);
   }
 
-  // Bottom sheet listing every day in a collapsed empty-day range. Tapping
-  // a day routes through the normal _logForDay path (past-day input sheet
-  // with a time picker), so the user lands on the meal entry with the
-  // correct day + time without going through the global calendar.
-  Future<void> _pickDayInRange(DateTime start, DateTime end) async {
-    final days = <DateTime>[];
-    var cursor = start;
-    while (!cursor.isAfter(end)) {
-      days.add(cursor);
-      cursor = cursor.add(const Duration(days: 1));
-    }
-    final picked = await showModalBottomSheet<DateTime>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (sheetContext) => EmptyRangePickerSheet(days: days),
-    );
-    if (picked != null && mounted) {
-      await _logForDay(picked);
-    }
-  }
-
-  // Opens a small input sheet to log a meal for a specific (past) day.
-  // The created meal's createdAt is overridden to noon of that day.
-  Future<void> _logForDay(DateTime day) async {
-    final controller = TextEditingController();
-    final entry =
-        await showModalBottomSheet<({String text, DateTime day, TimeOfDay time})?>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheetContext) {
-        return PastDayInputSheet(
-          controller: controller,
-          day: day,
-        );
-      },
-    );
-    controller.dispose();
-    if (entry == null || entry.text.trim().isEmpty || !mounted) return;
-    try {
-      final profile = ref.read(userProfileProvider).valueOrNull;
-      final parsed = await ref.read(claudeClientProvider).parseMeal(
-            entry.text,
-            locale: Localizations.localeOf(context).languageCode,
-            isPregnant: profile?.isPregnant ?? false,
-            trimester: profile?.trimester,
-            isLactating: (profile?.numChildrenNursing ?? 0) > 0,
-          );
-      if (!mounted || !parsed.isMeal) return;
-      // entry.day - user may have changed the date inside the sheet
-      // (e.g. tapped Donnerstag in the diary then realised it should
-      // have been Freitag).
-      final createdAt = DateTime(
-          entry.day.year, entry.day.month, entry.day.day,
-          entry.time.hour, entry.time.minute);
-      if (!mounted) return;
-      await showModalBottomSheet<MealEntry>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => ConfirmScreen(
-          rawText: entry.text,
-          parsed: parsed,
-          existingCreatedAt: createdAt,
-          asSheet: true,
-          source: MealEntrySource.quickAdd,
-        ),
-      );
-    } on CoachApiException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.userMessage)),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).commonGenericError)),
-      );
-    }
-  }
+  // _logForDay (the past-day-input-sheet entry point) has been retired in
+  // the Single-Day-View refactor. Past-day logging now happens by switching
+  // focusedDay via the AppBar picker and using the normal input bar; the
+  // confirm sheet's date/time pill carries the right createdAt.
 
   // Title that the AppBar shows above the diary. Today and yesterday get
   // their named-day form; older days are formatted as "weekday, day. month"
@@ -386,9 +294,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loadedDays = ref.watch(loadedDaysProvider);
-    final threadByDay =
-        ref.watch(loadedThreadProvider).valueOrNull ?? const {};
+    // Phase 2 of the diary refactor: body binds to the focused day's
+    // thread directly instead of looping the multi-day loadedThread map.
+    // loadedDaysProvider / loadedThreadProvider are still defined for now
+    // so the past-day-save scrollToDayProvider plumbing keeps compiling
+    // unchanged; nothing in the body references them anymore.
+    final focusedDayItems =
+        ref.watch(focusedDayThreadProvider).valueOrNull ?? const [];
     final coachLoading = ref.watch(insightLoadingProvider);
     final mealsAll = ref.watch(mealsProvider).valueOrNull ?? const [];
     // kcal / macro / micronutrient totals are now consumed by
@@ -401,11 +313,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // loadedThreadProvider (the mealsAll stream often fires earlier, before
     // the card is actually in the tree, so scrolling then would miss the key).
     final currentThreadMealIds = <String>{};
-    for (final items in threadByDay.values) {
-      for (final item in items) {
-        if (item.type == ThreadItemType.meal && item.mealId != null) {
-          currentThreadMealIds.add(item.mealId!);
-        }
+    for (final item in focusedDayItems) {
+      if (item.type == ThreadItemType.meal && item.mealId != null) {
+        currentThreadMealIds.add(item.mealId!);
       }
     }
     final newlyRenderedMealIds =
@@ -426,7 +336,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
       }
     }
-    final totalItems = threadByDay.values.fold<int>(0, (s, l) => s + l.length);
+    final totalItems = focusedDayItems.length;
     // Peek scroll-to-day target before the autoscroll heuristics fire so a
     // pending day-jump from Verlauf doesn't get overridden by the
     // "follow new bottom" autoscroll when loadedDays grows.
@@ -493,49 +403,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _lastTotalItemCount = totalItems;
     _lastThreadMealIds = currentThreadMealIds;
 
-    // Watch (not listen) the scroll-to-day signal so the schedule lives inside
-    // the same build cycle as the loadedDays change. The post-frame fires
-    // after this build's render, when the day header's GlobalKey is attached.
+    // scrollToDayProvider in Single-Day-View: a request to "jump to this
+    // day" just means flipping focusedDay over. The view re-renders with
+    // that day's items; no scroll-key juggling needed. If a freshly-saved
+    // meal lives on that day, scroll to it after the focused-day switch
+    // has settled.
     final scrollTarget = ref.watch(scrollToDayProvider);
     if (scrollTarget != null && scrollTarget != _handledScrollToDay) {
       _handledScrollToDay = scrollTarget;
-      // Pick the scroll destination on the target day.
-      //   - Past-day SAVE: a freshly-rendered meal landed in that day
-      //     (scrollTargetMealId from newlyRenderedMealIds above). Prefer
-      //     it so the user lands on the entry they just added, not on
-      //     the day's earliest meal that happens to share the date.
-      //   - Calendar/Verlauf TAP: no new meal involved → fall back to
-      //     first-of-day so the user starts at the breakfast end.
-      //   - Empty day: scroll to the day separator itself.
+      final normalized = DateTime(
+          scrollTarget.year, scrollTarget.month, scrollTarget.day);
       String? preferredMealId;
       if (scrollTargetMealId != null) {
         final m = mealsById[scrollTargetMealId];
         if (m != null) {
           final mealDay = DateTime(
               m.createdAt.year, m.createdAt.month, m.createdAt.day);
-          if (mealDay == scrollTarget) preferredMealId = scrollTargetMealId;
+          if (mealDay == normalized) preferredMealId = scrollTargetMealId;
         }
-      }
-      String? targetMealId = preferredMealId;
-      if (targetMealId == null) {
-        final dayItems = threadByDay[scrollTarget] ?? const <ThreadItem>[];
-        targetMealId = dayItems
-            .firstWhere(
-              (i) => i.type == ThreadItemType.meal,
-              orElse: () => ThreadItem.userQuestion(text: '', at: DateTime(0)),
-            )
-            .mealId;
       }
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        debugPrint('scrollToDay: target=$scrollTarget targetMealId=$targetMealId '
-            'preferredFromNewMeal=${preferredMealId != null} '
-            'mealKeyKnown=${targetMealId != null && _mealKeys.containsKey(targetMealId)} '
-            'dayKeyCtx=${_keyForDay(scrollTarget).currentContext != null}');
-        if (targetMealId != null && _mealKeys.containsKey(targetMealId)) {
-          await _scrollToNewMeal(targetMealId);
-        } else {
-          await _scrollToDay(scrollTarget);
+        ref.read(focusedDayProvider.notifier).state = normalized;
+        // Let the stream emit and the new day's items render before we
+        // try to scroll to the new meal.
+        await Future<void>.delayed(const Duration(milliseconds: 80));
+        if (!mounted) return;
+        if (preferredMealId != null && _mealKeys.containsKey(preferredMealId)) {
+          await _scrollToNewMeal(preferredMealId);
         }
         if (mounted) {
           ref.read(scrollToDayProvider.notifier).state = null;
@@ -561,12 +456,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // The meals-only filter only helps once there's something to filter: at
-    // least one meal AND at least one coach bubble / question / answer.
-    final allThreadItems = threadByDay.values.expand((l) => l);
+    // The meals-only filter only helps once there's something to filter on
+    // the focused day: at least one meal AND at least one coach bubble /
+    // question / answer.
     final canFilter =
-        allThreadItems.any((i) => i.type == ThreadItemType.meal) &&
-            allThreadItems.any((i) => i.type != ThreadItemType.meal);
+        focusedDayItems.any((i) => i.type == ThreadItemType.meal) &&
+            focusedDayItems.any((i) => i.type != ThreadItemType.meal);
 
     return Scaffold(
       appBar: AppBar(
@@ -658,28 +553,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     children: _buildSlivers(
                       context: context,
                       ref: ref,
-                      loadedDays: loadedDays,
-                      threadByDay: threadByDay,
+                      items: focusedDayItems,
                       mealsAll: mealsAll,
-                      coachLoading: coachLoading,
-                      // Id of the most recent meal in the current coach
-                      // session bundle, if any. Used by _buildSlivers to
-                      // inject the in-thread thinking bubble right after
-                      // that meal so the loading state is visible exactly
-                      // where the user just confirmed an entry.
                       // IDs of meals whose coach call is currently in flight.
                       // _buildSlivers renders a thinking bubble after each
-                      // such meal, so multiple parallel calls (rapid logs)
+                      // such meal so multiple parallel calls (rapid logs)
                       // each get their own visible loading state.
                       inFlightMealIds: ref.watch(coachSessionProvider),
                       scheme: scheme,
                       textTheme: textTheme,
                       mealsOnly: _mealsOnly,
-                      // A day jumped-to from Verlauf / DatePicker stays
-                      // expanded as its own day separator + empty row even
-                      // if it has no entries, so the user can land on it
-                      // and add a meal.
-                      expandedEmptyDay: scrollTarget,
                     ),
                   ),
                 ),
@@ -738,146 +621,95 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // Single-day thread body. Phase 2 of the diary refactor: the diary now
+  // renders ONLY the focused day's items, top-to-bottom in chronological
+  // order. No DaySeparator (the day is the AppBar title), no
+  // EmptyDayRange (only one day visible at a time), no multi-day loop.
+  //
+  // Past days where the user logged nothing show a quiet empty-state
+  // line below the header instead of the previous "Keine Einträge"
+  // subtitle on the separator.
   List<Widget> _buildSlivers({
     required BuildContext context,
     required WidgetRef ref,
-    required List<DateTime> loadedDays,
-    required Map<DateTime, List<ThreadItem>> threadByDay,
+    required List<ThreadItem> items,
     required List<MealEntry> mealsAll,
-    required bool coachLoading,
     required Set<String> inFlightMealIds,
     required ColorScheme scheme,
     required TextTheme textTheme,
     bool mealsOnly = false,
-    DateTime? expandedEmptyDay,
   }) {
-    // Loaded days are stored newest-last (today at the end). Render top-down
-    // so older days are above, today is at the bottom.
-    final sortedDays = [...loadedDays]..sort((a, b) => a.compareTo(b));
     final widgets = <Widget>[];
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // Auto-load happens within a frame or two from Hive, so the spinner
-    // just flickers briefly the first time the user pulls up, removed
-    // for less visual noise. The empty-day-collapse divider already
-    // signals the boundary.
-
     final mealsById = {for (final m in mealsAll) m.id: m};
 
-    // First-launch shortcut: no meals exist anywhere yet. Show the
-    // prominent EmptyToday welcome card once instead of stacking day
-    // separators + small inline "Keine Einträge" rows for every loaded
-    // empty day.
+    // First-launch shortcut: no meals exist anywhere yet, show the
+    // EmptyToday welcome card. Phase 5 swaps this for a per-day empty
+    // state with paper-styled "Noch nichts geloggt" lettering.
     if (mealsAll.isEmpty) {
       widgets.add(const EmptyToday());
       return widgets;
     }
 
-    // Collapse consecutive empty days into a single discreet range row so the
-    // scroll-back through long empty stretches doesn't fill the screen with
-    // repeated "Keine Einträge" rows. Today is always shown explicitly so the
-    // user can still log into it via the input bar.
-    DateTime? emptyRunStart;
-    DateTime? emptyRunEnd;
-
-    void flushEmptyRun() {
-      if (emptyRunStart == null) return;
-      final rangeStart = emptyRunStart!;
-      final rangeEnd = emptyRunEnd!;
-      widgets.add(EmptyDayRange(
-        start: rangeStart,
-        end: rangeEnd,
-        scheme: scheme,
-        textTheme: textTheme,
-        onTap: () => _pickDayInRange(rangeStart, rangeEnd),
+    if (items.isEmpty) {
+      // Focused day has no items but the user has logged elsewhere. A
+      // quiet line is enough; the AppBar already says which day this is.
+      widgets.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: Text(
+            AppLocalizations.of(context).homeEmptyDayText,
+            style: textTheme.bodyMedium?.copyWith(
+              color: scheme.outline,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
       ));
-      widgets.add(const SizedBox(height: 4));
-      emptyRunStart = null;
-      emptyRunEnd = null;
+      return widgets;
     }
 
-    for (final day in sortedDays) {
-      final items = threadByDay[day] ?? const <ThreadItem>[];
-      final isToday = isSameDay(day, DateTime.now());
-      final isExpanded =
-          expandedEmptyDay != null && isSameDay(day, expandedEmptyDay);
-
-      if (items.isEmpty && !isToday && !isExpanded) {
-        // Extend the current empty run rather than rendering a full row.
-        emptyRunStart ??= day;
-        emptyRunEnd = day;
-        continue;
+    for (final item in items) {
+      // Meals-only filter: skip coach bubbles, questions and answers so the
+      // day reads as a plain log of what was eaten.
+      if (mealsOnly && item.type != ThreadItemType.meal) continue;
+      switch (item.type) {
+        case ThreadItemType.meal:
+          final meal = mealsById[item.mealId];
+          if (meal == null) continue;
+          widgets.add(KeyedSubtree(
+            key: _keyForMeal(meal.id),
+            child: ThreadMealCard(
+              meal: meal,
+              onEdit: () => _editMeal(context, meal),
+              onDuplicate: () => _duplicateMeal(ref, meal),
+              onDelete: () => _confirmDelete(context, ref, meal),
+            ),
+          ));
+          // In-thread thinking bubble: appears directly after any meal
+          // whose coach call is currently in flight. Suppressed in
+          // meals-only mode (same as actual coach bubbles) so the
+          // filtered view stays a plain log of what was eaten.
+          if (!mealsOnly && inFlightMealIds.contains(meal.id)) {
+            widgets.add(const SizedBox(height: 8));
+            widgets.add(const CoachThinkingBubble());
+          }
+        case ThreadItemType.coachResponse:
+          widgets.add(CoachBubble(
+            text: item.text ?? '',
+            isAnswer: false,
+            mealId: item.mealId,
+          ));
+        case ThreadItemType.userQuestion:
+          widgets.add(UserBubble(text: item.text ?? ''));
+        case ThreadItemType.coachAnswer:
+          widgets.add(CoachBubble(
+            text: item.text ?? '',
+            isAnswer: true,
+            mealId: item.mealId,
+          ));
       }
-
-      // We hit a day with content (or today). Flush any pending empty run
-      // first, then render the day separator + content normally.
-      flushEmptyRun();
-      // Past days with content still need a way to log retroactively (the
-      // EmptyDay path only fires when items.isEmpty). Today's separator
-      // skips the affordance - the regular input bar at the bottom is
-      // already there for that.
-      final isPastDay = day.isBefore(today);
-      widgets.add(DaySeparator(
-        key: _keyForDay(day),
-        day: day,
-        scheme: scheme,
-        textTheme: textTheme,
-        onAdd: isPastDay ? () => _logForDay(day) : null,
-        subtitle: items.isEmpty && isPastDay
-            ? AppLocalizations.of(context).homeEmptyDayText
-            : null,
-      ));
-      if (items.isEmpty) {
-        widgets.add(const SizedBox(height: 8));
-        continue;
-      }
-      for (final item in items) {
-        // Meals-only filter: skip coach bubbles, questions and answers so the
-        // day reads as a plain log of what was eaten.
-        if (mealsOnly && item.type != ThreadItemType.meal) continue;
-        switch (item.type) {
-          case ThreadItemType.meal:
-            final meal = mealsById[item.mealId];
-            if (meal == null) continue;
-            widgets.add(KeyedSubtree(
-              key: _keyForMeal(meal.id),
-              child: ThreadMealCard(
-                meal: meal,
-                onEdit: () => _editMeal(context, meal),
-                onDuplicate: () => _duplicateMeal(ref, meal),
-                onDelete: () => _confirmDelete(context, ref, meal),
-              ),
-            ));
-            // In-thread thinking bubble: appears directly after any meal
-            // whose coach call is currently in flight. Suppressed in
-            // meals-only mode (same as actual coach bubbles) so the
-            // filtered view stays a plain log of what was eaten.
-            if (!mealsOnly && inFlightMealIds.contains(meal.id)) {
-              widgets.add(const SizedBox(height: 8));
-              widgets.add(const CoachThinkingBubble());
-            }
-          case ThreadItemType.coachResponse:
-            widgets.add(CoachBubble(
-              text: item.text ?? '',
-              isAnswer: false,
-              mealId: item.mealId,
-            ));
-          case ThreadItemType.userQuestion:
-            widgets.add(UserBubble(text: item.text ?? ''));
-          case ThreadItemType.coachAnswer:
-            widgets.add(CoachBubble(
-              text: item.text ?? '',
-              isAnswer: true,
-              mealId: item.mealId,
-            ));
-        }
-        widgets.add(const SizedBox(height: 8));
-      }
+      widgets.add(const SizedBox(height: 8));
     }
-    // If the entire range ended on empty days (most common when paging back),
-    // flush whatever's left.
-    flushEmptyRun();
     return widgets;
   }
 }
