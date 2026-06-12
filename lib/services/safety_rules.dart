@@ -76,15 +76,35 @@ class SafetyRules {
     return cleaned.contains(' $keyword ');
   }
 
+  // Energy drinks get a stricter rule than other caffeine sources: DGE
+  // explicitly says pregnant women should avoid them entirely because of
+  // taurine, inositol and other ingredients whose interactions aren't
+  // well understood. Lactation keeps the 200 mg/day limit.
+  static const _energyDrinkKeywords = <String>[
+    'energy', 'energydrink', 'energy drink', 'red bull', 'monster',
+    'rockstar', 'relentless', 'effect',
+  ];
+
   /// Rule 1 — caffeine (EFSA: 200 mg/day is safe in pregnancy AND lactation,
   /// spread over the day). We can't sum exact mg without portion data, so the
   /// warning states the daily limit when a caffeine-bearing item is detected.
-  /// Returns null when the phase isn't relevant or no caffeine source matches.
+  /// Special case: energy drinks during pregnancy get a stricter "avoid
+  /// entirely" message per DGE; for lactation the 200 mg/day limit still
+  /// applies. Returns null when the phase isn't relevant or no caffeine
+  /// source matches.
   static String? caffeine(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isRelevant) return null;
     if (!_caffeineKeywords.any((k) => _containsWord(product, k))) return null;
-    return locale.toLowerCase().startsWith('de')
+    final de = locale.toLowerCase().startsWith('de');
+    final isEnergyDrink =
+        _energyDrinkKeywords.any((k) => _containsWord(product, k));
+    if (isEnergyDrink && phase.isPregnant) {
+      return de
+          ? 'Energy-Drinks: in der Schwangerschaft komplett meiden (DGE, wegen Taurin, Inosit und weiteren Inhaltstoffen mit ungeklärten Wechselwirkungen).'
+          : 'Energy drinks: avoid entirely in pregnancy (DGE: taurine, inositol and other ingredients with unclear interactions).';
+    }
+    return de
         ? 'Koffein: achte auf die Tagesgrenze von 200 mg (EFSA), über den Tag verteilt.'
         : 'Caffeine: mind the 200 mg daily limit (EFSA), spread over the day.';
   }
@@ -112,10 +132,16 @@ class SafetyRules {
     '0,0', '0.0',
   ];
 
-  /// Rule 2 — alcohol. Pregnancy: avoid entirely (no known safe amount).
-  /// Lactation: wait ~2–2.5 h per standard drink. Returns null when the phase
-  /// isn't relevant, the item is an alcohol-free variant, or no alcohol source
-  /// matches.
+  /// Rule 2 — alcohol. Pregnancy AND lactation: avoid entirely. The previous
+  /// lactation message ("~2-2.5 h wait per standard drink") came from older
+  /// guidelines (Hebammen consensus, LactMed-style); the current DGE position
+  /// paper + BfR risk assessment both recommend complete abstinence while
+  /// producing milk, because alcohol passes into milk and even a single
+  /// drink measurably affects milk-supply hormones. Plus the practical
+  /// argument: "standard drink" is defined inconsistently by users, so a
+  /// wait-time formula sets up a false-safety failure mode.
+  /// Returns null when the phase isn't relevant, the item is an alcohol-free
+  /// variant, or no alcohol source matches.
   static String? alcohol(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isRelevant) return null;
@@ -129,8 +155,8 @@ class SafetyRules {
           : 'Alcohol: avoid completely in pregnancy; there is no known safe amount.';
     }
     return de
-        ? 'Alkohol: beim Milchproduzieren ca. 2–2,5 h Wartezeit pro Standarddrink einhalten.'
-        : 'Alcohol: while producing milk, wait ~2–2.5 h per standard drink.';
+        ? 'Alkohol: auch beim Milchproduzieren meiden (DGE/BfR). Alkohol geht in die Muttermilch über und kann schon nach kleinen Mengen die Milchmenge messbar drücken.'
+        : 'Alcohol: avoid while producing milk too (DGE/BfR). Alcohol passes into breast milk and even small amounts measurably affect milk supply.';
   }
 
   // Raw / undercooked animal products carrying listeria or toxoplasma risk.
@@ -167,6 +193,10 @@ class SafetyRules {
     'lachsschinken',
     // Wild / game (toxoplasma). Bare "wild" matches the German word for
     // game/venison; "wild boar"/"wildschwein" cover the explicit cases.
+    // Note: wild boar offal (Wildschweinleber, Wildschwein-Innereien) is
+    // additionally flagged by the dedicated boarOffal rule below for
+    // PFAS / dioxin / PCB contamination per BfR, on top of this
+    // listeria/toxoplasma hit.
     'wild', 'wildbraten', 'wildschwein', 'reh', 'rehbraten', 'hirsch',
     // Raw / cold-smoked / pickled fish - the cooked/hot-smoked versions of
     // many of these are fine, but the marketing names blur the line, so we
@@ -270,23 +300,33 @@ class SafetyRules {
   // that traditionally contains NO liver despite the name — must not trigger.
   static const _liverExclusions = <String>['leberkäs', 'leberkaes', 'leberkas'];
 
-  /// Rule 5 — liver / high-dose vitamin A. Retinol is teratogenic during early
-  /// organogenesis, so this is a FIRST-TRIMESTER concern only: in T2/T3 liver
-  /// is actually a useful vitamin A source and we deliberately don't warn.
-  /// Unknown trimester defaults to 1 (matches the app convention), erring
-  /// toward caution. Returns null otherwise.
+  /// Rule 5 — liver / high-dose vitamin A. Pregnancy across ALL trimesters
+  /// (BfR + DGE position): T1 is strictest because retinol is teratogenic
+  /// during organogenesis, but BfR explicitly recommends avoiding liver of
+  /// all species across the whole pregnancy because of the consistently
+  /// very high vitamin A content. The previous "only T1" carve-out was
+  /// based on older / US literature and was not strict enough vs. the
+  /// German guideline state. T1 keeps the "avoid" wording; T2/T3 get a
+  /// softer "very limited" wording so it reads as guidance, not alarm.
+  /// Unknown trimester defaults to 1 (matches the app convention).
   static String? liverVitaminA(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isPregnant) return null;
-    if ((phase.trimester ?? 1) != 1) return null;
     final lower = product.toLowerCase();
     if (_liverExclusions.any(lower.contains)) return null;
     final hit = _liverTokens.any((k) => _tokenContains(product, k)) ||
         _liverPhrases.any((k) => _containsWord(product, k));
     if (!hit) return null;
-    return locale.toLowerCase().startsWith('de')
-        ? 'Leber/Vitamin A: im 1. Trimester einschränken (hoher Retinol-Gehalt, in hohen Dosen teratogen).'
-        : 'Liver/vitamin A: limit in the first trimester (high retinol, teratogenic at high doses).';
+    final de = locale.toLowerCase().startsWith('de');
+    final trimester = phase.trimester ?? 1;
+    if (trimester == 1) {
+      return de
+          ? 'Leber/Vitamin A: im 1. Trimester meiden (hoher Retinol-Gehalt, in hohen Dosen teratogen).'
+          : 'Liver/vitamin A: avoid in the first trimester (high retinol, teratogenic at high doses).';
+    }
+    return de
+        ? 'Leber/Vitamin A: in der gesamten Schwangerschaft sehr zurückhaltend (BfR: Verzicht auf Leber aller Tierarten wegen schwankend hoher Retinol-Werte).'
+        : 'Liver/vitamin A: stay very cautious throughout pregnancy (BfR advises avoiding liver of all species due to inconsistently high retinol content).';
   }
 
   static const _lactationHerbTokens = <String>[
@@ -317,6 +357,67 @@ class SafetyRules {
     return locale.toLowerCase().startsWith('de')
         ? 'Hinweis: Salbei/Pfefferminze in großen Mengen können theoretisch die Milchbildung dämpfen. Alltagsmengen sind unkritisch.'
         : 'Note: large amounts of sage/peppermint may theoretically lower milk supply. Everyday amounts are fine.';
+  }
+
+  // Wild boar offal (Wildschwein-Innereien). BfR scopes this separately from
+  // the regular game/raw-animal hit: in addition to listeria/toxoplasma the
+  // organs of wild boar specifically carry elevated PFAS, dioxin and PCB
+  // loads from the food chain, with measurable accumulation. The standard
+  // game keywords (wildschwein) already fire the rawAnimal rule; this adds
+  // a SECOND warning when the user explicitly logs the offal-portion form.
+  // Single-token compounds (matched as token-substrings so "Wildschweinleber"
+  // is found inside "Wildschweinleberpastete" too).
+  static const _boarOffalTokens = <String>[
+    'wildschweinleber', 'wildschweinniere', 'wildschweininnereien',
+  ];
+  // Multi-word phrases (matched as whole-word/phrase so "Wildschwein-Innereien"
+  // and "wild boar offal" land here - the hyphen splits the German compound
+  // into two tokens and _tokenContains can't bridge that).
+  static const _boarOffalPhrases = <String>[
+    'wildschwein innereien', 'wild boar liver', 'wild boar offal',
+  ];
+
+  /// Rule 7a (BfR) — wild boar offal: PFAS, dioxin, PCB. Pregnancy only;
+  /// BfR also lists women of childbearing age and lactating women in the
+  /// avoidance group, so we fire for both pregnant and lactating users.
+  /// Returns null otherwise.
+  static String? boarOffal(String product, SafetyPhase phase,
+      {String locale = 'en'}) {
+    if (!phase.isRelevant) return null;
+    final hit = _boarOffalTokens.any((k) => _tokenContains(product, k)) ||
+        _boarOffalPhrases.any((k) => _containsWord(product, k));
+    if (!hit) return null;
+    return locale.toLowerCase().startsWith('de')
+        ? 'Wildschwein-Innereien: in Schwangerschaft und Stillzeit meiden (BfR: hohe PFAS-, Dioxin- und PCB-Gehalte).'
+        : 'Wild boar offal: avoid in pregnancy and lactation (BfR: elevated PFAS, dioxin and PCB content).';
+  }
+
+  // Quinine-bearing drinks: tonic water, bitter lemon, and some bitter
+  // spirits (Aperol-style aren't always quinine-based; bare "tonic" is
+  // the safest hit). BfR says pregnancy = avoid quinine. We match the
+  // explicit drink names because bare "tonic" would also catch unrelated
+  // wellness "skin tonic" / "hair tonic" entries that nobody logs as
+  // food anyway, but to be safe we use _containsWord (whole-word) for the
+  // generic ones.
+  static const _quinineKeywords = <String>[
+    'tonic water', 'tonic-water', 'tonicwater',
+    'bitter lemon', 'bitter-lemon', 'bitterlemon',
+    'gin tonic', 'gin-tonic', 'gintonic',
+    'chinin', 'quinine',
+  ];
+
+  /// Rule 8 — quinine-containing drinks. Pregnancy: avoid (BfR). Returns null
+  /// in lactation or for non-pregnant users — BfR scopes the recommendation
+  /// to pregnancy. Tonic water + bitter lemon are the realistic everyday
+  /// hits; the "chinin"/"quinine" keywords catch direct mentions for the
+  /// rare case someone logs a bitter spirit.
+  static String? quinine(String product, SafetyPhase phase,
+      {String locale = 'en'}) {
+    if (!phase.isPregnant) return null;
+    if (!_quinineKeywords.any((k) => _containsWord(product, k))) return null;
+    return locale.toLowerCase().startsWith('de')
+        ? 'Chininhaltige Getränke (Tonic Water, Bitter Lemon): in der Schwangerschaft meiden (BfR).'
+        : 'Quinine-containing drinks (tonic water, bitter lemon): avoid in pregnancy (BfR).';
   }
 
   // Algae / seaweed products. DGE recommends pregnant users avoid these:
@@ -361,6 +462,8 @@ class SafetyRules {
       liverVitaminA(product, phase, locale: locale),
       lactationHerbs(product, phase, locale: locale),
       algae(product, phase, locale: locale),
+      boarOffal(product, phase, locale: locale),
+      quinine(product, phase, locale: locale),
     ]) {
       if (w != null) out.add(w);
     }

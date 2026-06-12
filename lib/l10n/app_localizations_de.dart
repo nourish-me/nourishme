@@ -1396,5 +1396,5 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get factGoalSource =>
-      'Leitplanken bestätigt von Ernährungsberaterin Juni 2026, basierend auf DGE 2025, EFSA 2017, CDC. Protein-Anhebung im Körperziel: Standard-Recomp-Empfehlung (1,5-1,8 g/kg), defensiv im Stillzeit-Range';
+      'Leitplanken bestätigt von Ernährungsfachkraft (Diätassistentin) Juni 2026, basierend auf DGE 2025, EFSA 2017, CDC. Protein-Anhebung im Körperziel: Standard-Recomp-Empfehlung (1,5-1,8 g/kg), defensiv im Stillzeit-Range';
 }

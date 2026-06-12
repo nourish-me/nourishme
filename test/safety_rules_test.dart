@@ -62,6 +62,37 @@ void main() {
     });
   });
 
+  group('caffeine rule — energy drink special case (DGE)', () {
+    test('pregnant + Red Bull → strict "avoid entirely" wording, not the '
+        'standard 200 mg limit (DGE specifically scopes energy drinks: '
+        'taurine, inositol, unclear interactions)', () {
+      final w = SafetyRules.caffeine('Red Bull', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w!.toLowerCase(), contains('komplett meiden'));
+      expect(w.toLowerCase(), contains('taurin'));
+    });
+
+    test('lactating + Red Bull → falls back to the regular 200 mg limit '
+        'message (DGE energy-drink rule scopes to pregnancy)', () {
+      final w = SafetyRules.caffeine('Red Bull', lactating, locale: 'de');
+      expect(w, isNotNull);
+      expect(w!.toLowerCase(), contains('tagesgrenze'));
+    });
+
+    test('Monster Energy / Rockstar Energy / bare "energy drink" all fire '
+        'the strict pregnancy wording (the "energy" token in the input is '
+        'what carries the caffeine-keyword match - bare brand names like '
+        '"Rockstar" alone need the "energy" companion word for the rule '
+        'to engage)', () {
+      for (final p in ['Monster Energy', 'Rockstar Energy', 'energy drink']) {
+        final w = SafetyRules.caffeine(p, pregnant, locale: 'de');
+        expect(w, isNotNull, reason: '$p should fire caffeine in pregnancy');
+        expect(w!.toLowerCase(), contains('komplett meiden'),
+            reason: '$p should get the strict energy-drink wording');
+      }
+    });
+  });
+
   group('alcohol rule — phase-specific message', () {
     test('pregnant → "avoid completely" message (German)', () {
       final w = SafetyRules.alcohol('Rotwein', pregnant, locale: 'de');
@@ -69,10 +100,13 @@ void main() {
       expect(w, contains('ganz meiden'));
     });
 
-    test('lactating → "wait per drink" message (English)', () {
+    test('lactating → "avoid while producing milk" message (English). Was '
+        'the wait-time formula; DGE position paper now scopes to full '
+        'abstinence and BfR mirrors that.', () {
       final w = SafetyRules.alcohol('a glass of wine', lactating, locale: 'en');
       expect(w, isNotNull);
-      expect(w, contains('per standard drink'));
+      expect(w!.toLowerCase(), contains('avoid'));
+      expect(w.toLowerCase(), contains('producing milk'));
     });
 
     test('German compound "Glühwein" is recognised', () {
@@ -305,13 +339,18 @@ void main() {
       expect(SafetyRules.liverVitaminA('Leber', pregnantNoTri), isNotNull);
     });
 
-    test('T2/T3 do NOT warn (liver is a useful vitamin A source then)', () {
-      expect(SafetyRules.liverVitaminA('Leber', pregnant), isNull); // T2
-      expect(
-        SafetyRules.liverVitaminA(
-            'Leber', const SafetyPhase(isPregnant: true, trimester: 3)),
-        isNull,
-      );
+    test('T2/T3 now DO warn (softer wording). BfR explicitly recommends '
+        'avoiding liver of all species across the whole pregnancy due to '
+        'inconsistently high retinol content; the prior "T1 only" carve-out '
+        'was not strict enough vs. the German guideline state.', () {
+      final t2 = SafetyRules.liverVitaminA('Leber', pregnant, locale: 'de'); // T2
+      expect(t2, isNotNull);
+      expect(t2!.toLowerCase(), contains('zurückhaltend'));
+      final t3 = SafetyRules.liverVitaminA('Leber',
+          const SafetyPhase(isPregnant: true, trimester: 3),
+          locale: 'de');
+      expect(t3, isNotNull);
+      expect(t3!.toLowerCase(), contains('zurückhaltend'));
     });
   });
 
@@ -394,6 +433,53 @@ void main() {
 
     test('neither phase → null', () {
       expect(SafetyRules.algae('Spirulina', neither), isNull);
+    });
+  });
+
+  group('wild boar offal rule — BfR (PFAS / dioxin / PCB)', () {
+    test('pregnant + Wildschweinleber → second warning beyond the regular '
+        'game/raw-animal hit (PFAS, Dioxine, PCB per BfR)', () {
+      final w = SafetyRules.boarOffal('Wildschweinleber', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w!.toLowerCase(), contains('pfas'));
+    });
+
+    test('lactating ALSO triggers (BfR scopes to childbearing-age + pregnant '
+        '+ lactating)', () {
+      expect(SafetyRules.boarOffal('Wildschwein-Innereien', lactating),
+          isNotNull);
+    });
+
+    test('neither phase → null', () {
+      expect(SafetyRules.boarOffal('Wildschweinleber', neither), isNull);
+    });
+
+    test('plain Wildschweinbraten (no offal) → NOT this rule (the regular '
+        'game keyword still fires the raw-animal rule though)', () {
+      expect(SafetyRules.boarOffal('Wildschweinbraten', pregnant), isNull);
+    });
+  });
+
+  group('quinine rule — BfR pregnancy', () {
+    test('pregnant + Tonic Water → warning, mentions BfR', () {
+      final w = SafetyRules.quinine('Tonic Water', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('BfR'));
+    });
+
+    test('Bitter Lemon + Gin Tonic + bare "Chinin" all fire', () {
+      for (final p in ['Bitter Lemon', 'Gin Tonic', 'Chinin Sirup']) {
+        expect(SafetyRules.quinine(p, pregnant), isNotNull,
+            reason: '$p should fire the quinine rule in pregnancy');
+      }
+    });
+
+    test('LACTATING → null (BfR scopes to pregnancy)', () {
+      expect(SafetyRules.quinine('Tonic Water', lactating), isNull);
+    });
+
+    test('neither phase → null', () {
+      expect(SafetyRules.quinine('Tonic Water', neither), isNull);
     });
   });
 

@@ -2549,7 +2549,7 @@ abstract class AppLocalizations {
   /// No description provided for @factGoalSource.
   ///
   /// In en, this message translates to:
-  /// **'Guardrails validated by Ernährungsberaterin June 2026, based on DGE 2025, EFSA 2017, CDC. Body-goal protein bump: standard recomp recommendation (1.5-1.8 g/kg), defensive within the lactation range'**
+  /// **'Guardrails validated by a registered nutrition professional (Diätassistentin) June 2026, based on DGE 2025, EFSA 2017, CDC. Body-goal protein bump: standard recomp recommendation (1.5-1.8 g/kg), defensive within the lactation range'**
   String get factGoalSource;
 }
 
