@@ -34,7 +34,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // scroll-up-to-load-more trigger and the auto-follow-to-bottom on item add,
   // so a Verlauf-tap or post-save scroll lands cleanly.
   bool _programmaticScroll = false;
-  bool _loadingPreviousDay = false;
   // When true the diary hides coach bubbles, user questions and answers, so
   // the day reads as a plain list of what was eaten.
   bool _mealsOnly = false;
@@ -80,14 +79,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _onScroll() {
     if (!_scroll.hasClients) return;
     final pos = _scroll.position;
-    // Trigger auto-load when within 200px of the top, but not during
-    // programmatic scrolls (otherwise jumping to an old day starts loading
-    // even older days and the user lands somewhere else).
-    if (pos.pixels <= 200 &&
-        !_loadingPreviousDay &&
-        !_programmaticScroll) {
-      _loadPreviousDay();
-    }
+    // Single-day-view doesn't auto-load older days: history navigation
+    // happens via the AppBar date picker. Older "scroll up = load more"
+    // plumbing was retired in phase 7 of the diary refactor.
+    //
     // Direction-aware FAB. Use a small dead zone (8px) so micro-jitter
     // doesn't flip the icon. Hide when there isn't enough room to scroll
     // in that direction (already near the edge).
@@ -104,57 +99,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (next != _scrollDir) {
       setState(() => _scrollDir = next);
     }
-  }
-
-  Future<void> _loadPreviousDay() async {
-    if (_loadingPreviousDay) return;
-    final days = ref.read(loadedDaysProvider);
-    if (days.isEmpty) return;
-
-    // Stop auto-loading once we've walked back past the user's earliest
-    // logged meal: the empty-day collapse means the new days don't push
-    // the viewport down much, so the near-top trigger would re-fire in a
-    // tight loop and the list visibly flickers.
-    final mealsAll = ref.read(mealsProvider).valueOrNull ?? const [];
-    if (mealsAll.isEmpty) return;
-    final earliestMealDay = mealsAll
-        .map((m) =>
-            DateTime(m.createdAt.year, m.createdAt.month, m.createdAt.day))
-        .reduce((a, b) => a.isBefore(b) ? a : b);
-    // Allow a single 7-day grace window past the earliest meal so the user
-    // can scroll back a bit further for context, then stop.
-    final stopAt = earliestMealDay.subtract(const Duration(days: 7));
-    if (!days.first.isAfter(stopAt)) return;
-
-    // Also hard-cap at 60 days of loaded history so we don't grow the list
-    // unboundedly. Older days are reachable via the Verlauf tap-into-day.
-    if (days.length >= 60) return;
-
-    _loadingPreviousDay = true;
-    final prevMax = _scroll.position.maxScrollExtent;
-    final prevOffset = _scroll.offset;
-    const batch = 7;
-    final oldest = days.first;
-    final newDays = <DateTime>[
-      for (int i = batch; i >= 1; i--) oldest.subtract(Duration(days: i)),
-    ];
-    ref.read(loadedDaysProvider.notifier).state = [...newDays, ...days];
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scroll.hasClients) {
-        _loadingPreviousDay = false;
-        return;
-      }
-      final newMax = _scroll.position.maxScrollExtent;
-      final delta = newMax - prevMax;
-      if (delta > 0) {
-        _scroll.jumpTo(prevOffset + delta);
-      }
-      // Hold the loading flag for a short cooldown so a near-top scroll
-      // listener can't immediately re-fire while the user is still pulling.
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted) _loadingPreviousDay = false;
-      });
-    });
   }
 
   void _scrollToTop({bool animate = true}) {
@@ -271,34 +215,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // title all rebind to this day. Phase-2 follow-up: replace this dialog
     // with the briefed month-calendar popover that shows dotted logged days.
     ref.read(focusedDayProvider.notifier).state = normalized;
-    // Keep the multi-day scroll handler in sync for the legacy thread body
-    // (the body will become single-day in the next phase; until then the
-    // scroll-to-day signal still moves the view to the picked day).
-    final today = DateTime(now.year, now.month, now.day);
-    final currentLoaded = ref.read(loadedDaysProvider);
-    final hasDay = currentLoaded.any((d) =>
-        d.year == normalized.year &&
-        d.month == normalized.month &&
-        d.day == normalized.day);
-    if (!hasDay) {
-      final days = <DateTime>[];
-      var cursor = normalized;
-      while (!cursor.isAfter(today)) {
-        days.add(cursor);
-        cursor = cursor.add(const Duration(days: 1));
-      }
-      ref.read(loadedDaysProvider.notifier).state = days;
-    }
     ref.read(scrollToDayProvider.notifier).state = normalized;
   }
 
   @override
   Widget build(BuildContext context) {
-    // Phase 2 of the diary refactor: body binds to the focused day's
-    // thread directly instead of looping the multi-day loadedThread map.
-    // loadedDaysProvider / loadedThreadProvider are still defined for now
-    // so the past-day-save scrollToDayProvider plumbing keeps compiling
-    // unchanged; nothing in the body references them anymore.
+    // Single-day-view: body binds to the focused day's thread directly.
+    // Multi-day plumbing (loadedDaysProvider / loadedThreadProvider) was
+    // retired in phase 7 of the diary refactor.
     final focusedDayItems =
         ref.watch(focusedDayThreadProvider).valueOrNull ?? const [];
     final coachLoading = ref.watch(insightLoadingProvider);
@@ -391,7 +315,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted &&
             _scroll.hasClients &&
-            !_loadingPreviousDay &&
             !_programmaticScroll) {
           final pos = _scroll.position;
           if (pos.maxScrollExtent - pos.pixels < 200) {

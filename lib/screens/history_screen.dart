@@ -27,19 +27,12 @@ class HistoryScreen extends ConsumerWidget {
     final recentDays = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
     void openDay(DateTime day) {
+      // Single-day-view: jumping to a Verlauf day just flips focusedDay.
+      // The diary body rebuilds from focusedDayThreadProvider and the
+      // scrollToDayProvider signal moves the scroll position once the
+      // new day's items have rendered.
       final normalized = DateTime(day.year, day.month, day.day);
-      final loaded = ref.read(loadedDaysProvider);
-      if (!loaded.any((d) => isSameDay(d, normalized))) {
-        final today = DateTime.now();
-        final todayDate = DateTime(today.year, today.month, today.day);
-        final days = <DateTime>[];
-        var cursor = normalized;
-        while (!cursor.isAfter(todayDate)) {
-          days.add(cursor);
-          cursor = cursor.add(const Duration(days: 1));
-        }
-        ref.read(loadedDaysProvider.notifier).state = days;
-      }
+      ref.read(focusedDayProvider.notifier).state = normalized;
       ref.read(scrollToDayProvider.notifier).state = normalized;
       ref.read(selectedTabProvider.notifier).state = 0;
     }

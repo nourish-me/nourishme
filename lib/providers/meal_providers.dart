@@ -91,31 +91,8 @@ final todayThreadProvider = StreamProvider<List<ThreadItem>>((ref) {
   return ref.watch(threadRepositoryProvider).watchToday();
 });
 
-// Days currently loaded into the Tagebuch endless-scroll thread. Always
-// contains today; older days get prepended as the user scrolls up or jumps
-// to a specific date.
-final loadedDaysProvider = StateProvider<List<DateTime>>((ref) {
-  final now = DateTime.now();
-  return [DateTime(now.year, now.month, now.day)];
-});
-
 // UI-orchestration state (selectedTab, theme, scrollToDay, input focus,
 // input prefill, chat-loading) lives in providers/ui_providers.dart.
-
-// Emits a map of day -> thread items for every loaded day, refreshed whenever
-// the underlying box changes (any thread add/remove anywhere).
-final loadedThreadProvider =
-    StreamProvider<Map<DateTime, List<ThreadItem>>>((ref) async* {
-  final repo = ref.watch(threadRepositoryProvider);
-  final days = ref.watch(loadedDaysProvider);
-  await for (final _ in repo.watchAllChanges()) {
-    final map = <DateTime, List<ThreadItem>>{};
-    for (final day in days) {
-      map[day] = repo.getForDate(day);
-    }
-    yield map;
-  }
-});
 
 final claudeClientProvider = Provider<ClaudeClient>((ref) => ClaudeClient());
 
