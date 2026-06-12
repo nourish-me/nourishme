@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>NourishMe — TestFlight 1.1 · Onboarding + Empty States + Icons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600;1,6..72,700;1,6..72,800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#F4EFE6;
+    --paper-hi:#FBF7EF;
+    --paper-lo:#EAE2D2;
+    --ink:#1F1B16;
+    --ink-soft:#4F4A41;
+    --ink-mute:#847E72;
+    --rule:#D5CEC0;
+    --pine:#1E4A45;
+    --amber:#C8884A;
+    --plum:#6B4554;
+    --moss:#4B5A47;
+    --rust:#9C4623;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .mono{font-family:"JetBrains Mono",monospace}
+
+  /* Masthead */
+  .doc-head{max-width:1280px;margin:0 auto;padding:56px 64px 24px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--ink)}
+  .doc-head h1{margin:0;font-size:42px;line-height:1;font-weight:700;font-style:italic;letter-spacing:-0.02em}
+  .doc-head .eyebrow{font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-mute);display:block;margin-bottom:8px}
+  .doc-head .meta{text-align:right;font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-mute);line-height:1.7}
+
+  .deck{max-width:1280px;margin:0 auto;padding:22px 64px 0;font-size:18px;line-height:1.55;color:var(--ink-soft);font-style:italic;max-width:62ch}
+  .deck b{font-style:normal;font-weight:600;color:var(--ink)}
+
+  .palette{max-width:1280px;margin:24px auto 0;padding:0 64px;display:flex;gap:6px}
+  .palette .sw{flex:1;padding:14px;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:flex-end;min-height:64px;border-radius:2px}
+  .palette .sw .role{font-weight:600}
+  .palette .sw .hex{opacity:0.65}
+
+  .canvas-wrap{padding:32px 0 60px}
+
+  /* Spec section */
+  .spec{max-width:1280px;margin:0 auto;padding:48px 64px 32px}
+  .spec h2{font-size:28px;font-weight:600;letter-spacing:-0.015em;margin:0 0 8px;font-family:"Newsreader",serif}
+  .spec h2 em{font-style:italic;font-weight:400;color:var(--ink-soft)}
+  .spec p{max-width:62ch;margin:0 0 16px;color:var(--ink-soft);font-family:"Newsreader",serif}
+  .spec h3{font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);margin:36px 0 14px;font-weight:600}
+
+  .spec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px}
+  .spec-card{padding:18px 22px;border:1px solid var(--rule);border-radius:10px;background:var(--paper-hi);font-family:-apple-system,Inter,system-ui,sans-serif}
+  .spec-card .name{font-family:"Newsreader",serif;font-style:italic;font-weight:700;font-size:20px;color:var(--ink);margin:0 0 4px;letter-spacing:-0.01em}
+  .spec-card .id{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-mute);letter-spacing:0.06em;margin-bottom:10px;text-transform:uppercase}
+  .spec-card dl{margin:0;display:grid;grid-template-columns:96px 1fr;gap:6px 14px;font-size:13px;line-height:1.5}
+  .spec-card dt{font-family:"JetBrains Mono",monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-mute);font-weight:500;padding-top:2px}
+  .spec-card dd{margin:0;color:var(--ink-soft)}
+  .spec-card dd b{color:var(--ink);font-weight:600}
+
+  .codeblock{background:#15110B;color:#E8E2D4;padding:24px 28px;border-radius:6px;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.65;overflow-x:auto;white-space:pre;margin-bottom:24px}
+  .codeblock .c{color:#7B7263;font-style:italic}
+  .codeblock .k{color:#A6CCC4}
+  .codeblock .s{color:#FFC07A}
+
+  ul.checklist{padding-left:22px;max-width:62ch;color:var(--ink-soft);line-height:1.65;font-family:"Newsreader",serif}
+  ul.checklist li{margin-bottom:8px}
+  ul.checklist li b{color:var(--ink);font-weight:600}
+
+  .footer{max-width:1280px;margin:0 auto;padding:24px 64px 80px;border-top:1px solid var(--rule);color:var(--ink-mute);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+
+  <header class="doc-head">
+    <div>
+      <span class="eyebrow">TestFlight 1.1 · Design Pass · v1</span>
+      <h1>NourishMe — Onboarding, Empty&nbsp;States &amp; Icons</h1>
+    </div>
+    <div class="meta">
+      <div>20.05.2026</div>
+      <div>für Vanessa</div>
+      <div>5 Onboarding · 4 Empty · 8 Icons</div>
+    </div>
+  </header>
+
+  <p class="deck">
+    Drei Bereiche, ein Pass — alle aus dem <b>Field Manual</b>-System: Paper-Hintergrund, Pine als Primär-, Amber als Akzent-Farbe. <b>Newsreader-italic</b> für Headlines, <b>Inter</b> für Body, <b>JetBrains Mono</b> für Eyebrows. Nichts Klinisches, nichts Bodybuilder-haft — <b>Ton wie ein Notizbuch, das mitdenkt</b>.
+  </p>
+
+  <div class="palette">
+    <div class="sw" style="background:#F4EFE6;color:#1F1B16"><span class="role">paper</span><span class="hex">F4EFE6</span></div>
+    <div class="sw" style="background:#FBF7EF;color:#1F1B16"><span class="role">paper-hi</span><span class="hex">FBF7EF</span></div>
+    <div class="sw" style="background:#1E4A45;color:#F4EFE6"><span class="role">pine</span><span class="hex">1E4A45</span></div>
+    <div class="sw" style="background:#C8884A;color:#1F1B16"><span class="role">amber</span><span class="hex">C8884A</span></div>
+    <div class="sw" style="background:#6B4554;color:#F4EFE6"><span class="role">plum</span><span class="hex">6B4554</span></div>
+    <div class="sw" style="background:#4B5A47;color:#F4EFE6"><span class="role">moss</span><span class="hex">4B5A47</span></div>
+    <div class="sw" style="background:#D5CEC0;color:#1F1B16"><span class="role">rule</span><span class="hex">D5CEC0</span></div>
+  </div>
+
+  <div class="canvas-wrap">
+    <div id="canvas-root"></div>
+  </div>
+
+  <section class="spec">
+    <h2>Spec <em>— Spacing &amp; Typography pro Screen</em></h2>
+    <p>
+      Alle Screens nutzen ein <b>22px laterales Gutter</b> für Headers und ein
+      <b>16px Gutter</b> für inset-Karten. iPhone 16e logical viewport: <b>390×844 pt</b>
+      (entspricht 1170×2532 px @ 2× — Vanessas Liefer-Maß). Headlines sind
+      Newsreader-italic 700, body ist Inter 14–16 px.
+    </p>
+
+    <h3>Onboarding · 5 Screens</h3>
+    <div class="spec-grid">
+      <div class="spec-card">
+        <div class="name">01 — Welcome</div>
+        <div class="id">screen.onboarding.welcome</div>
+        <dl>
+          <dt>Bowl-Mark</dt><dd><b>148×148 pt</b>, vertikal zentriert in oberer Hälfte</dd>
+          <dt>Wordmark</dt><dd>Newsreader italic 700 · 40 pt · amber dot</dd>
+          <dt>Tagline</dt><dd>Newsreader italic 400 · 21 pt · max 280 pt breit · zentriert</dd>
+          <dt>Body</dt><dd>Inter 400 · 14.5 pt · <span style="color:#4F4A41">ink-soft</span></dd>
+          <dt>Primary CTA</dt><dd><b>pine</b> · 14 pt radius · 16 pt vertikal padding · Vollbreite minus 22 pt Gutter</dd>
+          <dt>Footnote</dt><dd>Mono 10.5 pt · ink-mute · 14 pt unter CTA</dd>
+        </dl>
+      </div>
+      <div class="spec-card">
+        <div class="name">02 — Lebensphase</div>
+        <div class="id">screen.onboarding.phase</div>
+        <dl>
+          <dt>Tiles</dt><dd>3 horizontale Cards · <b>16 pt radius</b> · 12 pt gap · multi-select</dd>
+          <dt>Icon Box</dt><dd>48×48 pt · 12 pt radius · innen 28 pt Icon</dd>
+          <dt>Selected</dt><dd>border <b>1.5 pt pine</b> · bg <span style="color:#1E4A45">pine-soft</span> · checkbox fill pine</dd>
+          <dt>Step Dots</dt><dd>5 dots · current = 18×6 pt pill · rest = 6×6 pt</dd>
+          <dt>Hinweis</dt><dd>„Mehrfachauswahl ist okay" — multi-state ist Default-Sprache, nicht Edge-Case</dd>
+        </dl>
+      </div>
+      <div class="spec-card">
+        <div class="name">03 — Eckdaten</div>
+        <div class="id">screen.onboarding.stats</div>
+        <dl>
+          <dt>Field Card</dt><dd>paper-hi · 16 pt radius · 1 pt rule border · 12 pt zwischen Cards</dd>
+          <dt>Value</dt><dd>Newsreader italic 700 · <b>36 pt</b> · ink · pine-Stepper rechts</dd>
+          <dt>Stepper</dt><dd>22 pt pill · 44×40 pt buttons · pine glyph</dd>
+          <dt>Segmented</dt><dd>surfLow track · selected = paper-hi mit weicher shadow · Mono-Wert (×1.4)</dd>
+          <dt>Privacy</dt><dd>„bleibt lokal auf deinem Gerät" — Hive-DB-Versprechen sichtbar machen</dd>
+        </dl>
+      </div>
+      <div class="spec-card">
+        <div class="name">04 — Kinder-Setup</div>
+        <div class="id">screen.onboarding.children</div>
+        <dl>
+          <dt>Conditional</dt><dd>Trimester-Block <i>nur wenn schwanger</i>, Volumen-Slider <i>nur wenn stillend/pumpend</i> — beide gleichzeitig im Multi-State</dd>
+          <dt>Counter</dt><dd>Pille mit Newsreader italic 700 · 24 pt Zahl · bei ≥2 amber Multiples-Chip</dd>
+          <dt>Trimester</dt><dd>3 große Buttons mit römischen Ziffern (I·II·III) und SSW-Hint in Mono</dd>
+          <dt>Volumen</dt><dd>Newsreader italic 700 · 36 pt · ml/Tag-Slider 0–1200 · pine track + ring thumb</dd>
+        </dl>
+      </div>
+      <div class="spec-card" style="grid-column:1/-1">
+        <div class="name">05 — Berechnung (Confirmation)</div>
+        <div class="id">screen.onboarding.confirm</div>
+        <dl>
+          <dt>Headline</dt><dd>„Dein Tagesziel" · Newsreader italic 700 · 30 pt</dd>
+          <dt>Big Number</dt><dd><b>Newsreader italic 700 · 64 pt · pine</b> · kcal-Einheit in Mono daneben</dd>
+          <dt>Pull-Quote</dt><dd>Newsreader italic 400 · 17 pt · ink-soft · Ton-Sample „Du versorgst in dieser Phase mehr als dich allein"</dd>
+          <dt>Breakdown</dt><dd>Nutrient Rows · 11 pt vertical padding · 1 pt rule divider · kritische Werte in pine + bold</dd>
+          <dt>Secondary CTA</dt><dd>„Werte später anpassen" als text-only — Pflicht-Übersteuerung darf nicht hier blockieren</dd>
+        </dl>
+      </div>
+    </div>
+
+    <h3>Empty States · 4 Screens</h3>
+    <div class="spec-grid">
+      <div class="spec-card">
+        <div class="name">Heute (leer)</div>
+        <div class="id">empty.today</div>
+        <dl>
+          <dt>Hero</dt><dd>88×88 pt rounded square · IcMeal 48 pt</dd>
+          <dt>Headline</dt><dd>„Was hast du heute gegessen?" · Newsreader italic 700 · 24 pt · zentriert</dd>
+          <dt>Affordance</dt><dd>Notebook-Input mit Placeholder „Müsli mit Beeren …" + blinkender pine-Cursor — <b>kein Plus-Button</b></dd>
+          <dt>Container</dt><dd>dashed rule border statt solid — signalisiert „leer aber bereit"</dd>
+        </dl>
+      </div>
+      <div class="spec-card">
+        <div class="name">Verlauf (leer)</div>
+        <div class="id">empty.history</div>
+        <dl>
+          <dt>Hero</dt><dd>88×88 pt rounded square · IcJournal 48 pt</dd>
+          <dt>Headline</dt><dd>„Der Verlauf beginnt heute."</dd>
+          <dt>Ghost Chart</dt><dd>7-Tage-Balken in <span style="color:#847E72">surfLow</span> ohne Werte — gibt visuellen Rhythmus, ohne Filler-Daten zu erfinden</dd>
+        </dl>
+      </div>
+      <div class="spec-card">
+        <div class="name">Favoriten (leer)</div>
+        <div class="id">empty.favorites</div>
+        <dl>
+          <dt>Hero</dt><dd>amber Stern <b>outline</b> (1.7 pt stroke) — Favoriten sind systemweit immer outline-amber</dd>
+          <dt>Body</dt><dd>„Tippe in einer Mahlzeit auf den Stern …"</dd>
+          <dt>Gesture</dt><dd>Ein Beispiel-Mahlzeit-Row mit hellem Stern direkt darunter zeigt die Geste in-line</dd>
+        </dl>
+      </div>
+      <div class="spec-card">
+        <div class="name">Food Safety (alles ok)</div>
+        <div class="id">empty.safety</div>
+        <dl>
+          <dt>Hero</dt><dd>IcFoodSafety <b>in plum + amber</b> · gleiche Form wie Warn-Variante, nur Status anders</dd>
+          <dt>Headline</dt><dd>„Alles unauffällig."</dd>
+          <dt>Status-Liste</dt><dd>letzte 3 Checks mit moss-Punkt links · BfR-Quelle als Mono-Eyebrow oben</dd>
+        </dl>
+      </div>
+    </div>
+
+    <h3>Icons · Implementation</h3>
+    <p>
+      Alle 8 Icons sind als <b>SVG-Source</b> im <span class="mono" style="font-size:13px">handoff/icons/svg/</span> Ordner. Base-Größe ist <b>24px</b>, skaliert sauber auf 48 / 72 (2× / 3×). PNG-Export folgt auf Approval — sag mir, falls sich noch Geometrien ändern sollen.
+    </p>
+
+    <div class="codeblock"><span class="c">// Naming · pubspec.yaml asset map · alle Icons in einem Ordner</span>
+<span class="k">assets:</span>
+  - assets/icons/ic_nm_pregnancy.svg
+  - assets/icons/ic_nm_nursing.svg
+  - assets/icons/ic_nm_pumping.svg
+  - assets/icons/ic_nm_multiples.svg
+  - assets/icons/ic_nm_meal.svg
+  - assets/icons/ic_nm_food_safety.svg
+  - assets/icons/ic_nm_coach.svg
+  - assets/icons/ic_nm_journal.svg
+
+<span class="c">// Render mit flutter_svg · token IDs statt Hex</span>
+SvgPicture.asset(
+  <span class="s">'assets/icons/ic_nm_pregnancy.svg'</span>,
+  width: <span class="s">24</span>,
+  colorFilter: ColorFilter.mode(NMColors.pine, BlendMode.srcIn),
+);</div>
+
+    <h3>Was offen ist · vor Iteration 2</h3>
+    <ul class="checklist">
+      <li><b>Schreibweise „Tagesziel".</b> Aktuell deutsche Schreibweise mit Punkt (2.880 kcal). Falls ihr im Code lieber Komma-getrennt rendert, sag Bescheid.</li>
+      <li><b>Aktivitätslevel-Multiplikatoren.</b> Ich habe 1.2 / 1.4 / 1.6 / 1.8 angesetzt — DGE-Standard. Falls eure Berechnung andere Faktoren nutzt, ist es ein 4-Zeilen-Tausch.</li>
+      <li><b>Multi-State-Default.</b> Phase-Screen zeigt 2 Cards selected (schwanger + stillend) als Demo. Im echten Flow sind alle initial leer.</li>
+      <li><b>Food Safety Logo-Variante.</b> Plum-Diamond → falls du lieber den Bowl-Stil ohne Diamant willst (z.B. pine Halbscheibe + plum Sonne als "warnte" Variante), bau ich's um.</li>
+      <li><b>PNG-Export.</b> Nach deinem Approval rendere ich die 8 SVGs auf 24 / 48 / 72 px aus + lege sie als <span class="mono" style="font-size:13px">handoff/icons/png/{name}@{1,2,3}x.png</span> ab.</li>
+    </ul>
+  </section>
+
+  <div class="footer">
+    <div>NourishMe · Field Manual · TestFlight 1.1</div>
+    <div>v1 · 20.05.2026</div>
+  </div>
+
+<!-- React + Babel pinned -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="starters/design-canvas.jsx"></script>
+<script type="text/babel" src="starters/ios-frame.jsx"></script>
+
+<script type="text/babel" src="nm_icons.jsx"></script>
+<script type="text/babel" src="nm_onboarding_base.jsx"></script>
+<script type="text/babel" src="nm_ob_1_welcome.jsx"></script>
+<script type="text/babel" src="nm_ob_2_phase.jsx"></script>
+<script type="text/babel" src="nm_ob_3_stats.jsx"></script>
+<script type="text/babel" src="nm_ob_4_children.jsx"></script>
+<script type="text/babel" src="nm_ob_5_confirm.jsx"></script>
+<script type="text/babel" src="nm_empty_states.jsx"></script>
+<script type="text/babel" src="nm_icon_legend.jsx"></script>
+<script type="text/babel" src="nm_canvas.jsx"></script>
+
+<script type="text/babel">
+  const root = ReactDOM.createRoot(document.getElementById('canvas-root'));
+  root.render(<NMTestFlightCanvas/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+/* NourishMe — brand tokens (Field Manual palette) */
+:root {
+  /* Surfaces */
+  --paper:      #F4EFE6;
+  --paper-hi:   #FBF7EF;
+  --paper-lo:   #EAE2D2;
+  --paper-deep: #DDD3BD;
+
+  /* Text */
+  --ink:        #1F1B16;
+  --ink-soft:   #4F4A41;
+  --ink-mute:   #847E72;
+
+  /* Brand */
+  --pine:       #1E4A45;
+  --pine-deep:  #0F2D2A;
+  --amber:      #C8884A;
+  --amber-warm: #D89A5B;
+
+  /* Functional */
+  --rust:       #9C4623;
+  --moss:       #4B5A47;
+  --plum:       #6B4554;
+
+  /* Lines */
+  --rule:       #D5CEC0;
+
+  /* Typography */
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+}

@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NourishMe — Ernährung, die mitrechnet.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600;1,6..72,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:      #F4EFE6;
+    --paper-hi:   #FBF7EF;
+    --paper-lo:   #EAE2D2;
+    --paper-deep: #DDD3BD;
+    --ink:        #1F1B16;
+    --ink-soft:   #4F4A41;
+    --ink-mute:   #847E72;
+    --pine:       #1E4A45;
+    --pine-deep:  #0F2D2A;
+    --pine-soft:  #C6E2DC;
+    --amber:      #C8884A;
+    --amber-warm: #D89A5B;
+    --amber-soft: #FFE0B8;
+    --rust:       #9C4623;
+    --moss:       #4B5A47;
+    --plum:       #6B4554;
+    --plum-soft:  #F4D9E3;
+    --rule:       #D5CEC0;
+    --serif: "Newsreader", Georgia, serif;
+    --mono:  "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); }
+  body {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--pine); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+  .wrap-narrow { max-width: 760px; margin: 0 auto; padding: 0 32px; }
+
+  /* ─────────── Type ─────────── */
+  .mono {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--ink-mute);
+  }
+  .display {
+    font-family: var(--serif);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+    color: var(--ink);
+    margin: 0;
+  }
+  .display em { font-style: italic; font-weight: 600; }
+  .section-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 32px;
+    letter-spacing: -0.012em;
+    line-height: 1.15;
+    color: var(--ink);
+    margin: 0;
+  }
+  .section-title em { font-style: italic; font-weight: 600; }
+  .lede {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* ─────────── Top bar ─────────── */
+  .topbar {
+    border-bottom: 0.5px solid var(--rule);
+    background: var(--paper);
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(8px);
+  }
+  .topbar-inner {
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 32px;
+    max-width: 1180px; margin: 0 auto;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--serif);
+    font-style: italic; font-weight: 700;
+    font-size: 22px; color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .brand svg { display: block; }
+  .topbar-spacer { flex: 1; }
+  .topbar a.nav { color: var(--ink-soft); font-size: 15px; }
+  .topbar a.nav:hover { color: var(--ink); text-decoration: none; }
+
+  /* ─────────── Buttons ─────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-family: var(--serif);
+    font-size: 16px; font-weight: 600;
+    border: 1.5px solid var(--pine);
+    background: var(--pine); color: var(--paper-hi);
+    cursor: pointer;
+    transition: transform .12s ease, background .12s ease;
+    text-decoration: none;
+  }
+  .btn:hover { background: var(--pine-deep); border-color: var(--pine-deep); text-decoration: none; }
+  .btn.ghost {
+    background: transparent; color: var(--pine); border-color: transparent;
+    padding-left: 8px; padding-right: 8px;
+  }
+  .btn.ghost:hover { background: transparent; color: var(--pine-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ─────────── Hero ─────────── */
+  .hero {
+    padding: 56px 0 72px;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-bottom: 22px;
+  }
+  .hero-eyebrow .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--amber);
+  }
+  .hero h1.display {
+    font-size: clamp(40px, 5.4vw, 64px);
+  }
+  .hero-sub {
+    margin: 22px 0 32px;
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 540px;
+  }
+  .hero-cta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .hero-meta {
+    margin-top: 28px;
+    display: flex; gap: 28px;
+    color: var(--ink-mute);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .hero-meta .item { display: flex; align-items: center; gap: 8px; }
+  .hero-meta .check {
+    color: var(--moss); font-weight: 600;
+  }
+
+  /* App mockup container */
+  .mockup-stage {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px;
+  }
+  .mockup-stage::before {
+    content: "";
+    position: absolute; inset: -20px -10px -20px -10px;
+    background: radial-gradient(60% 70% at 50% 50%, rgba(30,74,69,0.06), rgba(30,74,69,0));
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ─────────── Mini-screen (CSS-recreated Tagebuch) ─────────── */
+  .screen {
+    width: 360px;
+    background: var(--paper);
+    border-radius: 32px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.6) inset,
+      0 24px 48px -16px rgba(15,45,42,0.22),
+      0 6px 14px -6px rgba(15,45,42,0.18),
+      0 0 0 1px rgba(31,27,22,0.06);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    font-size: 14px;
+  }
+  .screen-bar {
+    background: var(--paper-hi);
+    padding: 18px 18px 14px;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .screen-bar-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .screen-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    line-height: 1;
+  }
+  .screen-kcal-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .screen-kcal {
+    font-weight: 700; font-size: 15px; color: var(--moss);
+    letter-spacing: -0.01em;
+  }
+  .screen-kcal-sub {
+    font-size: 12.5px; color: var(--ink-mute); margin-top: 2px;
+  }
+  .screen-macros {
+    display: flex; flex-direction: column; gap: 2px;
+    text-align: right; font-size: 12px; color: var(--ink-mute);
+  }
+  .screen-macros b { color: var(--moss); font-weight: 600; }
+  .screen-progress {
+    margin-top: 10px; height: 4px;
+    background: var(--paper-deep); border-radius: 2px; overflow: hidden;
+  }
+  .screen-progress span {
+    display: block; height: 100%; background: var(--moss); width: 52%;
+  }
+  .screen-body {
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .screen-sep {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--ink-mute); font-family: var(--serif); font-style: italic;
+    font-size: 13px;
+    margin: 4px 0 2px;
+  }
+  .screen-sep::before, .screen-sep::after {
+    content: ""; flex: 1; height: 0.5px; background: var(--rule);
+  }
+  .meal {
+    background: var(--paper-lo);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; align-items: center;
+  }
+  .meal-text { flex: 1; min-width: 0; }
+  .meal-name { font-size: 14.5px; color: var(--ink); font-weight: 500; }
+  .meal-time { font-size: 12px; color: var(--ink-mute); margin-top: 1px; }
+  .meal-kcal { font-size: 13.5px; color: var(--ink); font-weight: 600; }
+  .coach {
+    background: var(--amber-soft);
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex; gap: 10px; align-items: flex-start;
+    color: #2A1900;
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .coach .coach-mark {
+    flex-shrink: 0;
+  }
+  .coach b { font-weight: 600; }
+
+  /* ─────────── Trust strip ─────────── */
+  .trust {
+    padding: 24px 0;
+    border-bottom: 0.5px solid var(--rule);
+    background: var(--paper-hi);
+  }
+  .trust-inner {
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+    justify-content: center;
+    color: var(--ink-mute);
+  }
+  .trust .label { color: var(--ink-soft); }
+  .trust .source {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em;
+    text-transform: uppercase; font-weight: 500; color: var(--ink-soft);
+  }
+  .trust .sep { color: var(--paper-deep); }
+
+  /* ─────────── USPs ─────────── */
+  .usps {
+    padding: 96px 0 72px;
+  }
+  .usp-head { text-align: center; margin-bottom: 56px; }
+  .usp-head .eyebrow { display: block; margin-bottom: 12px; }
+  .usp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 0.5px solid var(--rule);
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .usp {
+    padding: 36px 28px 32px;
+    border-right: 0.5px solid var(--rule);
+    display: flex; flex-direction: column; gap: 14px;
+    position: relative;
+  }
+  .usp:last-child { border-right: none; }
+  .usp-num {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em;
+    color: var(--amber); font-weight: 500;
+  }
+  .usp-title {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 22px; line-height: 1.2; color: var(--ink);
+    margin: 0; letter-spacing: -0.005em;
+  }
+  .usp-title em { font-style: italic; font-weight: 600; }
+  .usp-body {
+    color: var(--ink-soft); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  .usp-example {
+    margin-top: auto;
+    padding: 14px 16px;
+    background: var(--paper-hi);
+    border: 0.5px solid var(--rule);
+    border-radius: 10px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px; color: var(--ink-soft); line-height: 1.45;
+  }
+  .usp-example b { font-style: normal; font-weight: 600; color: var(--ink); }
+
+  /* ─────────── Audience selector ─────────── */
+  .audience {
+    padding: 96px 0;
+    background: var(--paper-hi);
+    border-top: 0.5px solid var(--rule);
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .audience-head { text-align: center; margin-bottom: 44px; }
+  .audience-head .lede { margin: 16px auto 0; max-width: 560px; }
+  .selector {
+    max-width: 820px; margin: 0 auto;
+    background: var(--paper);
+    border: 0.5px solid var(--rule);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .selector-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .selector-row:last-of-type { border-bottom: none; }
+  .selector-label {
+    padding: 18px 22px;
+    background: var(--paper-hi);
+    border-right: 0.5px solid var(--rule);
+    font-family: var(--serif); font-style: italic; color: var(--ink-soft);
+    font-size: 16px;
+    display: flex; align-items: center;
+  }
+  .selector-options {
+    padding: 14px 18px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .chip {
+    appearance: none; cursor: pointer;
+    padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--paper-hi);
+    font-family: var(--serif); font-size: 15px; color: var(--ink-soft);
+    transition: all .15s ease;
+  }
+  .chip:hover { border-color: var(--ink-mute); color: var(--ink); }
+  .chip[aria-pressed="true"] {
+    background: var(--pine); color: var(--paper-hi); border-color: var(--pine);
+  }
+  .selector-output {
+    padding: 26px 28px 28px;
+    background: var(--paper);
+    border-top: 0.5px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 18px 32px;
+    align-items: start;
+  }
+  .selector-output-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-mute); margin-bottom: 8px;
+  }
+  .selector-output-headline {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 22px; line-height: 1.25; color: var(--ink);
+    letter-spacing: -0.005em; margin: 0 0 10px;
+  }
+  .selector-output-headline em { font-style: italic; font-weight: 600; color: var(--pine); }
+  .selector-output-body {
+    color: var(--ink-soft); font-size: 16px; line-height: 1.5; margin: 0;
+  }
+  .selector-output-numbers {
+    text-align: right;
+    border-left: 0.5px solid var(--rule);
+    padding-left: 28px;
+    min-width: 160px;
+  }
+  .selector-output-numbers .num {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 30px; color: var(--pine); letter-spacing: -0.02em;
+    line-height: 1; display: block;
+  }
+  .selector-output-numbers .num-label {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-mute); margin-top: 6px;
+    display: block;
+  }
+  .selector-output-numbers .row + .row { margin-top: 16px; }
+
+  /* ─────────── How it works ─────────── */
+  .how {
+    padding: 96px 0 88px;
+  }
+  .how-head { text-align: center; margin-bottom: 56px; }
+  .how-steps {
+    max-width: 720px; margin: 0 auto;
+    display: flex; flex-direction: column;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 24px;
+    padding: 26px 0;
+    border-top: 0.5px solid var(--rule);
+  }
+  .step:last-child { border-bottom: 0.5px solid var(--rule); }
+  .step-num {
+    font-family: var(--serif); font-style: italic; font-weight: 600;
+    font-size: 36px; color: var(--amber); line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .step-title {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 19px; color: var(--ink); margin: 0 0 6px;
+    letter-spacing: -0.005em;
+  }
+  .step-body {
+    color: var(--ink-soft); font-size: 16px; line-height: 1.5; margin: 0;
+  }
+
+  /* ─────────── Story ─────────── */
+  .story {
+    padding: 96px 0;
+    background: var(--paper-hi);
+    border-top: 0.5px solid var(--rule);
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .story-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 48px;
+    align-items: start;
+    max-width: 880px; margin: 0 auto;
+  }
+  .story-photo {
+    width: 240px; height: 300px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--paper-lo);
+    box-shadow: 0 8px 24px -10px rgba(15,45,42,0.18);
+  }
+  .story-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .story-content .mono { display: block; margin-bottom: 12px; }
+  .story-content h2 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 28px; line-height: 1.2; color: var(--ink);
+    letter-spacing: -0.01em; margin: 0 0 18px;
+  }
+  .story-content h2 em { font-style: italic; }
+  .story-content p {
+    color: var(--ink-soft); font-size: 17px; line-height: 1.55; margin: 0 0 14px;
+  }
+  .story-content p:last-child { margin-bottom: 0; }
+  .story-sign {
+    margin-top: 18px;
+    font-family: var(--serif); font-style: italic;
+    color: var(--ink-soft); font-size: 16px;
+  }
+
+  /* ─────────── Wissenschaftliche Basis ─────────── */
+  .basis {
+    padding: 96px 0 80px;
+  }
+  .basis-head { text-align: center; margin-bottom: 44px; }
+  .basis-list {
+    max-width: 720px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 32px;
+    padding: 0;
+    list-style: none;
+  }
+  .basis-list li {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 10px;
+    color: var(--ink-soft);
+    font-size: 16px;
+    padding: 6px 0;
+  }
+  .basis-list li::before {
+    content: "✓"; color: var(--moss); font-weight: 700;
+  }
+  .basis-list li b { color: var(--ink); font-weight: 600; }
+  .disclaimer {
+    max-width: 720px; margin: 32px auto 0;
+    padding: 18px 22px;
+    background: var(--paper-hi);
+    border: 0.5px solid var(--rule);
+    border-radius: 10px;
+    font-size: 14.5px; color: var(--ink-mute); line-height: 1.5;
+    font-family: var(--serif); font-style: italic;
+    text-align: center;
+  }
+
+  /* ─────────── Beta CTA ─────────── */
+  .beta {
+    padding: 96px 0;
+    background: var(--pine);
+    color: var(--paper-hi);
+    text-align: center;
+  }
+  .beta .mono { color: rgba(255,255,255,0.6); margin-bottom: 18px; display: block; }
+  .beta h2 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 40px; line-height: 1.1; color: var(--paper-hi);
+    letter-spacing: -0.015em; margin: 0 0 18px;
+  }
+  .beta h2 em { font-style: italic; }
+  .beta p {
+    max-width: 540px; margin: 0 auto 32px;
+    font-size: 18px; line-height: 1.55;
+    color: rgba(244,239,230,0.85);
+  }
+  .beta .btn {
+    background: var(--paper-hi); color: var(--pine);
+    border-color: var(--paper-hi);
+    padding: 14px 26px; font-size: 17px;
+  }
+  .beta .btn:hover { background: #fff; border-color: #fff; }
+  .beta-foot {
+    margin-top: 32px;
+    font-size: 14.5px;
+    color: rgba(244,239,230,0.65);
+    line-height: 1.6;
+  }
+
+  /* ─────────── Footer ─────────── */
+  footer {
+    padding: 36px 0 44px;
+    background: var(--paper);
+    color: var(--ink-mute);
+    font-size: 14px;
+  }
+  .footer-inner {
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .footer-inner a { color: var(--ink-soft); }
+  .footer-inner .sep-dot { color: var(--paper-deep); }
+  .footer-inner .grow { flex: 1; }
+
+  /* ─────────── Layout responsive ─────────── */
+  @media (max-width: 880px) {
+    .hero { padding: 36px 0 48px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+    .mockup-stage { order: -1; }
+    .screen { width: min(340px, 86vw); }
+    .section-title { font-size: 26px; }
+    .topbar-inner { padding: 14px 20px; }
+    .wrap, .wrap-narrow { padding: 0 20px; }
+    .usps, .audience, .how, .story, .basis, .beta { padding-top: 64px; padding-bottom: 60px; }
+    .usp-grid { grid-template-columns: 1fr; }
+    .usp { border-right: none; border-bottom: 0.5px solid var(--rule); }
+    .usp:last-child { border-bottom: none; }
+    .selector-row { grid-template-columns: 1fr; }
+    .selector-label { border-right: none; border-bottom: 0.5px solid var(--rule); padding: 14px 18px 6px; }
+    .selector-output { grid-template-columns: 1fr; }
+    .selector-output-numbers { border-left: none; border-top: 0.5px solid var(--rule); padding-left: 0; padding-top: 18px; text-align: left; }
+    .story-grid { grid-template-columns: 1fr; gap: 28px; }
+    .story-photo { width: 180px; height: 220px; }
+    .basis-list { grid-template-columns: 1fr; }
+    .beta h2 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─────────── Top bar ─────────── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#" class="brand" aria-label="NourishMe">
+      <svg width="28" height="28" viewBox="0 0 1024 1024" aria-hidden="true">
+        <rect width="1024" height="1024" rx="220" fill="#1E4A45"/>
+        <circle cx="440" cy="600" r="280" fill="#FAF6EE"/>
+        <circle cx="760" cy="360" r="130" fill="#E0A258"/>
+      </svg>
+      NourishMe
+    </a>
+    <div class="topbar-spacer"></div>
+    <a href="#wie" class="nav">So funktioniert es</a>
+    <a href="#beta" class="btn">Beta-Zugang</a>
+  </div>
+</header>
+
+<!-- ─────────── Hero ─────────── -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="hero-eyebrow">
+        <span class="dot"></span>
+        <span class="mono">Beta · Juni 2026 · TestFlight</span>
+      </div>
+      <h1 class="display">Ernährung,<br><em>die mitrechnet.</em></h1>
+      <p class="hero-sub">
+        NourishMe sagt dir nach jeder Mahlzeit live, was du und dein Nachwuchs jetzt noch brauchen — wissenschaftlich basiert, angepasst an deine Phase. Schwangerschaft, Stillzeit und alles dazwischen.
+      </p>
+      <div class="hero-cta">
+        <a href="#beta" class="btn">Beta-Zugang anfordern</a>
+        <a href="#wie" class="btn ghost">So funktioniert es →</a>
+      </div>
+      <div class="hero-meta">
+        <span class="item"><span class="check">✓</span> Keine Konto-Pflicht</span>
+        <span class="item"><span class="check">✓</span> Daten lokal auf dem Gerät</span>
+        <span class="item"><span class="check">✓</span> Auf Deutsch</span>
+      </div>
+    </div>
+
+    <div class="mockup-stage">
+      <div class="screen" role="img" aria-label="Vorschau der NourishMe App: Tagebuch-Screen mit Tagesziel und Coach-Antwort">
+        <div class="screen-bar">
+          <div class="screen-bar-top">
+            <div class="screen-title">Heute<span style="color: var(--ink-mute); font-style: normal; font-weight: 400; font-size: 18px;">  ⌄</span></div>
+            <div style="width: 22px; height: 22px; border: 1.5px solid var(--pine); border-radius: 50%; opacity: 0.55;"></div>
+          </div>
+          <div class="screen-kcal-row">
+            <div>
+              <div class="screen-kcal">1.247 / 2.400 kcal</div>
+              <div class="screen-kcal-sub">Noch 1.153 kcal</div>
+            </div>
+            <div class="screen-macros">
+              <div>P&nbsp;<b>58 g</b></div>
+              <div>KH&nbsp;<b>142 g</b></div>
+              <div>F&nbsp;<b>42 g</b></div>
+            </div>
+          </div>
+          <div class="screen-progress"><span></span></div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-sep">Heute</div>
+          <div class="meal">
+            <div class="meal-text">
+              <div class="meal-name">Müsli mit Joghurt &amp; Beeren</div>
+              <div class="meal-time">08:24</div>
+            </div>
+            <div class="meal-kcal">380 kcal</div>
+          </div>
+          <div class="coach">
+            <svg class="coach-mark" width="18" height="18" viewBox="0 0 1024 1024" aria-hidden="true">
+              <rect width="1024" height="1024" rx="220" fill="#1E4A45"/>
+              <circle cx="440" cy="600" r="280" fill="#FAF6EE"/>
+              <circle cx="760" cy="360" r="130" fill="#E0A258"/>
+            </svg>
+            <div>Dir fehlen heute noch 30&nbsp;g Protein und 250&nbsp;mg Calcium. Eine Lachs-Bowl mittags wäre passend.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Trust strip ─────────── -->
+<section class="trust">
+  <div class="wrap trust-inner">
+    <span class="mono label">Quellen</span>
+    <span class="source">DGE 2025</span><span class="sep">·</span>
+    <span class="source">BfR</span><span class="sep">·</span>
+    <span class="source">EFSA</span><span class="sep">·</span>
+    <span class="source">LactMed / NIH</span><span class="sep">·</span>
+    <span class="source">FDA / EPA</span><span class="sep">·</span>
+    <span class="source">WHO</span>
+  </div>
+</section>
+
+<!-- ─────────── USPs ─────────── -->
+<section class="usps">
+  <div class="wrap">
+    <div class="usp-head">
+      <span class="mono eyebrow">Drei Dinge, die wirklich anders sind</span>
+      <h2 class="section-title">Eine App, die für <em>deine Phase</em> rechnet.</h2>
+    </div>
+    <div class="usp-grid">
+      <div class="usp">
+        <span class="usp-num">01</span>
+        <h3 class="usp-title">Versorgung in <em>Echtzeit</em></h3>
+        <p class="usp-body">
+          Nach jeder Mahlzeit sagt NourishMe live, was du und dein Nachwuchs noch braucht. Ein Tap, eine konkrete Empfehlung. Kein Tagesplan, kein Googeln.
+        </p>
+        <div class="usp-example">
+          „Dir fehlen noch <b>30&nbsp;g Protein</b> und <b>250&nbsp;mg Calcium</b>. Eine Lachs-Bowl mittags wäre passend."
+        </div>
+      </div>
+      <div class="usp">
+        <span class="usp-num">02</span>
+        <h3 class="usp-title">Wissenschaft offen, <em>Daten bei dir</em></h3>
+        <p class="usp-body">
+          Jede Empfehlung führt zurück auf DGE, BfR, EFSA, LactMed, FDA/EPA und WHO. Tippe auf jede Zahl, sieh die Quelle. Daten bleiben lokal — kein Konto, kein Cloud-Sync.
+        </p>
+        <div class="usp-example">
+          „<b>Koffein in der Stillzeit:</b> max. 200&nbsp;mg/Tag <span style="opacity:.6">— BfR-Empfehlung 2024</span>"
+        </div>
+      </div>
+      <div class="usp">
+        <span class="usp-num">03</span>
+        <h3 class="usp-title">Auf dich gerechnet, <em>nicht pauschal</em></h3>
+        <p class="usp-body">
+          Jedes Trimester, exklusives oder gemischtes Stillen, abgepumptes Volumen, Anzahl der Kinder — NourishMe rechnet aus deinen tatsächlichen Daten, nicht aus einer Tabelle.
+        </p>
+        <div class="usp-example">
+          Statt pauschal „+500&nbsp;kcal in der Stillzeit": <b>dein</b> Bedarf, aus <b>deinen</b> Werten.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Audience selector (interactive) ─────────── -->
+<section class="audience">
+  <div class="wrap">
+    <div class="audience-head">
+      <span class="mono">Für welche Situation rechnet die App?</span>
+      <h2 class="section-title" style="margin-top:12px;">Wähle <em>deine Konstellation</em>.</h2>
+      <p class="lede">NourishMe deckt jede Phase ab — und kombiniert sie, wenn sich Phasen überschneiden.</p>
+    </div>
+
+    <div class="selector" id="selector">
+      <div class="selector-row">
+        <div class="selector-label">Du bist gerade…</div>
+        <div class="selector-options" role="group" aria-label="Phase">
+          <button class="chip" data-axis="phase" data-value="schwanger">schwanger</button>
+          <button class="chip" data-axis="phase" data-value="stillend" aria-pressed="true">stillend</button>
+          <button class="chip" data-axis="phase" data-value="pumpend">pumpend</button>
+          <button class="chip" data-axis="phase" data-value="gemischt">stillen + pumpen</button>
+        </div>
+      </div>
+      <div class="selector-row">
+        <div class="selector-label">…und versorgst</div>
+        <div class="selector-options" role="group" aria-label="Anzahl Kinder">
+          <button class="chip" data-axis="count" data-value="einling" aria-pressed="true">ein Kind</button>
+          <button class="chip" data-axis="count" data-value="mehrlinge">mehrere</button>
+        </div>
+      </div>
+      <div class="selector-output" id="selector-output">
+        <div>
+          <div class="selector-output-label">Was NourishMe für dich rechnet</div>
+          <h3 class="selector-output-headline" id="out-headline">Stillzeit, ein Kind, exklusiv</h3>
+          <p class="selector-output-body" id="out-body">
+            Energiebedarf wird über das tatsächlich gestillte Volumen berechnet — nicht über die pauschale Annahme „+500 kcal". Protein- und Mikronährstoff-Bedarf folgen der DGE-Stillzeit-Empfehlung. Listerien-, Quecksilber- und Koffein-Warnungen sind aktiv.
+          </p>
+        </div>
+        <div class="selector-output-numbers">
+          <div class="row">
+            <span class="num" id="out-kcal">+580</span>
+            <span class="num-label">kcal Mehrbedarf / Tag</span>
+          </div>
+          <div class="row">
+            <span class="num" id="out-protein">+15</span>
+            <span class="num-label">g Protein extra</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── How it works ─────────── -->
+<section class="how" id="wie">
+  <div class="wrap">
+    <div class="how-head">
+      <span class="mono">In 3 Minuten startklar</span>
+      <h2 class="section-title" style="margin-top:12px;">So funktioniert es.</h2>
+    </div>
+    <ol class="how-steps" style="list-style:none; padding:0; margin:0;">
+      <li class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h3 class="step-title">Drei Minuten Onboarding</h3>
+          <p class="step-body">Phase, Trimester, Größe, Gewicht, Aktivität, Anzahl Kinder, geschätztes Milchvolumen. NourishMe rechnet daraus Energie- und Makro-Bedarf.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h3 class="step-title">Mahlzeit loggen per Text oder Foto</h3>
+          <p class="step-body">„Müsli mit Joghurt, eine Schüssel." Fertig. Bei Bildern werden Inhalt und Portionsgröße automatisch erkannt.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h3 class="step-title">Sofort ein Coach-Hinweis</h3>
+          <p class="step-body">Pro Mahlzeit ein konkreter Vorschlag für die nächste, basierend auf deinem heutigen Stand und Tagesziel.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">4</div>
+        <div>
+          <h3 class="step-title">Food-Safety eingebaut</h3>
+          <p class="step-body">Koffein, Alkohol-Wartezeiten, Quecksilberfisch, Listerien — alles aus offiziellen Quellen, ohne dass du suchen musst.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ─────────── Story (Vanessa) ─────────── -->
+<section class="story">
+  <div class="wrap">
+    <div class="story-grid">
+      <div class="story-photo">
+        <img src="vanessa-portrait.jpg" alt="Vanessa, Gründerin von NourishMe">
+      </div>
+      <div class="story-content">
+        <span class="mono">Warum es NourishMe gibt</span>
+        <h2>Schwangerschafts- und Stillzeit-Ernährung ist ein <em>Versorgungs­thema</em> — kein Diätthema.</h2>
+        <p>
+          Ab dem ersten Trimester war mir klar: ich versorge jetzt mehr als nur mich. Jeder Nährstoff geht erst an den Nachwuchs — über die Plazenta, später über die Milch. Ich muss selbst gut versorgt sein, damit das ganze System läuft.
+        </p>
+        <p>
+          Was es gab: Apps fürs Abnehmen. Apps für Schwangere, die am Tag der Geburt endeten. Apps für Stillende, die pauschal +500 kcal rechneten — egal ob ein Kind oder Zwillinge. Was es brauchte: eine App, die live mitrechnet, was wir gerade brauchen. Auf Basis von DGE, BfR, EFSA und LactMed.
+        </p>
+        <div class="story-sign">— Vanessa, Mama von Leo und Carl</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Wissenschaftliche Basis ─────────── -->
+<section class="basis">
+  <div class="wrap">
+    <div class="basis-head">
+      <span class="mono">Wissenschaftliche Basis</span>
+      <h2 class="section-title" style="margin-top:12px;">Alle Werte aus offiziellen <em>Quellen</em>.</h2>
+    </div>
+    <ul class="basis-list">
+      <li><span><b>DGE 2025</b> — Deutsche Gesellschaft für Ernährung</span></li>
+      <li><span><b>BfR</b> — Bundesinstitut für Risikobewertung</span></li>
+      <li><span><b>EFSA</b> — European Food Safety Authority</span></li>
+      <li><span><b>LactMed</b> — National Institutes of Health</span></li>
+      <li><span><b>FDA / EPA</b> — U.S. Food and Drug Administration</span></li>
+      <li><span><b>WHO</b> — Antenatal Care Guidelines</span></li>
+    </ul>
+    <p class="disclaimer">
+      NourishMe ist kein medizinisches Produkt und ersetzt keine ärztliche oder hebammenbasierte Beratung. Bei medizinischen Fragen wende dich an deine Ärztin oder Hebamme.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── Beta CTA ─────────── -->
+<section class="beta" id="beta">
+  <div class="wrap-narrow">
+    <span class="mono">Beta · Juni 2026 · TestFlight</span>
+    <h2>Beta-Zugang <em>anfordern</em>.</h2>
+    <p>
+      NourishMe ist in TestFlight-Beta. Egal in welcher Phase oder Konstellation du gerade bist — wenn du Lust hast zu testen, melde dich.
+    </p>
+    <a href="mailto:vanessa.heizmann5@gmail.com?subject=Beta-Zugang%20NourishMe" class="btn">Für die Beta anmelden</a>
+    <div class="beta-foot">
+      Du bekommst eine Einladung per E-Mail, sobald die Beta live ist. Kein Spam, kein Newsletter — nur die Einladung und gelegentlich eine Bitte um Feedback.<br>
+      PS: Die App startet auf Deutsch. Englische Version folgt in den nächsten Wochen.
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Footer ─────────── -->
+<footer>
+  <div class="wrap footer-inner">
+    <span class="grow">© 2026 Vanessa · <a href="mailto:vanessa.heizmann5@gmail.com">vanessa.heizmann5@gmail.com</a></span>
+    <a href="#">Datenschutz</a>
+    <span class="sep-dot">·</span>
+    <a href="#">Privacy Policy (EN)</a>
+    <span class="sep-dot">·</span>
+    <a href="#">Support</a>
+    <span class="sep-dot">·</span>
+    <a href="#">Impressum</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // Selector data
+  const data = {
+    schwanger: {
+      einling: {
+        headline: "Schwangerschaft, ein Kind",
+        body: "Bedarf passt sich pro Trimester an: im 1. Trimester kaum mehr, im 2. ca. +250 kcal, im 3. ca. +500 kcal. Erhöhter Folsäure-, Eisen- und Jod-Bedarf wird verfolgt. Quecksilberfisch, Listerien (Rohmilchkäse, Räucherlachs) und Alkohol-Warnungen sind aktiv.",
+        kcal: "+250", kcalLabel: "kcal Mehrbedarf (2. Trim.)",
+        protein: "+9", proteinLabel: "g Protein extra"
+      },
+      mehrlinge: {
+        headline: "Schwangerschaft, Mehrlinge",
+        body: "Mehrbedarf wird ab dem 2. Trimester für jeden weiteren Fötus zusätzlich gerechnet. Protein-, Eisen- und Folsäure-Bedarf entsprechend höher. Same Food-Safety-Warnungen wie bei Einlingen.",
+        kcal: "+450", kcalLabel: "kcal Mehrbedarf (2. Trim.)",
+        protein: "+18", proteinLabel: "g Protein extra"
+      }
+    },
+    stillend: {
+      einling: {
+        headline: "Stillzeit, ein Kind, exklusiv",
+        body: "Energiebedarf wird über das tatsächlich gestillte Volumen berechnet — nicht über die pauschale Annahme von +500 kcal. Protein- und Mikronährstoff-Bedarf folgen der DGE-Stillzeit-Empfehlung. Listerien-, Quecksilber- und Koffein-Warnungen sind aktiv.",
+        kcal: "+580", kcalLabel: "kcal Mehrbedarf / Tag",
+        protein: "+15", proteinLabel: "g Protein extra"
+      },
+      mehrlinge: {
+        headline: "Stillzeit, Mehrlinge, exklusiv",
+        body: "Pro gestilltem Kind wird der Energiebedarf separat gerechnet — für Zwillinge typisch rund +1.260 kcal/Tag statt pauschal +500. Protein- und Calcium-Bedarf entsprechend höher. Medikamenten-Check über LactMed.",
+        kcal: "+1.260", kcalLabel: "kcal Mehrbedarf / Tag",
+        protein: "+30", proteinLabel: "g Protein extra"
+      }
+    },
+    pumpend: {
+      einling: {
+        headline: "Pumpend, ein Kind",
+        body: "Statt einer Schätzung wird dein tatsächliches Tagesvolumen erfasst — exklusives Pumpen ohne Anlegen führt oft zu höherer Milchmenge als angenommen. Energiebedarf passt sich täglich an.",
+        kcal: "+620", kcalLabel: "kcal aus echtem Volumen",
+        protein: "+16", proteinLabel: "g Protein extra"
+      },
+      mehrlinge: {
+        headline: "Pumpend, Mehrlinge",
+        body: "Tagesvolumen wird kumuliert erfasst. Bei exklusivem Pumpen für Zwillinge liegen viele Mütter bei 1.500–2.000 ml/Tag — entsprechend hoher Energie- und Flüssigkeitsbedarf.",
+        kcal: "+1.380", kcalLabel: "kcal aus echtem Volumen",
+        protein: "+34", proteinLabel: "g Protein extra"
+      }
+    },
+    gemischt: {
+      einling: {
+        headline: "Stillen + Pumpen, ein Kind",
+        body: "Mischform aus Anlegen und Abpumpen — NourishMe summiert beides zu einem realistischen Tagesvolumen. Auch Beifütterung mit Pre-Nahrung wird berücksichtigt und vom Mehrbedarf abgezogen.",
+        kcal: "+520", kcalLabel: "kcal aus tatsächl. Volumen",
+        protein: "+14", proteinLabel: "g Protein extra"
+      },
+      mehrlinge: {
+        headline: "Stillen + Pumpen, Mehrlinge",
+        body: "Bei Mehrlingen ist die Mischform die Regel — ein Kind an der Brust, das andere mit abgepumpter Milch oder Beifütterung. NourishMe rechnet pro Kind und pro Quelle. Beifütterung wird vom Mehrbedarf abgezogen.",
+        kcal: "+1.080", kcalLabel: "kcal aus tatsächl. Volumen",
+        protein: "+26", proteinLabel: "g Protein extra"
+      }
+    }
+  };
+
+  const state = { phase: "stillend", count: "einling" };
+
+  function render() {
+    const d = data[state.phase][state.count];
+    document.getElementById("out-headline").textContent = d.headline;
+    document.getElementById("out-body").textContent = d.body;
+    document.getElementById("out-kcal").textContent = d.kcal;
+    document.getElementById("out-protein").textContent = d.protein;
+    document.querySelector("#out-kcal").nextElementSibling.textContent = d.kcalLabel;
+    document.querySelector("#out-protein").nextElementSibling.textContent = d.proteinLabel;
+  }
+
+  document.querySelectorAll(".chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const axis = btn.dataset.axis;
+      const val = btn.dataset.value;
+      state[axis] = val;
+      document.querySelectorAll(`.chip[data-axis="${axis}"]`).forEach(b => {
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      render();
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

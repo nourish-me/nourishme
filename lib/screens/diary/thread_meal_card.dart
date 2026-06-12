@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/meal_entry.dart';
 import '../../utils/number_format.dart';
-import '../../widgets/edit_hint_icon.dart';
 
-// Per-meal row in the diary thread. Tap = edit (acts as a read-only
-// detail-view since the edit sheet shows macros + portion + time), swipe
-// left for edit / duplicate / delete actions.
+// Per-meal row in the diary thread — Time-Ledger layout (phase 3 of the
+// Claude Design diary refactor). NOT a card any more: a flat row with a
+// fixed ~44 px time column on the left (Mono digits), name in the middle,
+// kcal on the right. Rows are separated by a hairline divider; the time
+// column reads top-to-bottom as a single column across the whole day.
+//
+// Tap = edit. Swipe left for edit / duplicate / delete (Slidable). The
+// row keeps the warning-icon button when the meal has safety hints; it
+// sits between the name and kcal so it doesn't push the kcal column off
+// alignment with neighbouring rows.
 
 class ThreadMealCard extends StatelessWidget {
   final MealEntry meal;
@@ -57,36 +64,61 @@ class ThreadMealCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Card(
-        margin: EdgeInsets.zero,
-        elevation: 0,
-        color: scheme.surfaceContainerLow,
-        child: ListTile(
-          // Tap opens the same sheet as the slidable "edit" action so the
-          // full nutrition values and meal time become visible without
-          // committing to changes. Subtitle stays minimal (just time) -
-          // macros are one tap away in the detail sheet.
-          onTap: onEdit,
-          title: Text(meal.summary),
-          subtitle: Text(timeLabel),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (meal.safetyWarnings.isNotEmpty) ...[
-                _WarningIconButton(warnings: meal.safetyWarnings),
-                const SizedBox(width: 4),
-              ],
-              Text(
-                '${formatKcal(meal.kcal)} kcal',
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+      child: InkWell(
+        onTap: onEdit,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: scheme.outlineVariant, width: 0.5),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Fixed ~44 px time column. Mono digits, outline color,
+                // uppercase letter-spacing so the column reads as a
+                // single vertical track when stacked.
+                SizedBox(
+                  width: 44,
+                  child: Text(
+                    timeLabel,
+                    style: GoogleFonts.jetBrainsMono(
+                      textStyle: textTheme.labelSmall?.copyWith(
+                        color: scheme.outline,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              // Trailing edit hint so the user discovers that the whole
-              // row is tappable. Beta feedback: testers thought the meal
-              // title was read-only without this cue.
-              const EditHintIcon(),
-            ],
+                Expanded(
+                  child: Text(
+                    meal.summary,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (meal.safetyWarnings.isNotEmpty) ...[
+                  _WarningIconButton(warnings: meal.safetyWarnings),
+                  const SizedBox(width: 2),
+                ],
+                Text(
+                  '${formatKcal(meal.kcal)} kcal',
+                  style: GoogleFonts.jetBrainsMono(
+                    textStyle: textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
