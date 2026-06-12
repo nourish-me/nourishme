@@ -395,6 +395,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeEmptyDayText => 'No entries';
 
   @override
+  String get homeEmptyDayTextPast => 'Nothing was logged on this day';
+
+  @override
+  String get homeCoachPausedNote => 'Coach is paused for past days';
+
+  @override
   String get homeEmptyDayAdd => 'add';
 
   @override

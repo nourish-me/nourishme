@@ -788,6 +788,18 @@ abstract class AppLocalizations {
   /// **'No entries'**
   String get homeEmptyDayText;
 
+  /// No description provided for @homeEmptyDayTextPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was logged on this day'**
+  String get homeEmptyDayTextPast;
+
+  /// No description provided for @homeCoachPausedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach is paused for past days'**
+  String get homeCoachPausedNote;
+
   /// No description provided for @homeEmptyDayAdd.
   ///
   /// In en, this message translates to:

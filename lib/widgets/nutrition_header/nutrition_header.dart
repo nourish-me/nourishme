@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user_profile_settings.dart';
 import '../../providers/meal_providers.dart';
+import '../../providers/ui_providers.dart';
 import '../../services/calorie_target.dart';
 import '../../services/micronutrient_targets.dart';
 import '../../theme/nourishme_colors.dart';
@@ -54,6 +55,14 @@ class NutritionHeader extends ConsumerWidget {
     final macroTargets = ref.watch(macroTargetsProvider);
     final profile = ref.watch(userProfileProvider).valueOrNull ??
         UserProfileSettings.defaults();
+    // Past day = read-only recap. We drop the target-preview in the
+    // empty kcal/macro/micro states because "{target} kcal Ziel" reads
+    // as "still to eat" for today, which is the wrong frame for a day
+    // that is already over.
+    final focusedDay = ref.watch(focusedDayProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final isPast = focusedDay.isBefore(today);
 
     final totalKcal = meals.fold<int>(0, (s, m) => s + m.kcal);
     final totalProtein =
@@ -83,6 +92,7 @@ class NutritionHeader extends ConsumerWidget {
               totalKcal: totalKcal,
               targetKcal: targetKcal,
               l10n: l10n,
+              isPast: isPast,
               onTap: onMacroTap == null ? null : () => onMacroTap!('kcal'),
             ),
             const SizedBox(height: 7),
@@ -92,6 +102,7 @@ class NutritionHeader extends ConsumerWidget {
               fat: totalFat,
               targets: macroTargets,
               l10n: l10n,
+              isPast: isPast,
               onMacroTap: onMacroTap,
             ),
             if (microKeys.isNotEmpty) ...[
@@ -107,6 +118,7 @@ class NutritionHeader extends ConsumerWidget {
                 meals: meals,
                 profile: profile,
                 locale: locale,
+                isPast: isPast,
                 onMicroTap: onMicroTap,
               ),
             ],
@@ -123,12 +135,15 @@ class _KcalTier extends StatelessWidget {
   final int totalKcal;
   final int targetKcal;
   final AppLocalizations l10n;
+  // Past day → no target-preview; the day reads as a recap, not a goal.
+  final bool isPast;
   final VoidCallback? onTap;
 
   const _KcalTier({
     required this.totalKcal,
     required this.targetKcal,
     required this.l10n,
+    required this.isPast,
     this.onTap,
   });
 
@@ -141,8 +156,9 @@ class _KcalTier extends StatelessWidget {
     // Target-preview mode for the empty state: instead of "0 / 2.100 kcal
     // · 0%" (which reads cold and "sad"), the headline shows the day's
     // goal as the anchor. The bar stays at 0% so the progress meaning
-    // is unchanged; only the label content shifts.
-    final isEmpty = totalKcal == 0;
+    // is unchanged; only the label content shifts. Skipped for past days
+    // where the recap voice ("you ate X") makes more sense than a goal.
+    final isEmpty = totalKcal == 0 && !isPast;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
@@ -230,6 +246,7 @@ class _MacrosRow extends StatelessWidget {
   final double fat;
   final MacroTargets targets;
   final AppLocalizations l10n;
+  final bool isPast;
   final ValueChanged<String>? onMacroTap;
 
   const _MacrosRow({
@@ -238,6 +255,7 @@ class _MacrosRow extends StatelessWidget {
     required this.fat,
     required this.targets,
     required this.l10n,
+    required this.isPast,
     this.onMacroTap,
   });
 
@@ -272,8 +290,9 @@ class _MacrosRow extends StatelessWidget {
     final color = sweetSpotColorFor(status, scheme);
     // Empty-state target preview: when nothing's logged yet for this
     // macro, swap the "0%" pct text for the day's target ("95 g") so
-    // the cell anchors on the goal instead of the deficit.
-    final isEmpty = grams == 0;
+    // the cell anchors on the goal instead of the deficit. Past days
+    // skip the preview - they read as a closed recap, not a goal.
+    final isEmpty = grams == 0 && !isPast;
     return MiniPctCell(
       name: name,
       percent: pct,
@@ -305,6 +324,7 @@ class _MicrosRow extends StatelessWidget {
   final Iterable<dynamic> meals; // MealEntry, but typed loosely to avoid extra import
   final UserProfileSettings profile;
   final String locale;
+  final bool isPast;
   final ValueChanged<String>? onMicroTap;
 
   const _MicrosRow({
@@ -312,6 +332,7 @@ class _MicrosRow extends StatelessWidget {
     required this.meals,
     required this.profile,
     required this.locale,
+    required this.isPast,
     this.onMicroTap,
   });
 
@@ -345,11 +366,12 @@ class _MicrosRow extends StatelessWidget {
     final isMet = state == MicronutrientState.met;
     final isOver = state == MicronutrientState.over;
     final isAwareness = state == MicronutrientState.awareness;
-    final isEmpty = state == MicronutrientState.empty;
+    final isEmpty = state == MicronutrientState.empty && !isPast;
     // Empty-state target preview: same logic as macros - show the
     // day's reference value (e.g. "230 µg") instead of "0%" so the
     // cell anchors on the goal. Awareness nutrients keep the italic
-    // treatment in the preview too.
+    // treatment in the preview too. Past days skip the preview to
+    // read as a recap.
     Widget? overrideText;
     if (isMet) {
       overrideText = Icon(Icons.check, size: 14, color: color, weight: 700);

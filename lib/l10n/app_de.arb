@@ -143,6 +143,8 @@
   "homeEmptyRangeSingle": "{label} · keine Einträge",
   "homeEmptyRangeMulti": "{from} bis {to} · {count} Tage leer",
   "homeEmptyDayText": "Keine Einträge",
+  "homeEmptyDayTextPast": "An diesem Tag wurde nichts geloggt",
+  "homeCoachPausedNote": "Coach pausiert für vergangene Tage",
   "homeEmptyDayAdd": "hinzufügen",
   "homeEmptyRangePickerTitle": "Welcher Tag?",
   "homeEmptyRangePickerHint": "Wähle den Tag, in den du einen Eintrag schreiben willst. Die Uhrzeit kommt im nächsten Schritt.",

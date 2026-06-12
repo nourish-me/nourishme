@@ -399,6 +399,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeEmptyDayText => 'Keine Einträge';
 
   @override
+  String get homeEmptyDayTextPast => 'An diesem Tag wurde nichts geloggt';
+
+  @override
+  String get homeCoachPausedNote => 'Coach pausiert für vergangene Tage';
+
+  @override
   String get homeEmptyDayAdd => 'hinzufügen';
 
   @override
