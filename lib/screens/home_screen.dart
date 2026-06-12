@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../l10n/app_localizations.dart';
 import '../models/meal_entry.dart';
@@ -326,22 +327,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  // Title that the AppBar shows above the diary. Today and yesterday get
+  // their named-day form; older days are formatted as "weekday, day. month"
+  // (e.g. "So, 8. Juni" / "Sun, 8 Jun") using the locale's short month.
+  String _focusedDayTitle(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final focused = ref.watch(focusedDayProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final delta = today.difference(focused).inDays;
+    if (delta == 0) return l10n.todayHeader;
+    if (delta == 1) return l10n.yesterdayHeader;
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final weekday = intl.DateFormat.E(localeTag).format(focused);
+    final dayMonth = intl.DateFormat.MMMd(localeTag).format(focused);
+    return '$weekday, $dayMonth';
+  }
+
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
-    final loaded = ref.read(loadedDaysProvider);
-    final initial = loaded.isNotEmpty ? loaded.last : now;
+    final initial = ref.read(focusedDayProvider);
     final l10n = AppLocalizations.of(context);
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
       firstDate: DateTime(now.year - 1),
-      lastDate: now,
+      lastDate: DateTime(now.year, now.month, now.day),
       helpText: l10n.homeOpenDayHelp,
       cancelText: l10n.commonCancel,
       confirmText: 'OK',
     );
     if (picked == null) return;
     final normalized = DateTime(picked.year, picked.month, picked.day);
+    // Drives the Single-Day-View: NutritionHeader, thread body and AppBar
+    // title all rebind to this day. Phase-2 follow-up: replace this dialog
+    // with the briefed month-calendar popover that shows dotted logged days.
+    ref.read(focusedDayProvider.notifier).state = normalized;
+    // Keep the multi-day scroll handler in sync for the legacy thread body
+    // (the body will become single-day in the next phase; until then the
+    // scroll-to-day signal still moves the view to the picked day).
     final today = DateTime(now.year, now.month, now.day);
     final currentLoaded = ref.read(loadedDaysProvider);
     final hasDay = currentLoaded.any((d) =>
@@ -349,7 +373,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         d.month == normalized.month &&
         d.day == normalized.day);
     if (!hasDay) {
-      // Build contiguous range from picked day to today.
       final days = <DateTime>[];
       var cursor = normalized;
       while (!cursor.isAfter(today)) {
@@ -358,10 +381,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
       ref.read(loadedDaysProvider.notifier).state = days;
     }
-    // Route through the same build-driven scroll handler that Verlauf uses.
-    // Setting the provider triggers HomeScreen.build → schedules a
-    // post-frame _scrollToDay with retries, which works regardless of
-    // whether loadedDays just changed or not.
     ref.read(scrollToDayProvider.notifier).state = normalized;
   }
 
@@ -559,7 +578,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(AppLocalizations.of(context).todayHeader),
+                Text(_focusedDayTitle(context)),
                 const SizedBox(width: 2),
                 Icon(Icons.arrow_drop_down, size: 22, color: scheme.outline),
               ],

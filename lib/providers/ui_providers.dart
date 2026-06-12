@@ -55,6 +55,19 @@ final mealInputPrefillProvider =
 // provider is only for the chat path.
 final insightLoadingProvider = StateProvider<bool>((ref) => false);
 
+// The day the diary is currently focused on. Drives the AppBar title, the
+// NutritionHeader values, and (after the Single-Day-View refactor) the
+// thread body. Default: today, normalized to local midnight. Setting this
+// to a different day jumps the whole diary to that day - no scrolling,
+// no per-day cards: one diary view = one day.
+//
+// Bounds: callers must not set this to a future day (UI guards on the
+// picker side: future days are not selectable).
+final focusedDayProvider = StateProvider<DateTime>((ref) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day);
+});
+
 // One-shot bump that signals the diary to scroll to the bottom of today
 // (most recent item) regardless of the user's current scroll position.
 // Used when an action the user actively initiated would otherwise leave

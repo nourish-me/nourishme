@@ -10,6 +10,7 @@ import '../services/calorie_target.dart';
 import '../services/claude_client.dart';
 import '../services/meal_aggregation.dart';
 import '../services/micronutrient_targets.dart';
+import 'ui_providers.dart';
 import '../services/open_food_facts_client.dart';
 import '../services/favorite_repository.dart';
 import '../services/meal_repository.dart';
@@ -140,6 +141,25 @@ final yesterdayMealsProvider = Provider<List<MealEntry>>((ref) {
   return mealsForDay(all, DateTime.now().subtract(const Duration(days: 1)));
 });
 
+// Meals belonging to the day the diary is currently focused on. Equivalent
+// to todayMealsProvider when focusedDay == today, but rebinds to any
+// other selected day so the NutritionHeader and thread show that day's
+// values instead. Use this anywhere the diary view needs "the meals for
+// the day the user is looking at", not "today specifically".
+final focusedDayMealsProvider = Provider<List<MealEntry>>((ref) {
+  final all = ref.watch(mealsProvider).valueOrNull ?? const [];
+  final day = ref.watch(focusedDayProvider);
+  return mealsForDay(all, day);
+});
+
+// Thread items for the focused day. Streams from the thread repository on
+// every change; recomputes the bucket when the focused day flips.
+final focusedDayThreadProvider = StreamProvider<List<ThreadItem>>((ref) {
+  final repo = ref.watch(threadRepositoryProvider);
+  final day = ref.watch(focusedDayProvider);
+  return repo.watchForDate(day);
+});
+
 final userProfileProvider = StreamProvider<UserProfileSettings>((ref) {
   return ref.watch(settingsRepositoryProvider).watchProfile();
 });
@@ -154,6 +174,25 @@ final userProfileProvider = StreamProvider<UserProfileSettings>((ref) {
 // donut just needs the total.
 final todayMicronutrientsProvider = Provider<Map<String, double>>((ref) {
   final meals = ref.watch(todayMealsProvider);
+  final totals = sumMicronutrientsFor(meals);
+  final supplements =
+      ref.watch(userProfileProvider).valueOrNull?.activeSupplements ??
+          const [];
+  for (final s in supplements) {
+    for (final entry in s.values.entries) {
+      totals[entry.key] = (totals[entry.key] ?? 0) + entry.value;
+    }
+  }
+  return totals;
+});
+
+// Micronutrient totals for the focused day. Same shape as
+// todayMicronutrientsProvider but rebinds to the day the user is viewing.
+// Supplement contribution still applies on past days (we don't time-shift
+// the supplement intake - it's a daily recurring stack).
+final focusedDayMicronutrientsProvider =
+    Provider<Map<String, double>>((ref) {
+  final meals = ref.watch(focusedDayMealsProvider);
   final totals = sumMicronutrientsFor(meals);
   final supplements =
       ref.watch(userProfileProvider).valueOrNull?.activeSupplements ??

@@ -46,7 +46,10 @@ class NutritionHeader extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
 
-    final meals = ref.watch(todayMealsProvider);
+    // Rebinds to whatever day the diary is currently focused on. When the
+    // user picks a past day in the AppBar picker, the header's kcal /
+    // macros / micros all switch to that day's totals.
+    final meals = ref.watch(focusedDayMealsProvider);
     final targetKcal = ref.watch(calorieTargetProvider);
     final macroTargets = ref.watch(macroTargetsProvider);
     final profile = ref.watch(userProfileProvider).valueOrNull ??
