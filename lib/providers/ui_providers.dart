@@ -68,6 +68,16 @@ final focusedDayProvider = StateProvider<DateTime>((ref) {
   return DateTime(now.year, now.month, now.day);
 });
 
+// Session memory for the ConfirmSheet date-time pill: the last day the
+// user explicitly picked for a meal in this app session. Null = no
+// pick yet, the sheet defaults to today. When non-null, fresh confirm
+// sheets pre-fill _mealTime with this day (current wall-clock time),
+// so a user logging several yesterday-meals in a row doesn't have to
+// re-pick yesterday each time. Cleared on app restart - this is a
+// soft hint, not a persisted setting.
+final confirmSheetLastPickedDayProvider =
+    StateProvider<DateTime?>((ref) => null);
+
 // One-shot bump that signals the diary to scroll to the bottom of today
 // (most recent item) regardless of the user's current scroll position.
 // Used when an action the user actively initiated would otherwise leave

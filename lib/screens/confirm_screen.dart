@@ -97,7 +97,21 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _origSummary = widget.parsed.summary;
     _origAlias = widget.parsed.portionAlias;
     _currentAlias = _origAlias;
-    _mealTime = widget.existingCreatedAt ?? DateTime.now();
+    // Session memory for fresh entries: if the user picked a non-today
+    // day in a previous confirm sheet this session, start there with
+    // the current wall-clock time. Edits / past-day-input always use
+    // the existingCreatedAt the caller passed in.
+    final memDay = ref.read(confirmSheetLastPickedDayProvider);
+    final nowInit = DateTime.now();
+    final today = DateTime(nowInit.year, nowInit.month, nowInit.day);
+    if (widget.existingCreatedAt != null) {
+      _mealTime = widget.existingCreatedAt!;
+    } else if (memDay != null && !_sameDay(memDay, today)) {
+      _mealTime = DateTime(memDay.year, memDay.month, memDay.day,
+          nowInit.hour, nowInit.minute);
+    } else {
+      _mealTime = nowInit;
+    }
 
     _summary = TextEditingController(text: widget.parsed.summary);
     _kcal = TextEditingController(text: _origKcal.toString());
@@ -446,46 +460,41 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
   }
 
-  Future<void> _pickMealTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_mealTime),
-      helpText: AppLocalizations.of(context).homeTimePickerHelp,
-    );
-    if (picked != null && mounted) {
-      setState(() {
-        _mealTime = DateTime(_mealTime.year, _mealTime.month, _mealTime.day,
-            picked.hour, picked.minute);
-        _userTouched = true;
-      });
-    }
-  }
-
-  // Separate date picker so a meal logged on the wrong day (e.g. logged
-  // this morning when it should have been yesterday evening) can be moved
-  // without re-creating the entry. Time stays untouched here; user edits
-  // it on the neighbouring time pill if needed.
-  //
-  // Bounds: two years back covers retroactive corrections for any
-  // realistic case; lastDate is today (no future meals - logging
-  // something that hasn't happened doesn't make sense for the daily
-  // running total).
-  Future<void> _pickMealDate() async {
+  // Phase 6 of the diary refactor: one combined "Heute · 08:24" pill
+  // replaces the two separate date + time pills. Tapping it walks the
+  // user through a date picker first, then a time picker, in the same
+  // gesture - so a retro-add is one tap-and-decide flow instead of two
+  // pills the user has to discover are independent. Cancelling either
+  // picker keeps _mealTime unchanged.
+  Future<void> _pickMealDateTime() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: _mealTime,
       firstDate: DateTime(now.year - 2),
       lastDate: now,
       helpText: AppLocalizations.of(context).homeDatePickerHelp,
     );
-    if (picked != null && mounted) {
-      setState(() {
-        _mealTime = DateTime(picked.year, picked.month, picked.day,
-            _mealTime.hour, _mealTime.minute);
-        _userTouched = true;
-      });
-    }
+    if (pickedDate == null || !mounted) return;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_mealTime),
+      helpText: AppLocalizations.of(context).homeTimePickerHelp,
+    );
+    if (pickedTime == null || !mounted) return;
+    setState(() {
+      _mealTime = DateTime(pickedDate.year, pickedDate.month, pickedDate.day,
+          pickedTime.hour, pickedTime.minute);
+      _userTouched = true;
+    });
+    // Session memory: remember the day picked so the next fresh confirm
+    // sheet starts there instead of jumping back to today. Today picks
+    // clear the memory (back to "default = today").
+    final pickedDay =
+        DateTime(pickedDate.year, pickedDate.month, pickedDate.day);
+    final today = DateTime(now.year, now.month, now.day);
+    ref.read(confirmSheetLastPickedDayProvider.notifier).state =
+        _sameDay(pickedDay, today) ? null : pickedDay;
   }
 
   String _formatMealTime() {
@@ -494,9 +503,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     return '$hh:$mm';
   }
 
-  // Compact day label for the date pill. "Heute" / "Gestern" for the
-  // common cases stay readable at a glance; older days fall back to
-  // day.month so the pill stays short.
+  // Compact day label for the combined pill. "Heute" / "Gestern" for
+  // the common cases stay readable at a glance; older days fall back
+  // to day.month so the pill stays short.
   String _formatMealDate(BuildContext context) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -506,6 +515,16 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     if (delta == 0) return l10n.todayHeader;
     if (delta == 1) return l10n.yesterdayHeader;
     return '${_mealTime.day}.${_mealTime.month}.';
+  }
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  // True when the meal sits on a day other than today. Drives the
+  // amber deviation tint on the combined date-time pill.
+  bool get _isDeviationFromToday {
+    final now = DateTime.now();
+    return !_sameDay(_mealTime, now);
   }
 
   Widget _buildBody(BuildContext context) {
@@ -612,28 +631,19 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        // Meal date + time, editable here (moved out of the cramped home
-        // input row). Two pills so a meal saved on the wrong day can be
-        // re-anchored: tap the left pill for date, the right one for time.
-        // ThreadRepository.updateMealItemTime handles the cross-day move
-        // (incl. its coach response) when _save commits.
+        // Meal date + time: single combined "Heute · 08:24" pill. Tap
+        // walks date-picker → time-picker in one gesture; the pill
+        // tints amber when the chosen day deviates from today (visual
+        // reminder that this entry won't land on today's running
+        // total). ThreadRepository.updateMealItemTime handles the
+        // cross-day move incl. its coach response when _save commits.
         Align(
           alignment: Alignment.centerLeft,
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _DateTimePill(
-                icon: Icons.event_outlined,
-                label: _formatMealDate(context),
-                onTap: _pickMealDate,
-              ),
-              _DateTimePill(
-                icon: Icons.schedule,
-                label: _formatMealTime(),
-                onTap: _pickMealTime,
-              ),
-            ],
+          child: _DateTimePill(
+            icon: Icons.schedule,
+            label: '${_formatMealDate(context)} · ${_formatMealTime()}',
+            deviation: _isDeviationFromToday,
+            onTap: _pickMealDateTime,
           ),
         ),
         const SizedBox(height: 12),
@@ -1119,16 +1129,19 @@ class _ActionRow extends StatelessWidget {
   }
 }
 
-// Compact pill used for the two date / time edit affordances above the
-// confirm form. Shape matches the pre-#39 single time pill so it stays
-// consistent with the rest of the sheet.
+// Combined "{date} · {time}" pill above the confirm form (phase 6 of
+// the diary refactor). Quiet by default; tints amber when the chosen
+// day deviates from today so the user notices the retro-anchor at a
+// glance. One tap opens date-picker → time-picker in sequence.
 class _DateTimePill extends StatelessWidget {
   final IconData icon;
   final String label;
+  final bool deviation;
   final VoidCallback onTap;
   const _DateTimePill({
     required this.icon,
     required this.label,
+    required this.deviation,
     required this.onTap,
   });
 
@@ -1136,8 +1149,14 @@ class _DateTimePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final bg = deviation
+        ? scheme.secondaryContainer
+        : scheme.surfaceContainerHighest;
+    final fg = deviation
+        ? scheme.onSecondaryContainer
+        : scheme.onSurfaceVariant;
     return Material(
-      color: scheme.surfaceContainerHighest,
+      color: bg,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -1147,9 +1166,12 @@ class _DateTimePill extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: scheme.onSurfaceVariant),
+              Icon(icon, size: 16, color: fg),
               const SizedBox(width: 6),
-              Text(label, style: textTheme.labelLarge),
+              Text(
+                label,
+                style: textTheme.labelLarge?.copyWith(color: fg),
+              ),
             ],
           ),
         ),
