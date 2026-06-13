@@ -401,7 +401,7 @@ class ClaudeClient {
             ? 'Schätze diesen Eintrag basierend auf dem Bild.'
             : 'Estimate this entry based on the image.')
         : userText;
-    final historyBlock = _brandHistoryBlock(brandHistoryHints, isDe: isDe);
+    final historyBlock = buildBrandHistoryBlock(brandHistoryHints, isDe: isDe);
     content.add({
       'type': 'text',
       'text': '$phaseLine$historyBlock\n\n$entryText',
@@ -573,7 +573,7 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
             dailyMilkVolumeMl: dailyMilkVolumeMl,
             hour: hour,
             remaining: remaining,
-            dietLine: _dietLine(
+            dietLine: buildDietLine(
                 isDe: true,
                 dietStyle: dietStyle,
                 restrictions: restrictions,
@@ -604,7 +604,7 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
             dailyMilkVolumeMl: dailyMilkVolumeMl,
             hour: hour,
             remaining: remaining,
-            dietLine: _dietLine(
+            dietLine: buildDietLine(
                 isDe: false,
                 dietStyle: dietStyle,
                 restrictions: restrictions,
@@ -674,7 +674,8 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
   //
   // Returns empty string when no hints - keeps the prompt clean for the
   // common case.
-  static String _brandHistoryBlock(List<MealEntry> hints,
+  @visibleForTesting
+  static String buildBrandHistoryBlock(List<MealEntry> hints,
       {required bool isDe}) {
     if (hints.isEmpty) return '';
     final lines = <String>[];
@@ -697,7 +698,8 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     return '$header\n${lines.join("\n")}$footer';
   }
 
-  static String _dietLine({
+  @visibleForTesting
+  static String buildDietLine({
     required bool isDe,
     required String dietStyle,
     required Set<String> restrictions,
