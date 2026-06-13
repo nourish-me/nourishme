@@ -320,7 +320,6 @@
   "settingsReminderTimeFormat": "{hour}:{minute}",
 
   "infoBackgroundTooltip": "Hintergrund",
-  "infoSourceLabel": "Quelle: {source}",
 
   "onboardingRestartTitle": "Onboarding neu starten?",
   "onboardingRestartBody": "Deine bisherigen Eingaben werden verworfen.",

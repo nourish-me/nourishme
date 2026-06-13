@@ -374,7 +374,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tip5Body =>
-      'Tap a past day in your diary → you can set the date and time and log the meal retroactively.';
+      'Tap the day at the top of the diary and pick a date, then just write what you ate. Or log from Today and switch date and time on the \"Today · 08:24\" pill in the save sheet.';
 
   @override
   String get tip6Title => 'Just say what you ate';
@@ -885,11 +885,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get infoBackgroundTooltip => 'Background';
 
   @override
-  String infoSourceLabel(String source) {
-    return 'Source';
-  }
-
-  @override
   String get onboardingRestartTitle => 'Restart onboarding?';
 
   @override
@@ -1230,6 +1225,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get microDetailSourceHeader => 'Source & target';
+
+  @override
+  String get infoSourceLabel => 'Source';
 
   @override
   String get settingsSectionMicronutrients => 'Micronutrients in header';

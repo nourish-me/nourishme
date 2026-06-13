@@ -378,7 +378,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tip5Body =>
-      'Tap auf einen vergangenen Tag im Tagebuch → du kannst Datum und Uhrzeit setzen und nachträglich loggen.';
+      'Tippe oben auf den Tag und wähle das Datum, dann schreib einfach was du gegessen hast. Oder log direkt aus Heute und stell Datum und Uhrzeit beim Speichern auf der Pille „Heute · 08:24\" um.';
 
   @override
   String get tip6Title => 'Tipp einfach in Alltagssprache';
@@ -892,11 +892,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get infoBackgroundTooltip => 'Hintergrund';
 
   @override
-  String infoSourceLabel(String source) {
-    return 'Quelle';
-  }
-
-  @override
   String get onboardingRestartTitle => 'Onboarding neu starten?';
 
   @override
@@ -1236,6 +1231,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get microDetailSourceHeader => 'Quelle & Zielwert';
+
+  @override
+  String get infoSourceLabel => 'Quelle';
 
   @override
   String get settingsSectionMicronutrients => 'Mikronährstoffe im Header';

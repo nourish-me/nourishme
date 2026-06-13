@@ -430,10 +430,6 @@
   },
 
   "infoBackgroundTooltip": "Background",
-  "infoSourceLabel": "Source: {source}",
-  "@infoSourceLabel": {
-    "placeholders": {"source": {"type": "String"}}
-  },
 
   "onboardingRestartTitle": "Restart onboarding?",
   "onboardingRestartBody": "Your inputs so far will be discarded.",

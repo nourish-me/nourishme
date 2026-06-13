@@ -761,7 +761,7 @@ abstract class AppLocalizations {
   /// No description provided for @tip5Body.
   ///
   /// In en, this message translates to:
-  /// **'Tap a past day in your diary → you can set the date and time and log the meal retroactively.'**
+  /// **'Tap the day at the top of the diary and pick a date, then just write what you ate. Or log from Today and switch date and time on the \"Today · 08:24\" pill in the save sheet.'**
   String get tip5Body;
 
   /// No description provided for @tip6Title.
@@ -1676,12 +1676,6 @@ abstract class AppLocalizations {
   /// **'Background'**
   String get infoBackgroundTooltip;
 
-  /// No description provided for @infoSourceLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Source'**
-  String infoSourceLabel(String source);
-
   /// No description provided for @onboardingRestartTitle.
   ///
   /// In en, this message translates to:
@@ -2263,6 +2257,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source & target'**
   String get microDetailSourceHeader;
+
+  /// No description provided for @infoSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get infoSourceLabel;
 
   /// No description provided for @settingsSectionMicronutrients.
   ///
