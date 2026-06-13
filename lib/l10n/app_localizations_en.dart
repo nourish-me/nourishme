@@ -919,6 +919,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'A live coach for pregnancy and breastfeeding. Evidence-based, privacy-friendly, no calorie-counting fuss.';
 
   @override
+  String get onboardingWelcomeReassurance =>
+      'No pressure: everything you enter now can be changed anytime in settings.';
+
+  @override
   String get onboardingPhaseQuestion => 'Which phase are you in?';
 
   @override

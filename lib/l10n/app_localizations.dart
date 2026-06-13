@@ -1736,6 +1736,12 @@ abstract class AppLocalizations {
   /// **'A live coach for pregnancy and breastfeeding. Evidence-based, privacy-friendly, no calorie-counting fuss.'**
   String get onboardingSubline;
 
+  /// No description provided for @onboardingWelcomeReassurance.
+  ///
+  /// In en, this message translates to:
+  /// **'No pressure: everything you enter now can be changed anytime in settings.'**
+  String get onboardingWelcomeReassurance;
+
   /// No description provided for @onboardingPhaseQuestion.
   ///
   /// In en, this message translates to:

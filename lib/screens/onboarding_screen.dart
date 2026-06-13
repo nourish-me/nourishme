@@ -486,21 +486,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (_step == _totalSteps - 1) ...[
-                        Text(
-                          AppLocalizations.of(context)
-                              .onboardingFooterEditLater,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color:
-                                    Theme.of(context).colorScheme.outline,
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                      ],
+                      // The "you can edit everything later in settings"
+                      // reassurance now lives on the Welcome step (#81).
+                      // No per-step footer here anymore - testers were
+                      // either missing it (only fired on the last step)
+                      // or finding it redundant once they were already
+                      // mid-form.
                       FilledButton(
                         onPressed: _canAdvance ? _next : null,
                         style: FilledButton.styleFrom(
@@ -675,6 +666,27 @@ class _WelcomeStep extends StatelessWidget {
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
                 height: 1.5,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        // Edit-later reassurance, surfaced on the very first screen
+        // per beta tester feedback (perfectionist would otherwise
+        // freeze on each input field worrying about getting it right).
+        // The same line used to sit only on the Confirm-Screen at the
+        // end and on the Goal-Step subtitle - both moved here so the
+        // user reads it before they touch the first field.
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: Text(
+              AppLocalizations.of(context).onboardingWelcomeReassurance,
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall?.copyWith(
+                color: scheme.outline,
+                fontStyle: FontStyle.italic,
+                height: 1.4,
               ),
             ),
           ),
@@ -1521,11 +1533,10 @@ class _GoalStep extends StatelessWidget {
               onSelectionChanged: (s) => onChanged(s.first),
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.onboardingGoalSubtitle,
-            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-          ),
+          // The "you can change this anytime in settings" subtitle that
+          // used to sit here was moved to the Welcome step (#81) - one
+          // global reassurance early beats the same line on every
+          // editable field.
         ],
       ),
     );

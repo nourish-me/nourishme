@@ -927,6 +927,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Live-Coach für Schwangerschaft und Stillzeit. Wissenschaftlich fundiert, datenschutzfreundlich, ohne Kalorien-Zähl-Kram.';
 
   @override
+  String get onboardingWelcomeReassurance =>
+      'Keine Sorge: alles was du jetzt einträgst kannst du jederzeit in den Einstellungen ändern.';
+
+  @override
   String get onboardingPhaseQuestion => 'In welcher Phase bist du?';
 
   @override
