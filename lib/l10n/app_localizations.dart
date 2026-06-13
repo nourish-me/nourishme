@@ -800,6 +800,12 @@ abstract class AppLocalizations {
   /// **'Coach is paused for past days'**
   String get homeCoachPausedNote;
 
+  /// No description provided for @homeCoachOnlyTodayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach questions only work for today - switch to Today at the top.'**
+  String get homeCoachOnlyTodayHint;
+
   /// No description provided for @homeEmptyDayAdd.
   ///
   /// In en, this message translates to:
@@ -1655,7 +1661,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoSourceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Source: {source}'**
+  /// **'Source'**
   String infoSourceLabel(String source);
 
   /// No description provided for @onboardingRestartTitle.

@@ -401,6 +401,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCoachPausedNote => 'Coach is paused for past days';
 
   @override
+  String get homeCoachOnlyTodayHint =>
+      'Coach questions only work for today - switch to Today at the top.';
+
+  @override
   String get homeEmptyDayAdd => 'add';
 
   @override
@@ -871,7 +875,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String infoSourceLabel(String source) {
-    return 'Source: $source';
+    return 'Source';
   }
 
   @override

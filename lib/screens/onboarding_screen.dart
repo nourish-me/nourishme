@@ -568,11 +568,18 @@ class _ProgressHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                tooltip: AppLocalizations.of(context).onboardingRestartTooltip,
-                onPressed: onRestart,
-              ),
+              // Welcome step has nothing to lose, so a restart button there
+              // is dead weight (and visually distracting on the very first
+              // impression). Show only from step 2 onwards.
+              if (step > 0)
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip:
+                      AppLocalizations.of(context).onboardingRestartTooltip,
+                  onPressed: onRestart,
+                )
+              else
+                const SizedBox(width: 48),
             ],
           ),
           const SizedBox(height: 4),

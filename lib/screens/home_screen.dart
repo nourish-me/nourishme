@@ -713,9 +713,28 @@ void _editMeal(BuildContext context, MealEntry meal) {
 }
 
 Future<void> _duplicateMeal(WidgetRef ref, MealEntry meal) async {
+  // Anchor the duplicate to the day the user is CURRENTLY viewing - not the
+  // original meal's day, not today. That matches the "I want this again"
+  // intent: if I'm on Yesterday's diary and duplicate Yesterday's lunch,
+  // the duplicate should appear under Yesterday. If I'm on Today, it
+  // should appear under Today. With the old `DateTime.now()` default the
+  // duplicate would silently land on Today even when the user was viewing
+  // a past day, so they saw "nothing happen".
+  //
+  // For today's diary use the current wall-clock time; for a past day use
+  // noon as a neutral anchor (no implicit "now" on a day that's over).
+  final now = DateTime.now();
+  final focused = ref.read(focusedDayProvider);
+  final today = DateTime(now.year, now.month, now.day);
+  final isToday = focused.year == today.year &&
+      focused.month == today.month &&
+      focused.day == today.day;
+  final cloneTime = isToday
+      ? now
+      : DateTime(focused.year, focused.month, focused.day, 12, 0);
   final clone = MealEntry(
-    id: DateTime.now().microsecondsSinceEpoch.toString(),
-    createdAt: DateTime.now(),
+    id: now.microsecondsSinceEpoch.toString(),
+    createdAt: cloneTime,
     rawText: meal.rawText,
     summary: meal.summary,
     kcal: meal.kcal,
@@ -726,6 +745,10 @@ Future<void> _duplicateMeal(WidgetRef ref, MealEntry meal) async {
     portionUnit: meal.portionUnit,
     portionAlias: meal.portionAlias,
     safetyWarnings: meal.safetyWarnings,
+    // Carry micronutrient estimates - duplicate is semantically "same meal
+    // again", not a re-parse. Dropping them would mean the donut sits at
+    // half-credit on a double-portion day.
+    micronutrients: meal.micronutrients,
   );
   await ref.read(mealRepositoryProvider).save(clone);
   await ref

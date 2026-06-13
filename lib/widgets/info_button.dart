@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../services/nutrition_facts.dart';
 
 // Small ⓘ button that opens a bottom sheet with a short scientific
@@ -90,7 +91,7 @@ class _InfoSheet extends StatelessWidget {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      'Quelle: ${fact.source}',
+                      '${AppLocalizations.of(context).infoSourceLabel}: ${fact.source}',
                       style: textTheme.labelSmall?.copyWith(
                         color: scheme.outline,
                       ),

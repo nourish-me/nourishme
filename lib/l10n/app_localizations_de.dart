@@ -405,6 +405,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeCoachPausedNote => 'Coach pausiert für vergangene Tage';
 
   @override
+  String get homeCoachOnlyTodayHint =>
+      'Fragen an den Coach gehen nur am heutigen Tag - wechsle oben auf Heute.';
+
+  @override
   String get homeEmptyDayAdd => 'hinzufügen';
 
   @override
@@ -878,7 +882,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String infoSourceLabel(String source) {
-    return 'Quelle: $source';
+    return 'Quelle';
   }
 
   @override

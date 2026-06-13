@@ -738,8 +738,21 @@ class _HomeInputState extends ConsumerState<HomeInput> {
               AppLocalizations.of(context).homePhotoNotFoodError,
         );
       } else {
-        // Text input that didn't parse as a meal, treat as a coach question.
-        await _askAsQuestion(text);
+        // Text input that didn't parse as a meal → coach question. But the
+        // coach reads/writes against TODAY's thread; if the user is sitting
+        // on a past day the question + reply would silently land in today's
+        // bucket and the user would see "nothing happened" on their current
+        // view. Block the chat path on past days and surface a hint so they
+        // know to switch to Today.
+        final focused = ref.read(focusedDayProvider);
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final isPast = focused.isBefore(today);
+        if (isPast) {
+          _showSnack(AppLocalizations.of(context).homeCoachOnlyTodayHint);
+        } else {
+          await _askAsQuestion(text);
+        }
       }
       _controller.clear();
       if (mounted) {

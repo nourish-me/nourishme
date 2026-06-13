@@ -196,6 +196,7 @@
   "homeEmptyDayText": "No entries",
   "homeEmptyDayTextPast": "Nothing was logged on this day",
   "homeCoachPausedNote": "Coach is paused for past days",
+  "homeCoachOnlyTodayHint": "Coach questions only work for today - switch to Today at the top.",
   "homeEmptyDayAdd": "add",
   "homeEmptyRangePickerTitle": "Which day?",
   "homeEmptyRangePickerHint": "Pick the day you want to log into. You'll choose the time next.",
@@ -614,6 +615,7 @@
     }
   },
   "microDetailSourceHeader": "Source & target",
+  "infoSourceLabel": "Source",
 
   "settingsSectionMicronutrients": "Micronutrients in header",
   "settingsMicrosDescription": "Which micronutrients to show at the top of the diary. Max 3. When nothing is selected, the app uses the recommendation for your phase.",

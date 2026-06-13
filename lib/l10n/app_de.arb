@@ -145,6 +145,7 @@
   "homeEmptyDayText": "Keine Einträge",
   "homeEmptyDayTextPast": "An diesem Tag wurde nichts geloggt",
   "homeCoachPausedNote": "Coach pausiert für vergangene Tage",
+  "homeCoachOnlyTodayHint": "Fragen an den Coach gehen nur am heutigen Tag - wechsle oben auf Heute.",
   "homeEmptyDayAdd": "hinzufügen",
   "homeEmptyRangePickerTitle": "Welcher Tag?",
   "homeEmptyRangePickerHint": "Wähle den Tag, in den du einen Eintrag schreiben willst. Die Uhrzeit kommt im nächsten Schritt.",
@@ -471,6 +472,7 @@
     }
   },
   "microDetailSourceHeader": "Quelle & Zielwert",
+  "infoSourceLabel": "Quelle",
 
   "settingsSectionMicronutrients": "Mikronährstoffe im Header",
   "settingsMicrosDescription": "Welche Mikronährstoffe oben im Tagebuch angezeigt werden. Maximal 3. Wenn keiner gewählt ist, nutzt die App den Vorschlag für deine Phase.",
