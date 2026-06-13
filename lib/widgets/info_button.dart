@@ -29,7 +29,7 @@ class InfoButton extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return IconButton(
       icon: Icon(Icons.info_outline, color: scheme.outline, size: 20),
-      tooltip: 'Hintergrund',
+      tooltip: AppLocalizations.of(context).infoBackgroundTooltip,
       visualDensity: VisualDensity.compact,
       onPressed: () => _open(context),
     );
