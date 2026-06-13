@@ -27,6 +27,8 @@
 
   "emptyTodayHeadline": "What did you eat today?",
   "emptyTodayBody": "Type away, the coach takes it from there.",
+  "emptyPastDayHeadline": "Nothing logged",
+  "emptyPastDayBody": "No entries for this day yet. You can add them now.",
 
   "emptyHistoryHeadline": "Your history starts today.",
 
@@ -197,6 +199,7 @@
   "homeEmptyDayTextPast": "Nothing was logged on this day",
   "homeCoachPausedNote": "Coach is paused for past days",
   "homeCoachOnlyTodayHint": "Coach questions only work for today - switch to Today at the top.",
+  "confirmPastDaySavedToast": "Entry saved · Coach paused for past days",
   "homeEmptyDayAdd": "add",
   "homeEmptyRangePickerTitle": "Which day?",
   "homeEmptyRangePickerHint": "Pick the day you want to log into. You'll choose the time next.",

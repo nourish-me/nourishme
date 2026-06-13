@@ -60,6 +60,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tipp einfach drauf los, der Coach erkennt den Rest.';
 
   @override
+  String get emptyPastDayHeadline => 'Nichts geloggt';
+
+  @override
+  String get emptyPastDayBody =>
+      'An diesem Tag ist nichts eingetragen. Du kannst es jetzt nachholen.';
+
+  @override
   String get emptyHistoryHeadline => 'Der Verlauf beginnt heute.';
 
   @override
@@ -407,6 +414,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get homeCoachOnlyTodayHint =>
       'Fragen an den Coach gehen nur am heutigen Tag - wechsle oben auf Heute.';
+
+  @override
+  String get confirmPastDaySavedToast =>
+      'Eintrag gespeichert · Coach pausiert für vergangene Tage';
 
   @override
   String get homeEmptyDayAdd => 'hinzufügen';

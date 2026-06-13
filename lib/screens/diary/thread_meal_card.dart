@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/meal_entry.dart';
 import '../../utils/number_format.dart';
+import '../../widgets/edit_hint_icon.dart';
 
 // Per-meal row in the diary thread — Time-Ledger layout (phase 3 of the
 // Claude Design diary refactor). NOT a card any more: a flat row with a
@@ -93,6 +94,9 @@ class ThreadMealCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Breathing gap between time column and meal name - 44 px
+                // alone reads cramped against a long summary.
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     meal.summary,
@@ -117,6 +121,13 @@ class ThreadMealCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Trailing edit-hint: tells the user the row is editable.
+                // Without it, beta testers thought the row was read-only
+                // (no Card chrome, no chevron). Removed in phase 3 of
+                // the diary refactor, brought back here per direct
+                // beta feedback.
+                const SizedBox(width: 4),
+                const EditHintIcon(),
               ],
             ),
           ),

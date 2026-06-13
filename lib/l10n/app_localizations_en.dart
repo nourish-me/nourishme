@@ -59,6 +59,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyTodayBody => 'Type away, the coach takes it from there.';
 
   @override
+  String get emptyPastDayHeadline => 'Nothing logged';
+
+  @override
+  String get emptyPastDayBody =>
+      'No entries for this day yet. You can add them now.';
+
+  @override
   String get emptyHistoryHeadline => 'Your history starts today.';
 
   @override
@@ -403,6 +410,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeCoachOnlyTodayHint =>
       'Coach questions only work for today - switch to Today at the top.';
+
+  @override
+  String get confirmPastDaySavedToast =>
+      'Entry saved · Coach paused for past days';
 
   @override
   String get homeEmptyDayAdd => 'add';

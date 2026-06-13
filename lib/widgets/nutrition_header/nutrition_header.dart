@@ -153,11 +153,9 @@ class _KcalTier extends StatelessWidget {
     final pct = targetKcal > 0 ? (totalKcal / targetKcal) * 100 : 0.0;
     final status = sweetSpotStatusFor(totalKcal.toDouble(), targetKcal.toDouble());
     final intakeColor = sweetSpotColorFor(status, scheme);
-    // Target-preview mode for the empty state: instead of "0 / 2.100 kcal
-    // · 0%" (which reads cold and "sad"), the headline shows the day's
-    // goal as the anchor. The bar stays at 0% so the progress meaning
-    // is unchanged; only the label content shifts. Skipped for past days
-    // where the recap voice ("you ate X") makes more sense than a goal.
+    // Today empty: show "{target} kcal Ziel" as a forward-looking anchor
+    // instead of the cold "0 / 2.100 kcal · 0%". Past days never use the
+    // target-preview - they're recap, not goal.
     final isEmpty = totalKcal == 0 && !isPast;
     return InkWell(
       onTap: onTap,
@@ -166,9 +164,10 @@ class _KcalTier extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
         child: Row(
           children: [
-            // Headline text - intake colored by corridor, rest muted. In
-            // empty state, swap to "{target} kcal Ziel" so the day reads
-            // as a target rather than a deficit.
+            // Headline text. Three modes:
+            // - Today, empty: "{target} kcal Ziel" (goal anchor)
+            // - Past day: "{intake} kcal" only - no / target, no % (recap)
+            // - Today, non-empty: "{intake} / {target} kcal · {pct}%" (live)
             RichText(
               text: isEmpty
                   ? TextSpan(
@@ -190,36 +189,58 @@ class _KcalTier extends StatelessWidget {
                         TextSpan(text: l10n.nutritionHeaderKcalTarget),
                       ],
                     )
-                  : TextSpan(
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: scheme.outline,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                      children: [
-                        TextSpan(
-                          text: formatKcal(totalKcal),
+                  : isPast
+                      ? TextSpan(
                           style: TextStyle(
-                            color: intakeColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13.5,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: scheme.outline,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
-                        ),
-                        TextSpan(text: ' / ${formatKcal(targetKcal)} kcal · '),
-                        TextSpan(
-                          text: '${pct.round()}%',
+                          children: [
+                            TextSpan(
+                              text: formatKcal(totalKcal),
+                              style: TextStyle(
+                                color: intakeColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13.5,
+                              ),
+                            ),
+                            const TextSpan(text: ' kcal'),
+                          ],
+                        )
+                      : TextSpan(
                           style: TextStyle(
-                            color: intakeColor,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: scheme.outline,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
+                          children: [
+                            TextSpan(
+                              text: formatKcal(totalKcal),
+                              style: TextStyle(
+                                color: intakeColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13.5,
+                              ),
+                            ),
+                            TextSpan(
+                                text: ' / ${formatKcal(targetKcal)} kcal · '),
+                            TextSpan(
+                              text: '${pct.round()}%',
+                              style: TextStyle(
+                                color: intakeColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
             ),
             const SizedBox(width: 10),
-            // Inline progress bar - always primary (pine) fill regardless
-            // of corridor; the corridor signal lives in the headline color.
+            // Inline progress bar - kept on past days too so the recap
+            // still carries a visual hint of how close to the corridor
+            // the day was, just without the literal numbers.
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(2),
@@ -288,30 +309,41 @@ class _MacrosRow extends StatelessWidget {
     final pct = target > 0 ? (grams / target) * 100 : 0.0;
     final status = sweetSpotStatusFor(grams, target);
     final color = sweetSpotColorFor(status, scheme);
-    // Empty-state target preview: when nothing's logged yet for this
-    // macro, swap the "0%" pct text for the day's target ("95 g") so
-    // the cell anchors on the goal instead of the deficit. Past days
-    // skip the preview - they read as a closed recap, not a goal.
     final isEmpty = grams == 0 && !isPast;
+    // Today empty: show the day's target ("95 g") as forward-looking
+    // anchor. Past day: show the absolute grams eaten ("82 g") - no
+    // percentage, no "/target" framing, just the final count. The
+    // corridor color (amber / moss / neutral) carries the over-/in-/
+    // under-corridor signal so it's still legible.
+    Widget? overrideText;
+    if (isEmpty) {
+      overrideText = Text(
+        '${target.round()} g',
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: scheme.onSurfaceVariant,
+          height: 1.1,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      );
+    } else if (isPast) {
+      overrideText = Text(
+        '${grams.round()} g',
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: color,
+          height: 1.1,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      );
+    }
     return MiniPctCell(
       name: name,
       percent: pct,
       color: color,
-      pctOverridesText: isEmpty
-          ? Text(
-              '${target.round()} g',
-              style: TextStyle(
-                // Match the name + pct fontSize (11.5) so the Row's
-                // center-alignment keeps all three columns of preview
-                // text on the same visual baseline.
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: scheme.onSurfaceVariant,
-                height: 1.1,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            )
-          : null,
+      pctOverridesText: overrideText,
       onTap: onMacroTap == null ? null : () => onMacroTap!(tapKey),
     );
   }
@@ -367,11 +399,10 @@ class _MicrosRow extends StatelessWidget {
     final isOver = state == MicronutrientState.over;
     final isAwareness = state == MicronutrientState.awareness;
     final isEmpty = state == MicronutrientState.empty && !isPast;
-    // Empty-state target preview: same logic as macros - show the
-    // day's reference value (e.g. "230 µg") instead of "0%" so the
-    // cell anchors on the goal. Awareness nutrients keep the italic
-    // treatment in the preview too. Past days skip the preview to
-    // read as a recap.
+    // Today empty: show the day's reference target as goal anchor.
+    // Past day: show the absolute intake ("180 µg") instead of "%" -
+    // pure recap, no goal framing. "Met" still gets the check icon on
+    // both modes because that's already a recap of "you hit it".
     Widget? overrideText;
     if (isMet) {
       overrideText = Icon(Icons.check, size: 14, color: color, weight: 700);
@@ -379,10 +410,21 @@ class _MicrosRow extends StatelessWidget {
       overrideText = Text(
         '${_formatTargetValue(target.value)} ${target.unitLabel}',
         style: TextStyle(
-          // Match the name + pct fontSize (11.5) - see _macroCell note.
           fontSize: 11.5,
           fontWeight: FontWeight.w600,
           color: scheme.onSurfaceVariant,
+          fontStyle: isAwareness ? FontStyle.italic : FontStyle.normal,
+          height: 1.1,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      );
+    } else if (isPast) {
+      overrideText = Text(
+        '${_formatTargetValue(intake)} ${target.unitLabel}',
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: color,
           fontStyle: isAwareness ? FontStyle.italic : FontStyle.normal,
           height: 1.1,
           fontFeatures: const [FontFeature.tabularFigures()],

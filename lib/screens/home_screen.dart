@@ -565,16 +565,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final widgets = <Widget>[];
     final mealsById = {for (final m in mealsAll) m.id: m};
 
-    // Phase 5: on past days the coach pauses (no new responses generated
-    // for retro-added meals). Surface that quietly at the top of the
-    // thread so the user understands why the lane stays silent.
+    // Past-day awareness: the "Coach pausiert" hint used to sit at the
+    // top of the thread as a persistent banner. Beta feedback called it
+    // "too in-your-face"; the cue now fires as a one-shot snackbar
+    // appended to the save confirmation (see ConfirmScreen._appendToThread).
+    // We still compute isPast because the empty-state copy varies.
     final focusedDay = ref.read(focusedDayProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final isPast = focusedDay.isBefore(today);
-    if (isPast) {
-      widgets.add(_PastDayNote(scheme: scheme, textTheme: textTheme));
-    }
 
     // First-launch shortcut: no meals exist anywhere yet, show the
     // EmptyToday welcome card. Phase 5 swaps this for a per-day empty
@@ -585,24 +584,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     if (items.isEmpty) {
-      // Focused day has no items but the user has logged elsewhere. A
-      // quiet line is enough; the AppBar already says which day this is.
-      // Past days use a recap-voice variant ("nothing was logged on this
-      // day") instead of the today-style "no entries yet" subtitle.
-      widgets.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32),
-        child: Center(
-          child: Text(
-            isPast
-                ? AppLocalizations.of(context).homeEmptyDayTextPast
-                : AppLocalizations.of(context).homeEmptyDayText,
-            style: textTheme.bodyMedium?.copyWith(
-              color: scheme.outline,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ),
-      ));
+      // Focused day has no items but the user has logged elsewhere.
+      // Reuse the EmptyToday card so the past-day empty state matches
+      // the today-empty visual (dotted border, icon, italic headline),
+      // just with past-tense copy via isPast.
+      widgets.add(EmptyToday(isPast: isPast));
       return widgets;
     }
 
@@ -635,49 +621,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             text: item.text ?? '',
             isAnswer: false,
             mealId: item.mealId,
-            timestamp: item.timestamp,
           ));
         case ThreadItemType.userQuestion:
-          widgets.add(UserBubble(
-            text: item.text ?? '',
-            timestamp: item.timestamp,
-          ));
+          widgets.add(UserBubble(text: item.text ?? ''));
         case ThreadItemType.coachAnswer:
           widgets.add(CoachBubble(
             text: item.text ?? '',
             isAnswer: true,
             mealId: item.mealId,
-            timestamp: item.timestamp,
           ));
       }
     }
     return widgets;
-  }
-}
-
-// Quiet "Coach pausiert" line shown at the top of a past day's thread.
-// Italic, outline-color, narrow vertical padding - meant to read as a
-// footnote, not a card or banner. Replaces the lock icon that older
-// designs used to mark past days as read-only; the brief explicitly
-// drops the lock in favor of a soft prose note.
-class _PastDayNote extends StatelessWidget {
-  final ColorScheme scheme;
-  final TextTheme textTheme;
-  const _PastDayNote({required this.scheme, required this.textTheme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-      child: Text(
-        AppLocalizations.of(context).homeCoachPausedNote,
-        textAlign: TextAlign.center,
-        style: textTheme.labelSmall?.copyWith(
-          color: scheme.outline,
-          fontStyle: FontStyle.italic,
-        ),
-      ),
-    );
   }
 }
 

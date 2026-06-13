@@ -18,6 +18,8 @@
 
   "emptyTodayHeadline": "Was hast du heute gegessen?",
   "emptyTodayBody": "Tipp einfach drauf los, der Coach erkennt den Rest.",
+  "emptyPastDayHeadline": "Nichts geloggt",
+  "emptyPastDayBody": "An diesem Tag ist nichts eingetragen. Du kannst es jetzt nachholen.",
 
   "emptyHistoryHeadline": "Der Verlauf beginnt heute.",
 
@@ -146,6 +148,7 @@
   "homeEmptyDayTextPast": "An diesem Tag wurde nichts geloggt",
   "homeCoachPausedNote": "Coach pausiert für vergangene Tage",
   "homeCoachOnlyTodayHint": "Fragen an den Coach gehen nur am heutigen Tag - wechsle oben auf Heute.",
+  "confirmPastDaySavedToast": "Eintrag gespeichert · Coach pausiert für vergangene Tage",
   "homeEmptyDayAdd": "hinzufügen",
   "homeEmptyRangePickerTitle": "Welcher Tag?",
   "homeEmptyRangePickerHint": "Wähle den Tag, in den du einen Eintrag schreiben willst. Die Uhrzeit kommt im nächsten Schritt.",

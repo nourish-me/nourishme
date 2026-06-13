@@ -5,14 +5,23 @@ import '../nm_icons.dart';
 
 // First-meal-of-the-day empty state for the Tagebuch.
 // Spec: handoff/testflight_1_1/README.md "Heute (leer)".
+//
+// The [isPast] flag swaps in past-tense copy so a past day that's empty
+// reads as a recap ("Nothing logged") instead of an active prompt
+// ("What did you eat today?"). Visual treatment - dotted border, icon
+// tile, italic headline - stays identical so the empty state feels
+// consistent regardless of which day the user is on.
 class EmptyToday extends StatelessWidget {
-  const EmptyToday({super.key});
+  final bool isPast;
+  const EmptyToday({super.key, this.isPast = false});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    final headline = isPast ? l10n.emptyPastDayHeadline : l10n.emptyTodayHeadline;
+    final body = isPast ? l10n.emptyPastDayBody : l10n.emptyTodayBody;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
       child: _DottedBorderBox(
@@ -35,7 +44,7 @@ class EmptyToday extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                l10n.emptyTodayHeadline,
+                headline,
                 textAlign: TextAlign.center,
                 style: textTheme.titleLarge?.copyWith(
                   fontStyle: FontStyle.italic,
@@ -45,7 +54,7 @@ class EmptyToday extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                l10n.emptyTodayBody,
+                body,
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium?.copyWith(
                   color: scheme.onSurfaceVariant,

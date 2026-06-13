@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
+import '../main.dart' show rootScaffoldMessengerKey;
 
 import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
@@ -97,20 +98,25 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _origSummary = widget.parsed.summary;
     _origAlias = widget.parsed.portionAlias;
     _currentAlias = _origAlias;
-    // Session memory for fresh entries: if the user picked a non-today
-    // day in a previous confirm sheet this session, start there with
-    // the current wall-clock time. Edits / past-day-input always use
-    // the existingCreatedAt the caller passed in.
-    final memDay = ref.read(confirmSheetLastPickedDayProvider);
+    // Default date+time: edits keep the meal's original timestamp.
+    // Fresh saves anchor to the day the user is CURRENTLY viewing in
+    // the diary - that's what they expect when they tap "log" on a
+    // past day. Time defaults to wall-clock "now" for today (so the
+    // entry lands at the end of the running day) and to noon for past
+    // days (no implicit "now" makes sense on a day that's already over,
+    // and noon is a neutral middle-of-day anchor). The session-memory
+    // hack that carried the last-picked day across sheets was dropped
+    // here - it confused the standard case (one entry on today after
+    // one retro-entry would silently default to yesterday again).
     final nowInit = DateTime.now();
     final today = DateTime(nowInit.year, nowInit.month, nowInit.day);
+    final focused = ref.read(focusedDayProvider);
     if (widget.existingCreatedAt != null) {
       _mealTime = widget.existingCreatedAt!;
-    } else if (memDay != null && !_sameDay(memDay, today)) {
-      _mealTime = DateTime(memDay.year, memDay.month, memDay.day,
-          nowInit.hour, nowInit.minute);
-    } else {
+    } else if (_sameDay(focused, today)) {
       _mealTime = nowInit;
+    } else {
+      _mealTime = DateTime(focused.year, focused.month, focused.day, 12, 0);
     }
 
     _summary = TextEditingController(text: widget.parsed.summary);
@@ -387,6 +393,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
     final threadRepo = ref.read(threadRepositoryProvider);
     final locale = Localizations.localeOf(context).languageCode;
+    // Capture context-bound strings up front so the post-await snack
+    // calls don't have to touch a possibly-disposed BuildContext.
+    final pastDaySavedToast =
+        AppLocalizations.of(context).confirmPastDaySavedToast;
 
     if (!isEdit) {
       // New meal: persist it so it shows up in the diary right away. The
@@ -396,7 +406,30 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
       final bundleNotifier =
           ref.read(pendingScanBundleProvider.notifier);
-      if (fireCoach) {
+      // Past-day saves skip the coach entirely. The coach is designed for
+      // live course-correction ("you still have X kcal today") and adds
+      // no value on a day that's already over - and each call costs an
+      // API hop. Brief alignment: "An vergangenen Tagen erzeugt der Coach
+      // KEINE neuen Live-Nachrichten." Instead we surface a one-shot
+      // snack so the user knows the save happened and why no thinking-
+      // bubble appeared.
+      final now = DateTime.now();
+      final todayKey = DateTime(now.year, now.month, now.day);
+      final mealDay = DateTime(
+          meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
+      final isPastDaySave = mealDay.isBefore(todayKey);
+      if (isPastDaySave) {
+        // Drain any pending bundle without firing - retro-saves
+        // shouldn't carry today's queued meals into a coach call later.
+        bundleNotifier.state = const [];
+        rootScaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(pastDaySavedToast),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else if (fireCoach) {
         // Drain any in-progress scan bundle and fire one coach call for
         // everything together (or just this meal when no bundle exists).
         final pending = ref.read(pendingScanBundleProvider);
@@ -410,13 +443,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       }
       // Scroll the diary to the meal's day only for retro-logs (past-day
       // saves). Today's saves don't need it - the new entry lands at the
-      // bottom near the input bar, naturally visible. Firing the scroll
-      // for today made the diary jump up to "today's earliest entry",
-      // which felt like an unwanted scroll-up right after saving.
-      final now = DateTime.now();
-      final todayKey = DateTime(now.year, now.month, now.day);
-      final mealDay = DateTime(
-          meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
+      // bottom near the input bar, naturally visible.
       if (mealDay != todayKey) {
         ref.read(scrollToDayProvider.notifier).state = mealDay;
       }
@@ -445,6 +472,24 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     // (If updateMealItemTime just migrated it cross-day, this picks up the
     // migrated copy and removes it.)
     await threadRepo.removeCoachResponseForMeal(meal.id, meal.createdAt);
+
+    // Past-day edits skip the coach regen too - same reasoning as the
+    // fresh-save path. Surface the save via a snack so the user gets a
+    // confirmation even without the in-thread thinking bubble.
+    final now = DateTime.now();
+    final todayKey = DateTime(now.year, now.month, now.day);
+    final mealDay = DateTime(
+        meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
+    if (mealDay.isBefore(todayKey)) {
+      rootScaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(pastDaySavedToast),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
 
     ref
         .read(coachSessionProvider.notifier)
@@ -487,14 +532,6 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           pickedTime.hour, pickedTime.minute);
       _userTouched = true;
     });
-    // Session memory: remember the day picked so the next fresh confirm
-    // sheet starts there instead of jumping back to today. Today picks
-    // clear the memory (back to "default = today").
-    final pickedDay =
-        DateTime(pickedDate.year, pickedDate.month, pickedDate.day);
-    final today = DateTime(now.year, now.month, now.day);
-    ref.read(confirmSheetLastPickedDayProvider.notifier).state =
-        _sameDay(pickedDay, today) ? null : pickedDay;
   }
 
   String _formatMealTime() {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../main.dart' show rootScaffoldMessengerKey;
@@ -24,34 +23,6 @@ import '../../utils/coach_followups.dart';
 // align on the same vertical track.
 const double _timeColumnWidth = 44;
 
-String _formatTimeLabel(DateTime t) {
-  final tod = TimeOfDay.fromDateTime(t);
-  return '${tod.hour.toString().padLeft(2, '0')}:${tod.minute.toString().padLeft(2, '0')}';
-}
-
-Widget _timeCell({
-  required String label,
-  required ColorScheme scheme,
-  required TextTheme textTheme,
-}) {
-  return SizedBox(
-    width: _timeColumnWidth,
-    child: Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: Text(
-        label,
-        style: GoogleFonts.jetBrainsMono(
-          textStyle: textTheme.labelSmall?.copyWith(
-            color: scheme.outline,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.4,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
 BoxDecoration _ledgerRowDecoration(ColorScheme scheme) => BoxDecoration(
       border: Border(
         bottom: BorderSide(color: scheme.outlineVariant, width: 0.5),
@@ -66,20 +37,16 @@ class CoachBubble extends ConsumerWidget {
   // coach asked the question with this meal. Null is fine (older code
   // paths, fallback bubbles).
   final String? mealId;
-  // Timestamp of the coach reply so the row aligns on the time ledger.
-  final DateTime timestamp;
   const CoachBubble({
     super.key,
     required this.text,
     required this.isAnswer,
-    required this.timestamp,
     this.mealId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // Borderless amber lane: subtle secondaryContainer tint, no border,
     // no border-radius. Quieter in dark mode where the saturated
@@ -100,11 +67,14 @@ class CoachBubble extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _timeCell(
-              label: _formatTimeLabel(timestamp),
-              scheme: scheme,
-              textTheme: textTheme,
-            ),
+            // Coach rows sit on the same vertical track as meal rows so
+            // the time column reads top-to-bottom, but the coach's own
+            // bubble carries no timestamp - the user's mental model is
+            // "the coach responded to my meal", not "the coach said
+            // something at HH:MM". The tip icon below replaces the
+            // time cell; an empty 44 px slot keeps it aligned with
+            // meal rows.
+            const SizedBox(width: _timeColumnWidth),
             Expanded(
               child: ColoredBox(
                 color: laneTint,
@@ -315,8 +285,7 @@ class _IngredientsReplyInputState
 
 class UserBubble extends StatelessWidget {
   final String text;
-  final DateTime timestamp;
-  const UserBubble({super.key, required this.text, required this.timestamp});
+  const UserBubble({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -329,11 +298,9 @@ class UserBubble extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _timeCell(
-              label: _formatTimeLabel(timestamp),
-              scheme: scheme,
-              textTheme: textTheme,
-            ),
+            // Chat questions match coach rows: empty time slot, body
+            // right-aligned to read as "your turn" in the conversation.
+            const SizedBox(width: _timeColumnWidth),
             Expanded(
               child: Text(
                 text,

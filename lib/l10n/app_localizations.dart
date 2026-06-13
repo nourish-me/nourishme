@@ -182,6 +182,18 @@ abstract class AppLocalizations {
   /// **'Type away, the coach takes it from there.'**
   String get emptyTodayBody;
 
+  /// No description provided for @emptyPastDayHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged'**
+  String get emptyPastDayHeadline;
+
+  /// No description provided for @emptyPastDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries for this day yet. You can add them now.'**
+  String get emptyPastDayBody;
+
   /// No description provided for @emptyHistoryHeadline.
   ///
   /// In en, this message translates to:
@@ -805,6 +817,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coach questions only work for today - switch to Today at the top.'**
   String get homeCoachOnlyTodayHint;
+
+  /// No description provided for @confirmPastDaySavedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry saved · Coach paused for past days'**
+  String get confirmPastDaySavedToast;
 
   /// No description provided for @homeEmptyDayAdd.
   ///
