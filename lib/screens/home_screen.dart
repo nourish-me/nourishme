@@ -13,6 +13,7 @@ import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
 import '../services/claude_client.dart';
 import '../services/coach_session_manager.dart';
+import '../widgets/diary/month_calendar_popover.dart';
 import '../widgets/empty/empty_today.dart';
 import 'confirm_screen.dart';
 import 'diary/coach_bubble.dart';
@@ -210,21 +211,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
     final initial = ref.read(focusedDayProvider);
-    final l10n = AppLocalizations.of(context);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year, now.month, now.day),
-      helpText: l10n.homeOpenDayHelp,
-      cancelText: l10n.commonCancel,
-      confirmText: 'OK',
+    // Pull the meal-day index off mealsByDayProvider so the popover can
+    // render an amber dot under each day that has at least one entry.
+    final mealsByDay = ref.read(mealsByDayProvider);
+    final mealDays = mealsByDay.keys.toSet();
+    final picked = await showMonthCalendarPopover(
+      context,
+      focused: initial,
+      mealDays: mealDays,
+      firstSelectable: DateTime(now.year - 1, now.month, now.day),
+      lastSelectable: DateTime(now.year, now.month, now.day),
     );
     if (picked == null) return;
     final normalized = DateTime(picked.year, picked.month, picked.day);
     // Drives the Single-Day-View: NutritionHeader, thread body and AppBar
-    // title all rebind to this day. Phase-2 follow-up: replace this dialog
-    // with the briefed month-calendar popover that shows dotted logged days.
+    // title all rebind to this day.
     ref.read(focusedDayProvider.notifier).state = normalized;
     ref.read(scrollToDayProvider.notifier).state = normalized;
   }
