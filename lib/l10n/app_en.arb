@@ -387,8 +387,9 @@
 
   "settingsMilkChildSingular": "Age of the child",
   "settingsMilkChildPlural": "Ages of the children",
-  "settingsMilkShareSingular": "Breast milk share: {percent}%",
-  "settingsMilkSharePlural": "Breast milk share per baby: {percent}%",
+  "settingsMilkShareSingular": "Your milk's share of daily intake: {percent}%",
+  "settingsMilkSharePlural": "Your milk's share of daily intake: {percent}%",
+  "settingsMilkShareHelper": "What comes from you vs. formula, milk replacer, or solids?",
   "@settingsMilkShareSingular": {
     "placeholders": {"percent": {"type": "int"}}
   },

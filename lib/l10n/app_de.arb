@@ -302,8 +302,9 @@
 
   "settingsMilkChildSingular": "Alter des Kindes",
   "settingsMilkChildPlural": "Alter der Kinder",
-  "settingsMilkShareSingular": "Muttermilch-Anteil: {percent}%",
-  "settingsMilkSharePlural": "Muttermilch-Anteil pro Kind: {percent}%",
+  "settingsMilkShareSingular": "Anteil deiner Milch am Tagesbedarf: {percent}%",
+  "settingsMilkSharePlural": "Anteil deiner Milch am Tagesbedarf: {percent}%",
+  "settingsMilkShareHelper": "Was kommt von dir, was aus Flasche, Pre oder Beikost?",
   "settingsMilkVolumePerDayLabel": "{volume} ml/Tag → +{supplement} kcal/Tag",
   "settingsMilkVolumeInfoTopic": "Tagesvolumen Muttermilch",
   "settingsMilkVolumeInfoTitle": "Energie = Volumen × 0,84 kcal/ml",

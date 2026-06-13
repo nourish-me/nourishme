@@ -1536,6 +1536,11 @@ class _MilkSection extends StatelessWidget {
                   : l10n.settingsMilkSharePlural(sharePercent),
               style: textTheme.bodyMedium,
             ),
+            const SizedBox(height: 2),
+            Text(
+              l10n.settingsMilkShareHelper,
+              style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+            ),
             Slider(
               value: sharePercent.toDouble(),
               min: 0,

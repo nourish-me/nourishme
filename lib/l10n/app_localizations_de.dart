@@ -841,13 +841,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settingsMilkShareSingular(int percent) {
-    return 'Muttermilch-Anteil: $percent%';
+    return 'Anteil deiner Milch am Tagesbedarf: $percent%';
   }
 
   @override
   String settingsMilkSharePlural(int percent) {
-    return 'Muttermilch-Anteil pro Kind: $percent%';
+    return 'Anteil deiner Milch am Tagesbedarf: $percent%';
   }
+
+  @override
+  String get settingsMilkShareHelper =>
+      'Was kommt von dir, was aus Flasche, Pre oder Beikost?';
 
   @override
   String settingsMilkVolumePerDayLabel(int volume, int supplement) {

@@ -1595,14 +1595,20 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMilkShareSingular.
   ///
   /// In en, this message translates to:
-  /// **'Breast milk share: {percent}%'**
+  /// **'Your milk\'s share of daily intake: {percent}%'**
   String settingsMilkShareSingular(int percent);
 
   /// No description provided for @settingsMilkSharePlural.
   ///
   /// In en, this message translates to:
-  /// **'Breast milk share per baby: {percent}%'**
+  /// **'Your milk\'s share of daily intake: {percent}%'**
   String settingsMilkSharePlural(int percent);
+
+  /// No description provided for @settingsMilkShareHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'What comes from you vs. formula, milk replacer, or solids?'**
+  String get settingsMilkShareHelper;
 
   /// No description provided for @settingsMilkVolumePerDayLabel.
   ///
