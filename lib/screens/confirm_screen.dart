@@ -634,12 +634,17 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                 // photo-parsed multi-component summaries that wrap.
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                // Outlined notch-label per beta feedback: the borderless
+                // input read as read-only, users didn't realise the meal
+                // name was editable. Matches the portion/kcal fields
+                // below visually so the whole sheet feels consistently
+                // editable.
                 decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: l10n.confirmDescriptionHint,
-                  hintStyle: TextStyle(color: scheme.outline),
-                  contentPadding: EdgeInsets.zero,
+                  border: const OutlineInputBorder(),
+                  labelText: l10n.confirmDescriptionHint,
                   isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
                 ),
               ),
             ),

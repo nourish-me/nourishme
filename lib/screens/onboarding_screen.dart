@@ -1137,11 +1137,20 @@ class _PhaseDetailsStep extends StatelessWidget {
             onClearBirthdate: onClearBirthdate,
           ),
           const SizedBox(height: 20),
+          // Single label + helper (#82): the duplicate text under the
+          // slider was redundant after the wording rewrite. The question
+          // above + helper below carry the full meaning; the slider
+          // shows the current % in its own tooltip + indicator.
           Text(
             numChildren == 1
-                ? l10n.onboardingVolumeShareQuestionSingular
-                : l10n.onboardingVolumeShareQuestionPlural,
-            style: textTheme.titleSmall,
+                ? l10n.settingsMilkShareSingular(milkSharePercent)
+                : l10n.settingsMilkSharePlural(milkSharePercent),
+            style: textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            l10n.settingsMilkShareHelper,
+            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           ),
           Slider(
             value: milkSharePercent.toDouble(),
@@ -1150,12 +1159,6 @@ class _PhaseDetailsStep extends StatelessWidget {
             divisions: 20,
             label: '$milkSharePercent%',
             onChanged: (v) => onSharePercentChanged(v.round()),
-          ),
-          Text(
-            numChildren == 1
-                ? l10n.settingsMilkShareSingular(milkSharePercent)
-                : l10n.settingsMilkSharePlural(milkSharePercent),
-            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           ),
           const SizedBox(height: 20),
           Row(

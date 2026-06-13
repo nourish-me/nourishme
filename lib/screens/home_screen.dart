@@ -29,7 +29,10 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _dayFlipController;
+
   final _scroll = ScrollController();
   final Map<String, GlobalKey> _mealKeys = {};
   // True while a programmatic scroll is running. Suppresses both the
@@ -57,12 +60,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // in the same direction (already at top / already at bottom).
   // null = no FAB visible.
   _ScrollDir? _scrollDir;
+  // Direction of the most recent day-flip swipe. Drives the page-slide
+  // animation on focusedDay change: swipe left (forward in time) makes
+  // the new day slide in from the right; swipe right (back in time) from
+  // the left. AppBar-picker / Today-button jumps default to no swipe
+  // direction (treated as forward).
+  _ScrollDir? _lastSwipeDir;
   double _lastScrollPixels = 0;
 
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    _dayFlipController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+      value: 1.0, // start fully visible, no entrance animation
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom(animate: false);
     });
@@ -72,7 +86,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void dispose() {
     _scroll.removeListener(_onScroll);
     _scroll.dispose();
+    _dayFlipController.dispose();
     super.dispose();
+  }
+
+  // Trigger the YAZIO-style page-slide on a day-flip: the body slides
+  // in from the swipe direction. Single ListView, single ScrollController
+  // (so no multi-position conflict like a two-child AnimatedSwitcher
+  // would create); only the existing visual is re-animated as the new
+  // day's items come in.
+  void _runDayFlipAnimation() {
+    _dayFlipController.forward(from: 0);
   }
 
   GlobalKey _keyForMeal(String mealId) =>
@@ -409,31 +433,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Brief fade+slide on the title whenever focusedDay
-                // flips. Combined with the haptic on swipe, gives the
-                // user a clear "yes, that worked" cue without animating
-                // the whole body (which would tangle the scroll
-                // controller across two ListViews).
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  switchInCurve: Curves.easeOutCubic,
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                                begin: const Offset(0, 0.25),
-                                end: Offset.zero)
-                            .animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Text(
-                    _focusedDayTitle(context),
-                    key: ValueKey(ref.watch(focusedDayProvider)),
-                  ),
-                ),
+                // Plain title. The pulse animation that used to live
+                // here read as visually noisy; the body-slide below
+                // (YAZIO-style) plus the haptic are the swipe cue.
+                Text(_focusedDayTitle(context)),
                 const SizedBox(width: 2),
                 Icon(Icons.arrow_drop_down, size: 22, color: scheme.outline),
               ],
@@ -547,20 +550,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       final next = focused.add(const Duration(days: 1));
                       if (!next.isAfter(today)) {
                         HapticFeedback.lightImpact();
+                        _lastSwipeDir = _ScrollDir.up;
                         ref.read(focusedDayProvider.notifier).state = next;
+                        _runDayFlipAnimation();
                       }
                     } else {
                       // Swipe right → back in time (older day).
                       HapticFeedback.lightImpact();
+                      _lastSwipeDir = _ScrollDir.down;
                       ref.read(focusedDayProvider.notifier).state =
                           focused.subtract(const Duration(days: 1));
+                      _runDayFlipAnimation();
                     }
                   },
                   behavior: HitTestBehavior.opaque,
-                  child: ListView(
-                    controller: _scroll,
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                    children: _buildSlivers(
+                  child: SlideTransition(
+                    // YAZIO-style page slide: the body slides in from
+                    // the swipe direction whenever focusedDay flips.
+                    // Begin offset: +x for swipe-left (new day comes
+                    // from the right), -x for swipe-right. End at 0.
+                    // Controller's `value: 1.0` initial means no
+                    // entrance animation on first render.
+                    position: Tween<Offset>(
+                      begin: Offset(
+                          _lastSwipeDir == _ScrollDir.down ? -1.0 : 1.0,
+                          0),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: _dayFlipController,
+                      curve: Curves.easeOutCubic,
+                    )),
+                    child: ListView(
+                      controller: _scroll,
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      children: _buildSlivers(
                       context: context,
                       ref: ref,
                       items: focusedDayItems,
@@ -573,6 +596,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       scheme: scheme,
                       textTheme: textTheme,
                       mealsOnly: _mealsOnly,
+                    ),
                     ),
                   ),
                 ),
