@@ -698,6 +698,14 @@ class _HomeInputState extends ConsumerState<HomeInput> {
     try {
       final client = ref.read(claudeClientProvider);
       final profile = ref.read(userProfileProvider).valueOrNull;
+      // Pull the user's last matching entries (top 3, last 30 days) so
+      // the parser anchors on her actual brand+portion values instead
+      // of re-estimating a generic Skyr / cereal / takeaway. Only fires
+      // for text input - the photo path doesn't carry a typed query to
+      // match against. Falls back to empty on photo-only saves.
+      final historyHints = text.trim().length >= 2
+          ? ref.read(mealHistorySuggestionsProvider(text))
+          : const <MealEntry>[];
 
       final parsed = await client.parseMeal(
         text,
@@ -706,6 +714,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         isPregnant: profile?.isPregnant ?? false,
         trimester: profile?.trimester,
         isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+        brandHistoryHints: historyHints,
       );
       if (!mounted) return;
       if (parsed.isMeal) {

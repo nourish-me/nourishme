@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/meal_entry.dart';
 import 'prompts/chat_base_de.dart';
 import 'prompts/chat_base_en.dart';
 import 'prompts/parse_de.dart';
@@ -361,6 +362,11 @@ class ClaudeClient {
     bool isPregnant = false,
     int? trimester,
     bool isLactating = false,
+    // Recent entries from the user's history whose summary matches the
+    // typed text. Lets the parser anchor on the user's actual past
+    // brand+portion values rather than re-estimating from scratch.
+    // Typically the top 3 matches from mealHistorySuggestionsProvider.
+    List<MealEntry> brandHistoryHints = const [],
   }) async {
     final isDe = _isGerman(locale);
     // Phase context so safety_warnings stay relevant: a not-pregnant user
@@ -395,9 +401,10 @@ class ClaudeClient {
             ? 'Schätze diesen Eintrag basierend auf dem Bild.'
             : 'Estimate this entry based on the image.')
         : userText;
+    final historyBlock = _brandHistoryBlock(brandHistoryHints, isDe: isDe);
     content.add({
       'type': 'text',
-      'text': '$phaseLine\n\n$entryText',
+      'text': '$phaseLine$historyBlock\n\n$entryText',
     });
 
     final text = await _post(
@@ -658,6 +665,38 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
   // to drop into the user-message profile block. Returns an empty string
   // when nothing is set so omnivores without restrictions don't get a
   // confusing "Diet: omnivore" line in their context.
+  // Format a compact "earlier similar entries" block listing the user's
+  // own prior matching meals. The parser is instructed in the prompt
+  // (parse_de / parse_en) to prefer these values when the current text
+  // closely matches a hint, instead of re-estimating from scratch. Keeps
+  // brand-accurate macros for repeat logs of the same item (Skyr,
+  // specific cereal, recurring takeaway).
+  //
+  // Returns empty string when no hints - keeps the prompt clean for the
+  // common case.
+  static String _brandHistoryBlock(List<MealEntry> hints,
+      {required bool isDe}) {
+    if (hints.isEmpty) return '';
+    final lines = <String>[];
+    for (final m in hints.take(3)) {
+      final portion = m.portionAmount > 0
+          ? '${m.portionAmount.toStringAsFixed(0)} ${m.portionUnit}'
+          : '';
+      final macros =
+          'kcal ${m.kcal}, P ${m.proteinG.toStringAsFixed(0)}, KH ${m.carbsG.toStringAsFixed(0)}, F ${m.fatG.toStringAsFixed(0)}';
+      lines.add(portion.isEmpty
+          ? '- ${m.summary}: $macros'
+          : '- ${m.summary} ($portion): $macros');
+    }
+    final header = isDe
+        ? '\n\nFrühere ähnliche Einträge dieser Nutzerin (Marke/Portion kennt sie schon):'
+        : '\n\nEarlier similar entries from this user (brand/portion she already tracks):';
+    final footer = isDe
+        ? '\nWenn der aktuelle Eintrag zu einem davon eindeutig passt, übernimm dessen Werte direkt - nicht neu schätzen.'
+        : '\nIf the current entry clearly matches one of these, use its values directly - do not re-estimate.';
+    return '$header\n${lines.join("\n")}$footer';
+  }
+
   static String _dietLine({
     required bool isDe,
     required String dietStyle,
