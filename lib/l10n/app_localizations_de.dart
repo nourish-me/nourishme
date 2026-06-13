@@ -1039,6 +1039,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dietStylePescatarian => 'Pescetarisch';
 
   @override
+  String get settingsDietVeganPhaseHint =>
+      'Vegan in Schwangerschaft oder Stillzeit braucht eine bewusste Supplementierung: B12 ist nicht über Lebensmittel abzudecken (tägliche Tablette essenziell), DHA aus Algenöl (200-300 mg/Tag), plus Augenmerk auf Iod, Eisen, Cholin und Vitamin D. Sprich das mit deiner Hebamme oder Ernährungsfachkraft ab. Der Coach achtet ab jetzt aktiv auf diese Lücken.';
+
+  @override
   String get settingsDietRestrictionsLabel => 'Vermeiden';
 
   @override

@@ -570,7 +570,9 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
                 isDe: true,
                 dietStyle: dietStyle,
                 restrictions: restrictions,
-                dietaryNotes: dietaryNotes),
+                dietaryNotes: dietaryNotes,
+                isPregnant: isPregnant,
+                numChildrenNursing: numChildrenNursing),
           )
         : _buildPerMealUserMessageEn(
             mealRawText: mealRawText,
@@ -599,7 +601,9 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
                 isDe: false,
                 dietStyle: dietStyle,
                 restrictions: restrictions,
-                dietaryNotes: dietaryNotes),
+                dietaryNotes: dietaryNotes,
+                isPregnant: isPregnant,
+                numChildrenNursing: numChildrenNursing),
           );
 
     // Every Nth meal the coach gets primed to surface engagement-questions
@@ -659,6 +663,8 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     required String dietStyle,
     required Set<String> restrictions,
     required String dietaryNotes,
+    bool isPregnant = false,
+    int numChildrenNursing = 0,
   }) {
     final hasStyle = dietStyle.isNotEmpty && dietStyle != 'omnivore';
     final hasRestrictions = restrictions.isNotEmpty;
@@ -669,12 +675,43 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
       if (hasStyle) parts.add('Ernährung: $dietStyle');
       if (hasRestrictions) parts.add('Vermeidet: ${restrictions.join(", ")}');
       if (hasNotes) parts.add('Hinweis: ${dietaryNotes.trim()}');
-      return '\nErnährungsprofil: ${parts.join(" · ")}';
+    } else {
+      if (hasStyle) parts.add('Diet: $dietStyle');
+      if (hasRestrictions) parts.add('Avoids: ${restrictions.join(", ")}');
+      if (hasNotes) parts.add('Note: ${dietaryNotes.trim()}');
     }
-    if (hasStyle) parts.add('Diet: $dietStyle');
-    if (hasRestrictions) parts.add('Avoids: ${restrictions.join(", ")}');
-    if (hasNotes) parts.add('Note: ${dietaryNotes.trim()}');
-    return '\nDietary profile: ${parts.join(" · ")}';
+    final base = isDe
+        ? '\nErnährungsprofil: ${parts.join(" · ")}'
+        : '\nDietary profile: ${parts.join(" · ")}';
+    // Vegan + Schwangerschaft / Stillzeit: kritische Nährstoffe gelten als
+    // Risiko, wenn nicht aktiv supplementiert wird. Der Coach bekommt
+    // hier eine konkrete Liste der Hochrisiko-Lücken, damit er nicht nur
+    // den Tageskorridor kommentiert sondern proaktiv auf B12 / DHA /
+    // Iod / Eisen achtet - das war der Punkt der Ernährungsfachkraft-
+    // Review (Vegan-Alarm). Greift nur in der Stillzeit oder
+    // Schwangerschaft - außerhalb dieser Phasen ist die Plant-Based
+    // Empfehlung weniger kritisch.
+    final isPhase = isPregnant || numChildrenNursing > 0;
+    if (dietStyle == 'vegan' && isPhase) {
+      final guardrail = isDe
+          ? '\nVegan in dieser Phase: Achte besonders auf Vitamin B12 '
+              '(tägliche Supplementierung essenziell, ohne reicht keine '
+              'Mahlzeit), DHA (Algenöl 200-300 mg/Tag empfohlen), Iod '
+              '(150-200 µg/Tag), Eisen (Vit-C zur Resorption), Cholin '
+              '(Sojaprodukte, Erdnüsse), Calcium (angereicherte Drinks), '
+              'Zink und Vitamin D. Nenne diese aktiv, wenn die Mahlzeit '
+              'eine Lücke offen lässt. Quelle: DGE, AND, EFSA.'
+          : '\nVegan during this phase: be especially attentive to '
+              'vitamin B12 (daily supplementation is essential, no meal '
+              'covers this), DHA (200-300 mg/day algae oil recommended), '
+              'iodine (150-200 µg/day), iron (pair with vitamin C for '
+              'absorption), choline (soy products, peanuts), calcium '
+              '(fortified plant milks), zinc and vitamin D. Surface '
+              'these proactively when a meal leaves the gap open. '
+              'Source: DGE, AND, EFSA.';
+      return base + guardrail;
+    }
+    return base;
   }
 
   String _buildPerMealUserMessageDe({

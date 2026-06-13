@@ -633,6 +633,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   });
                 },
                 notesController: _dietaryNotes,
+                isInPhase: _isPregnant || _isLactating,
               ),
               const SizedBox(height: 12),
               _MicronutrientsSection(
@@ -1931,12 +1932,18 @@ class _DietSection extends StatelessWidget {
   final Set<String> restrictions;
   final void Function(String tag, bool picked) onRestrictionToggled;
   final TextEditingController notesController;
+  // True when the user is currently pregnant OR lactating. Drives the
+  // vegan-supplementation hint banner shown beneath the diet chips - the
+  // overlap of "vegan" + this phase is where the dietitian flagged a
+  // real risk of micronutrient gaps.
+  final bool isInPhase;
   const _DietSection({
     required this.dietStyle,
     required this.onDietStyleChanged,
     required this.restrictions,
     required this.onRestrictionToggled,
     required this.notesController,
+    required this.isInPhase,
   });
 
   @override
@@ -1944,6 +1951,7 @@ class _DietSection extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    final showVeganHint = dietStyle == DietStyle.vegan && isInPhase;
     return _Section(
       title: l10n.settingsSectionDiet,
       child: Column(
@@ -1964,6 +1972,33 @@ class _DietSection extends StatelessWidget {
                 ),
             ],
           ),
+          if (showVeganHint) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              decoration: BoxDecoration(
+                color: scheme.secondaryContainer.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline,
+                      size: 18, color: scheme.secondary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.settingsDietVeganPhaseHint,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurface,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Text(l10n.settingsDietRestrictionsLabel,
               style: textTheme.bodyMedium),

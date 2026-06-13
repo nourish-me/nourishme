@@ -1928,6 +1928,12 @@ abstract class AppLocalizations {
   /// **'Pescatarian'**
   String get dietStylePescatarian;
 
+  /// No description provided for @settingsDietVeganPhaseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegan during pregnancy or breastfeeding needs deliberate supplementation: B12 cannot be covered through food (a daily supplement is essential), DHA from algae oil (200-300 mg/day), plus attention to iodine, iron, choline and vitamin D. Talk to your midwife or a registered nutrition professional. The coach now watches for these gaps proactively.'**
+  String get settingsDietVeganPhaseHint;
+
   /// No description provided for @settingsDietRestrictionsLabel.
   ///
   /// In en, this message translates to:
