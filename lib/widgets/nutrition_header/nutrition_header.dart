@@ -76,8 +76,11 @@ class NutritionHeader extends ConsumerWidget {
         profile.selectedMicronutrients ?? MicronutrientDefaults.forProfile(profile);
 
     return DecoratedBox(
+      // Brief alignment: "Header sitzt flach auf dem Paper (keine eigene
+      // Füllung), nur eine Haarlinie trennt ihn vom Thread." Dropping
+      // the surface fill lets the paper color show through, so the
+      // header reads as part of the page rather than as a separate bar.
       decoration: BoxDecoration(
-        color: scheme.surface,
         border: Border(
           bottom: BorderSide(color: scheme.outlineVariant, width: 0.5),
         ),

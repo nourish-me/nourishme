@@ -172,7 +172,7 @@
   "tip4Title": "Micros live in the diary",
   "tip4Body": "Tap a micro in the header for details. Pick which 3 appear under Settings → Coach & nutrition → Micronutrients. Taking a supplement? Snap its nutrition label and the app reads the values and folds them into your day total.",
   "tip5Title": "Log a missed meal later",
-  "tip5Body": "Tap a past day in your diary → you can set the date and time and log the meal retroactively.",
+  "tip5Body": "Tap the day at the top of the diary and pick a date, then just write what you ate. Or log from Today and switch date and time on the \"Today · 08:24\" pill in the save sheet.",
   "tip6Title": "Just say what you ate",
   "tip6Body": "You don't have to structure it as \"cappuccino 200 ml\". \"A cappuccino please\" or \"a bowl of cereal with berries\" is enough. The app figures out it's a meal, estimates a typical portion, and logs it.",
   "homeCoachBundling": "Coach is waiting briefly for more items… ({count})",

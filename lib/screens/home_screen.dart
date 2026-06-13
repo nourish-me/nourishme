@@ -182,6 +182,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Title that the AppBar shows above the diary. Today and yesterday get
   // their named-day form; older days are formatted as "weekday, day. month"
   // (e.g. "So, 8. Juni" / "Sun, 8 Jun") using the locale's short month.
+  // True when the diary is sitting on today (the most common case). Drives
+  // the conditional Today-jump button in the AppBar - hidden when there's
+  // nowhere to jump back to.
+  bool _isFocusedOnToday(WidgetRef ref) {
+    final focused = ref.watch(focusedDayProvider);
+    final now = DateTime.now();
+    return focused.year == now.year &&
+        focused.month == now.month &&
+        focused.day == now.day;
+  }
+
   String _focusedDayTitle(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final focused = ref.watch(focusedDayProvider);
@@ -405,6 +416,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         centerTitle: false,
         actions: [
+          // Today-jump shortcut: when the diary is sitting on a past
+          // day, a single tap brings the user back to today without
+          // having to walk through the date-picker. Hidden when already
+          // on today so the AppBar doesn't accumulate a redundant
+          // action on the most-common state. Google-Calendar-Pattern.
+          if (!_isFocusedOnToday(ref))
+            TextButton(
+              onPressed: () {
+                final now = DateTime.now();
+                ref.read(focusedDayProvider.notifier).state =
+                    DateTime(now.year, now.month, now.day);
+              },
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                minimumSize: const Size(0, 36),
+                foregroundColor: scheme.primary,
+              ),
+              child: Text(AppLocalizations.of(context).todayHeader),
+            ),
           if (canFilter)
           IconButton(
             icon: Icon(_mealsOnly
@@ -469,6 +501,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 GestureDetector(
                   onTap: () => FocusScope.of(context).unfocus(),
+                  // Horizontal swipe between days: a fast flick changes
+                  // focusedDay by one. Slidable rows have their own
+                  // horizontal-drag recognizer that wins inside their
+                  // hit area, so meal-row swipe-actions keep working;
+                  // this handler fires only on the empty space, the
+                  // header overlap, and coach rows that aren't
+                  // Slidable. Future days are blocked (no future logs
+                  // in this MVP).
+                  onHorizontalDragEnd: (details) {
+                    final v = details.primaryVelocity ?? 0;
+                    if (v.abs() < 250) return;
+                    final focused = ref.read(focusedDayProvider);
+                    final now = DateTime.now();
+                    final today = DateTime(now.year, now.month, now.day);
+                    if (v < 0) {
+                      // Swipe left → forward in time (newer day). Cap
+                      // at today.
+                      final next = focused.add(const Duration(days: 1));
+                      if (!next.isAfter(today)) {
+                        ref.read(focusedDayProvider.notifier).state = next;
+                      }
+                    } else {
+                      // Swipe right → back in time (older day).
+                      ref.read(focusedDayProvider.notifier).state =
+                          focused.subtract(const Duration(days: 1));
+                    }
+                  },
                   behavior: HitTestBehavior.opaque,
                   child: ListView(
                     controller: _scroll,

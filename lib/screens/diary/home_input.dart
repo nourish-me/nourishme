@@ -779,7 +779,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final favorites =
+    final allFavorites =
         ref.watch(favoritesProvider).valueOrNull ?? const <FavoriteMeal>[];
     // Recent-meal matches for the current typed query (empty list until the
     // user has typed >= 2 chars). Hidden when a photo is attached because the
@@ -788,6 +788,31 @@ class _HomeInputState extends ConsumerState<HomeInput> {
     final historySuggestions = _imageBytes != null
         ? const <MealEntry>[]
         : ref.watch(mealHistorySuggestionsProvider(_query));
+    // Hybrid favorites visibility per beta feedback:
+    // - Typing (>= 2 chars): filter favorites by substring so they act as
+    //   one-tap shortcuts inside the autocomplete flow, same mental model
+    //   as history matches.
+    // - Empty input + diary has entries: hide favorites entirely so the
+    //   chip row doesn't dominate the input area on a busy day.
+    // - Empty input + diary still empty: show favorites so a returning
+    //   user has a one-tap log path and a new user discovers the feature.
+    final focusedDayMeals = ref.watch(focusedDayMealsProvider);
+    final query = _query.trim().toLowerCase();
+    List<FavoriteMeal> favorites;
+    if (_imageBytes != null) {
+      favorites = const [];
+    } else if (query.length >= 2) {
+      final tokens =
+          query.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+      favorites = allFavorites.where((f) {
+        final summary = f.summary.toLowerCase();
+        return tokens.every(summary.contains);
+      }).take(3).toList();
+    } else if (_query.isEmpty && focusedDayMeals.isEmpty) {
+      favorites = allFavorites;
+    } else {
+      favorites = const [];
+    }
 
     // Listen for focus requests from the rest of the app (notification tap,
     // onboarding finish, photo-picker from elsewhere). The counter pattern

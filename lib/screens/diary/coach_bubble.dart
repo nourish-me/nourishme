@@ -48,11 +48,12 @@ class CoachBubble extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Borderless amber lane: subtle secondaryContainer tint, no border,
-    // no border-radius. Quieter in dark mode where the saturated
-    // secondaryContainer reads as heavy against the ink background.
-    final laneTint = scheme.secondaryContainer
-        .withValues(alpha: isDark ? 0.35 : 0.55);
+    // Borderless amber lane per Claude-Design-Brief: secondary tone at
+    // ~10% alpha so the lane sits as a whisper on the paper, not as a
+    // distinct chip. Dark-mode lifts the alpha slightly to keep the
+    // lane legible against the ink background but stays quiet.
+    final laneTint = scheme.secondary
+        .withValues(alpha: isDark ? 0.18 : 0.10);
     final fg = scheme.onSurface;
     final iconColor = scheme.secondary;
     final split = splitCoachResponse(text);
@@ -331,8 +332,11 @@ class CoachThinkingBubble extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final laneTint = scheme.tertiaryContainer
-        .withValues(alpha: isDark ? 0.35 : 0.5);
+    // Match the coach-bubble alpha rule so the thinking placeholder has
+    // the same lane weight as a real reply - swapping in/out doesn't
+    // visibly shift the column.
+    final laneTint = scheme.tertiary
+        .withValues(alpha: isDark ? 0.18 : 0.10);
     return DecoratedBox(
       decoration: _ledgerRowDecoration(scheme),
       child: Padding(
