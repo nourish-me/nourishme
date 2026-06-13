@@ -442,6 +442,10 @@ class SafetyRules {
   static String? algae(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isPregnant) return null;
+    // "Kombucha" (fermented tea) contains the substring "kombu" but is NOT
+    // seaweed — exclude it so it can't trip the algae rule. Real "Kombu"
+    // (the kelp) still fires because it never contains "kombucha".
+    if (product.toLowerCase().contains('kombucha')) return null;
     if (!_algaeTokens.any((k) => _tokenContains(product, k))) return null;
     return locale.toLowerCase().startsWith('de')
         ? 'Algen/Algenprodukte: in der Schwangerschaft besser meiden. Jodgehalt schwankt stark und liegt oft über der Tagesobergrenze, dazu Arsen und andere Kontaminanten (DGE).'

@@ -490,6 +490,12 @@ void main() {
       expect(SafetyRules.algae('Algerien-Reise', pregnant), isNull);
       expect(SafetyRules.algae('algerische Küche', pregnant), isNull);
     });
+
+    test('"Kombucha" must NOT trip "kombu" (fermented tea, not seaweed); real '
+        '"Kombu" kelp still fires', () {
+      expect(SafetyRules.algae('Kombucha Ingwer', pregnant), isNull);
+      expect(SafetyRules.algae('Kombu Brühe', pregnant), isNotNull);
+    });
   });
 
   group('allWarnings — runs every rule', () {
