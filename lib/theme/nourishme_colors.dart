@@ -121,6 +121,14 @@ ThemeData buildLightTheme() {
       centerTitle: false,
       titleTextStyle: text.titleLarge,
     ),
+    dialogTheme: DialogThemeData(
+      // Field-Manual alignment: title in SF Pro titleMedium (17/600) so
+      // confirmation prompts read as system-native, not as marketing
+      // display. Body inherits bodyMedium from textTheme. Action buttons
+      // use the Material 3 labelLarge default which is already SF Pro.
+      titleTextStyle: text.titleMedium,
+      contentTextStyle: text.bodyMedium,
+    ),
     navigationBarTheme: NavigationBarThemeData(
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
@@ -149,6 +157,10 @@ ThemeData buildDarkTheme() {
       elevation: 0,
       centerTitle: false,
       titleTextStyle: text.titleLarge,
+    ),
+    dialogTheme: DialogThemeData(
+      titleTextStyle: text.titleMedium,
+      contentTextStyle: text.bodyMedium,
     ),
     navigationBarTheme: NavigationBarThemeData(
       labelTextStyle: WidgetStateProperty.resolveWith((states) {

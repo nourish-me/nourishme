@@ -15,6 +15,7 @@ import '../providers/ui_providers.dart';
 import '../services/claude_client.dart';
 import '../services/coach_session_manager.dart';
 import '../services/notification_scheduler.dart';
+import '../widgets/edit_hint_icon.dart';
 
 class ConfirmScreen extends ConsumerStatefulWidget {
   final String rawText;
@@ -1035,15 +1036,27 @@ class _SheetHeaderContent extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              isEditing
-                  ? AppLocalizations.of(context).confirmTitleEdit
-                  : AppLocalizations.of(context).confirmTitleNew,
-              style: textTheme.titleSmall?.copyWith(
-                color: scheme.outline,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.4,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    isEditing
+                        ? AppLocalizations.of(context).confirmTitleEdit
+                        : AppLocalizations.of(context).confirmTitleNew,
+                    style: textTheme.titleSmall?.copyWith(
+                      color: scheme.outline,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+                // Edit-pencil sits beside the title when the user is
+                // editing an existing meal - moved here from the diary
+                // row per beta feedback. New entries don't get it
+                // because they're being created, not edited.
+                if (isEditing) const EditHintIcon(),
+              ],
             ),
           ),
           IconButton(

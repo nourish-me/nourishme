@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -408,7 +409,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_focusedDayTitle(context)),
+                // Brief fade+slide on the title whenever focusedDay
+                // flips. Combined with the haptic on swipe, gives the
+                // user a clear "yes, that worked" cue without animating
+                // the whole body (which would tangle the scroll
+                // controller across two ListViews).
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  switchInCurve: Curves.easeOutCubic,
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                                begin: const Offset(0, 0.25),
+                                end: Offset.zero)
+                            .animate(animation),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    _focusedDayTitle(context),
+                    key: ValueKey(ref.watch(focusedDayProvider)),
+                  ),
+                ),
                 const SizedBox(width: 2),
                 Icon(Icons.arrow_drop_down, size: 22, color: scheme.outline),
               ],
@@ -521,10 +546,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // at today.
                       final next = focused.add(const Duration(days: 1));
                       if (!next.isAfter(today)) {
+                        HapticFeedback.lightImpact();
                         ref.read(focusedDayProvider.notifier).state = next;
                       }
                     } else {
                       // Swipe right → back in time (older day).
+                      HapticFeedback.lightImpact();
                       ref.read(focusedDayProvider.notifier).state =
                           focused.subtract(const Duration(days: 1));
                     }
