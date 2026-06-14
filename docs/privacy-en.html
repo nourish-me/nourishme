@@ -88,8 +88,14 @@ performance (Art. 6(1)(b) GDPR).</p>
 <p>Where special categories of personal data are processed, the processing
 relies on your <strong>explicit consent under Art. 9(2)(a) GDPR</strong>.
 Information about pregnancy, breastfeeding and body weight constitutes
-health data within the meaning of Art. 9 GDPR. You give this consent on
-first launch of the app and can withdraw it at any time with future effect.</p>
+health data within the meaning of Art. 9 GDPR. You give this consent in
+the onboarding step before the first use of coaching. It is separate from
+the optional consent to anonymous usage analytics (PostHog) — you can give
+the two independently.</p>
+<p>You can withdraw the analytics consent any time via the toggle in app
+Settings. You can withdraw the health-data consent via "Reset App" in
+Settings — after a reset, local data is deleted and no further requests
+are sent to Anthropic without renewed consent.</p>
 <p>Health-related data is processed for your personal wellness purposes.
 NourishMe does <strong>not</strong> provide medical diagnosis or treatment.</p>
 
@@ -99,7 +105,8 @@ NourishMe does <strong>not</strong> provide medical diagnosis or treatment.</p>
   <li><strong>Anthropic API:</strong> up to 30 days.</li>
   <li><strong>Cloudflare:</strong> connection metadata typically 24 h.</li>
   <li><strong>PostHog (anonymous stats):</strong> aggregated events, no personal
-    identity. Can be disabled anytime via the opt-out in Settings.</li>
+    identity. Only active when you explicitly opt in during onboarding.
+    Can be disabled anytime via the toggle in Settings.</li>
   <li><strong>Sentry (crash reports):</strong> 90 days, technical error
     information only, no personal identifiers.</li>
 </ul>
