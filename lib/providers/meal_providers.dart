@@ -94,7 +94,18 @@ final todayThreadProvider = StreamProvider<List<ThreadItem>>((ref) {
 // UI-orchestration state (selectedTab, theme, scrollToDay, input focus,
 // input prefill, chat-loading) lives in providers/ui_providers.dart.
 
-final claudeClientProvider = Provider<ClaudeClient>((ref) => ClaudeClient());
+final claudeClientProvider = Provider<ClaudeClient>((ref) {
+  // Inject the consent resolver so the client can short-circuit any
+  // network call when the user hasn't ticked the mandatory Art. 9
+  // health-data consent in onboarding. The resolver reads the
+  // SettingsRepository on every call (no cached value) - that way a
+  // mid-session revocation via Settings takes effect immediately
+  // without a provider rebuild.
+  final settings = ref.read(settingsRepositoryProvider);
+  return ClaudeClient(
+    healthDataConsentAtResolver: settings.getHealthDataConsentAt,
+  );
+});
 
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
   return AnalyticsService(ref.watch(settingsRepositoryProvider));

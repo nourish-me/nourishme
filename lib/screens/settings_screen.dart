@@ -1429,7 +1429,10 @@ class _PrivacySectionState extends ConsumerState<_PrivacySection> {
   @override
   void initState() {
     super.initState();
-    _enabled = !ref.read(settingsRepositoryProvider).getAnalyticsOptOut();
+    // New opt-in model (#83): enabled iff the user has an analytics
+    // consent timestamp from onboarding or from this toggle.
+    _enabled =
+        ref.read(settingsRepositoryProvider).getAnalyticsConsentAt() != null;
   }
 
   @override
@@ -1448,11 +1451,26 @@ class _PrivacySectionState extends ConsumerState<_PrivacySection> {
             value: _enabled,
             onChanged: (v) {
               setState(() => _enabled = v);
-              ref.read(settingsRepositoryProvider).setAnalyticsOptOut(!v);
+              final repo = ref.read(settingsRepositoryProvider);
+              if (v) {
+                repo.setAnalyticsConsentAt(DateTime.now());
+              } else {
+                repo.clearAnalyticsConsent();
+              }
             },
           ),
           Text(
             l10n.settingsAnalyticsHint,
+            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+          ),
+          // Health-data consent revocation hint (no toggle - revocation
+          // means "you can't use the app any more", which is the App-
+          // zurücksetzen flow elsewhere in Settings). Keep the user
+          // aware that the choice exists; an explicit toggle here
+          // would invite accidental self-bricking.
+          const SizedBox(height: 12),
+          Text(
+            l10n.settingsHealthDataConsentHint,
             style: textTheme.bodySmall?.copyWith(color: scheme.outline),
           ),
         ],

@@ -1208,6 +1208,12 @@ abstract class AppLocalizations {
   /// **'Helps us improve the app. Fully anonymous, no personal data or meal contents, can be turned off anytime.'**
   String get settingsAnalyticsHint;
 
+  /// No description provided for @settingsHealthDataConsentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent to processing your health data (required for coaching) can be revoked by tapping \"Reset app\" below. After that the coach can no longer send any data to Anthropic.'**
+  String get settingsHealthDataConsentHint;
+
   /// No description provided for @settingsSectionFavorites.
   ///
   /// In en, this message translates to:
@@ -1885,6 +1891,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".'**
   String get onboardingRemindersDetail;
+
+  /// No description provided for @onboardingConsentStepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Consents'**
+  String get onboardingConsentStepTitle;
+
+  /// No description provided for @onboardingConsentStepIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Before we start, two quick consents. You can revoke the optional one any time in Settings.'**
+  String get onboardingConsentStepIntro;
+
+  /// No description provided for @onboardingConsentHealthDataLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'I consent to my pregnancy/lactation status, weight and meal entries being transmitted to Anthropic (USA) for the purpose of generating coaching replies, and processed there (GDPR Art. 9 (2) lit. a).'**
+  String get onboardingConsentHealthDataLabel;
+
+  /// No description provided for @onboardingConsentHealthDataRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for coaching.'**
+  String get onboardingConsentHealthDataRequired;
+
+  /// No description provided for @onboardingConsentAnalyticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow anonymous usage analytics (PostHog, EU) to help improve the app.'**
+  String get onboardingConsentAnalyticsLabel;
+
+  /// No description provided for @onboardingConsentAnalyticsOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Helps us see which features work well.'**
+  String get onboardingConsentAnalyticsOptional;
+
+  /// No description provided for @onboardingConsentPrivacyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the privacy notice'**
+  String get onboardingConsentPrivacyLink;
 
   /// No description provided for @onboardingDisclaimerTitle.
   ///

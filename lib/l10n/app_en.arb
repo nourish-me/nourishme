@@ -294,6 +294,7 @@
   "settingsSectionPrivacy": "Privacy",
   "settingsAnalyticsToggle": "Anonymous usage statistics",
   "settingsAnalyticsHint": "Helps us improve the app. Fully anonymous, no personal data or meal contents, can be turned off anytime.",
+  "settingsHealthDataConsentHint": "Consent to processing your health data (required for coaching) can be revoked by tapping \"Reset app\" below. After that the coach can no longer send any data to Anthropic.",
   "settingsSectionFavorites": "Manage favourites",
   "settingsFieldBirthdate": "Your date of birth",
   "settingsFieldHeight": "Height",
@@ -489,6 +490,13 @@
   },
 
   "onboardingRemindersDetail": "Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".",
+  "onboardingConsentStepTitle": "Consents",
+  "onboardingConsentStepIntro": "Before we start, two quick consents. You can revoke the optional one any time in Settings.",
+  "onboardingConsentHealthDataLabel": "I consent to my pregnancy/lactation status, weight and meal entries being transmitted to Anthropic (USA) for the purpose of generating coaching replies, and processed there (GDPR Art. 9 (2) lit. a).",
+  "onboardingConsentHealthDataRequired": "Required for coaching.",
+  "onboardingConsentAnalyticsLabel": "Allow anonymous usage analytics (PostHog, EU) to help improve the app.",
+  "onboardingConsentAnalyticsOptional": "Optional. Helps us see which features work well.",
+  "onboardingConsentPrivacyLink": "Read the privacy notice",
 
   "onboardingDisclaimerTitle": "Briefly: not medical advice.",
   "onboardingDisclaimerBody": "NourishMe is a personal wellness tool, not a medical device. For medical questions, talk to your doctor or midwife. For allergies or pre-existing conditions, double-check coach suggestions yourself.",

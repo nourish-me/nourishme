@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/user_profile_settings.dart';
 import '../models/weight_entry.dart';
@@ -42,6 +43,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     'phase_details',
     'supplement',
     'summary',
+    'consent',
   ];
 
   // Step indices we branch on. Keeping these in one place keeps the
@@ -49,6 +51,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const _phaseDetailsStepIndex = 4;
   static const _supplementStepIndex = 5;
   static const _summaryStepIndex = 6;
+  static const _consentStepIndex = 7;
 
   final _controller = PageController();
   int _step = 0;
@@ -88,6 +91,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // users land in the app with reminders set up; if iOS denies the system
   // permission we honestly flip the persisted master flag back to off.
   bool _remindersOptIn = true;
+  // Consent step (#83, briefing-consent-onboarding.md). Two SEPARATE
+  // checkboxes; the health-data one is required for the app to work
+  // (gates every Anthropic call), analytics is fully optional. Both
+  // default to FALSE - per GDPR no pre-checking is allowed.
+  bool _healthDataConsent = false;
+  bool _analyticsConsent = false;
   int _dailyVolumeMl =
       UserProfileSettings.estimatedDailyVolumeMl(
           numChildren: 1, ageGroup: 0, sharePercent: 100);
@@ -122,7 +131,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
-  int get _totalSteps => 7;
+  int get _totalSteps => 8;
 
   bool get _canAdvance {
     switch (_step) {
@@ -143,6 +152,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         // Tapping "Los geht's" still records the acceptance timestamp in
         // _finish so we have an audit trail.
         return true;
+      case _consentStepIndex:
+        // Consent step: Pflicht-Einwilligung MUSS gesetzt sein (sonst
+        // kann das Coaching keine Daten senden und die App ist nutzlos).
+        // Analytics-Einwilligung ist frei, also keine Gate-Bedingung.
+        return _healthDataConsent;
       default:
         return true;
     }
@@ -243,6 +257,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ageGroup: 0,
         sharePercent: 100,
       );
+      // Reset the consent ticks too - re-onboarding means the user
+      // has to re-affirm Art. 9 health-data consent, GDPR doesn't
+      // let a previous decision carry over a fresh setup.
+      _healthDataConsent = false;
+      _analyticsConsent = false;
     });
     _controller.jumpToPage(0);
     _trackStepView();
@@ -302,6 +321,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // The CTA guard (_canAdvance case 4) means this can only fire after the
     // user has explicitly ticked the checkbox.
     await settingsRepo.setDisclaimerAcceptedAt(DateTime.now());
+    // Consent timestamps. Health-data is required to reach this step
+    // (CTA gate), so it's always true here - persist unconditionally.
+    // Analytics is fully optional, only persist when actively ticked
+    // so a missing timestamp == "no consent" stays clean.
+    final consentNow = DateTime.now();
+    await settingsRepo.setHealthDataConsentAt(consentNow);
+    if (_analyticsConsent) {
+      await settingsRepo.setAnalyticsConsentAt(consentNow);
+    }
     // Seed the weight history with the onboarding value so the Trends-tab
     // chart has a starting point. Subsequent edits in Settings append.
     await ref.read(weightRepositoryProvider).save(WeightEntry(
@@ -475,6 +503,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       remindersOptIn: _remindersOptIn,
                       onRemindersToggled: (v) =>
                           setState(() => _remindersOptIn = v),
+                    ),
+                    _ConsentStep(
+                      healthDataConsent: _healthDataConsent,
+                      analyticsConsent: _analyticsConsent,
+                      onHealthDataChanged: (v) =>
+                          setState(() => _healthDataConsent = v),
+                      onAnalyticsChanged: (v) =>
+                          setState(() => _analyticsConsent = v),
                     ),
                   ],
                 ),
@@ -1682,3 +1718,151 @@ class _OnboardingSupplementListItem extends StatelessWidget {
   }
 }
 
+
+// Step 7 (index _consentStepIndex): two separate, independent GDPR
+// consents. Health-data is REQUIRED (no app function without it);
+// analytics is OPTIONAL. Per Art. 7 GDPR no pre-checking and no
+// bundling - each checkbox starts false and the user actively ticks
+// it. The Pflicht-Box gates the CTA; the optional box does nothing
+// to the navigation, only persists its state in _finish().
+class _ConsentStep extends StatelessWidget {
+  final bool healthDataConsent;
+  final bool analyticsConsent;
+  final ValueChanged<bool> onHealthDataChanged;
+  final ValueChanged<bool> onAnalyticsChanged;
+  const _ConsentStep({
+    required this.healthDataConsent,
+    required this.analyticsConsent,
+    required this.onHealthDataChanged,
+    required this.onAnalyticsChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      children: [
+        Text(
+          l10n.onboardingConsentStepTitle,
+          style: textTheme.titleLarge?.copyWith(color: scheme.onSurface),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.onboardingConsentStepIntro,
+          style: textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 24),
+        _ConsentBox(
+          checked: healthDataConsent,
+          onChanged: onHealthDataChanged,
+          required: true,
+          label: l10n.onboardingConsentHealthDataLabel,
+          subtitle: l10n.onboardingConsentHealthDataRequired,
+        ),
+        const SizedBox(height: 12),
+        _ConsentBox(
+          checked: analyticsConsent,
+          onChanged: onAnalyticsChanged,
+          required: false,
+          label: l10n.onboardingConsentAnalyticsLabel,
+          subtitle: l10n.onboardingConsentAnalyticsOptional,
+        ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            icon: const Icon(Icons.open_in_new, size: 16),
+            label: Text(l10n.onboardingConsentPrivacyLink),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              foregroundColor: scheme.primary,
+            ),
+            onPressed: () => launchUrl(
+              Uri.parse('https://nourish-me.github.io/nourishme/privacy.html'),
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ConsentBox extends StatelessWidget {
+  final bool checked;
+  final ValueChanged<bool> onChanged;
+  final bool required;
+  final String label;
+  final String subtitle;
+  const _ConsentBox({
+    required this.checked,
+    required this.onChanged,
+    required this.required,
+    required this.label,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: () => onChanged(!checked),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 12, 14, 14),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: required && !checked
+                ? scheme.secondary.withValues(alpha: 0.6)
+                : scheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Checkbox(
+              value: checked,
+              onChanged: (v) => onChanged(v ?? false),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      label,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurface,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: required ? scheme.secondary : scheme.outline,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

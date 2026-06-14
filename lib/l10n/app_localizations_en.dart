@@ -624,6 +624,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Helps us improve the app. Fully anonymous, no personal data or meal contents, can be turned off anytime.';
 
   @override
+  String get settingsHealthDataConsentHint =>
+      'Consent to processing your health data (required for coaching) can be revoked by tapping \"Reset app\" below. After that the coach can no longer send any data to Anthropic.';
+
+  @override
   String get settingsSectionFavorites => 'Manage favourites';
 
   @override
@@ -1010,6 +1014,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingRemindersDetail =>
       'Five slots across the day. iOS will ask once for permission when you tap \"Open diary\".';
+
+  @override
+  String get onboardingConsentStepTitle => 'Consents';
+
+  @override
+  String get onboardingConsentStepIntro =>
+      'Before we start, two quick consents. You can revoke the optional one any time in Settings.';
+
+  @override
+  String get onboardingConsentHealthDataLabel =>
+      'I consent to my pregnancy/lactation status, weight and meal entries being transmitted to Anthropic (USA) for the purpose of generating coaching replies, and processed there (GDPR Art. 9 (2) lit. a).';
+
+  @override
+  String get onboardingConsentHealthDataRequired => 'Required for coaching.';
+
+  @override
+  String get onboardingConsentAnalyticsLabel =>
+      'Allow anonymous usage analytics (PostHog, EU) to help improve the app.';
+
+  @override
+  String get onboardingConsentAnalyticsOptional =>
+      'Optional. Helps us see which features work well.';
+
+  @override
+  String get onboardingConsentPrivacyLink => 'Read the privacy notice';
 
   @override
   String get onboardingDisclaimerTitle => 'Briefly: not medical advice.';

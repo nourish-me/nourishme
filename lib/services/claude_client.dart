@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/meal_entry.dart';
+import 'consent_gate.dart';
 import 'prompts/chat_base_de.dart';
 import 'prompts/chat_base_en.dart';
 import 'prompts/parse_de.dart';
@@ -182,6 +183,17 @@ class ChatTurn {
 }
 
 class ClaudeClient {
+  // Optional consent-resolver. When set, every public API call
+  // (parseMeal, chat, parseSupplementLabel) checks ConsentGate.
+  // canSendHealthData(resolver()) at its entry; if false, throws
+  // CoachApiException with a user-facing message instead of hitting
+  // the network. Left null in tests so the existing fixture-only
+  // tests don't have to wire up a fake SettingsRepository - the
+  // production wiring in claudeClientProvider always provides it.
+  ClaudeClient({this.healthDataConsentAtResolver});
+
+  final DateTime? Function()? healthDataConsentAtResolver;
+
   // We always go through our Cloudflare Worker proxy so the Anthropic key
   // never lives in the app bundle. The Worker injects the x-api-key header
   // server-side; the app only carries APP_SECRET, which limits casual abuse
@@ -191,6 +203,20 @@ class ClaudeClient {
   static const _directEndpoint = 'https://api.anthropic.com/v1/messages';
   static const _model = 'claude-haiku-4-5-20251001';
   static const _apiVersion = '2023-06-01';
+
+  // Centralised gate. Called as the first statement of every public
+  // method that touches Anthropic. Keeps the GDPR check in one place
+  // so a future API method can't forget it.
+  void _assertHealthDataConsent() {
+    final resolver = healthDataConsentAtResolver;
+    if (resolver == null) return; // tests / legacy callers
+    if (ConsentGate.canSendHealthData(resolver())) return;
+    throw CoachApiException(
+      'Coaching ist noch nicht aktiviert: bitte willige im Onboarding ein, '
+      'dass deine Angaben an den Coaching-Anbieter übermittelt werden dürfen.',
+      'health-data consent missing',
+    );
+  }
 
   static String get _proxyUrl => dotenv.env['NOURISHME_API_URL'] ?? '';
   static String get _appSecret => dotenv.env['APP_SECRET'] ?? '';
@@ -368,6 +394,7 @@ class ClaudeClient {
     // Typically the top 3 matches from mealHistorySuggestionsProvider.
     List<MealEntry> brandHistoryHints = const [],
   }) async {
+    _assertHealthDataConsent();
     final isDe = _isGerman(locale);
     // Phase context so safety_warnings stay relevant: a not-pregnant user
     // shouldn't get pregnancy-specific warnings (e.g. on an alcohol photo).
@@ -868,6 +895,7 @@ Return the structured coach reply as defined in the system prompt. Use the profi
     required String todayContext,
     String locale = 'en',
   }) async {
+    _assertHealthDataConsent();
     final isDe = _isGerman(locale);
     final messages = history
         .map((turn) => {
@@ -904,6 +932,7 @@ Return the structured coach reply as defined in the system prompt. Use the profi
     Uint8List imageBytes, {
     String locale = 'en',
   }) async {
+    _assertHealthDataConsent();
     final isDe = _isGerman(locale);
     final systemPrompt = isDe ? supplementPromptDe : supplementPromptEn;
     final userText = isDe

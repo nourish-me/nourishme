@@ -16,6 +16,17 @@ class SettingsRepository {
   static const _disclaimerKey = 'disclaimer_accepted_at';
   static const _analyticsIdKey = 'analytics_distinct_id';
   static const _analyticsOptOutKey = 'analytics_opt_out';
+  // GDPR Art. 9 lit. a: explicit consent for processing health-data
+  // (pregnancy, lactation, weight, meal entries) by Anthropic in the
+  // US. Without it we MUST NOT send any profile or meal payload to
+  // the model. Set during onboarding's consent step, revocable via
+  // app reset (clearAll).
+  static const _healthDataConsentKey = 'health_data_consent_at';
+  // GDPR-compliant opt-in for non-essential analytics (PostHog, EU).
+  // Defaults to null = no consent = no tracking. Separate from the
+  // health-data consent so the user can accept coaching but decline
+  // analytics. Revocable any time via the Settings toggle.
+  static const _analyticsConsentKey = 'analytics_consent_at';
   // Bumped on the key when a new tips screen ships; existing users see the
   // refreshed deck once, instead of being permanently gated by an earlier
   // "I've seen tips" flag that was set against the old content.
@@ -98,11 +109,50 @@ class SettingsRepository {
     return id;
   }
 
-  // Analytics is on by default (anonymous). The user can opt out in Settings.
+  // Legacy opt-out flag. Kept readable so a migration step (or audit)
+  // can see what the user picked under the old regime. New code should
+  // use getAnalyticsConsentAt() and clearAnalyticsConsent() instead -
+  // GDPR requires opt-in, not opt-out, for non-essential tracking.
   bool getAnalyticsOptOut() => _box.get(_analyticsOptOutKey) == 'true';
 
   Future<void> setAnalyticsOptOut(bool optOut) =>
       _box.put(_analyticsOptOutKey, optOut.toString());
+
+  // Health-data consent (GDPR Art. 9 lit. a). Returns the timestamp
+  // when the user explicitly opted in during onboarding, or null if
+  // they never have. Null MUST gate every Anthropic-bound network
+  // call - no profile, no meal text, no photo bytes leave the device
+  // until this is non-null.
+  DateTime? getHealthDataConsentAt() {
+    final raw = _box.get(_healthDataConsentKey);
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<void> setHealthDataConsentAt(DateTime at) =>
+      _box.put(_healthDataConsentKey, at.toIso8601String());
+
+  // Revocation path. Used by the settings screen when the user clears
+  // their profile / "App zurücksetzen". The Hive box itself is wiped
+  // by clearAll() in that flow; this is the surgical version for
+  // tests or future "revoke health-data consent" UI.
+  Future<void> clearHealthDataConsent() => _box.delete(_healthDataConsentKey);
+
+  // Analytics consent (opt-in). Same shape as health-data consent:
+  // null until the user actively ticks the optional box in onboarding,
+  // or activates the toggle in settings later. Revoking via the
+  // settings toggle calls clearAnalyticsConsent() and PostHog stops
+  // immediately (no flushing of pending events).
+  DateTime? getAnalyticsConsentAt() {
+    final raw = _box.get(_analyticsConsentKey);
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<void> setAnalyticsConsentAt(DateTime at) =>
+      _box.put(_analyticsConsentKey, at.toIso8601String());
+
+  Future<void> clearAnalyticsConsent() => _box.delete(_analyticsConsentKey);
 
   Future<void> clearAll() => _box.clear();
 

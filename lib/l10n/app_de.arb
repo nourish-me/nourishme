@@ -228,6 +228,7 @@
   "settingsSectionPrivacy": "Datenschutz",
   "settingsAnalyticsToggle": "Anonyme Nutzungsstatistik",
   "settingsAnalyticsHint": "Hilft uns die App zu verbessern. Komplett anonym, keine persönlichen Daten oder Mahlzeiten-Inhalte, jederzeit abschaltbar.",
+  "settingsHealthDataConsentHint": "Die Einwilligung in die Verarbeitung deiner Gesundheitsdaten (für das Coaching nötig) kannst du widerrufen, indem du unten „App zurücksetzen\" tippst. Danach kann das Coaching keine Daten mehr an Anthropic senden.",
   "settingsSectionFavorites": "Favoriten verwalten",
   "settingsFieldBirthdate": "Dein Geburtsdatum",
   "settingsFieldHeight": "Größe",
@@ -361,6 +362,13 @@
   "onboardingLedeLactation": "+ {kcal} kcal für Stillen",
 
   "onboardingRemindersDetail": "Fünf Slots über den Tag verteilt. iOS fragt einmal um Erlaubnis, wenn du \"Tagebuch öffnen\" tippst.",
+  "onboardingConsentStepTitle": "Einwilligungen",
+  "onboardingConsentStepIntro": "Wir holen uns vor dem Start zwei Einverständnisse. Du kannst die optionale jederzeit in den Einstellungen widerrufen.",
+  "onboardingConsentHealthDataLabel": "Ich willige ein, dass meine Angaben zu Schwangerschaft/Stillzeit, Gewicht und Mahlzeiten zur Erstellung der Coaching-Antworten an Anthropic (USA) übermittelt und dort verarbeitet werden (Art. 9 Abs. 2 lit. a DSGVO).",
+  "onboardingConsentHealthDataRequired": "Erforderlich für das Coaching.",
+  "onboardingConsentAnalyticsLabel": "Anonyme Nutzungsstatistik erlauben (PostHog, EU), um die App zu verbessern.",
+  "onboardingConsentAnalyticsOptional": "Optional. Hilft uns zu sehen welche Funktionen gut laufen.",
+  "onboardingConsentPrivacyLink": "Datenschutzerklärung lesen",
 
   "onboardingDisclaimerTitle": "Kurz: keine medizinische Beratung.",
   "onboardingDisclaimerBody": "NourishMe ist ein persönliches Wellness-Tool, kein medizinisches Produkt. Bei medizinischen Fragen sprich mit deiner Ärztin oder Hebamme. Bei Allergien oder Vorerkrankungen prüfe Coach-Vorschläge selbst.",

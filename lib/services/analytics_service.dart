@@ -12,8 +12,15 @@ import 'settings_repository.dart';
 // what leaves the device: no autocapture, no PII, an anonymous install id.
 //
 // Disabled (every call a no-op) when the key is absent (e.g. local dev without
-// a .env entry) or the user has opted out in Settings. Capture is
-// fire-and-forget and never throws, so instrumentation can't break a flow.
+// a .env entry) OR the user hasn't ticked the optional analytics consent
+// in onboarding. Capture is fire-and-forget and never throws, so
+// instrumentation can't break a flow.
+//
+// GDPR shift: we used to default to "on" with a Settings opt-out. That's
+// not compliant in the EU for non-essential tracking. Now we default to
+// "off" until the user actively opts in during onboarding. The legacy
+// analyticsOptOut flag is preserved on disk for audit only - it has no
+// effect on whether events fire.
 class AnalyticsService {
   AnalyticsService(this._settings);
 
@@ -26,7 +33,8 @@ class AnalyticsService {
 
   String? _appVersionCache;
 
-  bool get _enabled => _apiKey.isNotEmpty && !_settings.getAnalyticsOptOut();
+  bool get _enabled =>
+      _apiKey.isNotEmpty && _settings.getAnalyticsConsentAt() != null;
 
   Future<String> _appVersion() async {
     if (_appVersionCache != null) return _appVersionCache!;
