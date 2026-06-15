@@ -369,6 +369,9 @@
   "onboardingConsentAnalyticsLabel": "Anonyme Nutzungsstatistik erlauben (PostHog, EU), um die App zu verbessern.",
   "onboardingConsentAnalyticsOptional": "Optional. Hilft uns zu sehen welche Funktionen gut laufen.",
   "onboardingConsentPrivacyLink": "Datenschutzerklärung lesen",
+  "legacyConsentTitle": "Kurze Bestätigung",
+  "legacyConsentIntro": "Wir haben den Datenschutz-Flow aktualisiert und holen uns jetzt zwei getrennte Einverständnisse explizit ab. Bitte bestätige kurz - das ist eine einmalige Sache.",
+  "legacyConsentConfirm": "Bestätigen",
 
   "onboardingDisclaimerTitle": "Kurz: keine medizinische Beratung.",
   "onboardingDisclaimerBody": "NourishMe ist ein persönliches Wellness-Tool, kein medizinisches Produkt. Bei medizinischen Fragen sprich mit deiner Ärztin oder Hebamme. Bei Allergien oder Vorerkrankungen prüfe Coach-Vorschläge selbst.",

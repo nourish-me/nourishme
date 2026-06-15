@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
+import '../widgets/legacy_consent_migration_dialog.dart';
 import 'history_screen.dart';
 import 'home_screen.dart';
 import 'tips_screen.dart';
@@ -22,17 +23,35 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   @override
   void initState() {
     super.initState();
-    // First-time tips deck: shown once per install in front of MainScaffold.
-    // Covers both the after-onboarding case (new user) and the first launch
-    // after the update that introduced the deck (existing testers) - the
-    // hasSeenTipsV1 flag is set only when the user finishes or skips it.
-    //
-    // The presentation is delayed ~900 ms so the user sees the Diary land
-    // first, then the deck slides up over it. Without the delay the deck
-    // appeared instantly on top of onboarding's exit transition, which
-    // felt like a jarring cut from one form to another.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      // Legacy-consent migration (#84): testers who onboarded before
+      // the GDPR Art. 9 consent step landed have a profile but no
+      // healthDataConsentAt. Without backfilling, the new
+      // ClaudeClient gate would block every coach call. Show the
+      // one-shot migration dialog FIRST, before the tips deck, so
+      // they get one screen at a time (not stacked modals). The
+      // dialog itself is non-dismissible and only pops once the
+      // Pflicht-Box is ticked and confirmed.
+      final settings = ref.read(settingsRepositoryProvider);
+      if (settings.hasProfile() &&
+          settings.getHealthDataConsentAt() == null) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const LegacyConsentMigrationDialog(),
+        );
+        if (!mounted) return;
+      }
+      // First-time tips deck: shown once per install in front of MainScaffold.
+      // Covers both the after-onboarding case (new user) and the first launch
+      // after the update that introduced the deck (existing testers) - the
+      // hasSeenTipsV1 flag is set only when the user finishes or skips it.
+      //
+      // The presentation is delayed ~900 ms so the user sees the Diary land
+      // first, then the deck slides up over it. Without the delay the deck
+      // appeared instantly on top of onboarding's exit transition, which
+      // felt like a jarring cut from one form to another.
       if (ref.read(settingsRepositoryProvider).hasSeenTipsV1()) return;
       Future.delayed(const Duration(milliseconds: 900), () {
         if (!mounted) return;

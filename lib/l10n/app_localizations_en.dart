@@ -1041,6 +1041,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingConsentPrivacyLink => 'Read the privacy notice';
 
   @override
+  String get legacyConsentTitle => 'Quick confirmation';
+
+  @override
+  String get legacyConsentIntro =>
+      'We\'ve updated the privacy flow and now collect two separate consents explicitly. Please confirm quickly - this is a one-time thing.';
+
+  @override
+  String get legacyConsentConfirm => 'Confirm';
+
+  @override
   String get onboardingDisclaimerTitle => 'Briefly: not medical advice.';
 
   @override

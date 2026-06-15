@@ -1934,6 +1934,24 @@ abstract class AppLocalizations {
   /// **'Read the privacy notice'**
   String get onboardingConsentPrivacyLink;
 
+  /// No description provided for @legacyConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick confirmation'**
+  String get legacyConsentTitle;
+
+  /// No description provided for @legacyConsentIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve updated the privacy flow and now collect two separate consents explicitly. Please confirm quickly - this is a one-time thing.'**
+  String get legacyConsentIntro;
+
+  /// No description provided for @legacyConsentConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get legacyConsentConfirm;
+
   /// No description provided for @onboardingDisclaimerTitle.
   ///
   /// In en, this message translates to:
