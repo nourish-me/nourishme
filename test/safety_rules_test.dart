@@ -533,4 +533,158 @@ void main() {
       expect(SafetyRules.mergeWarnings(const [], ['X']), ['X']);
     });
   });
+
+  // Topic-based dedupe: locks the fix for the beta-tester's "200 ml Sekt"
+  // bug where the LLM appended a 2-2.5h wait-time formula even though the
+  // deterministic alcohol rule (correctly) said "avoid completely". A
+  // regression here would let outdated wait-time/quantity-threshold/"a
+  // glass is fine" guidance slip back into safety_warnings - the kind of
+  // contradiction the Ernährungsfachkraft review explicitly removed.
+  group('mergeWarnings — topic dedupe (LLM walkbacks dropped)', () {
+    test('alcohol: deterministic "avoid" + LLM 2-2.5h wait → wait dropped',
+        () {
+      final deterministic = [
+        'Alkohol: auch beim Milchproduzieren meiden (DGE/BfR).',
+      ];
+      final llm = [
+        'Sekt enthält 10-12% Alkohol. Wartezeit etwa 2-2,5 Stunden pro Standardgetränk.',
+      ];
+      final merged = SafetyRules.mergeWarnings(deterministic, llm);
+      expect(merged, deterministic);
+      expect(
+          merged.any((w) => w.toLowerCase().contains('wartezeit')), isFalse);
+    });
+
+    test('alcohol: deterministic + LLM "ein Glas Wein vertretbar" → walk dropped',
+        () {
+      // Realistic walkback shape: LLM elaborates by re-mentioning the
+      // beverage. Even when the literal word "Alkohol" isn't in this
+      // particular sentence, the beverage name (Wein, Sekt, Bier, ...)
+      // is the giveaway.
+      final merged = SafetyRules.mergeWarnings(
+        ['Alkohol: in der Schwangerschaft ganz meiden.'],
+        ['Ein einzelnes Glas Wein gelegentlich ist medizinisch vertretbar.'],
+      );
+      expect(merged.length, 1);
+      expect(merged.first, contains('meiden'));
+    });
+
+    test('caffeine: deterministic + LLM elaboration → elaboration dropped',
+        () {
+      final merged = SafetyRules.mergeWarnings(
+        ['Koffein: bis 200 mg/Tag in Ordnung.'],
+        ['Hinweis: Koffein-Halbwertszeit verlängert sich bei Babys.'],
+      );
+      expect(merged.length, 1);
+    });
+
+    test('raw animal: deterministic + LLM raw-fish elaboration → dropped',
+        () {
+      final merged = SafetyRules.mergeWarnings(
+        ['Rohe Tierprodukte meiden (Listerien).'],
+        ['Roher Fisch sollte mindestens 24h tiefgefroren werden.'],
+      );
+      expect(merged.length, 1);
+    });
+
+    test('liver: deterministic + LLM Lebertran-elaboration → dropped', () {
+      final merged = SafetyRules.mergeWarnings(
+        ['Leber in der Schwangerschaft meiden (BfR, Vitamin-A-Kumulation).'],
+        ['Leber 1x/Monat ist oft noch akzeptabel.'],
+      );
+      expect(merged.length, 1);
+    });
+
+    test('off-topic LLM warning survives (different topic)', () {
+      // Deterministic covers alcohol; LLM warns about something
+      // completely different (added sugar). Filter must keep the
+      // unrelated extra warning, not nuke everything blindly.
+      final merged = SafetyRules.mergeWarnings(
+        ['Alkohol: meiden.'],
+        ['Hoher Zuckergehalt - achte auf den Tagesbedarf.'],
+      );
+      expect(merged.length, 2);
+      expect(merged.last, contains('Zucker'));
+    });
+
+    test('EN locale: alcohol topic detection works on English text', () {
+      final merged = SafetyRules.mergeWarnings(
+        ['Alcohol: avoid completely while producing milk.'],
+        ['A small glass of wine is generally fine.'],
+      );
+      expect(merged.length, 1);
+    });
+  });
+
+  group('topicsFor — keyword detection (covers every SafetyRule)', () {
+    test('alcohol keywords', () {
+      expect(SafetyRules.topicsFor(['Alkohol meiden']),
+          contains(SafetyTopic.alcohol));
+      expect(SafetyRules.topicsFor(['Avoid alcohol']),
+          contains(SafetyTopic.alcohol));
+    });
+
+    test('caffeine keywords', () {
+      expect(SafetyRules.topicsFor(['Koffein begrenzen']),
+          contains(SafetyTopic.caffeine));
+      expect(SafetyRules.topicsFor(['Caffeine limit']),
+          contains(SafetyTopic.caffeine));
+    });
+
+    test('mercury fish keywords', () {
+      expect(SafetyRules.topicsFor(['Quecksilber-Risiko']),
+          contains(SafetyTopic.mercuryFish));
+      expect(SafetyRules.topicsFor(['Mercury exposure']),
+          contains(SafetyTopic.mercuryFish));
+    });
+
+    test('liver keyword', () {
+      expect(SafetyRules.topicsFor(['Leber meiden']),
+          contains(SafetyTopic.liver));
+      expect(SafetyRules.topicsFor(['Avoid liver']),
+          contains(SafetyTopic.liver));
+    });
+
+    test('raw animal keywords', () {
+      expect(SafetyRules.topicsFor(['Rohmilchkäse']),
+          contains(SafetyTopic.rawAnimal));
+      expect(SafetyRules.topicsFor(['raw fish']),
+          contains(SafetyTopic.rawAnimal));
+      expect(SafetyRules.topicsFor(['Listerien-Risiko']),
+          contains(SafetyTopic.rawAnimal));
+    });
+
+    test('algae keyword', () {
+      expect(SafetyRules.topicsFor(['Algen-Produkte']),
+          contains(SafetyTopic.algae));
+      expect(SafetyRules.topicsFor(['Seaweed']),
+          contains(SafetyTopic.algae));
+    });
+
+    test('quinine keyword', () {
+      expect(SafetyRules.topicsFor(['Tonic Water meiden']),
+          contains(SafetyTopic.quinine));
+      expect(SafetyRules.topicsFor(['Chinin']),
+          contains(SafetyTopic.quinine));
+    });
+
+    test('boar offal keyword', () {
+      expect(SafetyRules.topicsFor(['Wildschwein-Innereien']),
+          contains(SafetyTopic.boarOffal));
+      expect(SafetyRules.topicsFor(['wild boar']),
+          contains(SafetyTopic.boarOffal));
+    });
+
+    test('milk-suppressing herbs keywords', () {
+      expect(SafetyRules.topicsFor(['Salbei in großen Mengen']),
+          contains(SafetyTopic.milkSuppressingHerbs));
+      expect(SafetyRules.topicsFor(['Pfefferminze-Tee']),
+          contains(SafetyTopic.milkSuppressingHerbs));
+    });
+
+    test('off-topic text returns empty set', () {
+      expect(SafetyRules.topicsFor(['Hoher Zuckergehalt']), isEmpty);
+      expect(SafetyRules.topicsFor(['Vitamin C']), isEmpty);
+    });
+  });
 }

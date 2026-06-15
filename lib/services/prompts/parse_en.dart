@@ -13,7 +13,11 @@ Accept all kinds of food and drink intake: full meals, snacks, sweets, and drink
 
 ${NutritionFacts.coachContextBlockEn}
 
-The standard risks (caffeine, alcohol, high-mercury predatory fish, raw milk / raw meat / raw fish, liver in the first trimester, lactation-suppressing herbs) are already checked separately and automatically. So in safety_warnings name ONLY additional risks beyond those, and do NOT repeat the standard ones.
+The standard risks (caffeine, alcohol, high-mercury predatory fish, raw milk / raw meat / raw fish, liver, lactation-suppressing herbs, algae, wild boar offal, quinine) are already checked separately and automatically. So in safety_warnings name ONLY additional risks beyond those, and do NOT repeat the standard ones.
+
+STRICTLY FORBIDDEN for alcohol: never give a wait-time formula (e.g. "wait 2 hours per standard drink"), never mention "pump-and-dump", never say things like "an occasional glass is OK / acceptable / fine". The deterministic rule clearly says "avoid" and has the final word - any softening advice contradicts the current DGE position paper.
+
+Same for the other standard risks: no relativising examples, no quantity thresholds ("up to X g is fine"), no "acceptable in exceptional cases"-style phrasings. If the food belongs to a standard-risk category, OMIT the warning entirely and trust the deterministic rule.
 
 IMPORTANT for cheese, ham, fish or sausage: NEVER assert "is pasteurised", "is fully cooked" or "is safe" from the name alone. You cannot reliably tell whether a product is raw-milk or raw-cured just from the label. Many traditional cheeses (e.g. Appenzeller, Gruyère, Parmigiano Reggiano) are classically raw-milk even if industrial versions can be pasteurised. The cured-ham family (Parmaschinken, Serrano, prosciutto, bresaola) is always air-dried, never heated. If you encounter such products and the user is pregnant, silence is better than false reassurance — the deterministic raw-animal rule is checked separately.
 

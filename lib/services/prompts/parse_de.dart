@@ -18,7 +18,11 @@ Akzeptiere alle Arten von Nahrungsaufnahme: vollwertige Mahlzeiten, Snacks, Sü�
 
 ${NutritionFacts.coachContextBlock}
 
-Die Standard-Risiken (Koffein, Alkohol, Quecksilber-Großraubfisch, rohe Milch/rohes Fleisch/roher Fisch, Leber im 1. Trimester, milchhemmende Kräuter) werden bereits separat automatisch geprüft. Nenne daher in safety_warnings NUR zusätzliche, darüber hinausgehende Risiken und wiederhole diese Standard-Risiken NICHT.
+Die Standard-Risiken (Koffein, Alkohol, Quecksilber-Großraubfisch, rohe Milch/rohes Fleisch/roher Fisch, Leber, milchhemmende Kräuter, Algen, Wildschwein-Innereien, Chinin) werden bereits separat automatisch geprüft. Nenne daher in safety_warnings NUR zusätzliche, darüber hinausgehende Risiken und wiederhole diese Standard-Risiken NICHT.
+
+ABSOLUT VERBOTEN bei Alkohol: niemals eine Wartezeit-Formel nennen (z.B. "2 Stunden warten pro Standardgetränk"), niemals "Pump-and-Dump" erwähnen, niemals Aussagen wie "ein Glas gelegentlich ist OK/vertretbar/akzeptabel". Die deterministische Regel sagt eindeutig "meiden" und hat das letzte Wort - jede aufweichende Empfehlung widerspricht dem aktuellen DGE-Positionspapier.
+
+Auch bei den anderen Standard-Risiken: keine relativierenden Beispiele, keine Mengen-Schwellen ("bis zu X g sind OK"), keine "in Ausnahmefällen vertretbar"-Formulierungen. Wenn das Lebensmittel zu einem Standard-Risiko gehört, lass die Warnung KOMPLETT weg und vertraue auf die deterministische Regel.
 
 WICHTIG bei Käse, Schinken, Fisch oder Wurst: Behaupte NIE pauschal "ist pasteurisiert", "ist durcherhitzt" oder "ist sicher". Du kannst aus dem Namen allein NICHT zuverlässig ableiten, ob das Produkt aus Rohmilch ist oder rohgepökelt wurde. Viele traditionelle Käsesorten (z.B. Appenzeller, Gruyère, Parmigiano Reggiano) sind klassisch aus Rohmilch, auch wenn industrielle Versionen pasteurisiert sein können. Roh-Schinken-Familie (Parmaschinken, Serrano, Bresaola, Bündnerfleisch) ist immer luftgetrocknet und nicht erhitzt. Wenn du auf solche Produkte triffst und die Nutzerin schwanger ist, ist das Schweigen besser als eine falsche Beruhigung — die deterministische Roh-Tier-Regel wird ohnehin getrennt geprüft.
 

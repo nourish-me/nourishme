@@ -476,14 +476,100 @@ class SafetyRules {
 
   /// Merges the deterministic warnings with the model's extra ones:
   /// deterministic first (they're the trusted floor), then any model warning
-  /// that isn't an exact duplicate. The model only ever *adds* to the hard
-  /// rules, never removes them.
+  /// that isn't an exact duplicate AND doesn't touch a topic already covered
+  /// by a deterministic rule. The topic-based drop is the important bit: a
+  /// beta-tester logged "200 ml Sekt" and the LLM appended a 2-2.5h wait-
+  /// time formula even though the deterministic rule (correctly) said
+  /// "avoid completely". The exact-string dedupe didn't catch it because
+  /// the LLM-paraphrased it. Now: if the deterministic warning covers
+  /// alcohol/caffeine/liver/etc., drop ANY LLM warning that mentions the
+  /// same topic - the model has trained itself on older, looser guidance
+  /// and would otherwise walk the user back from the current DGE/BfR
+  /// position.
   static List<String> mergeWarnings(
       List<String> deterministic, List<String> model) {
     final out = <String>[...deterministic];
+    final coveredTopics = topicsFor(deterministic);
     for (final w in model) {
-      if (w.isNotEmpty && !out.contains(w)) out.add(w);
+      if (w.isEmpty || out.contains(w)) continue;
+      final wTopics = topicsFor([w]);
+      if (wTopics.intersection(coveredTopics).isNotEmpty) continue;
+      out.add(w);
     }
     return out;
   }
+
+  /// Detect which safety topics a list of warning strings touches. Used by
+  /// mergeWarnings to drop LLM elaborations on topics the deterministic
+  /// rule already covered, and exposed for tests + (later) prompt
+  /// instrumentation. Keyword-based detection by design - the warnings
+  /// are natural prose, not structured tags.
+  static Set<SafetyTopic> topicsFor(List<String> warnings) {
+    final out = <SafetyTopic>{};
+    for (final w in warnings) {
+      final lower = w.toLowerCase();
+      // Alcohol: also catch beverage-name walk-backs. LLM elaborations
+      // often phrase their "a glass is fine" advice without the word
+      // "alcohol" - referring to "ein Glas Wein", "a glass of wine",
+      // "Sekt", "beer", etc. We must drop those too.
+      if (lower.contains('alkohol') ||
+          lower.contains('alcohol') ||
+          RegExp(r'\bwein\b|\bwine\b|\bbier\b|\bbeer\b|sekt|prosecco|'
+                  r'champagn|cocktail|schnaps|whisk|spirits|'
+                  r'\brum\b|\bvodka\b|\bgin\b|likör|liqueur')
+              .hasMatch(lower)) {
+        out.add(SafetyTopic.alcohol);
+      }
+      if (lower.contains('koffein') || lower.contains('caffeine')) {
+        out.add(SafetyTopic.caffeine);
+      }
+      if (lower.contains('quecksilber') || lower.contains('mercury')) {
+        out.add(SafetyTopic.mercuryFish);
+      }
+      if (lower.contains('leber') ||
+          RegExp(r'\bliver\b').hasMatch(lower)) {
+        out.add(SafetyTopic.liver);
+      }
+      if (lower.contains('rohmilch') ||
+          lower.contains('raw milk') ||
+          lower.contains('rohes fleisch') ||
+          lower.contains('raw meat') ||
+          lower.contains('roher fisch') ||
+          lower.contains('raw fish') ||
+          lower.contains('weichkäse') ||
+          lower.contains('listerien') ||
+          lower.contains('listeria')) {
+        out.add(SafetyTopic.rawAnimal);
+      }
+      if (lower.contains('algen') || lower.contains('algae') ||
+          lower.contains('seetang') || lower.contains('seaweed')) {
+        out.add(SafetyTopic.algae);
+      }
+      if (lower.contains('chinin') || lower.contains('quinine') ||
+          lower.contains('tonic')) {
+        out.add(SafetyTopic.quinine);
+      }
+      if (lower.contains('wildschwein') ||
+          lower.contains('wild boar')) {
+        out.add(SafetyTopic.boarOffal);
+      }
+      if (lower.contains('salbei') || lower.contains('sage') ||
+          lower.contains('pfefferminz') || lower.contains('peppermint')) {
+        out.add(SafetyTopic.milkSuppressingHerbs);
+      }
+    }
+    return out;
+  }
+}
+
+enum SafetyTopic {
+  alcohol,
+  caffeine,
+  mercuryFish,
+  liver,
+  rawAnimal,
+  algae,
+  quinine,
+  boarOffal,
+  milkSuppressingHerbs,
 }
