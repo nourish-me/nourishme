@@ -562,7 +562,7 @@
   "homePhotoMultiGallery": "Mehrere Fotos aus der Galerie",
   "multiPhotoReviewTitle": "{count, plural, one{Eine Mahlzeit} other{{count} Mahlzeiten}} prüfen",
   "@multiPhotoReviewTitle": {"placeholders": {"count": {"type": "int"}}},
-  "multiPhotoReviewHint": "Die Uhrzeit kommt aus dem Foto-Aufnahme-Zeitpunkt (EXIF). Verwerfe Mahlzeiten die du nicht möchtest und tippe dann „Alle speichern\". Details wie Zeit, Menge oder Beschreibung kannst du pro Eintrag mit dem Stift bearbeiten oder später im Tagebuch anpassen.",
+  "multiPhotoReviewHint": "Datum und Uhrzeit kommen aus dem Foto-Aufnahme-Zeitpunkt (EXIF). Verwerfe Mahlzeiten die du nicht möchtest und tippe dann „Alle speichern\". Details wie Zeit, Menge oder Beschreibung kannst du pro Eintrag mit dem Stift bearbeiten oder später im Tagebuch anpassen.",
   "multiPhotoAllSavedSnackWithHint": "{count} Mahlzeiten gespeichert. Im Tagebuch antippen zum Bearbeiten.",
   "@multiPhotoAllSavedSnackWithHint": {"placeholders": {"count": {"type": "int"}}},
   "trendsMicronutrientWeekTitle": "Mikronährstoffe",
