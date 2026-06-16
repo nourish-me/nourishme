@@ -686,13 +686,32 @@ class _HomeInputState extends ConsumerState<HomeInput> {
           .submitMealsIfLive(savedMeals, locale);
       ref.read(analyticsServiceProvider).capture('multi_photo_saved',
           properties: {'count': savedMeals.length});
+      // Day-switch logic for cross-day bulks. If every saved meal lives
+      // on the same day, jump the diary to that day so the user lands on
+      // the entries they just saved (otherwise a user uploading three
+      // yesterday photos stays on today and sees nothing change). If the
+      // bulk spans multiple days (e.g. some yesterday, some today), stay
+      // on the focused day and surface a hint so the user knows where to
+      // navigate. Also scroll to the LAST saved entry so the user sees
+      // something new appear.
+      final savedDays = savedMeals
+          .map((m) => DateTime(m.createdAt.year, m.createdAt.month,
+              m.createdAt.day))
+          .toSet();
+      final crossDay = savedDays.length > 1;
+      if (!crossDay) {
+        ref.read(scrollToDayProvider.notifier).state = savedDays.first;
+      }
+      ref.read(scrollToMealIdProvider.notifier).state = savedMeals.last.id;
       if (!fired) {
         // Multi-photo bulk-save with EXIF timestamps almost always lands
         // in the retro window (user is logging earlier-today or yesterday
         // photos). Show the coach-paused hint instead of the generic
         // "all saved" snack so the user understands why no thinking
         // bubble appears.
-        _showSnack(l10n.confirmCoachRetroPausedToast);
+        _showSnack(crossDay
+            ? l10n.multiPhotoCrossDaySnack(savedMeals.length, savedDays.length)
+            : l10n.confirmCoachRetroPausedToast);
       } else {
         _showSnack(l10n.multiPhotoAllSavedSnackWithHint(savedMeals.length));
       }

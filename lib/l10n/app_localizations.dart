@@ -929,7 +929,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePhotoGallery.
   ///
   /// In en, this message translates to:
-  /// **'Photo Library'**
+  /// **'Single photo from library'**
   String get homePhotoGallery;
 
   /// No description provided for @homePhotoButton.
@@ -2669,7 +2669,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePhotoMultiGallery.
   ///
   /// In en, this message translates to:
-  /// **'Multiple photos (Gallery)'**
+  /// **'Multiple photos from library'**
   String get homePhotoMultiGallery;
 
   /// No description provided for @multiPhotoReviewTitle.
@@ -2681,7 +2681,7 @@ abstract class AppLocalizations {
   /// No description provided for @multiPhotoReviewHint.
   ///
   /// In en, this message translates to:
-  /// **'Discard any meals you don\'t want and tap \'Save all\'. You can adjust the details (time, amount, description) per entry from the diary right after saving.'**
+  /// **'Time comes from the photo\'s EXIF timestamp. Discard any meals you don\'t want and tap \'Save all\'. You can edit details (time, amount, description) per entry with the pencil here, or in the diary later.'**
   String get multiPhotoReviewHint;
 
   /// No description provided for @multiPhotoAllSavedSnackWithHint.
@@ -2761,6 +2761,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} meals saved.'**
   String multiPhotoAllSavedSnack(int count);
+
+  /// No description provided for @multiPhotoCrossDaySnack.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} meals saved across {days} days · Coach paused. Tap the date at the top to switch between days.'**
+  String multiPhotoCrossDaySnack(int count, int days);
 
   /// No description provided for @settingsGoalMacroImplication.
   ///

@@ -478,7 +478,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homePhotoCamera => 'Kamera';
 
   @override
-  String get homePhotoGallery => 'Galerie';
+  String get homePhotoGallery => 'Ein Foto aus der Galerie';
 
   @override
   String get homePhotoButton => 'Foto hinzufügen';
@@ -1475,7 +1475,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsMealPatternIntuitive => 'Intuitiv (keine Vorschläge)';
 
   @override
-  String get homePhotoMultiGallery => 'Mehrere Fotos (Galerie)';
+  String get homePhotoMultiGallery => 'Mehrere Fotos aus der Galerie';
 
   @override
   String multiPhotoReviewTitle(int count) {
@@ -1490,7 +1490,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get multiPhotoReviewHint =>
-      'Verwerfe Mahlzeiten die du nicht möchtest und tippe dann „Alle speichern“. Details (Zeit, Menge, Beschreibung) kannst du danach im Tagebuch pro Eintrag anpassen.';
+      'Die Uhrzeit kommt aus dem Foto-Aufnahme-Zeitpunkt (EXIF). Verwerfe Mahlzeiten die du nicht möchtest und tippe dann „Alle speichern\". Details wie Zeit, Menge oder Beschreibung kannst du pro Eintrag mit dem Stift bearbeiten oder später im Tagebuch anpassen.';
 
   @override
   String multiPhotoAllSavedSnackWithHint(int count) {
@@ -1540,6 +1540,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String multiPhotoAllSavedSnack(int count) {
     return '$count Mahlzeiten gespeichert.';
+  }
+
+  @override
+  String multiPhotoCrossDaySnack(int count, int days) {
+    return '$count Mahlzeiten gespeichert über $days Tage · Coach pausiert. Tippe oben auf das Datum um zwischen den Tagen zu wechseln.';
   }
 
   @override

@@ -19,7 +19,7 @@ import '../l10n/app_localizations.dart';
 // a List<int> on the profile via [onPerChildChanged]. The single
 // [sharePercent] stays untouched so toggling back to a preset keeps the
 // previous single value.
-class MilkShareSelector extends StatelessWidget {
+class MilkShareSelector extends StatefulWidget {
   final int sharePercent;
   final int numChildren;
   final ValueChanged<int> onChanged;
@@ -50,8 +50,39 @@ class MilkShareSelector extends StatelessWidget {
     this.title,
   });
 
+  @override
+  State<MilkShareSelector> createState() => _MilkShareSelectorState();
+}
+
+// Preset values shared between the build method and the initial-locked
+// inference in initState (file-level const so the initState can avoid
+// touching widget-tree state).
+const _kPresetShareValues = {100, 70, 50, 20};
+
+class _MilkShareSelectorState extends State<MilkShareSelector> {
+  // True once the user has explicitly picked the "Custom" tile. Stays true
+  // even when the slider lands on a preset value (100/70/50/20) so the
+  // slider doesn't visually snap back to a preset row mid-drag. Cleared
+  // when the user taps any preset or "per child" option.
+  //
+  // Vanessa's Build+25 feedback: "lässt sich verschieben, springt aber
+  // sofort auf eine der optionen um nach verschieben" - the slider's
+  // 5-step divisions hit preset values, which then auto-selected the
+  // matching preset row and hid the slider. This lock makes the user's
+  // intent ("I want to set a value myself") the source of truth.
+  late bool _customLocked;
+
+  @override
+  void initState() {
+    super.initState();
+    // Seed the lock from the initial value: a stored non-preset value
+    // means the user was already in custom-mode last time.
+    _customLocked = !_kPresetShareValues.contains(widget.sharePercent) &&
+        (widget.perChildShares == null || widget.perChildShares!.isEmpty);
+  }
+
   bool get _isPerChildMode {
-    final list = perChildShares;
+    final list = widget.perChildShares;
     return list != null && list.isNotEmpty;
   }
 
@@ -82,8 +113,13 @@ class MilkShareSelector extends StatelessWidget {
 
     final presetValues = scenarios.map((s) => s.value).toSet();
     final isPerChild = _isPerChildMode;
-    final isCustom = !isPerChild && !presetValues.contains(sharePercent);
-    final showPerChildOption = numChildren > 1 && onPerChildChanged != null;
+    // Custom mode is active when either (a) the user explicitly tapped
+    // Custom (_customLocked), OR (b) the stored value isn't a preset
+    // anyway (legacy non-preset value). Per-child mode wins over both.
+    final isCustom = !isPerChild &&
+        (_customLocked || !presetValues.contains(widget.sharePercent));
+    final showPerChildOption =
+        widget.numChildren > 1 && widget.onPerChildChanged != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,14 +128,14 @@ class MilkShareSelector extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                title ?? l10n.settingsMilkShareQuestion,
+                widget.title ?? l10n.settingsMilkShareQuestion,
                 style: textTheme.titleSmall,
               ),
             ),
-            ?trailing,
+            ?widget.trailing,
           ],
         ),
-        if (numChildren > 1) ...[
+        if (widget.numChildren > 1) ...[
           const SizedBox(height: 4),
           Text(
             l10n.settingsMilkShareMultipleChildrenHint,
@@ -111,12 +147,13 @@ class MilkShareSelector extends StatelessWidget {
           _ScenarioTile(
             label: s.label,
             hint: s.hint,
-            selected: !isPerChild && !isCustom && sharePercent == s.value,
+            selected: !isPerChild && !isCustom && widget.sharePercent == s.value,
             onTap: () {
-              // Picking any preset clears any active per-child override
-              // so the single value drives the supply estimate again.
-              if (isPerChild) onPerChildChanged?.call(null);
-              onChanged(s.value);
+              // Tapping a preset commits to single-mode + clears any per-
+              // child override + releases the custom lock.
+              if (isPerChild) widget.onPerChildChanged?.call(null);
+              setState(() => _customLocked = false);
+              widget.onChanged(s.value);
             },
           ),
         _ScenarioTile(
@@ -125,19 +162,11 @@ class MilkShareSelector extends StatelessWidget {
           selected: isCustom,
           onTap: () {
             if (isCustom) return;
-            // Tap on "custom" from a preset must visibly switch the UI
-            // into custom mode. Re-emitting the same preset value would
-            // leave isCustom=false and the slider hidden (tap looks dead).
-            // Shift by +5 to fall into a non-preset bin near the user's
-            // current pick; if +5 would land on another preset or run
-            // past 100, shift -5 instead. Slider divisions are 5 so the
-            // thumb still snaps cleanly.
-            if (isPerChild) onPerChildChanged?.call(null);
-            final next = (sharePercent + 5 <= 100 &&
-                    !presetValues.contains(sharePercent + 5))
-                ? sharePercent + 5
-                : sharePercent - 5;
-            onChanged(next.clamp(0, 100));
+            if (isPerChild) widget.onPerChildChanged?.call(null);
+            // Lock custom mode FIRST so the slider stays visible even if
+            // the (unchanged) value happens to be a preset.
+            setState(() => _customLocked = true);
+            widget.onChanged(widget.sharePercent);
           },
         ),
         if (showPerChildOption)
@@ -147,12 +176,14 @@ class MilkShareSelector extends StatelessWidget {
             selected: isPerChild,
             onTap: () async {
               final initial = isPerChild
-                  ? List<int>.from(perChildShares!)
-                  : List<int>.filled(numChildren, sharePercent);
+                  ? List<int>.from(widget.perChildShares!)
+                  : List<int>.filled(widget.numChildren, widget.sharePercent);
               // Pad/truncate when the parent changed numChildren since the
               // last save so the modal always has exactly N rows.
-              final padded = List<int>.generate(numChildren,
-                  (i) => i < initial.length ? initial[i] : sharePercent);
+              final padded = List<int>.generate(
+                  widget.numChildren,
+                  (i) =>
+                      i < initial.length ? initial[i] : widget.sharePercent);
               final result = await showModalBottomSheet<List<int>>(
                 context: context,
                 isScrollControlled: true,
@@ -160,7 +191,10 @@ class MilkShareSelector extends StatelessWidget {
                 showDragHandle: true,
                 builder: (_) => _PerChildSharesSheet(initial: padded),
               );
-              if (result != null) onPerChildChanged?.call(result);
+              if (result != null) {
+                setState(() => _customLocked = false);
+                widget.onPerChildChanged?.call(result);
+              }
             },
           ),
         if (isCustom) ...[
@@ -168,19 +202,19 @@ class MilkShareSelector extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              numChildren <= 1
-                  ? l10n.settingsMilkShareSingular(sharePercent)
-                  : l10n.settingsMilkSharePlural(sharePercent),
+              widget.numChildren <= 1
+                  ? l10n.settingsMilkShareSingular(widget.sharePercent)
+                  : l10n.settingsMilkSharePlural(widget.sharePercent),
               style: textTheme.bodySmall?.copyWith(color: scheme.outline),
             ),
           ),
           Slider(
-            value: sharePercent.toDouble().clamp(0, 100),
+            value: widget.sharePercent.toDouble().clamp(0, 100),
             min: 0,
             max: 100,
-            divisions: 20,
-            label: '$sharePercent%',
-            onChanged: (v) => onChanged(v.round()),
+            divisions: 100,
+            label: '${widget.sharePercent}%',
+            onChanged: (v) => widget.onChanged(v.round()),
           ),
         ],
         if (isPerChild) ...[
@@ -188,7 +222,7 @@ class MilkShareSelector extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              _perChildSummary(perChildShares!, l10n),
+              _perChildSummary(widget.perChildShares!, l10n),
               style: textTheme.bodySmall?.copyWith(color: scheme.outline),
             ),
           ),

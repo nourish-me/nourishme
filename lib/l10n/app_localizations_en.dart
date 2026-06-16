@@ -474,7 +474,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePhotoCamera => 'Camera';
 
   @override
-  String get homePhotoGallery => 'Photo Library';
+  String get homePhotoGallery => 'Single photo from library';
 
   @override
   String get homePhotoButton => 'Add a photo';
@@ -1467,7 +1467,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMealPatternIntuitive => 'Intuitive (no suggestions)';
 
   @override
-  String get homePhotoMultiGallery => 'Multiple photos (Gallery)';
+  String get homePhotoMultiGallery => 'Multiple photos from library';
 
   @override
   String multiPhotoReviewTitle(int count) {
@@ -1482,7 +1482,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get multiPhotoReviewHint =>
-      'Discard any meals you don\'t want and tap \'Save all\'. You can adjust the details (time, amount, description) per entry from the diary right after saving.';
+      'Time comes from the photo\'s EXIF timestamp. Discard any meals you don\'t want and tap \'Save all\'. You can edit details (time, amount, description) per entry with the pencil here, or in the diary later.';
 
   @override
   String multiPhotoAllSavedSnackWithHint(int count) {
@@ -1531,6 +1531,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String multiPhotoAllSavedSnack(int count) {
     return '$count meals saved.';
+  }
+
+  @override
+  String multiPhotoCrossDaySnack(int count, int days) {
+    return '$count meals saved across $days days · Coach paused. Tap the date at the top to switch between days.';
   }
 
   @override

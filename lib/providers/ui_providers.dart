@@ -27,6 +27,14 @@ final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 // that day's header. Consumers must reset to null after handling.
 final scrollToDayProvider = StateProvider<DateTime?>((ref) => null);
 
+// One-shot "scroll to a specific meal" request. confirm_screen sets this
+// after a retroactive save so the diary scrolls to the new entry even
+// when the stored mealTime is far in the past (the autoscroll's "60s old"
+// heuristic would skip a meal logged for 08:00 at 16:00 otherwise).
+// Same-day and past-day both supported. Consumers reset to null after
+// scrolling so a repeat save with the same id still fires.
+final scrollToMealIdProvider = StateProvider<String?>((ref) => null);
+
 // Bumped whenever something elsewhere in the app has signaled that the
 // user almost certainly wants to type into the meal input next: picking
 // a photo, finishing onboarding, tapping a coach follow-up chip. The

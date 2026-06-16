@@ -51,6 +51,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // Last scroll-to-day target we already scheduled a scroll for; prevents
   // double-firing when the provider value bounces through rebuilds.
   DateTime? _handledScrollToDay;
+  // Last scroll-to-meal target we already scheduled a scroll for.
+  String? _handledScrollToMealId;
   // Last scrollToBottomRequest bump value we already acted on. Used to skip
   // the existing bump on first build (initial state == 0) so we don't
   // jump to bottom every time the diary opens.
@@ -448,6 +450,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       });
     }
 
+    // scrollToMealIdProvider: an explicit "scroll to THIS meal" request,
+    // independent of the "60s recent" autoscroll heuristic. Set by retro
+    // saves where the meal's stored time is far in the past (e.g. log a
+    // breakfast at 16:00 for 08:00). Without this the autoscroll skips
+    // the entry and the user sees the day's old top entry instead.
+    final pendingMealScrollId = ref.watch(scrollToMealIdProvider);
+    if (pendingMealScrollId != null &&
+        pendingMealScrollId != _handledScrollToMealId) {
+      _handledScrollToMealId = pendingMealScrollId;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        // Let the new meal item land in the focused-day thread before we
+        // try to scroll to its key.
+        await Future<void>.delayed(const Duration(milliseconds: 80));
+        if (!mounted) return;
+        if (_mealKeys.containsKey(pendingMealScrollId)) {
+          await _scrollToNewMeal(pendingMealScrollId);
+        }
+        if (mounted) {
+          ref.read(scrollToMealIdProvider.notifier).state = null;
+          _handledScrollToMealId = null;
+        }
+      });
+    }
+
     // Explicit "scroll to bottom" request - currently bumped when the user
     // submits a chat question. Bypasses the ambient "near-bottom-only"
     // heuristic so a question typed while scrolled into yesterday still
@@ -517,11 +544,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           // Disclaimer (Task #88.6). Sits at the LEFT of the action cluster
           // so the user's eye reaches it before the filter/settings group.
-          // policy_outlined reads as "document / rechtliche Info" instead
-          // of a warning triangle - we don't want users to mis-read it as
-          // an alert.
+          // shield_outlined reads as "safety / Schutz" without the alert
+          // overtone of a warning triangle - this is a calm reminder that
+          // the coach is general info, not medical advice.
           IconButton(
-            icon: Icon(Icons.policy_outlined, color: scheme.outline),
+            icon: Icon(Icons.shield_outlined, color: scheme.outline),
             tooltip: AppLocalizations.of(context).coachDisclaimerBadge,
             onPressed: () => _showDisclaimerSheet(context),
           ),

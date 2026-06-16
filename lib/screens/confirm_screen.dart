@@ -138,13 +138,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final focused = ref.read(focusedDayProvider);
     if (widget.existingCreatedAt != null) {
       _mealTime = widget.existingCreatedAt!;
-    } else if (widget.suggestedCreatedAt != null &&
-        _sameDay(widget.suggestedCreatedAt!, focused)) {
-      // Photo EXIF timestamp from #98. Used only when it sits on the
-      // currently focused diary day; if the user is on yesterday and
-      // the photo was taken today (or vice versa), fall through to the
-      // standard noon/now defaults so the meal lands on the day the
-      // user is actually looking at.
+    } else if (widget.suggestedCreatedAt != null) {
+      // Photo EXIF timestamp from #98. Trust the EXIF as authoritative -
+      // if the photo was taken yesterday the meal IS from yesterday, even
+      // if the user is currently viewing today. The downstream save path
+      // detects that mealDay != today and switches the diary to the meal's
+      // day (so the user lands on the entry they just added). User can
+      // still edit the time before saving.
       _mealTime = widget.suggestedCreatedAt!;
     } else if (_sameDay(focused, today)) {
       _mealTime = nowInit;
@@ -500,6 +500,14 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             duration: const Duration(seconds: 3),
           ),
         );
+        // Same-day retro saves stay on the current focusedDay, so the
+        // scrollToDayProvider (which switches days) isn't enough. Push
+        // the meal-id directly so the diary scrolls to the new entry
+        // even though its stored mealTime is in the past. Past-day saves
+        // already pick the right meal via scrollToDayProvider's
+        // preferred-meal logic below; setting this provider too is
+        // belt-and-suspenders in case the day switch is slow.
+        ref.read(scrollToMealIdProvider.notifier).state = meal.id;
       } else if (fireCoach) {
         // Drain any in-progress scan bundle and fire one coach call for
         // everything together (or just this meal when no bundle exists).

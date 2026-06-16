@@ -416,7 +416,6 @@ class _MicrosRow extends StatelessWidget {
           fontSize: 11.5,
           fontWeight: FontWeight.w600,
           color: scheme.onSurfaceVariant,
-          fontStyle: isAwareness ? FontStyle.italic : FontStyle.normal,
           height: 1.1,
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
@@ -428,18 +427,22 @@ class _MicrosRow extends StatelessWidget {
           fontSize: 11.5,
           fontWeight: FontWeight.w600,
           color: color,
-          fontStyle: isAwareness ? FontStyle.italic : FontStyle.normal,
           height: 1.1,
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
       );
     }
+    // Awareness-state nutrients (Cholin etc., no DRI target, only an
+    // awareness reference) used to render italic + dashed track to
+    // signal "this one isn't a strict target". Vanessa's Build+25
+    // feedback: the italic was just confusing - the info_outline icon
+    // already carries the "awareness, not target" meaning. Keep the icon,
+    // drop the italic + dashed track so the header reads as one
+    // consistent type system.
     return MiniPctCell(
       name: isOver ? '${display.nameForLocale(locale)} · UL' : display.nameForLocale(locale),
       percent: pct,
       color: color,
-      italic: isAwareness,
-      dashedTrack: isAwareness,
       pctOverridesText: overrideText,
       nameTrailing: [
         // Diet-adapted glyph only meaningful when the slot was chosen by
