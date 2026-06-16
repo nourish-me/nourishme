@@ -953,10 +953,19 @@ class _MicronutrientWeekCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Eyebrow(
-              text: l10n.trendsMicronutrientWeekTitle,
+              text: l10n.trendsAveragesEyebrow,
               scheme: scheme,
               textTheme: textTheme),
           const SizedBox(height: 6),
+          Text(
+            l10n.trendsMicronutrientWeekTitle,
+            style: textTheme.titleLarge?.copyWith(
+              fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.w600,
+              color: scheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
             l10n.trendsMicronutrientWeekHint,
             style: textTheme.bodySmall?.copyWith(color: scheme.outline),

@@ -94,9 +94,7 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
         body: l10n.tip2Body,
       ),
       _Tip(
-        // Placeholder: tip3 SVG is the typing/autocomplete motif, close
-        // enough to natural-language entry.
-        asset: 'assets/illustrations/tip3_$assetSuffix.svg',
+        asset: 'assets/illustrations/tip6_$assetSuffix.svg',
         title: l10n.tip6Title, // Just say what you ate (natural language)
         body: l10n.tip6Body,
       ),
@@ -116,9 +114,7 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
         body: l10n.tip4Body,
       ),
       _Tip(
-        // Reuses tip2's brand-card motif as a stand-in for the
-        // settings-discovery tip until a dedicated SVG ships.
-        asset: 'assets/illustrations/tip2_$assetSuffix.svg',
+        asset: 'assets/illustrations/tip7_$assetSuffix.svg',
         title: l10n.tip7Title, // Settings-discovery: meal rhythm, goal, diet, supplements, favs
         body: l10n.tip7Body,
       ),

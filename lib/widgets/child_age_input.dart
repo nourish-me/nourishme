@@ -21,6 +21,11 @@ class ChildAgeInput extends StatefulWidget {
   final int bucket;
   final ValueChanged<int> onBucketChanged;
   final DateTime? birthdate;
+  // True when the parent has not yet recorded an explicit age pick. Used
+  // to render the segmented bracket picker with NO segment selected, so
+  // a tap on the default 0-6mo segment also fires onBucketChanged
+  // (otherwise SegmentedButton swallows same-value taps).
+  final bool unpicked;
   final VoidCallback onPickBirthdate;
   final VoidCallback onClearBirthdate;
   const ChildAgeInput({
@@ -28,6 +33,7 @@ class ChildAgeInput extends StatefulWidget {
     required this.bucket,
     required this.onBucketChanged,
     required this.birthdate,
+    this.unpicked = false,
     required this.onPickBirthdate,
     required this.onClearBirthdate,
   });
@@ -83,7 +89,9 @@ class _ChildAgeInputState extends State<ChildAgeInput> {
                   label: Text(ageGroups[i].label),
                 ),
               ),
-              selected: {widget.bucket},
+              emptySelectionAllowed: widget.unpicked,
+              selected:
+                  widget.unpicked ? <int>{} : {widget.bucket},
               showSelectedIcon: false,
               onSelectionChanged: (s) => widget.onBucketChanged(s.first),
             ),

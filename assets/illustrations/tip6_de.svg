@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+
+<g class="ill">
+      <circle class="ln" cx="86" cy="252" r="24"></circle>
+      <path class="ln" d="M44 322 Q44 286 86 286 Q128 286 128 322"></path>
+      <rect class="ln" x="120" y="64" width="294" height="124" rx="36"></rect>
+      <path class="ln" d="M158 188 L126 236 L196 186"></path>
+      <text x="267" y="122" text-anchor="middle" font-family="&#39;Newsreader&#39;,serif" font-style="italic" font-size="25" fill="currentColor">eine Schüssel Müsli</text>
+      <text x="267" y="158" text-anchor="middle" font-family="&#39;Newsreader&#39;,serif" font-style="italic" font-size="25" fill="currentColor">mit Beeren</text>
+      <path class="am" d="M430 124 L470 124"></path>
+      <path class="am" d="M456 110 L472 124 L456 138"></path>
+      <circle class="am-fill" cx="520" cy="112" r="18"></circle>
+      <path d="M478 128 A 42 42 0 0 0 562 128 Z" fill="currentColor"></path>
+    </g>
+</svg>

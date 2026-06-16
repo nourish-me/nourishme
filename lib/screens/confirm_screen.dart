@@ -527,10 +527,18 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         // "+ Noch einen scannen" path.
         bundleNotifier.state = [...bundleNotifier.state, meal];
       }
-      // Scroll the diary to the meal's day only for retro-logs (past-day
-      // saves). Today's saves don't need it - the new entry lands at the
-      // bottom near the input bar, naturally visible.
-      if (mealDay != todayKey) {
+      // Day-switch logic: jump the diary to the meal's day whenever the
+      // user is currently looking at a different day. Covers:
+      //   - User on today saves a past-day meal → switch to past day
+      //   - User on past day saves a today meal → switch to today
+      //   - User on past day saves the same past day → no switch
+      // Without this the meal lands silently in another day-bucket and
+      // the user thinks the save was lost. Vanessa Build+28 bug:
+      // "auf vergangenen Tag → Eintrag für heute → kein Sprung zu heute".
+      final focusedNow = ref.read(focusedDayProvider);
+      final focusedKey =
+          DateTime(focusedNow.year, focusedNow.month, focusedNow.day);
+      if (mealDay != focusedKey) {
         ref.read(scrollToDayProvider.notifier).state = mealDay;
       }
       return;

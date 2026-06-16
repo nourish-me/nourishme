@@ -159,6 +159,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         // Body: birthdate is pre-filled, height/weight defaults exist.
         return double.tryParse(_height.text.replaceAll(',', '.')) != null &&
             double.tryParse(_weight.text.replaceAll(',', '.')) != null;
+      case _phaseDetailsStepIndex:
+        // Lactation phase: block "Next" until the user has explicitly
+        // picked the child's age. Without that the supply/calorie estimate
+        // would silently run off the default 0-6mo bucket and be wrong
+        // for an older child. Vanessa Build+28 feedback. Pregnancy +
+        // neither phases have no age input and pass through.
+        if (_isLactating && !_childAgeAcknowledged) return false;
+        return true;
       case _summaryStepIndex:
         // Summary step: disclaimer is shown as plain text (no longer gated
         // by a checkbox - that confused more users than it protected).
@@ -1244,6 +1252,7 @@ class _PhaseDetailsStep extends StatelessWidget {
             bucket: childAgeGroup,
             onBucketChanged: onAgeGroupChanged,
             birthdate: youngestChildBirthdate,
+            unpicked: !ageAcknowledged,
             onPickBirthdate: onPickBirthdate,
             onClearBirthdate: onClearBirthdate,
           ),

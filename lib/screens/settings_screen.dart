@@ -2256,7 +2256,13 @@ class _MicronutrientsSection extends StatelessWidget {
             style: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
-          for (final key in MicronutrientKey.all)
+          // Sort the toggle list alphabetically by display name (Vanessa
+          // Build+28 feedback: should match the trends + diary header
+          // ordering for predictability).
+          for (final key in ([...MicronutrientKey.all]..sort((a, b) =>
+              _displayNameFor(a, locale)
+                  .toLowerCase()
+                  .compareTo(_displayNameFor(b, locale).toLowerCase()))))
             _MicroToggleRow(
               displayName: _displayNameFor(key, locale),
               isOn: picked.contains(key),

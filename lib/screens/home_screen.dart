@@ -544,11 +544,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           // Disclaimer (Task #88.6). Sits at the LEFT of the action cluster
           // so the user's eye reaches it before the filter/settings group.
-          // shield_outlined reads as "safety / Schutz" without the alert
-          // overtone of a warning triangle - this is a calm reminder that
-          // the coach is general info, not medical advice.
+          // lock_outline is the most-generic "security/safety" glyph we
+          // could pick - shield_outlined still read as a "warning" cue to
+          // Vanessa; the lock is calm and doesn't suggest danger.
           IconButton(
-            icon: Icon(Icons.shield_outlined, color: scheme.outline),
+            icon: Icon(Icons.lock_outline, color: scheme.outline),
             tooltip: AppLocalizations.of(context).coachDisclaimerBadge,
             onPressed: () => _showDisclaimerSheet(context),
           ),

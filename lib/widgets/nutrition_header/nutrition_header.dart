@@ -72,8 +72,20 @@ class NutritionHeader extends ConsumerWidget {
 
     // User-picked list wins; otherwise fall back to the phase/diet default.
     // An explicit empty list (user opted out of all micros) hides the strip.
-    final microKeys =
-        profile.selectedMicronutrients ?? MicronutrientDefaults.forProfile(profile);
+    // Render order is alphabetical by display name (Vanessa Build+28
+    // feedback): the previous user-pick / phase-default order was
+    // unpredictable and didn't match what the trends + settings lists
+    // show. Alphabetical is stable across the app.
+    final microKeys = [
+      ...(profile.selectedMicronutrients ??
+          MicronutrientDefaults.forProfile(profile))
+    ]..sort((a, b) {
+        final nameA =
+            MicronutrientDisplay.forKey(a)?.nameForLocale(locale) ?? a;
+        final nameB =
+            MicronutrientDisplay.forKey(b)?.nameForLocale(locale) ?? b;
+        return nameA.toLowerCase().compareTo(nameB.toLowerCase());
+      });
 
     return DecoratedBox(
       // Brief alignment: "Header sitzt flach auf dem Paper (keine eigene
