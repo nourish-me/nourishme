@@ -2699,7 +2699,7 @@ abstract class AppLocalizations {
   /// No description provided for @multiPhotoReviewHint.
   ///
   /// In en, this message translates to:
-  /// **'Time comes from the photo\'s EXIF timestamp. Discard any meals you don\'t want and tap \'Save all\'. You can edit details (time, amount, description) per entry with the pencil here, or in the diary later.'**
+  /// **'Date and time come from the photo\'s EXIF timestamp. Discard any meals you don\'t want and tap \'Save all\'. You can edit details (time, amount, description) per entry with the pencil here, or in the diary later.'**
   String get multiPhotoReviewHint;
 
   /// No description provided for @multiPhotoAllSavedSnackWithHint.

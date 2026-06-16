@@ -1492,7 +1492,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get multiPhotoReviewHint =>
-      'Time comes from the photo\'s EXIF timestamp. Discard any meals you don\'t want and tap \'Save all\'. You can edit details (time, amount, description) per entry with the pencil here, or in the diary later.';
+      'Date and time come from the photo\'s EXIF timestamp. Discard any meals you don\'t want and tap \'Save all\'. You can edit details (time, amount, description) per entry with the pencil here, or in the diary later.';
 
   @override
   String multiPhotoAllSavedSnackWithHint(int count) {

@@ -1500,7 +1500,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get multiPhotoReviewHint =>
-      'Die Uhrzeit kommt aus dem Foto-Aufnahme-Zeitpunkt (EXIF). Verwerfe Mahlzeiten die du nicht möchtest und tippe dann „Alle speichern\". Details wie Zeit, Menge oder Beschreibung kannst du pro Eintrag mit dem Stift bearbeiten oder später im Tagebuch anpassen.';
+      'Datum und Uhrzeit kommen aus dem Foto-Aufnahme-Zeitpunkt (EXIF). Verwerfe Mahlzeiten die du nicht möchtest und tippe dann „Alle speichern\". Details wie Zeit, Menge oder Beschreibung kannst du pro Eintrag mit dem Stift bearbeiten oder später im Tagebuch anpassen.';
 
   @override
   String multiPhotoAllSavedSnackWithHint(int count) {
