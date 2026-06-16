@@ -14,6 +14,7 @@ import '../../providers/meal_providers.dart';
 import '../../providers/ui_providers.dart';
 import '../../services/claude_client.dart';
 import '../../services/coach_session_manager.dart';
+import '../../utils/important_snack.dart';
 import '../../utils/photo_exif.dart';
 import '../../utils/weight_trend.dart';
 import '../barcode_scanner_screen.dart';
@@ -754,13 +755,13 @@ class _HomeInputState extends ConsumerState<HomeInput> {
               ? l10n.multiPhotoAllSavedSnackWithHint(savedMeals.length)
               : l10n.confirmCoachRetroPausedToast);
       rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(snackText),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: crossDay ? 6 : 4),
-        ),
-      );
+      // Multi-photo and retro-coach snacks carry information the user
+      // can't predict (which days, why no coach); use the longer,
+      // dismissable importantSnack instead of the 3-4s default.
+      rootScaffoldMessengerKey.currentState?.showSnackBar(importantSnack(
+        message: snackText,
+        dismissLabel: importantSnackLabel(context),
+      ));
     } finally {
       if (mounted) setState(() => _sending = false);
     }

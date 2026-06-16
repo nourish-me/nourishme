@@ -1059,13 +1059,12 @@ class _MicronutrientWeekCard extends ConsumerWidget {
         isTracked: trackedKeys.contains(key),
       ));
     }
-    // Sort: tracked rows first, within each group lowest-coverage first,
-    // alphabetical name as the tie-breaker so equal-% rows have a stable
-    // order instead of bouncing around when new meals shift one of them.
+    // Sort: tracked rows first, within each group strictly alphabetical
+    // by display name. Earlier iteration sorted by % within the group
+    // (Vanessa Build+29 feedback: "verwirrend, lieber nur alphabetisch
+    // in den zwei Buckets").
     out.sort((a, b) {
       if (a.isTracked != b.isTracked) return a.isTracked ? -1 : 1;
-      final byPct = a.pct.compareTo(b.pct);
-      if (byPct != 0) return byPct;
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
     return out;

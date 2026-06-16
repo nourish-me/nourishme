@@ -548,7 +548,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           // could pick - shield_outlined still read as a "warning" cue to
           // Vanessa; the lock is calm and doesn't suggest danger.
           IconButton(
-            icon: Icon(Icons.lock_outline, color: scheme.outline),
+            icon: const Icon(Icons.lock_outline),
             tooltip: AppLocalizations.of(context).coachDisclaimerBadge,
             onPressed: () => _showDisclaimerSheet(context),
           ),

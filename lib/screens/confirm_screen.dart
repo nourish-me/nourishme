@@ -13,6 +13,7 @@ import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
 import '../services/claude_client.dart';
+import '../utils/important_snack.dart';
 import '../services/coach_session_manager.dart';
 import '../services/notification_scheduler.dart';
 import '../widgets/edit_hint_icon.dart';
@@ -464,6 +465,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         AppLocalizations.of(context).confirmPastDaySavedToast;
     final coachRetroPausedToast =
         AppLocalizations.of(context).confirmCoachRetroPausedToast;
+    final snackDismissLabel = importantSnackLabel(context);
 
     if (!isEdit) {
       // New meal: persist it so it shows up in the diary right away. The
@@ -493,11 +495,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         // shouldn't carry today's queued meals into a coach call later.
         bundleNotifier.state = const [];
         rootScaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(
-                isPastDaySave ? pastDaySavedToast : coachRetroPausedToast),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
+          importantSnack(
+            message:
+                isPastDaySave ? pastDaySavedToast : coachRetroPausedToast,
+            dismissLabel: snackDismissLabel,
           ),
         );
         // Same-day retro saves stay on the current focusedDay, so the
@@ -579,11 +580,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         CoachSessionManager.isRetroactiveMeal(meal.createdAt);
     if (isPastDayEdit || isRetroEdit) {
       rootScaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(
-              isPastDayEdit ? pastDaySavedToast : coachRetroPausedToast),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
+        importantSnack(
+          message:
+              isPastDayEdit ? pastDaySavedToast : coachRetroPausedToast,
+          dismissLabel: snackDismissLabel,
         ),
       );
       return;

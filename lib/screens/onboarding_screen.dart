@@ -1234,11 +1234,19 @@ class _PhaseDetailsStep extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _NumberStepper(
-            value: numChildren,
-            min: 1,
-            max: 4,
-            onChanged: onChildrenChanged,
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<int>(
+              segments: const [
+                ButtonSegment(value: 1, label: Text('1')),
+                ButtonSegment(value: 2, label: Text('2')),
+                ButtonSegment(value: 3, label: Text('3')),
+                ButtonSegment(value: 4, label: Text('4')),
+              ],
+              selected: {numChildren},
+              showSelectedIcon: false,
+              onSelectionChanged: (s) => onChildrenChanged(s.first),
+            ),
           ),
           const SizedBox(height: 20),
           Text(
@@ -1571,46 +1579,6 @@ class _MacroRow extends StatelessWidget {
               fontWeight: FontWeight.w600,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NumberStepper extends StatelessWidget {
-  final int value;
-  final int min;
-  final int max;
-  final ValueChanged<int> onChanged;
-  const _NumberStepper({
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.remove_circle_outline),
-            onPressed: value > min ? () => onChanged(value - 1) : null,
-          ),
-          Text(value.toString(), style: textTheme.titleLarge),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            onPressed: value < max ? () => onChanged(value + 1) : null,
           ),
         ],
       ),

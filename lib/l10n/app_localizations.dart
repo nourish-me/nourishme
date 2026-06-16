@@ -323,7 +323,7 @@ abstract class AppLocalizations {
   /// No description provided for @trendsAveragesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Per logged day'**
+  /// **'Macronutrients'**
   String get trendsAveragesTitle;
 
   /// No description provided for @trendsLabelKcal.
@@ -2144,6 +2144,12 @@ abstract class AppLocalizations {
   /// **'Got it'**
   String get coachDisclaimerSheetClose;
 
+  /// No description provided for @snackDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get snackDismiss;
+
   /// No description provided for @settingsSectionDiet.
   ///
   /// In en, this message translates to:
@@ -2699,7 +2705,7 @@ abstract class AppLocalizations {
   /// No description provided for @trendsMicronutrientWeekTitle.
   ///
   /// In en, this message translates to:
-  /// **'Micronutrients this week'**
+  /// **'Micronutrients'**
   String get trendsMicronutrientWeekTitle;
 
   /// No description provided for @trendsMicronutrientWeekHint.

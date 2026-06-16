@@ -134,7 +134,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trendsAveragesEyebrow => 'WEEKLY AVERAGE';
 
   @override
-  String get trendsAveragesTitle => 'Per logged day';
+  String get trendsAveragesTitle => 'Macronutrients';
 
   @override
   String get trendsLabelKcal => 'Calories';
@@ -1169,6 +1169,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coachDisclaimerSheetClose => 'Got it';
 
   @override
+  String get snackDismiss => 'Got it';
+
+  @override
   String get settingsSectionDiet => 'Diet & allergies';
 
   @override
@@ -1494,7 +1497,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get trendsMicronutrientWeekTitle => 'Micronutrients this week';
+  String get trendsMicronutrientWeekTitle => 'Micronutrients';
 
   @override
   String get trendsMicronutrientWeekHint =>
