@@ -172,7 +172,7 @@
   "homePastDayInputHint": "z.B. Müsli mit Joghurt, 1 Schüssel",
   "homeContinue": "Weiter",
   "homePhotoCamera": "Kamera",
-  "homePhotoGallery": "Ein Foto aus der Galerie",
+  "homePhotoGallery": "Aus der Galerie",
   "homePhotoButton": "Foto hinzufügen",
   "scanButton": "Barcode scannen",
   "scanTitle": "Barcode scannen",
@@ -265,6 +265,7 @@
   "settingsMilkVolumeAgeRule12plus": "12+ Mo mit Familienkost: ~200-400 ml/Tag",
   "settingsMilkVolumeAgeRuleTwins": "Zwillinge exklusiv 0-6 Mo: ~1500 ml/Tag",
   "settingsMilkVolumeInfoSource": "DGE 2025, EFSA 2017",
+  "onboardingMilkAgeRequiredHint": "Wähle erst das Alter deines Kindes - Milchanteil und Volumen-Schätzung hängen davon ab.",
 
   "settingsActivityInfoSummary": "Beeinflusst den Tagesumsatz (PAL-Faktor)",
   "settingsActivityInfoDetail": "Gering 1,2: kaum Bewegung. Mäßig 1,375: Spaziergänge, leichte Hausarbeit. Aktiv 1,55: regelmäßiges Training. Hoch 1,725: intensives Training oder körperliche Arbeit. Bei Babys zu Hause meist \"Mäßig\".",
@@ -363,7 +364,7 @@
   "onboardingButtonStart": "Loslegen",
   "onboardingFooterEditLater": "Du kannst alle Werte später in den Einstellungen anpassen.",
   "onboardingTagline": "Ernährung, die mitrechnet.",
-  "onboardingSubline": "Live-Coach für Schwangerschaft und Stillzeit. Wissenschaftlich fundiert, datenschutzfreundlich, ohne Kalorien-Zähl-Kram.",
+  "onboardingSubline": "Live-Coach für Schwangerschaft und Stillzeit. Wissenschaftlich fundiert, datenschutzfreundlich, ohne Kalorien-Zähl-Fokus.",
   "onboardingWelcomeReassurance": "Keine Sorge: alles was du in den folgenden Onboarding-Schritten einträgst kannst du jederzeit in den Einstellungen ändern.",
 
   "onboardingPhaseQuestion": "In welcher Phase bist du?",

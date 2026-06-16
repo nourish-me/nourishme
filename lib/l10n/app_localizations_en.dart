@@ -474,7 +474,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePhotoCamera => 'Camera';
 
   @override
-  String get homePhotoGallery => 'Single photo from library';
+  String get homePhotoGallery => 'From library';
 
   @override
   String get homePhotoButton => 'Add a photo';
@@ -739,6 +739,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsMilkVolumeInfoSource => 'DGE 2025, EFSA 2017';
+
+  @override
+  String get onboardingMilkAgeRequiredHint =>
+      'Pick your child\'s age first - milk share and volume estimate depend on it.';
 
   @override
   String get settingsActivityInfoSummary =>
@@ -1019,7 +1023,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingSubline =>
-      'A live coach for pregnancy and lactation. Evidence-based, privacy-friendly, no calorie-counting fuss.';
+      'A live coach for pregnancy and lactation. Evidence-based, privacy-friendly, no calorie-counting focus.';
 
   @override
   String get onboardingWelcomeReassurance =>

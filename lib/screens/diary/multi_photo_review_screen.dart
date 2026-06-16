@@ -98,16 +98,28 @@ class _MultiPhotoReviewScreenState extends State<MultiPhotoReviewScreen> {
               ),
             ),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                itemCount: _items.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
-                itemBuilder: (_, index) => _ItemRow(
-                  item: _items[index],
-                  onEdit: () => _editItem(index),
-                  onDiscard: () => _toggleDiscard(index),
-                ),
-              ),
+              child: Builder(builder: (_) {
+                // Show date prefix on each row only when the picked set
+                // spans more than one day - otherwise the time alone
+                // already tells the user everything they need.
+                final liveDays = _items
+                    .where((i) => i.skippedReason == null)
+                    .map((i) => DateTime(i.mealTime.year, i.mealTime.month,
+                        i.mealTime.day))
+                    .toSet();
+                final crossDay = liveDays.length > 1;
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  itemCount: _items.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (_, index) => _ItemRow(
+                    item: _items[index],
+                    showDate: crossDay,
+                    onEdit: () => _editItem(index),
+                    onDiscard: () => _toggleDiscard(index),
+                  ),
+                );
+              }),
             ),
           ],
         ),
@@ -182,10 +194,15 @@ class _MultiPhotoReviewScreenState extends State<MultiPhotoReviewScreen> {
 
 class _ItemRow extends StatelessWidget {
   final MultiPhotoItem item;
+  // When the picked set spans multiple days, render a short date prefix
+  // before the time so the user can tell apart "yesterday 18:30" from
+  // "today 18:30" without opening each row.
+  final bool showDate;
   final VoidCallback onEdit;
   final VoidCallback onDiscard;
   const _ItemRow({
     required this.item,
+    required this.showDate,
     required this.onEdit,
     required this.onDiscard,
   });
@@ -200,6 +217,27 @@ class _ItemRow extends StatelessWidget {
     final muted = isSkipped || isDiscarded;
     final timeStr =
         '${item.mealTime.hour.toString().padLeft(2, '0')}:${item.mealTime.minute.toString().padLeft(2, '0')}';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final mealDay =
+        DateTime(item.mealTime.year, item.mealTime.month, item.mealTime.day);
+    final isDe = Localizations.localeOf(context)
+        .languageCode
+        .toLowerCase()
+        .startsWith('de');
+    String dayPrefix = '';
+    if (showDate) {
+      final dayDiff = today.difference(mealDay).inDays;
+      if (dayDiff == 0) {
+        dayPrefix = isDe ? 'heute · ' : 'today · ';
+      } else if (dayDiff == 1) {
+        dayPrefix = isDe ? 'gestern · ' : 'yesterday · ';
+      } else if (dayDiff == -1) {
+        dayPrefix = isDe ? 'morgen · ' : 'tomorrow · ';
+      } else {
+        dayPrefix = '${mealDay.day}.${mealDay.month}. · ';
+      }
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -245,7 +283,7 @@ class _ItemRow extends StatelessWidget {
                   if (!isSkipped) ...[
                     const SizedBox(height: 2),
                     Text(
-                      '$timeStr · ${item.parsed.kcal} kcal',
+                      '$dayPrefix$timeStr · ${item.parsed.kcal} kcal',
                       style: textTheme.bodySmall
                           ?.copyWith(color: scheme.onSurfaceVariant),
                     ),

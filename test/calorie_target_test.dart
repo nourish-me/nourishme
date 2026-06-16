@@ -319,6 +319,31 @@ void main() {
       final back = UserProfileSettings.fromJson(original.toJson());
       expect(back.youngestChildBirthdate, DateTime(2026, 1, 15));
     });
+
+    test('perChildSharesPercent round-trips through JSON (Mehrlinge)', () {
+      // Build+25 / #116: twin / triplet case where each child gets a
+      // distinct share. The list must persist verbatim and the effective
+      // getter must return the average so the calorie target keeps the
+      // same per-child input it was computed with.
+      final original = _profile(numChildrenNursing: 2, childrenAgeGroup: 0)
+          .copyWith(perChildSharesPercent: [100, 70]);
+      final back = UserProfileSettings.fromJson(original.toJson());
+      expect(back.perChildSharesPercent, [100, 70]);
+      expect(back.hasPerChildShares, isTrue);
+      // average((100 + 70) / 2) = 85
+      expect(back.effectiveMilkSharePercent, 85);
+    });
+
+    test('perChildSharesPercent: null + empty are treated the same', () {
+      // Round-tripping a single-mode profile must not resurrect a stale
+      // per-child override - effectiveMilkSharePercent falls back to the
+      // stored single share.
+      final original = _profile(numChildrenNursing: 1, childrenAgeGroup: 0);
+      final back = UserProfileSettings.fromJson(original.toJson());
+      expect(back.perChildSharesPercent, isNull);
+      expect(back.hasPerChildShares, isFalse);
+      expect(back.effectiveMilkSharePercent, original.milkSharePercent);
+    });
   });
 
   group('currentChildrenAgeGroup (computed from birthdate)', () {

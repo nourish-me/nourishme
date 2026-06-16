@@ -478,7 +478,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homePhotoCamera => 'Kamera';
 
   @override
-  String get homePhotoGallery => 'Ein Foto aus der Galerie';
+  String get homePhotoGallery => 'Aus der Galerie';
 
   @override
   String get homePhotoButton => 'Foto hinzufügen';
@@ -747,6 +747,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsMilkVolumeInfoSource => 'DGE 2025, EFSA 2017';
+
+  @override
+  String get onboardingMilkAgeRequiredHint =>
+      'Wähle erst das Alter deines Kindes - Milchanteil und Volumen-Schätzung hängen davon ab.';
 
   @override
   String get settingsActivityInfoSummary =>
@@ -1028,7 +1032,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingSubline =>
-      'Live-Coach für Schwangerschaft und Stillzeit. Wissenschaftlich fundiert, datenschutzfreundlich, ohne Kalorien-Zähl-Kram.';
+      'Live-Coach für Schwangerschaft und Stillzeit. Wissenschaftlich fundiert, datenschutzfreundlich, ohne Kalorien-Zähl-Fokus.';
 
   @override
   String get onboardingWelcomeReassurance =>

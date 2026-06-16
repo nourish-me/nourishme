@@ -515,6 +515,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         bundleNotifier.state = const [];
         final all = [...pending, meal];
         ref.read(coachSessionProvider.notifier).submitMeals(all, locale);
+        // Push the meal id so the diary scrolls to the new entry even when
+        // the user backdated the meal-time (e.g. "logged 20 min ago"). The
+        // autoscroll's 60s-recent heuristic uses createdAt, so a back-
+        // dated meal would otherwise be skipped and the user sees nothing
+        // change. Vanessa Build+28 bug: "Hühnchen 20min zurückgestellt
+        // → Mahlzeit wird nicht gezeigt".
+        ref.read(scrollToMealIdProvider.notifier).state = meal.id;
       } else {
         // Append to the bundle without firing - used by the barcode
         // "+ Noch einen scannen" path.

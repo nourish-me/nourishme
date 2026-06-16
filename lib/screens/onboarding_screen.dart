@@ -93,6 +93,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Average drives the kcal estimate via UserProfileSettings
   // .effectiveMilkSharePercent.
   List<int>? _perChildSharesPercent;
+  // True once the user has explicitly picked the child's age (either a
+  // birthdate or a segmented-bucket tap). Until true the downstream milk-
+  // share + volume widgets are hidden, because the default 0-6mo bucket
+  // would otherwise drive a silently-wrong volume estimate for a parent
+  // whose child is older. Set false at first build; flipped true the
+  // moment the user picks an age.
+  bool _childAgeAcknowledged = false;
   // Meal-reminder opt-in on the final summary step. Defaults to true so most
   // users land in the app with reminders set up; if iOS denies the system
   // permission we honestly flip the persisted master flag back to off.
@@ -290,6 +297,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             (now.month - picked.month) -
             (now.day < picked.day ? 1 : 0);
         _childAgeGroup = months < 6 ? 0 : (months < 12 ? 1 : 2);
+        _childAgeAcknowledged = true;
         _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
           numChildren: _numChildren,
           ageGroup: _childAgeGroup,
@@ -481,6 +489,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onAgeGroupChanged: (v) {
                         setState(() {
                           _childAgeGroup = v;
+                          _childAgeAcknowledged = true;
                           _dailyVolumeMl =
                               UserProfileSettings.estimatedDailyVolumeMl(
                             numChildren: _numChildren,
@@ -490,9 +499,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         });
                       },
                       youngestChildBirthdate: _youngestChildBirthdate,
+                      ageAcknowledged: _childAgeAcknowledged,
                       onPickBirthdate: _pickYoungestChildBirthdate,
-                      onClearBirthdate: () =>
-                          setState(() => _youngestChildBirthdate = null),
+                      onClearBirthdate: () => setState(() {
+                        _youngestChildBirthdate = null;
+                        _childAgeAcknowledged = false;
+                      }),
                       milkSharePercent: _milkSharePercent,
                       onSharePercentChanged: (v) {
                         setState(() {
@@ -1111,6 +1123,10 @@ class _PhaseDetailsStep extends StatelessWidget {
   final int childAgeGroup;
   final ValueChanged<int> onAgeGroupChanged;
   final DateTime? youngestChildBirthdate;
+  // True when the user has picked an age (birthdate or bucket-tap).
+  // Gates the milk-share + volume widgets so we never silently estimate
+  // off the default 0-6mo bucket before the user confirms.
+  final bool ageAcknowledged;
   final VoidCallback onPickBirthdate;
   final VoidCallback onClearBirthdate;
   final int milkSharePercent;
@@ -1131,6 +1147,7 @@ class _PhaseDetailsStep extends StatelessWidget {
     required this.childAgeGroup,
     required this.onAgeGroupChanged,
     required this.youngestChildBirthdate,
+    required this.ageAcknowledged,
     required this.onPickBirthdate,
     required this.onClearBirthdate,
     required this.milkSharePercent,
@@ -1230,44 +1247,69 @@ class _PhaseDetailsStep extends StatelessWidget {
             onPickBirthdate: onPickBirthdate,
             onClearBirthdate: onClearBirthdate,
           ),
-          const SizedBox(height: 20),
-          // Concrete-scenario radios instead of a 0-100 slider (#82, #86):
-          // beta testers couldn't estimate the % reliably. The widget
-          // maps preset values 100/70/50/20 back to the four lived
-          // scenarios and falls through to a custom slider for any
-          // other value. See lib/widgets/milk_share_selector.dart.
-          MilkShareSelector(
-            sharePercent: milkSharePercent,
-            numChildren: numChildren,
-            onChanged: onSharePercentChanged,
-            perChildShares: perChildSharesPercent,
-            onPerChildChanged: onPerChildSharesChanged,
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: Text(l10n.settingsMilkVolume,
-                    style: textTheme.titleSmall),
+          if (!ageAcknowledged) ...[
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(10),
               ),
-              InfoButton(
-                fact: NutritionFact(
-                  topic: l10n.settingsMilkVolumeInfoTopic,
-                  summary: l10n.settingsMilkVolumeInfoTitle,
-                  detail: l10n.onboardingVolumeInfoDetail,
-                  source: l10n.settingsMilkVolumeInfoSource,
+              child: Row(
+                children: [
+                  Icon(Icons.lock_clock_outlined,
+                      size: 18, color: scheme.outline),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l10n.onboardingMilkAgeRequiredHint,
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 20),
+            // Concrete-scenario radios instead of a 0-100 slider (#82, #86):
+            // beta testers couldn't estimate the % reliably. The widget
+            // maps preset values 100/70/50/20 back to the four lived
+            // scenarios and falls through to a custom slider for any
+            // other value. See lib/widgets/milk_share_selector.dart.
+            MilkShareSelector(
+              sharePercent: milkSharePercent,
+              numChildren: numChildren,
+              onChanged: onSharePercentChanged,
+              perChildShares: perChildSharesPercent,
+              onPerChildChanged: onPerChildSharesChanged,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(l10n.settingsMilkVolume,
+                      style: textTheme.titleSmall),
                 ),
-              ),
-            ],
-          ),
-          Slider(
-            value: dailyVolumeMl.toDouble().clamp(0, 3000),
-            min: 0,
-            max: 3000,
-            divisions: 60,
-            label: '$dailyVolumeMl ml',
-            onChanged: (v) => onVolumeChanged(v.round()),
-          ),
+                InfoButton(
+                  fact: NutritionFact(
+                    topic: l10n.settingsMilkVolumeInfoTopic,
+                    summary: l10n.settingsMilkVolumeInfoTitle,
+                    detail: l10n.onboardingVolumeInfoDetail,
+                    source: l10n.settingsMilkVolumeInfoSource,
+                  ),
+                ),
+              ],
+            ),
+            Slider(
+              value: dailyVolumeMl.toDouble().clamp(0, 3000),
+              min: 0,
+              max: 3000,
+              divisions: 60,
+              label: '$dailyVolumeMl ml',
+              onChanged: (v) => onVolumeChanged(v.round()),
+            ),
+          ],
           Text(
             l10n.settingsMilkVolumePerDayLabel(
               dailyVolumeMl,

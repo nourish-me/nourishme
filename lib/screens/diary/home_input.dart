@@ -122,6 +122,12 @@ class _HomeInputState extends ConsumerState<HomeInput> {
 
   Future<void> _showPhotoPicker() async {
     if (!mounted) return;
+    // Two-option picker only: camera vs library. Inside the library path we
+    // always use pickMultiImage and branch on the count - 1 photo routes
+    // through the single-photo ConfirmScreen, 2+ through the multi-photo
+    // review flow. Beta tester feedback (Vanessa Build+27): asking the
+    // user up front "single vs multi" is an unnecessary decision; iOS'
+    // multi-select picker handles both cases naturally.
     final choice = await showModalBottomSheet<_PhotoChoice>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -138,12 +144,6 @@ class _HomeInputState extends ConsumerState<HomeInput> {
               title: Text(AppLocalizations.of(context).homePhotoGallery),
               onTap: () => Navigator.pop(sheetContext, _PhotoChoice.gallery),
             ),
-            ListTile(
-              leading: const Icon(Icons.collections_outlined),
-              title: Text(AppLocalizations.of(context).homePhotoMultiGallery),
-              onTap: () =>
-                  Navigator.pop(sheetContext, _PhotoChoice.multiGallery),
-            ),
           ],
         ),
       ),
@@ -154,12 +154,54 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         await _pickImage(ImageSource.camera);
         break;
       case _PhotoChoice.gallery:
-        await _pickImage(ImageSource.gallery);
+        await _doLibraryFlow();
         break;
       case _PhotoChoice.multiGallery:
+        // Legacy enum entry, no longer reachable from this picker. The
+        // scan-session flow (_doPhotoStep) still uses it directly.
         await _doMultiPhotoFlow();
         break;
     }
+  }
+
+  // Library-picker entry point. Always uses pickMultiImage so the user can
+  // tap one or many. If they pick exactly one, route to the single-photo
+  // ConfirmScreen so the inline edit + retro-fix-coach UX matches the old
+  // single-gallery path verbatim. If they pick 2+, route to the multi-photo
+  // review screen.
+  Future<void> _doLibraryFlow() async {
+    if (!mounted) return;
+    final List<XFile> picked;
+    try {
+      picked = await _picker.pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1280,
+      );
+    } catch (e) {
+      debugPrint('pickMultiImage failed: $e');
+      return;
+    }
+    if (picked.isEmpty || !mounted) return;
+    if (picked.length == 1) {
+      // Single-photo path: read bytes + EXIF, set state, focus the input
+      // bar so the user can type an optional descriptor.
+      try {
+        final bytes = await picked.first.readAsBytes();
+        if (!mounted) return;
+        final exif = await readPhotoExifTimestamp(bytes);
+        if (!mounted) return;
+        setState(() {
+          _imageBytes = bytes;
+          _imageExifTimestamp = exif;
+        });
+        _focusAndOpenKeyboard();
+      } catch (_) {}
+      return;
+    }
+    // Multi-photo path: hand off to the existing bulk-review flow, but
+    // pre-load it with the picked XFiles so it doesn't open the picker
+    // a second time.
+    await _doMultiPhotoFlow(prePicked: picked);
   }
 
   // Re-uses a meal from the user's history exactly as it was logged before
@@ -588,18 +630,23 @@ class _HomeInputState extends ConsumerState<HomeInput> {
   // as a single coach-session bundle so the user gets ONE wrap-up reply
   // instead of N. Per-item edit is deferred to a follow-up task; users
   // can fine-tune saved meals from the diary right after the bulk save.
-  Future<void> _doMultiPhotoFlow() async {
+  Future<void> _doMultiPhotoFlow({List<XFile>? prePicked}) async {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
     final List<XFile> picked;
-    try {
-      picked = await _picker.pickMultiImage(
-        imageQuality: 80,
-        maxWidth: 1280,
-      );
-    } catch (e) {
-      debugPrint('pickMultiImage failed: $e');
-      return;
+    if (prePicked != null) {
+      // Library-flow already opened the picker - skip opening it again.
+      picked = prePicked;
+    } else {
+      try {
+        picked = await _picker.pickMultiImage(
+          imageQuality: 80,
+          maxWidth: 1280,
+        );
+      } catch (e) {
+        debugPrint('pickMultiImage failed: $e');
+        return;
+      }
     }
     if (picked.isEmpty || !mounted) return;
     setState(() => _sending = true);
@@ -686,14 +733,12 @@ class _HomeInputState extends ConsumerState<HomeInput> {
           .submitMealsIfLive(savedMeals, locale);
       ref.read(analyticsServiceProvider).capture('multi_photo_saved',
           properties: {'count': savedMeals.length});
-      // Day-switch logic for cross-day bulks. If every saved meal lives
-      // on the same day, jump the diary to that day so the user lands on
-      // the entries they just saved (otherwise a user uploading three
-      // yesterday photos stays on today and sees nothing change). If the
-      // bulk spans multiple days (e.g. some yesterday, some today), stay
-      // on the focused day and surface a hint so the user knows where to
-      // navigate. Also scroll to the LAST saved entry so the user sees
-      // something new appear.
+      // Day-switch logic. Single-day bulk: switch to that day so the user
+      // lands where the entries appeared. Cross-day bulk: STAY on the
+      // focused day (Vanessa's pick in Build+27 testing - the toast
+      // tells them about the spread so they know to swipe). The 3s
+      // default toast was disappearing too fast to read; bump to 6s
+      // for cross-day so the day-count message is actually visible.
       final savedDays = savedMeals
           .map((m) => DateTime(m.createdAt.year, m.createdAt.month,
               m.createdAt.day))
@@ -701,26 +746,30 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       final crossDay = savedDays.length > 1;
       if (!crossDay) {
         ref.read(scrollToDayProvider.notifier).state = savedDays.first;
+        ref.read(scrollToMealIdProvider.notifier).state = savedMeals.last.id;
       }
-      ref.read(scrollToMealIdProvider.notifier).state = savedMeals.last.id;
-      if (!fired) {
-        // Multi-photo bulk-save with EXIF timestamps almost always lands
-        // in the retro window (user is logging earlier-today or yesterday
-        // photos). Show the coach-paused hint instead of the generic
-        // "all saved" snack so the user understands why no thinking
-        // bubble appears.
-        _showSnack(crossDay
-            ? l10n.multiPhotoCrossDaySnack(savedMeals.length, savedDays.length)
-            : l10n.confirmCoachRetroPausedToast);
-      } else {
-        _showSnack(l10n.multiPhotoAllSavedSnackWithHint(savedMeals.length));
-      }
+      final snackText = crossDay
+          ? l10n.multiPhotoCrossDaySnack(savedMeals.length, savedDays.length)
+          : (fired
+              ? l10n.multiPhotoAllSavedSnackWithHint(savedMeals.length)
+              : l10n.confirmCoachRetroPausedToast);
+      rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+      rootScaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(snackText),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: crossDay ? 6 : 4),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _sending = false);
     }
   }
 
   Future<String?> _doPhotoStep() async {
+    // Same two-option picker as the inline composer (Build+27 simplification):
+    // Camera vs Library. Library always goes through pickMultiImage and
+    // branches by count.
     final source = await showModalBottomSheet<_PhotoChoice>(
       context: context,
       builder: (sheetCtx) => SafeArea(
@@ -737,31 +786,38 @@ class _HomeInputState extends ConsumerState<HomeInput> {
               title: Text(AppLocalizations.of(context).homePhotoGallery),
               onTap: () => Navigator.pop(sheetCtx, _PhotoChoice.gallery),
             ),
-            ListTile(
-              leading: const Icon(Icons.collections_outlined),
-              title: Text(AppLocalizations.of(context).homePhotoMultiGallery),
-              onTap: () =>
-                  Navigator.pop(sheetCtx, _PhotoChoice.multiGallery),
-            ),
           ],
         ),
       ),
     );
     if (source == null || !mounted) return null;
-    if (source == _PhotoChoice.multiGallery) {
-      await _doMultiPhotoFlow();
-      // Multi-photo handles its own bundle save + coach trigger, so end
-      // the scan-session loop here regardless of result.
-      return null;
+    XFile? picked;
+    if (source == _PhotoChoice.camera) {
+      picked = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+        maxWidth: 1280,
+      );
+    } else {
+      // Library path: pickMultiImage. If user picks 2+, hand off to the
+      // bulk flow and end the scan session.
+      final List<XFile> many;
+      try {
+        many = await _picker.pickMultiImage(
+          imageQuality: 80,
+          maxWidth: 1280,
+        );
+      } catch (e) {
+        debugPrint('pickMultiImage failed: $e');
+        return null;
+      }
+      if (many.isEmpty || !mounted) return null;
+      if (many.length > 1) {
+        await _doMultiPhotoFlow(prePicked: many);
+        return null;
+      }
+      picked = many.first;
     }
-    final imageSource = source == _PhotoChoice.camera
-        ? ImageSource.camera
-        : ImageSource.gallery;
-    final picked = await ImagePicker().pickImage(
-      source: imageSource,
-      imageQuality: 80,
-      maxWidth: 1280,
-    );
     if (picked == null || !mounted) return null;
     // Capture context-derived values BEFORE any async work to avoid the
     // "BuildContext across async gaps" lint - the EXIF read below is a

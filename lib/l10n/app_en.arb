@@ -228,7 +228,7 @@
   "homePastDayInputHint": "e.g. cereal with yogurt, one bowl",
   "homeContinue": "Continue",
   "homePhotoCamera": "Camera",
-  "homePhotoGallery": "Single photo from library",
+  "homePhotoGallery": "From library",
   "homePhotoButton": "Add a photo",
   "scanButton": "Scan barcode",
   "scanTitle": "Scan barcode",
@@ -337,6 +337,7 @@
   "settingsMilkVolumeAgeRule12plus": "12+ mo with family food: ~200-400 ml/day",
   "settingsMilkVolumeAgeRuleTwins": "Twins exclusive 0-6 mo: ~1500 ml/day",
   "settingsMilkVolumeInfoSource": "DGE 2025, EFSA 2017",
+  "onboardingMilkAgeRequiredHint": "Pick your child's age first - milk share and volume estimate depend on it.",
 
   "settingsActivityInfoSummary": "Influences daily expenditure (PAL factor)",
   "settingsActivityInfoDetail": "Low 1.2: barely moving. Moderate 1.375: walks, light housework. Active 1.55: regular training. High 1.725: intense training or physical labour. With a baby at home, usually \"Moderate\".",
@@ -479,7 +480,7 @@
   "onboardingButtonStart": "Get started",
   "onboardingFooterEditLater": "You can change every value later in settings.",
   "onboardingTagline": "Nutrition that does the math.",
-  "onboardingSubline": "A live coach for pregnancy and lactation. Evidence-based, privacy-friendly, no calorie-counting fuss.",
+  "onboardingSubline": "A live coach for pregnancy and lactation. Evidence-based, privacy-friendly, no calorie-counting focus.",
   "onboardingWelcomeReassurance": "No pressure: everything you enter in the following onboarding steps can be changed anytime in settings.",
 
   "onboardingPhaseQuestion": "Which phase are you in?",

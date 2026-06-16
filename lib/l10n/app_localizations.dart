@@ -929,7 +929,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePhotoGallery.
   ///
   /// In en, this message translates to:
-  /// **'Single photo from library'**
+  /// **'From library'**
   String get homePhotoGallery;
 
   /// No description provided for @homePhotoButton.
@@ -1418,6 +1418,12 @@ abstract class AppLocalizations {
   /// **'DGE 2025, EFSA 2017'**
   String get settingsMilkVolumeInfoSource;
 
+  /// No description provided for @onboardingMilkAgeRequiredHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your child\'s age first - milk share and volume estimate depend on it.'**
+  String get onboardingMilkAgeRequiredHint;
+
   /// No description provided for @settingsActivityInfoSummary.
   ///
   /// In en, this message translates to:
@@ -1895,7 +1901,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSubline.
   ///
   /// In en, this message translates to:
-  /// **'A live coach for pregnancy and lactation. Evidence-based, privacy-friendly, no calorie-counting fuss.'**
+  /// **'A live coach for pregnancy and lactation. Evidence-based, privacy-friendly, no calorie-counting focus.'**
   String get onboardingSubline;
 
   /// No description provided for @onboardingWelcomeReassurance.
