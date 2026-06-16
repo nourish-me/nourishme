@@ -651,7 +651,13 @@ class _ConsistencyCard extends StatelessWidget {
           Text(
             body,
             style: textTheme.bodyMedium?.copyWith(
-              color: scheme.onSurfaceVariant,
+              // Match the other cards' empty-state convention
+              // (scheme.outline) for consistency. Vanessa Build+30:
+              // "Consistency body wirkte fast weiß im Vergleich zu
+              // Wochenschnitt + Mikro Empty-States".
+              color: stats.totalDaysSinceStart == 0
+                  ? scheme.outline
+                  : scheme.onSurfaceVariant,
             ),
           ),
         ],

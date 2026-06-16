@@ -30,7 +30,11 @@ SnackBar importantSnack({
     SnackBar(
       content: Text(message),
       behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 10),
+      // Stay until the user actually dismisses (Vanessa Build+30: "wenn
+      // ich nichts drücke sollte der nicht nach 10s verschwinden").
+      // Duration.days(1) is the Flutter-idiomatic way to express
+      // "persistent" - the SnackBar API requires a non-null duration.
+      duration: const Duration(days: 1),
       action: SnackBarAction(label: dismissLabel, onPressed: () {}),
     );
 

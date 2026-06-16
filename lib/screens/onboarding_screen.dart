@@ -84,6 +84,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   // Lactation
   int _numChildren = 1;
+  // Progressive disclosure: the age + milk-share + volume sections only
+  // appear once the user has confirmed the children count. Default false
+  // for fresh onboarding; the segmented picker shows no selection until
+  // the user taps.
+  bool _numChildrenAcknowledged = false;
   int _childAgeGroup = 0;
   // Optional youngest-child birth date. When set, _childAgeGroup is
   // re-derived from it instead of hand-picked.
@@ -160,12 +165,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         return double.tryParse(_height.text.replaceAll(',', '.')) != null &&
             double.tryParse(_weight.text.replaceAll(',', '.')) != null;
       case _phaseDetailsStepIndex:
-        // Lactation phase: block "Next" until the user has explicitly
-        // picked the child's age. Without that the supply/calorie estimate
-        // would silently run off the default 0-6mo bucket and be wrong
-        // for an older child. Vanessa Build+28 feedback. Pregnancy +
-        // neither phases have no age input and pass through.
-        if (_isLactating && !_childAgeAcknowledged) return false;
+        // Lactation phase: progressive disclosure requires both the
+        // children-count AND the child's age to be explicitly picked
+        // before the user can move on. Otherwise the milk-share + volume
+        // sections are still hidden and the kcal estimate would silently
+        // run off bucket-defaults.
+        if (_isLactating &&
+            (!_numChildrenAcknowledged || !_childAgeAcknowledged)) {
+          return false;
+        }
         return true;
       case _summaryStepIndex:
         // Summary step: disclaimer is shown as plain text (no longer gated
@@ -461,9 +469,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onTrimesterChanged: (v) =>
                           setState(() => _trimester = v),
                       numChildren: _numChildren,
+                      numChildrenAcknowledged: _numChildrenAcknowledged,
                       onChildrenChanged: (v) {
                         setState(() {
                           _numChildren = v;
+                          _numChildrenAcknowledged = true;
                           // Per-child override only makes sense for
                           // multiples; clear it on 0/1 so the single
                           // share drives the estimate.
@@ -1127,6 +1137,10 @@ class _PhaseDetailsStep extends StatelessWidget {
   final int trimester;
   final ValueChanged<int> onTrimesterChanged;
   final int numChildren;
+  // Progressive disclosure for the lactation form: until the user taps
+  // the children-count segmented, the age + milk-share + volume
+  // sections stay hidden. Default false in onboarding.
+  final bool numChildrenAcknowledged;
   final ValueChanged<int> onChildrenChanged;
   final int childAgeGroup;
   final ValueChanged<int> onAgeGroupChanged;
@@ -1151,6 +1165,7 @@ class _PhaseDetailsStep extends StatelessWidget {
     required this.trimester,
     required this.onTrimesterChanged,
     required this.numChildren,
+    required this.numChildrenAcknowledged,
     required this.onChildrenChanged,
     required this.childAgeGroup,
     required this.onAgeGroupChanged,
@@ -1243,51 +1258,34 @@ class _PhaseDetailsStep extends StatelessWidget {
                 ButtonSegment(value: 3, label: Text('3')),
                 ButtonSegment(value: 4, label: Text('4')),
               ],
-              selected: {numChildren},
+              // Progressive disclosure: stay empty until the user taps.
+              // emptySelectionAllowed always true so the unpicked→picked
+              // transition doesn't reset the SegmentedButton state.
+              emptySelectionAllowed: true,
+              selected: numChildrenAcknowledged ? {numChildren} : <int>{},
               showSelectedIcon: false,
               onSelectionChanged: (s) => onChildrenChanged(s.first),
             ),
           ),
-          const SizedBox(height: 20),
-          Text(
-            numChildren == 1
-                ? l10n.settingsMilkChildSingular
-                : l10n.settingsMilkChildPlural,
-            style: textTheme.titleSmall,
-          ),
-          const SizedBox(height: 8),
-          ChildAgeInput(
-            bucket: childAgeGroup,
-            onBucketChanged: onAgeGroupChanged,
-            birthdate: youngestChildBirthdate,
-            unpicked: !ageAcknowledged,
-            onPickBirthdate: onPickBirthdate,
-            onClearBirthdate: onClearBirthdate,
-          ),
-          if (!ageAcknowledged) ...[
+          if (numChildrenAcknowledged) ...[
             const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.lock_clock_outlined,
-                      size: 18, color: scheme.outline),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      l10n.onboardingMilkAgeRequiredHint,
-                      style: textTheme.bodySmall
-                          ?.copyWith(color: scheme.onSurfaceVariant),
-                    ),
-                  ),
-                ],
-              ),
+            Text(
+              numChildren == 1
+                  ? l10n.settingsMilkChildSingular
+                  : l10n.settingsMilkChildPlural,
+              style: textTheme.titleSmall,
             ),
-          ] else ...[
+            const SizedBox(height: 8),
+            ChildAgeInput(
+              bucket: childAgeGroup,
+              onBucketChanged: onAgeGroupChanged,
+              birthdate: youngestChildBirthdate,
+              unpicked: !ageAcknowledged,
+              onPickBirthdate: onPickBirthdate,
+              onClearBirthdate: onClearBirthdate,
+            ),
+          ],
+          if (numChildrenAcknowledged && ageAcknowledged) ...[
             const SizedBox(height: 20),
             // Concrete-scenario radios instead of a 0-100 slider (#82, #86):
             // beta testers couldn't estimate the % reliably. The widget
@@ -1326,21 +1324,21 @@ class _PhaseDetailsStep extends StatelessWidget {
               label: '$dailyVolumeMl ml',
               onChanged: (v) => onVolumeChanged(v.round()),
             ),
+            Text(
+              l10n.settingsMilkVolumePerDayLabel(
+                dailyVolumeMl,
+                UserProfileSettings.volumeBasedSupplement(dailyVolumeMl),
+              ),
+              style: textTheme.bodySmall?.copyWith(
+                color: scheme.outline,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            MilkVolumeAgeHint(
+              ageGroup: childAgeGroup,
+              numChildren: numChildren,
+            ),
           ],
-          Text(
-            l10n.settingsMilkVolumePerDayLabel(
-              dailyVolumeMl,
-              UserProfileSettings.volumeBasedSupplement(dailyVolumeMl),
-            ),
-            style: textTheme.bodySmall?.copyWith(
-              color: scheme.outline,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          MilkVolumeAgeHint(
-            ageGroup: childAgeGroup,
-            numChildren: numChildren,
-          ),
         ],
       ],
     );
