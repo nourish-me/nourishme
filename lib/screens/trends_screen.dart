@@ -770,7 +770,16 @@ class _WeightCard extends ConsumerWidget {
               text: l10n.trendsWeightEyebrow,
               scheme: scheme,
               textTheme: textTheme),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          Text(
+            l10n.trendsWeightTitle,
+            style: textTheme.titleLarge?.copyWith(
+              fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.w600,
+              color: scheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
           if (entries.length < 2)
             Text(
               l10n.trendsWeightEmpty,

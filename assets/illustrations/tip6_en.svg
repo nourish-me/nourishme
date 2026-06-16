@@ -1,15 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400"><defs><style>.ln{stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.ln-thin{stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}.am{stroke:#C8884A;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.am-fill{fill:#C8884A}.dash{stroke-dasharray:6 4}</style></defs>
-
-<g class="ill">
-      <circle class="ln" cx="86" cy="252" r="24"></circle>
-      <path class="ln" d="M44 322 Q44 286 86 286 Q128 286 128 322"></path>
-      <rect class="ln" x="120" y="64" width="294" height="124" rx="36"></rect>
-      <path class="ln" d="M158 188 L126 236 L196 186"></path>
-      <text x="267" y="122" text-anchor="middle" font-family="&#39;Newsreader&#39;,serif" font-style="italic" font-size="25" fill="currentColor">a bowl of muesli</text>
-      <text x="267" y="158" text-anchor="middle" font-family="&#39;Newsreader&#39;,serif" font-style="italic" font-size="25" fill="currentColor">with berries</text>
-      <path class="am" d="M430 124 L470 124"></path>
-      <path class="am" d="M456 110 L472 124 L456 138"></path>
-      <circle class="am-fill" cx="520" cy="112" r="18"></circle>
-      <path d="M478 128 A 42 42 0 0 0 562 128 Z" fill="currentColor"></path>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+<defs><style>.ln{stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.ln-thin{stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}.ln-hair{stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}.am{stroke:#C8884A;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.am-thin{stroke:#C8884A;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}.am-fill{fill:#C8884A}.dash{stroke-dasharray:6 4}</style></defs>
+<g class="ill" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="70" y="52" width="266" height="96" rx="30"></rect>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="92" cy="72" r="4.5"></circle>
+      <path class="am-thin" fill="none" stroke="#C8884A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M312 70 q7 -7 14 -2 M316 84 q7 -7 14 -2"></path>
+      <text x="203" y="92" text-anchor="middle" font-family="&#39;Newsreader&#39;,serif" font-style="italic" font-size="18" fill="currentColor">a bowl of muesli</text>
+      <text x="203" y="118" text-anchor="middle" font-family="&#39;Newsreader&#39;,serif" font-style="italic" font-size="18" fill="currentColor">with berries</text>
+      <path class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M118 148 L100 186 L150 146"></path>
+      <path class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M92 214 C 79 214 70 224 70 237 C 70 251 81 260 92 260 C 105 260 114 250 114 237 C 114 223 104 214 92 214 Z"></path>
+      <path class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M52 300 Q52 268 92 268 Q132 268 132 300"></path>
+      <path class="am" fill="none" stroke="#C8884A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M300 214 Q342 214 374 204"></path>
+      <path class="am" fill="none" stroke="#C8884A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M362 192 L378 203 L364 218"></path>
+      <path class="am-thin" fill="none" stroke="#C8884A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M356 92 q-7 -8 -14 -2 q-6 6 0 12 l14 13 l14 -13 q6 -6 0 -12 q-7 -6 -14 2 Z"></path>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="488" cy="150" r="14"></circle>
+      <path class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M442 196 L534 196"></path>
+      <path class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M446 196 A 42 42 0 0 0 530 196"></path>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="474" cy="206" r="6"></circle>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="492" cy="213" r="6.5"></circle>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="510" cy="205" r="5.5"></circle>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="489" cy="223" r="5"></circle>
+      <g transform="translate(548,152) rotate(22)">
+        <ellipse class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" cx="0" cy="0" rx="11" ry="15"></ellipse>
+        <path class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M0 15 L0 58"></path>
+      </g>
+      <path class="am-thin" fill="none" stroke="#C8884A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M548 130 q-7 -9 0 -18 q7 -9 0 -18"></path>
     </g>
 </svg>

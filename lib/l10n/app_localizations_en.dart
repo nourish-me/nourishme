@@ -175,7 +175,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trendsTopMealsTitle => 'Last 7 days';
 
   @override
-  String get trendsWeightEyebrow => 'WEIGHT';
+  String get trendsWeightEyebrow => 'TRAJECTORY';
+
+  @override
+  String get trendsWeightTitle => 'Weight';
 
   @override
   String get trendsWeightEmpty =>

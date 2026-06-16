@@ -30,11 +30,14 @@ SnackBar importantSnack({
     SnackBar(
       content: Text(message),
       behavior: SnackBarBehavior.floating,
-      // Stay until the user actually dismisses (Vanessa Build+30: "wenn
-      // ich nichts drücke sollte der nicht nach 10s verschwinden").
-      // Duration.days(1) is the Flutter-idiomatic way to express
-      // "persistent" - the SnackBar API requires a non-null duration.
-      duration: const Duration(days: 1),
+      // Long-but-finite: 15 s covers "read the message + tap the action
+      // if you want, otherwise it goes away on its own." Persistent-
+      // until-dismiss was the first iteration but Vanessa flagged it as
+      // too sticky for retro logs ("die sollten nicht bleiben bis man
+      // sie dismissen"). 15 s is comfortably longer than Material 3's
+      // 10 s "long" default; the explicit Verstanden action still lets
+      // attentive readers dismiss it earlier.
+      duration: const Duration(seconds: 15),
       action: SnackBarAction(label: dismissLabel, onPressed: () {}),
     );
 

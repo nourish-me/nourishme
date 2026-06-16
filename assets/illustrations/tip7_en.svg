@@ -1,27 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400"><defs><style>.ln{stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.ln-thin{stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}.am{stroke:#C8884A;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.am-fill{fill:#C8884A}.dash{stroke-dasharray:6 4}</style></defs>
-
-<g class="ill">
-      <circle class="ln-thin dash" cx="300" cy="196" r="138" opacity=".42"></circle>
-      <rect class="ln" x="-9" y="-6.5" width="18" height="13" rx="5" transform="translate(345.0,196.0) rotate(0)"></rect><rect class="ln" x="-9" y="-6.5" width="18" height="13" rx="5" transform="translate(331.8,227.8) rotate(45)"></rect><rect class="ln" x="-9" y="-6.5" width="18" height="13" rx="5" transform="translate(300.0,241.0) rotate(90)"></rect><rect class="ln" x="-9" y="-6.5" width="18" height="13" rx="5" transform="translate(268.2,227.8) rotate(135)"></rect><rect class="ln" x="-9" y="-6.5" width="18" height="13" rx="5" transform="translate(255.0,196.0) rotate(180)"></rect><rect class="ln" x="-9" y="-6.5" width="18" height="13" rx="5" transform="translate(268.2,164.2) rotate(225)"></rect><rect class="ln" x="-9" y="-6.5" width="18" height="13" rx="5" transform="translate(300.0,151.0) rotate(270)"></rect><rect class="ln" x="-9" y="-6.5" width="18" height="13" rx="5" transform="translate(331.8,164.2) rotate(315)"></rect>
-      <circle class="ln" cx="300" cy="196" r="40"></circle>
-      <circle class="ln" cx="300" cy="196" r="17"></circle>
-      <g transform="translate(300.0,58.0)">
-      <path class="ln-thin" d="M-13 -15 v8 M-8 -15 v8 M-3 -15 v8"></path>
-      <path class="ln-thin" d="M-13 -7 h10"></path>
-      <path class="ln-thin" d="M-8 -7 v22"></path>
-      <path class="ln-thin" d="M12 -15 q7 1 7 9 q0 5 -7 6 v15"></path></g><g transform="translate(431.2,153.4)">
-      <circle class="ln-thin" cx="0" cy="0" r="14"></circle>
-      <circle class="ln-hair" cx="0" cy="0" r="6.5"></circle>
-      <circle class="dot" cx="0" cy="0" r="2.4"></circle></g><g transform="translate(381.1,307.6)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+<defs><style>.ln{stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.ln-thin{stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}.ln-hair{stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}.am{stroke:#C8884A;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.am-thin{stroke:#C8884A;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}.am-fill{fill:#C8884A}.dash{stroke-dasharray:6 4}</style></defs>
+<g class="ill" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <circle class="ln-thin dash" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 4" cx="300" cy="196" r="132" opacity=".65"></circle>
+      <path class="am" fill="none" stroke="#C8884A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M300 64 A 132 132 0 0 1 425.5 155.2"></path>
+      <path class="am-fill" fill="#C8884A" stroke="none" d="M236 104 L239 114 L249 117 L239 120 L236 130 L233 120 L223 117 L233 114 Z"></path>
+      <rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-7.5" y="-6.0" width="15" height="12" rx="4.5" transform="translate(343.0,196.0) rotate(-2.0)"></rect><rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-8.0" y="-6.5" width="16" height="13" rx="4.5" transform="translate(334.9,225.2) rotate(43.0)"></rect><rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-8.5" y="-6.0" width="17" height="12" rx="4.5" transform="translate(307.5,238.3) rotate(78.0)"></rect><rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-7.5" y="-6.5" width="15" height="13" rx="4.5" transform="translate(277.3,235.4) rotate(123.0)"></rect><rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-8.0" y="-6.0" width="16" height="12" rx="4.5" transform="translate(259.6,210.7) rotate(158.0)"></rect><rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-8.5" y="-6.5" width="17" height="13" rx="4.5" transform="translate(257.2,180.4) rotate(203.0)"></rect><rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-7.5" y="-6.0" width="15" height="12" rx="4.5" transform="translate(278.5,158.8) rotate(238.0)"></rect><rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-8.0" y="-6.5" width="16" height="13" rx="4.5" transform="translate(307.9,151.2) rotate(283.0)"></rect><rect class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x="-8.5" y="-6.0" width="17" height="12" rx="4.5" transform="translate(332.9,168.4) rotate(318.0)"></rect>
+      <path class="ln" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M300 158 C 322 157 339 176 338 196 C 337 218 320 235 300 234 C 279 235 261 217 262 195 C 263 175 280 159 300 158 L 309 156"></path>
+      <path class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M300 181 C 309 181 316 188 315 196 C 314 204 308 211 300 210 C 292 211 285 204 286 196 C 287 188 292 181 300 181 Z"></path>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="300" cy="196" r="4.5"></circle>
+      <g transform="translate(300.0,64.0)">
+      <path class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M-13 -15 v8 M-8 -15 v8 M-3 -15 v8"></path>
+      <path class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M-13 -7 h10"></path>
+      <path class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M-8 -7 v22"></path>
+      <path class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M12 -15 q7 1 7 9 q0 5 -7 6 v15"></path></g><g transform="translate(425.5,155.2)">
+      <circle class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" cx="0" cy="0" r="14"></circle>
+      <circle class="ln-hair" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" cx="0" cy="0" r="6.5"></circle>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="0" cy="0" r="3"></circle></g><g transform="translate(377.6,302.8)">
       <g transform="rotate(-18)">
-        <path class="ln-thin" d="M0 -16 Q15 -2 0 16 Q-15 -2 0 -16 Z"></path>
-        <path class="ln-hair" d="M0 14 Q1 0 0 -14"></path>
-        <path class="ln-hair" d="M0 -2 q7 -3 9 -8 M0 5 q-7 -3 -9 -8"></path>
-      </g></g><g transform="translate(218.9,307.6)">
+        <path class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M0 -16 Q15 -2 0 16 Q-15 -2 0 -16 Z"></path>
+        <path class="ln-hair" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" d="M0 13 Q1 0 0 -14"></path>
+      </g>
+      <circle class="am-fill" fill="#C8884A" stroke="none" cx="3" cy="14" r="3.5"></circle></g><g transform="translate(222.4,302.8)">
       <g transform="rotate(40)">
-        <rect class="ln-thin" x="-17" y="-8" width="34" height="16" rx="8"></rect>
-        <path class="ln-hair" d="M0 -8 V8"></path>
-      </g></g><g transform="translate(168.8,153.4)">
-      <path class="am-thin" d="M0 -15.5 L4.5 -4.8 L16 -4.8 L6.8 2.3 L10 13.2 L0 6.4 L-10 13.2 L-6.8 2.3 L-16 -4.8 L-4.5 -4.8 Z"></path></g>
+        <rect class="ln-thin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" x="-17" y="-8" width="34" height="16" rx="8"></rect>
+        <path class="ln-hair" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" d="M0 -8 V8"></path>
+      </g></g><g transform="translate(174.5,155.2)">
+      <path class="am-thin" fill="none" stroke="#C8884A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M0 -15.5 L4.5 -4.8 L16 -4.8 L6.8 2.3 L10 13.2 L0 6.4 L-10 13.2 L-6.8 2.3 L-16 -4.8 L-4.5 -4.8 Z"></path></g>
     </g>
 </svg>

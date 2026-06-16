@@ -395,8 +395,14 @@ abstract class AppLocalizations {
   /// No description provided for @trendsWeightEyebrow.
   ///
   /// In en, this message translates to:
-  /// **'WEIGHT'**
+  /// **'TRAJECTORY'**
   String get trendsWeightEyebrow;
+
+  /// No description provided for @trendsWeightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get trendsWeightTitle;
 
   /// No description provided for @trendsWeightEmpty.
   ///
