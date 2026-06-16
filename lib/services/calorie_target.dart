@@ -14,12 +14,16 @@ int calculateBmrTdee(UserProfileSettings profile) =>
 int calculateLactationSupplement(UserProfileSettings p) {
   if (p.numChildrenNursing <= 0) return 0;
   if (p.milkSupplementKcal > 0) return p.milkSupplementKcal;
+  // effectiveMilkSharePercent collapses the per-child override (Mehrlinge
+  // case where each twin gets a different share) into the single value
+  // estimatedDailyVolumeMl expects. Defaults to milkSharePercent when no
+  // override is set.
   final volume = p.dailyMilkVolumeMl > 0
       ? p.dailyMilkVolumeMl
       : UserProfileSettings.estimatedDailyVolumeMl(
           numChildren: p.numChildrenNursing,
           ageGroup: p.currentChildrenAgeGroup,
-          sharePercent: p.milkSharePercent,
+          sharePercent: p.effectiveMilkSharePercent,
         );
   return UserProfileSettings.volumeBasedSupplement(volume);
 }

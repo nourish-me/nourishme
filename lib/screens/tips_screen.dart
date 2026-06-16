@@ -115,6 +115,13 @@ class _TipsScreenState extends ConsumerState<TipsScreen> {
         title: l10n.tip4Title, // Micros + supplement scan + customise
         body: l10n.tip4Body,
       ),
+      _Tip(
+        // Reuses tip2's brand-card motif as a stand-in for the
+        // settings-discovery tip until a dedicated SVG ships.
+        asset: 'assets/illustrations/tip2_$assetSuffix.svg',
+        title: l10n.tip7Title, // Settings-discovery: meal rhythm, goal, diet, supplements, favs
+        body: l10n.tip7Body,
+      ),
     ];
     final lastIndex = tips.length - 1;
     final isLast = _index >= lastIndex;

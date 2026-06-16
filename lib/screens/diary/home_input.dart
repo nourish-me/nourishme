@@ -14,10 +14,16 @@ import '../../providers/meal_providers.dart';
 import '../../providers/ui_providers.dart';
 import '../../services/claude_client.dart';
 import '../../services/coach_session_manager.dart';
+import '../../utils/photo_exif.dart';
 import '../../utils/weight_trend.dart';
 import '../barcode_scanner_screen.dart';
 import '../confirm_screen.dart';
 import 'history_suggestion_chip.dart';
+import 'multi_photo_review_screen.dart';
+
+// Photo-picker bottom-sheet choices (#105). Internal enum kept here
+// because the multi-gallery option only exists in this composer surface.
+enum _PhotoChoice { camera, gallery, multiGallery }
 
 // The bottom-of-screen composer for the diary: text field + photo +
 // barcode + send, with the favourites strip and history-suggestion
@@ -35,6 +41,11 @@ class _HomeInputState extends ConsumerState<HomeInput> {
   final _focusNode = FocusNode();
   final _picker = ImagePicker();
   Uint8List? _imageBytes;
+  // EXIF DateTimeOriginal of [_imageBytes] when the picked file carries it
+  // (#98). Used as the soft default for the meal's time in the confirm
+  // sheet so retro-photo uploads land on when the photo was actually
+  // taken instead of when the user got around to tapping send.
+  DateTime? _imageExifTimestamp;
   bool _sending = false;
   int _lastFocusRequest = 0;
   int _lastPrefillVersion = 0;
@@ -96,7 +107,12 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       if (picked == null) return;
       final bytes = await picked.readAsBytes();
       if (!mounted) return;
-      setState(() => _imageBytes = bytes);
+      final exif = await readPhotoExifTimestamp(bytes);
+      if (!mounted) return;
+      setState(() {
+        _imageBytes = bytes;
+        _imageExifTimestamp = exif;
+      });
       // User intent after picking a food photo is almost always to log it.
       // Pull keyboard up so they can add a quick descriptor without an
       // extra tap on the input bar.
@@ -106,7 +122,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
 
   Future<void> _showPhotoPicker() async {
     if (!mounted) return;
-    await showModalBottomSheet<void>(
+    final choice = await showModalBottomSheet<_PhotoChoice>(
       context: context,
       builder: (sheetContext) => SafeArea(
         child: Column(
@@ -115,23 +131,35 @@ class _HomeInputState extends ConsumerState<HomeInput> {
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
               title: Text(AppLocalizations.of(context).homePhotoCamera),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickImage(ImageSource.camera);
-              },
+              onTap: () => Navigator.pop(sheetContext, _PhotoChoice.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
               title: Text(AppLocalizations.of(context).homePhotoGallery),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickImage(ImageSource.gallery);
-              },
+              onTap: () => Navigator.pop(sheetContext, _PhotoChoice.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.collections_outlined),
+              title: Text(AppLocalizations.of(context).homePhotoMultiGallery),
+              onTap: () =>
+                  Navigator.pop(sheetContext, _PhotoChoice.multiGallery),
             ),
           ],
         ),
       ),
     );
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case _PhotoChoice.camera:
+        await _pickImage(ImageSource.camera);
+        break;
+      case _PhotoChoice.gallery:
+        await _pickImage(ImageSource.gallery);
+        break;
+      case _PhotoChoice.multiGallery:
+        await _doMultiPhotoFlow();
+        break;
+    }
   }
 
   // Re-uses a meal from the user's history exactly as it was logged before
@@ -310,6 +338,13 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         profile.milkSharePercent,
         locale: locale,
       ));
+      // Meal-pattern preference (#108) so the chat coach respects the
+      // user's chosen rhythm when she asks open-ended meal-planning
+      // questions ("what should I have for lunch?"). Same wire value as
+      // the per_meal path uses.
+      buffer.writeln(isDe
+          ? 'Mahlzeit-Stil-Präferenz: ${profile.mealPattern}'
+          : 'Meal-pattern preference: ${profile.mealPattern}');
       // Diet preferences threaded into the chat context too so free-form
       // coach questions ("what should I eat tonight") respect avoid-list.
       final hasDietInfo = profile.dietStyle != 'omnivore' ||
@@ -396,8 +431,9 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         locale: locale,
       );
       await threadRepo.add(ThreadItem.coachAnswer(
-        text: reply.trim(),
+        text: reply.text.trim(),
         at: DateTime.now(),
+        responseType: reply.type,
       ));
     } on CoachApiException catch (e) {
       replyOk = false;
@@ -477,7 +513,13 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         if (pending.isNotEmpty) {
           ref.read(pendingScanBundleProvider.notifier).state = const [];
           final locale = Localizations.localeOf(context).languageCode;
-          ref.read(coachSessionProvider.notifier).submitMeals(pending, locale);
+          final fired = ref
+              .read(coachSessionProvider.notifier)
+              .submitMealsIfLive(pending, locale);
+          if (!fired && mounted) {
+            _showSnack(AppLocalizations.of(context)
+                .confirmCoachRetroPausedToast);
+          }
         }
       }
     }
@@ -540,8 +582,127 @@ class _HomeInputState extends ConsumerState<HomeInput> {
     return result is String ? result : null;
   }
 
+  // Multi-photo bulk-save flow (#105). Picks N photos, parses each in
+  // parallel, shows the MultiPhotoReviewScreen for triage, then on
+  // "Save All" persists every kept item to the meal repo + flushes them
+  // as a single coach-session bundle so the user gets ONE wrap-up reply
+  // instead of N. Per-item edit is deferred to a follow-up task; users
+  // can fine-tune saved meals from the diary right after the bulk save.
+  Future<void> _doMultiPhotoFlow() async {
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+    final List<XFile> picked;
+    try {
+      picked = await _picker.pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1280,
+      );
+    } catch (e) {
+      debugPrint('pickMultiImage failed: $e');
+      return;
+    }
+    if (picked.isEmpty || !mounted) return;
+    setState(() => _sending = true);
+    try {
+      final profile = ref.read(userProfileProvider).valueOrNull;
+      final timeHints = ref.read(mealHistoryByTimeOfDayProvider);
+      final client = ref.read(claudeClientProvider);
+      // Parse all in parallel; each photo can fail independently and is
+      // surfaced as a 'skipped' row rather than aborting the whole bulk.
+      final parses = await Future.wait(
+        picked.map((file) async {
+          try {
+            final bytes = await file.readAsBytes();
+            final exif = await readPhotoExifTimestamp(bytes);
+            final parsed = await client.parseMeal(
+              '',
+              imageBytes: bytes,
+              locale: locale,
+              isPregnant: profile?.isPregnant ?? false,
+              trimester: profile?.trimester,
+              isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+              timeOfDayHints: timeHints,
+            );
+            return MultiPhotoItem(
+              bytes: bytes,
+              parsed: parsed,
+              mealTime: exif ?? DateTime.now(),
+              skippedReason: !parsed.isMeal
+                  ? (parsed.rejectionReason ?? l10n.multiPhotoNoFoodSkipped)
+                  : null,
+            );
+          } catch (e) {
+            debugPrint('Multi-photo parse failed: $e');
+            return MultiPhotoItem(
+              bytes: await file.readAsBytes(),
+              parsed: const MealParseResult.nonMeal(),
+              mealTime: DateTime.now(),
+              skippedReason: l10n.multiPhotoParsingError,
+            );
+          }
+        }),
+      );
+      if (!mounted) return;
+      setState(() => _sending = false);
+      final keepers = await Navigator.of(context).push<List<MultiPhotoItem>>(
+        MaterialPageRoute(
+          builder: (_) => MultiPhotoReviewScreen(items: parses),
+          fullscreenDialog: true,
+        ),
+      );
+      if (!mounted || keepers == null || keepers.isEmpty) return;
+      // Persist each kept item to the meal repo with the EXIF/edited
+      // mealTime, then hand the whole batch to the coach session as one
+      // bundle so the user gets a single coach reply that summarises
+      // ALL of today's catch-up entries (not N individual replies).
+      final mealRepo = ref.read(mealRepositoryProvider);
+      final threadRepo = ref.read(threadRepositoryProvider);
+      final savedMeals = <MealEntry>[];
+      for (final item in keepers) {
+        final id = 'meal-${DateTime.now().microsecondsSinceEpoch}-${savedMeals.length}';
+        final meal = MealEntry(
+          id: id,
+          createdAt: item.mealTime,
+          rawText: item.rawText,
+          summary: item.parsed.summary,
+          kcal: item.parsed.kcal,
+          proteinG: item.parsed.proteinG,
+          carbsG: item.parsed.carbsG,
+          fatG: item.parsed.fatG,
+          portionAmount: item.parsed.portionAmount,
+          portionUnit: item.parsed.portionUnit,
+          portionAlias: item.parsed.portionAlias,
+          safetyWarnings: item.parsed.safetyWarnings,
+          micronutrients: item.parsed.micronutrients,
+        );
+        await mealRepo.save(meal);
+        await threadRepo
+            .add(ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
+        savedMeals.add(meal);
+      }
+      if (!mounted) return;
+      final fired = ref
+          .read(coachSessionProvider.notifier)
+          .submitMealsIfLive(savedMeals, locale);
+      ref.read(analyticsServiceProvider).capture('multi_photo_saved',
+          properties: {'count': savedMeals.length});
+      if (!fired) {
+        // Multi-photo bulk-save with EXIF timestamps almost always lands
+        // in the retro window (user is logging earlier-today or yesterday
+        // photos). Show the coach-paused hint instead of the generic
+        // "all saved" snack so the user understands why no thinking
+        // bubble appears.
+        _showSnack(l10n.confirmCoachRetroPausedToast);
+      } else {
+        _showSnack(l10n.multiPhotoAllSavedSnackWithHint(savedMeals.length));
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
   Future<String?> _doPhotoStep() async {
-    final source = await showModalBottomSheet<ImageSource>(
+    final source = await showModalBottomSheet<_PhotoChoice>(
       context: context,
       builder: (sheetCtx) => SafeArea(
         child: Column(
@@ -550,35 +711,66 @@ class _HomeInputState extends ConsumerState<HomeInput> {
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
               title: Text(AppLocalizations.of(context).homePhotoCamera),
-              onTap: () => Navigator.pop(sheetCtx, ImageSource.camera),
+              onTap: () => Navigator.pop(sheetCtx, _PhotoChoice.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
               title: Text(AppLocalizations.of(context).homePhotoGallery),
-              onTap: () => Navigator.pop(sheetCtx, ImageSource.gallery),
+              onTap: () => Navigator.pop(sheetCtx, _PhotoChoice.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.collections_outlined),
+              title: Text(AppLocalizations.of(context).homePhotoMultiGallery),
+              onTap: () =>
+                  Navigator.pop(sheetCtx, _PhotoChoice.multiGallery),
             ),
           ],
         ),
       ),
     );
     if (source == null || !mounted) return null;
+    if (source == _PhotoChoice.multiGallery) {
+      await _doMultiPhotoFlow();
+      // Multi-photo handles its own bundle save + coach trigger, so end
+      // the scan-session loop here regardless of result.
+      return null;
+    }
+    final imageSource = source == _PhotoChoice.camera
+        ? ImageSource.camera
+        : ImageSource.gallery;
     final picked = await ImagePicker().pickImage(
-      source: source,
+      source: imageSource,
       imageQuality: 80,
       maxWidth: 1280,
     );
     if (picked == null || !mounted) return null;
+    // Capture context-derived values BEFORE any async work to avoid the
+    // "BuildContext across async gaps" lint - the EXIF read below is a
+    // new await that the analyzer treats as a potential dismount point.
+    final locale = Localizations.localeOf(context).languageCode;
     final bytes = await picked.readAsBytes();
+    if (!mounted) return null;
+    // Photo EXIF DateTimeOriginal (#98) so retro-photo uploads default to
+    // the time the photo was actually taken, not the time of the tap.
+    // null when the file has no EXIF block or the timestamp is out of
+    // sensible range; ConfirmScreen falls through to wall-clock now in
+    // that case.
+    final exifTimestamp = await readPhotoExifTimestamp(bytes);
     if (!mounted) return null;
     setState(() => _sending = true);
     final profile = ref.read(userProfileProvider).valueOrNull;
+    // Photo-only path has no typed query for substring-matching, so feed
+    // the time-of-day history as a vocabulary anchor (Heidelbeeren vs.
+    // Pflaumen ambiguity at breakfast time).
+    final timeHints = ref.read(mealHistoryByTimeOfDayProvider);
     final parsed = await ref.read(claudeClientProvider).parseMeal(
           '',
           imageBytes: bytes,
-          locale: Localizations.localeOf(context).languageCode,
+          locale: locale,
           isPregnant: profile?.isPregnant ?? false,
           trimester: profile?.trimester,
           isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+          timeOfDayHints: timeHints,
         );
     if (mounted) setState(() => _sending = false);
     if (!mounted || !parsed.isMeal) {
@@ -597,6 +789,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         rawText: '',
         parsed: parsed,
         imageBytes: bytes,
+        suggestedCreatedAt: exifTimestamp,
         asSheet: true,
         source: MealEntrySource.photo,
         allowScanAnother: true,
@@ -701,10 +894,15 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       // Pull the user's last matching entries (top 3, last 30 days) so
       // the parser anchors on her actual brand+portion values instead
       // of re-estimating a generic Skyr / cereal / takeaway. Only fires
-      // for text input - the photo path doesn't carry a typed query to
-      // match against. Falls back to empty on photo-only saves.
+      // for text input.
       final historyHints = text.trim().length >= 2
           ? ref.read(mealHistorySuggestionsProvider(text))
+          : const <MealEntry>[];
+      // On the photo path (with or without text), also feed the
+      // time-of-day history as a vocabulary anchor for the vision model.
+      // Cheap: the prompt block is only built when the list is non-empty.
+      final timeHints = _imageBytes != null
+          ? ref.read(mealHistoryByTimeOfDayProvider)
           : const <MealEntry>[];
 
       final parsed = await client.parseMeal(
@@ -715,6 +913,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         trimester: profile?.trimester,
         isLactating: (profile?.numChildrenNursing ?? 0) > 0,
         brandHistoryHints: historyHints,
+        timeOfDayHints: timeHints,
       );
       if (!mounted) return;
       if (parsed.isMeal) {
@@ -728,6 +927,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
             rawText: text,
             parsed: parsed,
             imageBytes: _imageBytes,
+            suggestedCreatedAt: _imageExifTimestamp,
             asSheet: true,
             source: _imageBytes != null
                 ? MealEntrySource.photo
@@ -767,6 +967,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       if (mounted) {
         setState(() {
           _imageBytes = null;
+          _imageExifTimestamp = null;
         });
       }
     } on CoachApiException catch (e) {
@@ -929,7 +1130,10 @@ class _HomeInputState extends ConsumerState<HomeInput> {
                             customBorder: const CircleBorder(),
                             onTap: _sending
                                 ? null
-                                : () => setState(() => _imageBytes = null),
+                                : () => setState(() {
+                                      _imageBytes = null;
+                                      _imageExifTimestamp = null;
+                                    }),
                             child: const Padding(
                               padding: EdgeInsets.all(6),
                               child: Icon(Icons.close,

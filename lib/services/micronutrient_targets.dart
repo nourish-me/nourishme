@@ -421,6 +421,133 @@ class MicronutrientDisplay {
   static MicronutrientDisplay? forKey(String key) => _table[key];
 }
 
+// Curated short list of typical food sources per micronutrient, for the
+// weekly-overview detail sheet (#107). Stays text-only on purpose: a
+// fancier per-source kcal/100g table would belong to a recipe DB, not
+// the trends tab. Sources reflect everyday German foods first.
+class MicronutrientSources {
+  static const _topDe = <String, List<String>>{
+    MicronutrientKey.folateUg: [
+      'Linsen / Kichererbsen (gekocht)',
+      'Spinat / Feldsalat',
+      'Sonnenblumenkerne',
+    ],
+    MicronutrientKey.ironMg: [
+      'Linsen / Kichererbsen / Bohnen',
+      'Rind / Tofu',
+      'Vollkornbrot mit Vitamin C kombiniert',
+    ],
+    MicronutrientKey.iodineUg: [
+      'Seefisch (Kabeljau, Lachs, Hering)',
+      'Vollmilch / Joghurt',
+      'Jodiertes Speisesalz in Brot / Pizza',
+    ],
+    MicronutrientKey.vitaminDUg: [
+      'Fetter Seefisch (Lachs, Hering, Makrele)',
+      'Ei',
+      'UV-belichtete Pilze · sonst Supplement',
+    ],
+    MicronutrientKey.dhaMg: [
+      'Fetter Seefisch (Lachs, Hering, Sardine)',
+      'Eigelb',
+      'Algenöl-Supplement (vegan-tauglich)',
+    ],
+    MicronutrientKey.b12Ug: [
+      'Fleisch / Fisch / Ei',
+      'Milch / Joghurt / Käse',
+      'Bei vegan: B12-Supplement essenziell',
+    ],
+    MicronutrientKey.calciumMg: [
+      'Milchprodukte (Joghurt, Käse, Milch)',
+      'Brokkoli / Grünkohl',
+      'Calcium-angereicherte Pflanzendrinks',
+    ],
+    MicronutrientKey.cholineMg: [
+      'Eigelb (sehr reich)',
+      'Rind / Schwein / Geflügel',
+      'Sojabohnen, Weizenkeime',
+    ],
+    MicronutrientKey.zincMg: [
+      'Rind / Geflügel',
+      'Kürbiskerne',
+      'Linsen / Kichererbsen',
+    ],
+    MicronutrientKey.fiberG: [
+      'Vollkornbrot / Haferflocken',
+      'Hülsenfrüchte',
+      'Beeren / Apfel / Birne · Leinsamen',
+    ],
+    MicronutrientKey.vitaminAUg: [
+      'Süßkartoffel / Karotte',
+      'Spinat / Grünkohl / Kürbis',
+      'Vollmilch / Butter / fetter Käse',
+    ],
+  };
+
+  static const _topEn = <String, List<String>>{
+    MicronutrientKey.folateUg: [
+      'Lentils / chickpeas (cooked)',
+      'Spinach / lamb\'s lettuce',
+      'Sunflower seeds',
+    ],
+    MicronutrientKey.ironMg: [
+      'Lentils / chickpeas / beans',
+      'Beef / tofu',
+      'Whole-grain bread combined with vitamin C',
+    ],
+    MicronutrientKey.iodineUg: [
+      'Sea fish (cod, salmon, herring)',
+      'Whole milk / yogurt',
+      'Iodised salt in bread / pizza',
+    ],
+    MicronutrientKey.vitaminDUg: [
+      'Fatty sea fish (salmon, herring, mackerel)',
+      'Egg',
+      'UV-treated mushrooms; otherwise supplement',
+    ],
+    MicronutrientKey.dhaMg: [
+      'Fatty sea fish (salmon, herring, sardine)',
+      'Egg yolk',
+      'Algae-oil supplement (vegan-friendly)',
+    ],
+    MicronutrientKey.b12Ug: [
+      'Meat / fish / egg',
+      'Milk / yogurt / cheese',
+      'For vegans: B12 supplement essential',
+    ],
+    MicronutrientKey.calciumMg: [
+      'Dairy (yogurt, cheese, milk)',
+      'Broccoli / kale',
+      'Calcium-fortified plant drinks',
+    ],
+    MicronutrientKey.cholineMg: [
+      'Egg yolk (very rich)',
+      'Beef / pork / poultry',
+      'Soybeans, wheat germ',
+    ],
+    MicronutrientKey.zincMg: [
+      'Beef / poultry',
+      'Pumpkin seeds',
+      'Lentils / chickpeas',
+    ],
+    MicronutrientKey.fiberG: [
+      'Whole-grain bread / oats',
+      'Legumes',
+      'Berries / apple / pear; flaxseed',
+    ],
+    MicronutrientKey.vitaminAUg: [
+      'Sweet potato / carrot',
+      'Spinach / kale / pumpkin',
+      'Whole milk / butter / fatty cheese',
+    ],
+  };
+
+  static List<String> forKey(String key, String locale) {
+    final isDe = locale.toLowerCase().startsWith('de');
+    return (isDe ? _topDe[key] : _topEn[key]) ?? const [];
+  }
+}
+
 // True when at least one active supplement contributes a non-zero amount
 // for [nutrientKey]. Used to surface the "+" marker on the matching cell.
 bool nutrientHasSupplementContribution(

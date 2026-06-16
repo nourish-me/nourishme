@@ -11,7 +11,7 @@ void main() {
     test('no milk supply when numChildren <= 0', () {
       expect(
         ClaudeClient.describeProfile(0, 0, locale: 'de'),
-        'Profil: aktuell keine Milchabgabe (z.B. Schwangerschaft oder bereits abgestillt).',
+        'Profil: aktuell keine Milchabgabe (z.B. Schwangerschaft oder Stillzeit bereits beendet).',
       );
     });
 

@@ -17,12 +17,34 @@ import '../services/coach_session_manager.dart';
 import '../services/notification_scheduler.dart';
 import '../widgets/edit_hint_icon.dart';
 
+// Payload the sheet pops with in editOnly mode (#112). Carries the user-
+// edited parse result + meal-time without touching the meal repo. Callers
+// (e.g. MultiPhotoReviewScreen) collect drafts in memory and persist them
+// on their own "Save all" action.
+class ConfirmScreenDraft {
+  final MealParseResult parsed;
+  final DateTime mealTime;
+  const ConfirmScreenDraft({required this.parsed, required this.mealTime});
+}
+
 class ConfirmScreen extends ConsumerStatefulWidget {
   final String rawText;
   final MealParseResult parsed;
   final Uint8List? imageBytes;
   final String? existingMealId;
   final DateTime? existingCreatedAt;
+  // Soft default for fresh saves (Task #98 - typically the photo's EXIF
+  // DateTimeOriginal). Only consulted when existingCreatedAt is null
+  // (i.e. NOT an edit) and the focused diary day matches the suggested
+  // timestamp's day. User can still override in the time picker.
+  final DateTime? suggestedCreatedAt;
+  // Edit-only mode (#112): the save button DOES NOT persist to the meal
+  // repo or fire the coach. Instead it pops the sheet with a
+  // ConfirmScreenDraft carrying the edited parsed result + meal time.
+  // Used by the multi-photo review flow so the user can fine-tune each
+  // item before the bulk persist. Hides the favourite toggle and the
+  // scan-another button.
+  final bool editOnly;
   final bool asSheet;
   // How this entry reached the confirm sheet. The analytics layer reads
   // [source.analyticsLabel] to populate the meal_logged.method dimension
@@ -42,6 +64,8 @@ class ConfirmScreen extends ConsumerStatefulWidget {
     this.imageBytes,
     this.existingMealId,
     this.existingCreatedAt,
+    this.suggestedCreatedAt,
+    this.editOnly = false,
     this.asSheet = false,
     this.source = MealEntrySource.text,
     this.allowScanAnother = false,
@@ -114,6 +138,14 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final focused = ref.read(focusedDayProvider);
     if (widget.existingCreatedAt != null) {
       _mealTime = widget.existingCreatedAt!;
+    } else if (widget.suggestedCreatedAt != null &&
+        _sameDay(widget.suggestedCreatedAt!, focused)) {
+      // Photo EXIF timestamp from #98. Used only when it sits on the
+      // currently focused diary day; if the user is on yesterday and
+      // the photo was taken today (or vice versa), fall through to the
+      // standard noon/now defaults so the meal lands on the day the
+      // user is actually looking at.
+      _mealTime = widget.suggestedCreatedAt!;
     } else if (_sameDay(focused, today)) {
       _mealTime = nowInit;
     } else {
@@ -149,12 +181,19 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     setState(() => _reparsing = true);
     try {
       final profile = ref.read(userProfileProvider).valueOrNull;
+      // Edit-and-reparse is the user's correction loop: she fixes a wrong
+      // summary, the parser should see her prior loggings of that summary
+      // (top 3 substring matches from the last 30 days) and anchor on
+      // those values instead of re-estimating from scratch.
+      final historyHints =
+          ref.read(mealHistorySuggestionsProvider(newText));
       final parsed = await ref.read(claudeClientProvider).parseMeal(
             newText,
             locale: Localizations.localeOf(context).languageCode,
             isPregnant: profile?.isPregnant ?? false,
             trimester: profile?.trimester,
             isLactating: (profile?.numChildrenNursing ?? 0) > 0,
+            brandHistoryHints: historyHints,
           );
       if (!mounted) return;
       if (!parsed.isMeal) {
@@ -278,6 +317,31 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final fatG = _parseDouble(_fat.text, widget.parsed.fatG);
     final portion = _parseDouble(_portion.text, widget.parsed.portionAmount);
 
+    // Edit-only mode (#112): build the draft from the edited fields and
+    // pop with it - no Hive write, no analytics fire, no reminder skip,
+    // no coach call. Caller (multi-photo review) handles bulk persistence.
+    if (widget.editOnly) {
+      final draft = ConfirmScreenDraft(
+        parsed: MealParseResult(
+          isMeal: true,
+          rejectionReason: null,
+          summary: summary,
+          kcal: kcal,
+          proteinG: proteinG,
+          carbsG: carbsG,
+          fatG: fatG,
+          portionAmount: portion,
+          portionUnit: widget.parsed.portionUnit,
+          portionAlias: _currentAlias,
+          safetyWarnings: widget.parsed.safetyWarnings,
+          micronutrients: widget.parsed.micronutrients,
+        ),
+        mealTime: _mealTime,
+      );
+      if (mounted) Navigator.of(context).pop(draft);
+      return;
+    }
+
     // Capture context-bound values up front so the post-save reminder skip
     // and other async-after-pop logic can run safely without touching a
     // disposed BuildContext.
@@ -398,6 +462,8 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     // calls don't have to touch a possibly-disposed BuildContext.
     final pastDaySavedToast =
         AppLocalizations.of(context).confirmPastDaySavedToast;
+    final coachRetroPausedToast =
+        AppLocalizations.of(context).confirmCoachRetroPausedToast;
 
     if (!isEdit) {
       // New meal: persist it so it shows up in the diary right away. The
@@ -407,25 +473,29 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ThreadItem.meal(mealId: meal.id, at: meal.createdAt));
       final bundleNotifier =
           ref.read(pendingScanBundleProvider.notifier);
-      // Past-day saves skip the coach entirely. The coach is designed for
-      // live course-correction ("you still have X kcal today") and adds
-      // no value on a day that's already over - and each call costs an
-      // API hop. Brief alignment: "An vergangenen Tagen erzeugt der Coach
-      // KEINE neuen Live-Nachrichten." Instead we surface a one-shot
-      // snack so the user knows the save happened and why no thinking-
-      // bubble appeared.
+      // Retro-logs (any meal whose stored time is more than the
+      // CoachSessionManager.retroactiveThreshold in the past) skip the
+      // auto coach entirely. Beta feedback (Vanessa 2026-06-16): "for a
+      // yesterday entry the coach shouldn't run; the live-coach should
+      // only fire for things logged for NOW." The user can still ask the
+      // coach proactively via the chat input. Past-day saves get the
+      // existing "Logged for [date]" toast; same-day backfills get the
+      // new "coach paused" toast.
       final now = DateTime.now();
       final todayKey = DateTime(now.year, now.month, now.day);
       final mealDay = DateTime(
           meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
       final isPastDaySave = mealDay.isBefore(todayKey);
-      if (isPastDaySave) {
+      final isRetro =
+          CoachSessionManager.isRetroactiveMeal(meal.createdAt);
+      if (isPastDaySave || isRetro) {
         // Drain any pending bundle without firing - retro-saves
         // shouldn't carry today's queued meals into a coach call later.
         bundleNotifier.state = const [];
         rootScaffoldMessengerKey.currentState?.showSnackBar(
           SnackBar(
-            content: Text(pastDaySavedToast),
+            content: Text(
+                isPastDaySave ? pastDaySavedToast : coachRetroPausedToast),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
           ),
@@ -474,17 +544,21 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     // migrated copy and removes it.)
     await threadRepo.removeCoachResponseForMeal(meal.id, meal.createdAt);
 
-    // Past-day edits skip the coach regen too - same reasoning as the
+    // Retro edits skip the coach regen too - same reasoning as the
     // fresh-save path. Surface the save via a snack so the user gets a
     // confirmation even without the in-thread thinking bubble.
     final now = DateTime.now();
     final todayKey = DateTime(now.year, now.month, now.day);
     final mealDay = DateTime(
         meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
-    if (mealDay.isBefore(todayKey)) {
+    final isPastDayEdit = mealDay.isBefore(todayKey);
+    final isRetroEdit =
+        CoachSessionManager.isRetroactiveMeal(meal.createdAt);
+    if (isPastDayEdit || isRetroEdit) {
       rootScaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
-          content: Text(pastDaySavedToast),
+          content: Text(
+              isPastDayEdit ? pastDaySavedToast : coachRetroPausedToast),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 3),
         ),

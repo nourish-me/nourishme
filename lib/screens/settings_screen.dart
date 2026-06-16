@@ -24,6 +24,8 @@ import '../utils/profile_labels.dart';
 import '../widgets/child_age_input.dart';
 import '../widgets/edit_hint_icon.dart';
 import '../widgets/info_button.dart';
+import '../widgets/milk_share_selector.dart';
+import '../widgets/milk_volume_age_hint.dart';
 import '../widgets/supplement_setup.dart';
 import 'favorite_edit_sheet.dart';
 import 'onboarding_screen.dart';
@@ -58,6 +60,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // user doesn't lose them when toggling.
   late int _numChildren;
   late int _milkSharePercent;
+  // Per-child shares (multiples only); null/empty when single-mode. Average
+  // drives the kcal estimate via UserProfileSettings.effectiveMilkSharePercent.
+  List<int>? _perChildSharesPercent;
   late int _childrenAgeGroup;
   late int _dailyVolumeMl;
   // Birth date of the youngest nursing child; null = bucket-picker is the
@@ -66,6 +71,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   DateTime? _youngestChildBirthdate;
   // Coach focus: 'nutrients' (default), 'body', or 'both'.
   late String _goal;
+  // Meal pattern preference: classic / one_snack / three_meals / intuitive
+  // (#108). Drives whether the coach proposes a "next meal" and what
+  // rhythm it assumes.
+  late String _mealPattern;
   // Snapshot of the user's supplements so Settings can show + add + edit +
   // remove without leaving the screen. _save persists back to the profile.
   late List<ActiveSupplement> _supplements;
@@ -120,6 +129,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _trimester = p.trimester ?? 1;
     _numChildren = p.numChildrenNursing > 0 ? p.numChildrenNursing : 1;
     _milkSharePercent = p.milkSharePercent;
+    _perChildSharesPercent = p.perChildSharesPercent != null
+        ? List<int>.from(p.perChildSharesPercent!)
+        : null;
     _childrenAgeGroup = p.currentChildrenAgeGroup;
     _youngestChildBirthdate = p.youngestChildBirthdate;
     _dailyVolumeMl = p.dailyMilkVolumeMl > 0
@@ -137,6 +149,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _selectedMicros =
         p.selectedMicronutrients == null ? null : [...p.selectedMicronutrients!];
     _goal = p.goal;
+    _mealPattern = p.mealPattern;
     _supplements = [...p.activeSupplements];
     _initialProfileJson = jsonEncode(p.toJson());
 
@@ -242,6 +255,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         trimester: _isPregnant ? _trimester : null,
         numChildrenNursing: _isLactating ? _numChildren : 0,
         milkSharePercent: _milkSharePercent,
+        perChildSharesPercent: (_isLactating &&
+                _numChildren > 1 &&
+                _perChildSharesPercent != null &&
+                _perChildSharesPercent!.isNotEmpty)
+            ? List<int>.from(_perChildSharesPercent!)
+            : null,
         childrenAgeGroup: _childrenAgeGroup,
         youngestChildBirthdate: _youngestChildBirthdate,
         dailyMilkVolumeMl: _isLactating ? _dailyVolumeMl : 0,
@@ -254,6 +273,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         selectedMicronutrients:
             _selectedMicros == null ? null : List<String>.from(_selectedMicros!),
         goal: _goal,
+        mealPattern: _mealPattern,
         activeSupplements: List<ActiveSupplement>.from(_supplements),
       );
 
@@ -268,13 +288,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     });
   }
 
+  void _onPerChildSharesChanged(List<int>? list) {
+    setState(() {
+      _perChildSharesPercent = list;
+      final effective = (list != null && list.isNotEmpty)
+          ? (list.fold<int>(0, (a, b) => a + b) / list.length).round()
+          : _milkSharePercent;
+      _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
+        numChildren: _numChildren,
+        ageGroup: _childrenAgeGroup,
+        sharePercent: effective,
+      );
+    });
+  }
+
   void _onNumChildrenChanged(int v) {
     setState(() {
       _numChildren = v;
+      // Per-child override only makes sense for multiples. Dropping to 1
+      // (or 0) clears it so the single share value drives the estimate
+      // again. The list length is also adjusted so a 3→2 transition
+      // doesn't leave a stale row in storage.
+      if (v <= 1) {
+        _perChildSharesPercent = null;
+      } else if (_perChildSharesPercent != null) {
+        final old = _perChildSharesPercent!;
+        _perChildSharesPercent = List<int>.generate(
+            v, (i) => i < old.length ? old[i] : _milkSharePercent);
+      }
+      final effective = (_perChildSharesPercent != null &&
+              _perChildSharesPercent!.isNotEmpty)
+          ? (_perChildSharesPercent!.fold<int>(0, (a, b) => a + b) /
+                  _perChildSharesPercent!.length)
+              .round()
+          : _milkSharePercent;
       _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
         numChildren: v,
         ageGroup: _childrenAgeGroup,
-        sharePercent: _milkSharePercent,
+        sharePercent: effective,
       );
     });
   }
@@ -577,6 +628,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       setState(() => _youngestChildBirthdate = null),
                   sharePercent: _milkSharePercent,
                   onShareChanged: _onSharePercentChanged,
+                  perChildSharesPercent: _perChildSharesPercent,
+                  onPerChildSharesChanged: _onPerChildSharesChanged,
                   dailyVolumeMl: _dailyVolumeMl,
                   onVolumeChanged: (v) => setState(() => _dailyVolumeMl = v),
                 ),
@@ -605,6 +658,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _GoalSection(
                 goal: _goal,
                 onChanged: (v) => setState(() => _goal = v),
+              ),
+              const SizedBox(height: 12),
+              _MealPatternSection(
+                pattern: _mealPattern,
+                onChanged: (v) => setState(() => _mealPattern = v),
               ),
               const SizedBox(height: 12),
               _MacroSplitSection(
@@ -657,6 +715,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 12),
               _SupplementSection(
                 supplements: _supplements,
+                phaseRequiresSupplement: _isPregnant || _isLactating,
                 onAdd: () async {
                   final result = await runSupplementSetup(context, ref);
                   if (result != null && mounted) {
@@ -1492,6 +1551,9 @@ class _MilkSection extends StatelessWidget {
   final VoidCallback onClearBirthdate;
   final int sharePercent;
   final ValueChanged<int> onShareChanged;
+  // Per-child shares + handler (multiples only).
+  final List<int>? perChildSharesPercent;
+  final ValueChanged<List<int>?> onPerChildSharesChanged;
   final int dailyVolumeMl;
   final ValueChanged<int> onVolumeChanged;
 
@@ -1505,6 +1567,8 @@ class _MilkSection extends StatelessWidget {
     required this.onClearBirthdate,
     required this.sharePercent,
     required this.onShareChanged,
+    required this.perChildSharesPercent,
+    required this.onPerChildSharesChanged,
     required this.dailyVolumeMl,
     required this.onVolumeChanged,
   });
@@ -1548,24 +1612,12 @@ class _MilkSection extends StatelessWidget {
               onClearBirthdate: onClearBirthdate,
             ),
             const SizedBox(height: 16),
-            Text(
-              numChildren == 1
-                  ? l10n.settingsMilkShareSingular(sharePercent)
-                  : l10n.settingsMilkSharePlural(sharePercent),
-              style: textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              l10n.settingsMilkShareHelper,
-              style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-            ),
-            Slider(
-              value: sharePercent.toDouble(),
-              min: 0,
-              max: 100,
-              divisions: 20,
-              label: '$sharePercent%',
-              onChanged: (v) => onShareChanged(v.round()),
+            MilkShareSelector(
+              sharePercent: sharePercent,
+              numChildren: numChildren,
+              onChanged: onShareChanged,
+              perChildShares: perChildSharesPercent,
+              onPerChildChanged: onPerChildSharesChanged,
             ),
             const SizedBox(height: 12),
             Row(
@@ -1602,6 +1654,10 @@ class _MilkSection extends StatelessWidget {
                 color: scheme.outline,
                 fontWeight: FontWeight.w500,
               ),
+            ),
+            MilkVolumeAgeHint(
+              ageGroup: ageGroup,
+              numChildren: numChildren,
             ),
           ],
         ],
@@ -2319,26 +2375,125 @@ class _GoalSection extends StatelessWidget {
   }
 }
 
+// Meal-pattern picker (#108). Lives in the Coach Settings hub right under
+// the goal selector. RadioListTile-based instead of SegmentedButton because
+// the four labels (e.g. "3 Hauptmahlzeiten + 2 Snacks") wrap on smaller
+// screens; vertical radio rows scale better.
+class _MealPatternSection extends StatelessWidget {
+  final String pattern;
+  final ValueChanged<String> onChanged;
+  const _MealPatternSection({required this.pattern, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final options = <(String, String)>[
+      (MealPattern.classic, l10n.settingsMealPatternClassic),
+      (MealPattern.oneSnack, l10n.settingsMealPatternOneSnack),
+      (MealPattern.threeMeals, l10n.settingsMealPatternThreeMeals),
+      (MealPattern.intuitive, l10n.settingsMealPatternIntuitive),
+    ];
+    return _Section(
+      title: l10n.settingsMealPatternTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.settingsMealPatternHint,
+            style: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 6),
+          RadioGroup<String>(
+            groupValue: pattern,
+            onChanged: (v) {
+              if (v != null) onChanged(v);
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (value, label) in options)
+                  InkWell(
+                    onTap: () => onChanged(value),
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Radio<String>(value: value),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(label, style: textTheme.bodyMedium),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SupplementSection extends StatelessWidget {
   final List<ActiveSupplement> supplements;
   final VoidCallback onAdd;
   final void Function(int index, ActiveSupplement edited) onEdit;
   final void Function(int index) onRemove;
+  // Phase signal so we can show the "in this phase a supplement is often
+  // critical"-nudge when the list is empty AND the user is pregnant or
+  // producing milk (Task #101). For non-pregnant non-lactating users the
+  // empty state stays silent.
+  final bool phaseRequiresSupplement;
   const _SupplementSection({
     required this.supplements,
     required this.onAdd,
     required this.onEdit,
     required this.onRemove,
+    required this.phaseRequiresSupplement,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return _Section(
       title: l10n.supplementSectionTitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (supplements.isEmpty && phaseRequiresSupplement) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer.withValues(alpha: 0.40),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.medication_outlined,
+                      size: 18, color: scheme.onPrimaryContainer),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l10n.settingsSupplementMissingHint,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           for (var i = 0; i < supplements.length; i++) ...[
             _SupplementListItem(
               supplement: supplements[i],

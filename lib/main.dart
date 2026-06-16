@@ -20,6 +20,7 @@ import 'screens/onboarding_screen.dart';
 import 'services/favorite_repository.dart';
 import 'services/meal_repository.dart';
 import 'services/notification_scheduler.dart';
+import 'services/safety_rules.dart';
 import 'services/settings_repository.dart';
 import 'services/thread_repository.dart';
 import 'services/weight_repository.dart';
@@ -29,6 +30,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await Hive.initFlutter();
+  // Load deterministic food-safety rules from assets/safety-rules.json
+  // BEFORE any code path can call SafetyRules.* — the rule methods throw
+  // if data isn't loaded, which surfaces a forgotten init immediately
+  // instead of silently returning empty warnings. Same file is consumed
+  // by the Cloudflare Worker output-post-check (Task #88.4) so deploys
+  // stay in lockstep.
+  await SafetyRules.initFromAsset();
 
   // Set the global Intl default locale from the device language so
   // intl.NumberFormat / DateFormat without an explicit locale produce

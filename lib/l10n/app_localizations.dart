@@ -776,6 +776,18 @@ abstract class AppLocalizations {
   /// **'You don\'t have to structure it as \"cappuccino 200 ml\". \"A cappuccino please\" or \"a bowl of cereal with berries\" is enough. The app figures out it\'s a meal, estimates a typical portion, and logs it.'**
   String get tip6Body;
 
+  /// No description provided for @tip7Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tweakable in the details'**
+  String get tip7Title;
+
+  /// No description provided for @tip7Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Plenty of preferences live in Settings rather than the onboarding. You\'ll find: meal rhythm (3 meals / 5 small / intuitive), a body goal with micro-protection, diet style and avoid-list, multi-supplements (track several at once), and favourite management. Worth a look after the first few days.'**
+  String get tip7Body;
+
   /// No description provided for @homeCoachBundling.
   ///
   /// In en, this message translates to:
@@ -823,6 +835,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Entry saved · Coach paused for past days'**
   String get confirmPastDaySavedToast;
+
+  /// No description provided for @confirmCoachRetroPausedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved · Coach paused for backfilled entries. Ask me in the chat if you want a direction.'**
+  String get confirmCoachRetroPausedToast;
 
   /// No description provided for @homeEmptyDayAdd.
   ///
@@ -1307,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPhaseLactatingHint.
   ///
   /// In en, this message translates to:
-  /// **'Breastfeeding or pumping'**
+  /// **'Directly or pumped'**
   String get settingsPhaseLactatingHint;
 
   /// No description provided for @settingsPhasePregnant.
@@ -1363,6 +1381,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If you pump and know your volume, enter it exactly. Otherwise the share slider above gives an estimate.'**
   String get settingsMilkVolumeInfoDetail;
+
+  /// No description provided for @settingsMilkVolumeAgeRulesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules of thumb by child age:'**
+  String get settingsMilkVolumeAgeRulesTitle;
+
+  /// No description provided for @settingsMilkVolumeAgeRule0to6.
+  ///
+  /// In en, this message translates to:
+  /// **'0-6 mo exclusive: ~750-800 ml/day'**
+  String get settingsMilkVolumeAgeRule0to6;
+
+  /// No description provided for @settingsMilkVolumeAgeRule6to12.
+  ///
+  /// In en, this message translates to:
+  /// **'6-12 mo with solids: ~500-600 ml/day'**
+  String get settingsMilkVolumeAgeRule6to12;
+
+  /// No description provided for @settingsMilkVolumeAgeRule12plus.
+  ///
+  /// In en, this message translates to:
+  /// **'12+ mo with family food: ~200-400 ml/day'**
+  String get settingsMilkVolumeAgeRule12plus;
+
+  /// No description provided for @settingsMilkVolumeAgeRuleTwins.
+  ///
+  /// In en, this message translates to:
+  /// **'Twins exclusive 0-6 mo: ~1500 ml/day'**
+  String get settingsMilkVolumeAgeRuleTwins;
 
   /// No description provided for @settingsMilkVolumeInfoSource.
   ///
@@ -1469,7 +1517,7 @@ abstract class AppLocalizations {
   /// No description provided for @childAge12plusHint.
   ///
   /// In en, this message translates to:
-  /// **'Extended breastfeeding'**
+  /// **'Extended lactation'**
   String get childAge12plusHint;
 
   /// No description provided for @settingsMacroTitle.
@@ -1616,6 +1664,108 @@ abstract class AppLocalizations {
   /// **'What comes from you vs. formula, milk replacer, or solids?'**
   String get settingsMilkShareHelper;
 
+  /// No description provided for @settingsMilkShareQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What does your child get?'**
+  String get settingsMilkShareQuestion;
+
+  /// No description provided for @settingsMilkShareScenarioOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only your milk'**
+  String get settingsMilkShareScenarioOnly;
+
+  /// No description provided for @settingsMilkShareScenarioOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Directly from the breast or by bottle from the pump. No formula, no solids.'**
+  String get settingsMilkShareScenarioOnlyHint;
+
+  /// No description provided for @settingsMilkShareScenarioMostly.
+  ///
+  /// In en, this message translates to:
+  /// **'Mostly your milk + solids or formula'**
+  String get settingsMilkShareScenarioMostly;
+
+  /// No description provided for @settingsMilkShareScenarioMostlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your milk is the main food, but your child already eats solids or sometimes gets formula on top.'**
+  String get settingsMilkShareScenarioMostlyHint;
+
+  /// No description provided for @settingsMilkShareScenarioHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'About half-half'**
+  String get settingsMilkShareScenarioHalf;
+
+  /// No description provided for @settingsMilkShareScenarioHalfHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your milk and solids or formula in roughly equal parts.'**
+  String get settingsMilkShareScenarioHalfHint;
+
+  /// No description provided for @settingsMilkShareScenarioLittle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mostly solids or formula, little of your milk'**
+  String get settingsMilkShareScenarioLittle;
+
+  /// No description provided for @settingsMilkShareScenarioLittleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Solids or formula are the main food. You give your milk only at certain times or for comfort.'**
+  String get settingsMilkShareScenarioLittleHint;
+
+  /// No description provided for @settingsMilkShareScenarioCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Different, set the value yourself'**
+  String get settingsMilkShareScenarioCustom;
+
+  /// No description provided for @settingsMilkShareMultipleChildrenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With multiple children: estimate the average across all of them.'**
+  String get settingsMilkShareMultipleChildrenHint;
+
+  /// No description provided for @settingsMilkSharePerChildScenario.
+  ///
+  /// In en, this message translates to:
+  /// **'Different per child'**
+  String get settingsMilkSharePerChildScenario;
+
+  /// No description provided for @settingsMilkSharePerChildScenarioHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a value for each child. We use the average for the calorie maths.'**
+  String get settingsMilkSharePerChildScenarioHint;
+
+  /// No description provided for @settingsMilkSharePerChildSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share per child'**
+  String get settingsMilkSharePerChildSheetTitle;
+
+  /// No description provided for @settingsMilkSharePerChildSheetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0% = none of your milk, 100% = only your milk.'**
+  String get settingsMilkSharePerChildSheetHint;
+
+  /// No description provided for @settingsMilkSharePerChildLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Child {index}'**
+  String settingsMilkSharePerChildLabel(int index);
+
+  /// No description provided for @settingsMilkSharePerChildSummaryEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Child {index}: {percent}%'**
+  String settingsMilkSharePerChildSummaryEntry(int index, int percent);
+
   /// No description provided for @settingsMilkVolumePerDayLabel.
   ///
   /// In en, this message translates to:
@@ -1745,13 +1895,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSubline.
   ///
   /// In en, this message translates to:
-  /// **'A live coach for pregnancy and breastfeeding. Evidence-based, privacy-friendly, no calorie-counting fuss.'**
+  /// **'A live coach for pregnancy and lactation. Evidence-based, privacy-friendly, no calorie-counting fuss.'**
   String get onboardingSubline;
 
   /// No description provided for @onboardingWelcomeReassurance.
   ///
   /// In en, this message translates to:
-  /// **'No pressure: everything you enter now can be changed anytime in settings.'**
+  /// **'No pressure: everything you enter in the following onboarding steps can be changed anytime in settings.'**
   String get onboardingWelcomeReassurance;
 
   /// No description provided for @onboardingPhaseQuestion.
@@ -1769,13 +1919,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingPhaseLactation.
   ///
   /// In en, this message translates to:
-  /// **'Breastfeeding'**
+  /// **'Lactation'**
   String get onboardingPhaseLactation;
 
   /// No description provided for @onboardingPhaseLactationHint.
   ///
   /// In en, this message translates to:
-  /// **'You\'re producing breast milk (nursing or pumping)'**
+  /// **'You\'re producing breast milk, directly or pumped'**
   String get onboardingPhaseLactationHint;
 
   /// No description provided for @onboardingPhasePregnancy.
@@ -1793,7 +1943,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingPhaseBothNote.
   ///
   /// In en, this message translates to:
-  /// **'Pregnancy and breastfeeding supplements will be added together.'**
+  /// **'Pregnancy and lactation supplements will be added together.'**
   String get onboardingPhaseBothNote;
 
   /// No description provided for @onboardingBasicsTitle.
@@ -1817,7 +1967,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingBasicsInfoDetail.
   ///
   /// In en, this message translates to:
-  /// **'We use the Mifflin-St Jeor formula to estimate your daily basal metabolic rate. That plus your activity factor plus the pregnancy/breastfeeding supplement gives your daily target.'**
+  /// **'We use the Mifflin-St Jeor formula to estimate your daily basal metabolic rate. That plus your activity factor plus the pregnancy/lactation supplement gives your daily target.'**
   String get onboardingBasicsInfoDetail;
 
   /// No description provided for @onboardingBasicsInfoSource.
@@ -1883,7 +2033,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingLedeLactation.
   ///
   /// In en, this message translates to:
-  /// **'+ {kcal} kcal breastfeeding'**
+  /// **'+ {kcal} kcal lactation'**
   String onboardingLedeLactation(String kcal);
 
   /// No description provided for @onboardingRemindersDetail.
@@ -1961,7 +2111,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingDisclaimerBody.
   ///
   /// In en, this message translates to:
-  /// **'NourishMe is a personal wellness tool, not a medical device. For medical questions, talk to your doctor or midwife. For allergies or pre-existing conditions, double-check coach suggestions yourself.'**
+  /// **'NourishMe is a personal wellness tool, not a medical device. Three important things:\n\n• The AI can make mistakes and doesn\'t know your medical history. What it says may not fit you.\n• It does not replace advice from a doctor or midwife. For allergies, pre-existing conditions or symptoms, double-check coach suggestions and talk to your midwife or doctor.\n• Not for emergencies. For acute symptoms (heavy bleeding, preterm labour, no baby movement, fainting, vision changes) call your local emergency services or clinic immediately.'**
   String get onboardingDisclaimerBody;
 
   /// No description provided for @onboardingDisclaimerLink.
@@ -1969,6 +2119,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More details'**
   String get onboardingDisclaimerLink;
+
+  /// No description provided for @coachDisclaimerBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by AI · not medical advice'**
+  String get coachDisclaimerBadge;
+
+  /// No description provided for @coachDisclaimerSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Important about this app'**
+  String get coachDisclaimerSheetTitle;
+
+  /// No description provided for @coachDisclaimerSheetClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get coachDisclaimerSheetClose;
 
   /// No description provided for @settingsSectionDiet.
   ///
@@ -2009,7 +2177,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDietVeganPhaseHint.
   ///
   /// In en, this message translates to:
-  /// **'Vegan during pregnancy or breastfeeding needs deliberate supplementation: B12 cannot be covered through food (a daily supplement is essential), DHA from algae oil (200-300 mg/day), plus attention to iodine, iron, choline and vitamin D. Talk to your midwife or a registered nutrition professional. The coach now watches for these gaps proactively.'**
+  /// **'Vegan during pregnancy or lactation needs deliberate supplementation: B12 cannot be covered through food (a daily supplement is essential), DHA from algae oil (200-300 mg/day), plus attention to iodine, iron, choline and vitamin D. Talk to your midwife or a registered nutrition professional. The coach now watches for these gaps proactively.'**
   String get settingsDietVeganPhaseHint;
 
   /// No description provided for @settingsDietRestrictionsLabel.
@@ -2081,7 +2249,7 @@ abstract class AppLocalizations {
   /// No description provided for @factEnergyLactationTopic.
   ///
   /// In en, this message translates to:
-  /// **'Energy supplement, breastfeeding phase'**
+  /// **'Energy supplement, lactation phase'**
   String get factEnergyLactationTopic;
 
   /// No description provided for @factEnergyLactationSummary.
@@ -2462,6 +2630,138 @@ abstract class AppLocalizations {
   /// **'Both'**
   String get settingsGoalBoth;
 
+  /// No description provided for @settingsMealPatternTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal pattern'**
+  String get settingsMealPatternTitle;
+
+  /// No description provided for @settingsMealPatternHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What does the coach suggest as your next meal?'**
+  String get settingsMealPatternHint;
+
+  /// No description provided for @settingsMealPatternClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'3 main meals + 2 snacks'**
+  String get settingsMealPatternClassic;
+
+  /// No description provided for @settingsMealPatternOneSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'3 main meals + 1 snack'**
+  String get settingsMealPatternOneSnack;
+
+  /// No description provided for @settingsMealPatternThreeMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'3 main meals, no snacks'**
+  String get settingsMealPatternThreeMeals;
+
+  /// No description provided for @settingsMealPatternIntuitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Intuitive (no suggestions)'**
+  String get settingsMealPatternIntuitive;
+
+  /// No description provided for @homePhotoMultiGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple photos (Gallery)'**
+  String get homePhotoMultiGallery;
+
+  /// No description provided for @multiPhotoReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review {count, plural, one{one meal} other{{count} meals}}'**
+  String multiPhotoReviewTitle(int count);
+
+  /// No description provided for @multiPhotoReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard any meals you don\'t want and tap \'Save all\'. You can adjust the details (time, amount, description) per entry from the diary right after saving.'**
+  String get multiPhotoReviewHint;
+
+  /// No description provided for @multiPhotoAllSavedSnackWithHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} meals saved. Tap in the diary to edit.'**
+  String multiPhotoAllSavedSnackWithHint(int count);
+
+  /// No description provided for @trendsMicronutrientWeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Micronutrients this week'**
+  String get trendsMicronutrientWeekTitle;
+
+  /// No description provided for @trendsMicronutrientWeekHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Average of the last 7 days as % of daily target. Tap a nutrient for details and top sources.'**
+  String get trendsMicronutrientWeekHint;
+
+  /// No description provided for @trendsMicronutrientEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data yet. Log a few meals and a weekly overview will show up here.'**
+  String get trendsMicronutrientEmpty;
+
+  /// No description provided for @trendsMicronutrientSheetSourcesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Top sources'**
+  String get trendsMicronutrientSheetSourcesTitle;
+
+  /// No description provided for @trendsMicronutrientSheetSupplementCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Your supplement covers this nutrient (about {amount} {unit}/day).'**
+  String trendsMicronutrientSheetSupplementCovered(String amount, String unit);
+
+  /// No description provided for @trendsMicronutrientSheetClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get trendsMicronutrientSheetClose;
+
+  /// No description provided for @multiPhotoReviewSaveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all ({count})'**
+  String multiPhotoReviewSaveAll(int count);
+
+  /// No description provided for @multiPhotoReviewDiscardItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get multiPhotoReviewDiscardItem;
+
+  /// No description provided for @multiPhotoReviewEditItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get multiPhotoReviewEditItem;
+
+  /// No description provided for @multiPhotoParsingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the photo, skipped.'**
+  String get multiPhotoParsingError;
+
+  /// No description provided for @multiPhotoNoFoodSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'No meal detected, skipped.'**
+  String get multiPhotoNoFoodSkipped;
+
+  /// No description provided for @multiPhotoAllSavedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} meals saved.'**
+  String multiPhotoAllSavedSnack(int count);
+
   /// No description provided for @settingsGoalMacroImplication.
   ///
   /// In en, this message translates to:
@@ -2525,14 +2825,20 @@ abstract class AppLocalizations {
   /// No description provided for @supplementOnboardingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Are you taking a supplement?'**
+  /// **'Are you taking a pregnancy or lactation supplement?'**
   String get supplementOnboardingTitle;
 
   /// No description provided for @supplementOnboardingBody.
   ///
   /// In en, this message translates to:
-  /// **'Folic acid, prenatal multivitamin, or similar? Snap a photo of the nutrition table on the back of the box and the app adds the values to your daily totals automatically.'**
+  /// **'Folic acid, prenatal multivitamin (Femibion, Elevit, Orthomol or similar)? In this phase folate, iodine, DHA, B12, iron and vitamin D are hard to cover through food alone. Snap a photo of the nutrition table on the back and the app adds the values to your daily totals automatically.'**
   String get supplementOnboardingBody;
+
+  /// No description provided for @settingsSupplementMissingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t added a supplement yet. In this phase folate, iodine, DHA, B12, iron and vitamin D are often hard to cover through food alone, a supplement covers them reliably.'**
+  String get settingsSupplementMissingHint;
 
   /// No description provided for @supplementAddCta.
   ///

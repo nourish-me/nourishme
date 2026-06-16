@@ -35,6 +35,12 @@ class SettingsRepository {
   // actually bundles multiple items into a single coach reply. Teaches the
   // bundling concept exactly in the moment the user experiences it.
   static const _bundlingToastSeenKey = 'bundling_toast_seen';
+  // Per-micronutrient timestamp of the last coach-side mention (#106).
+  // Stored as JSON: { "iodine_ug": "2026-06-15T12:34:56Z", ... }. The
+  // micro-nudge builder filters out keys whose last mention is within
+  // the cooldown window so chronic gaps (T2: "App zeigt Jod-Lücke
+  // dauernd an, verunsichert mich") get at most one nudge per week.
+  static const _microMentionedAtKey = 'micro_mentioned_at';
 
   // "What do you want to use up today?" feature (briefing
   // coach_zutaten_ziel_logik). The coach asks at most once per day and
@@ -262,6 +268,42 @@ class SettingsRepository {
 
   Future<void> setCoachLastAskedAtMealId(String mealId) =>
       _box.put(_coachLastAskedMealIdKey, mealId);
+
+  // Returns the per-key map of last-mention timestamps for micronutrient
+  // nudges (#106). Empty map when nothing has been nudged yet or the
+  // stored value is corrupt; never throws.
+  Map<String, DateTime> getMicroMentionedAt() {
+    final raw = _box.get(_microMentionedAtKey);
+    if (raw == null || raw.isEmpty) return const {};
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final out = <String, DateTime>{};
+      decoded.forEach((key, value) {
+        if (value is String) {
+          final parsed = DateTime.tryParse(value);
+          if (parsed != null) out[key] = parsed;
+        }
+      });
+      return out;
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  // Updates the timestamps for ALL keys in [keys] to [at]. The keys
+  // are micronutrient IDs (e.g. "iodine_ug") that the nudge builder
+  // included in its outgoing message.
+  Future<void> setMicroMentionedAt(Iterable<String> keys, DateTime at) async {
+    if (keys.isEmpty) return;
+    final current = Map<String, DateTime>.from(getMicroMentionedAt());
+    for (final key in keys) {
+      current[key] = at;
+    }
+    final encoded = jsonEncode(
+      current.map((k, v) => MapEntry(k, v.toUtc().toIso8601String())),
+    );
+    await _box.put(_microMentionedAtKey, encoded);
+  }
 
   static String _dayKey(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';

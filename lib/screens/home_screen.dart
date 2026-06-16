@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../l10n/app_localizations.dart';
+import '../models/coach_response_type.dart';
 import '../models/meal_entry.dart';
 import '../models/meal_entry_source.dart';
 import '../widgets/nutrition_header/macro_detail_modal.dart';
@@ -231,6 +232,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final weekday = intl.DateFormat.E(localeTag).format(focused);
     final dayMonth = intl.DateFormat.MMMd(localeTag).format(focused);
     return '$weekday, $dayMonth';
+  }
+
+  // Opens the disclaimer bottom-sheet (Task #88.6). Reuses the same body
+  // text shown in the onboarding disclaimer step so the legal surface
+  // stays single-source. Once the standalone disclaimer page (#88.9) is
+  // live we'll add a "Mehr dazu" link to it here.
+  void _showDisclaimerSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.coachDisclaimerSheetTitle,
+                style: Theme.of(sheetCtx)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.onboardingDisclaimerBody,
+                style: Theme.of(sheetCtx)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: scheme.onSurface, height: 1.45),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(sheetCtx),
+                  child: Text(l10n.coachDisclaimerSheetClose),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _pickDate(BuildContext context) async {
@@ -466,6 +515,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
               child: Text(AppLocalizations.of(context).todayHeader),
             ),
+          // Disclaimer (Task #88.6). Sits at the LEFT of the action cluster
+          // so the user's eye reaches it before the filter/settings group.
+          // policy_outlined reads as "document / rechtliche Info" instead
+          // of a warning triangle - we don't want users to mis-read it as
+          // an alert.
+          IconButton(
+            icon: Icon(Icons.policy_outlined, color: scheme.outline),
+            tooltip: AppLocalizations.of(context).coachDisclaimerBadge,
+            onPressed: () => _showDisclaimerSheet(context),
+          ),
           if (canFilter)
           IconButton(
             icon: Icon(_mealsOnly
@@ -732,6 +791,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             text: item.text ?? '',
             isAnswer: false,
             mealId: item.mealId,
+            responseType: item.responseType ?? CoachResponseType.normal,
           ));
         case ThreadItemType.userQuestion:
           widgets.add(UserBubble(text: item.text ?? ''));
@@ -740,6 +800,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             text: item.text ?? '',
             isAnswer: true,
             mealId: item.mealId,
+            responseType: item.responseType ?? CoachResponseType.normal,
           ));
       }
     }

@@ -17,6 +17,8 @@ import '../utils/number_format.dart';
 import '../utils/profile_labels.dart';
 import '../widgets/child_age_input.dart';
 import '../widgets/info_button.dart';
+import '../widgets/milk_share_selector.dart';
+import '../widgets/milk_volume_age_hint.dart';
 import '../widgets/nm_icons.dart';
 import '../widgets/supplement_setup.dart';
 import 'main_scaffold.dart';
@@ -87,6 +89,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // re-derived from it instead of hand-picked.
   DateTime? _youngestChildBirthdate;
   int _milkSharePercent = 100;
+  // Per-child share override (multiples only). null/empty = single-mode.
+  // Average drives the kcal estimate via UserProfileSettings
+  // .effectiveMilkSharePercent.
+  List<int>? _perChildSharesPercent;
   // Meal-reminder opt-in on the final summary step. Defaults to true so most
   // users land in the app with reminders set up; if iOS denies the system
   // permission we honestly flip the persisted master flag back to off.
@@ -305,6 +311,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         trimester: _isPregnant ? _trimester : null,
         numChildrenNursing: _isLactating ? _numChildren : 0,
         milkSharePercent: _milkSharePercent,
+        perChildSharesPercent: (_isLactating &&
+                _numChildren > 1 &&
+                _perChildSharesPercent != null &&
+                _perChildSharesPercent!.isNotEmpty)
+            ? List<int>.from(_perChildSharesPercent!)
+            : null,
         childrenAgeGroup: _childAgeGroup,
         youngestChildBirthdate: _youngestChildBirthdate,
         dailyMilkVolumeMl: _isLactating ? _dailyVolumeMl : 0,
@@ -436,11 +448,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onChildrenChanged: (v) {
                         setState(() {
                           _numChildren = v;
+                          // Per-child override only makes sense for
+                          // multiples; clear it on 0/1 so the single
+                          // share drives the estimate.
+                          if (v <= 1) {
+                            _perChildSharesPercent = null;
+                          } else if (_perChildSharesPercent != null) {
+                            final old = _perChildSharesPercent!;
+                            _perChildSharesPercent = List<int>.generate(
+                                v,
+                                (i) => i < old.length
+                                    ? old[i]
+                                    : _milkSharePercent);
+                          }
+                          final effective =
+                              (_perChildSharesPercent != null &&
+                                      _perChildSharesPercent!.isNotEmpty)
+                                  ? (_perChildSharesPercent!
+                                              .fold<int>(0, (a, b) => a + b) /
+                                          _perChildSharesPercent!.length)
+                                      .round()
+                                  : _milkSharePercent;
                           _dailyVolumeMl =
                               UserProfileSettings.estimatedDailyVolumeMl(
                             numChildren: v,
                             ageGroup: _childAgeGroup,
-                            sharePercent: _milkSharePercent,
+                            sharePercent: effective,
                           );
                         });
                       },
@@ -469,6 +502,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             numChildren: _numChildren,
                             ageGroup: _childAgeGroup,
                             sharePercent: v,
+                          );
+                        });
+                      },
+                      perChildSharesPercent: _perChildSharesPercent,
+                      onPerChildSharesChanged: (list) {
+                        setState(() {
+                          _perChildSharesPercent = list;
+                          // Recompute the daily volume estimate from the
+                          // resolved share (average of per-child or single).
+                          final effective =
+                              (list != null && list.isNotEmpty)
+                                  ? (list.fold<int>(0, (a, b) => a + b) /
+                                          list.length)
+                                      .round()
+                                  : _milkSharePercent;
+                          _dailyVolumeMl =
+                              UserProfileSettings.estimatedDailyVolumeMl(
+                            numChildren: _numChildren,
+                            ageGroup: _childAgeGroup,
+                            sharePercent: effective,
                           );
                         });
                       },
@@ -1062,6 +1115,9 @@ class _PhaseDetailsStep extends StatelessWidget {
   final VoidCallback onClearBirthdate;
   final int milkSharePercent;
   final ValueChanged<int> onSharePercentChanged;
+  // Per-child shares + change handler (multiples only).
+  final List<int>? perChildSharesPercent;
+  final ValueChanged<List<int>?> onPerChildSharesChanged;
   final int dailyVolumeMl;
   final ValueChanged<int> onVolumeChanged;
 
@@ -1079,6 +1135,8 @@ class _PhaseDetailsStep extends StatelessWidget {
     required this.onClearBirthdate,
     required this.milkSharePercent,
     required this.onSharePercentChanged,
+    required this.perChildSharesPercent,
+    required this.onPerChildSharesChanged,
     required this.dailyVolumeMl,
     required this.onVolumeChanged,
   });
@@ -1173,28 +1231,17 @@ class _PhaseDetailsStep extends StatelessWidget {
             onClearBirthdate: onClearBirthdate,
           ),
           const SizedBox(height: 20),
-          // Single label + helper (#82): the duplicate text under the
-          // slider was redundant after the wording rewrite. The question
-          // above + helper below carry the full meaning; the slider
-          // shows the current % in its own tooltip + indicator.
-          Text(
-            numChildren == 1
-                ? l10n.settingsMilkShareSingular(milkSharePercent)
-                : l10n.settingsMilkSharePlural(milkSharePercent),
-            style: textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            l10n.settingsMilkShareHelper,
-            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
-          ),
-          Slider(
-            value: milkSharePercent.toDouble(),
-            min: 0,
-            max: 100,
-            divisions: 20,
-            label: '$milkSharePercent%',
-            onChanged: (v) => onSharePercentChanged(v.round()),
+          // Concrete-scenario radios instead of a 0-100 slider (#82, #86):
+          // beta testers couldn't estimate the % reliably. The widget
+          // maps preset values 100/70/50/20 back to the four lived
+          // scenarios and falls through to a custom slider for any
+          // other value. See lib/widgets/milk_share_selector.dart.
+          MilkShareSelector(
+            sharePercent: milkSharePercent,
+            numChildren: numChildren,
+            onChanged: onSharePercentChanged,
+            perChildShares: perChildSharesPercent,
+            onPerChildChanged: onPerChildSharesChanged,
           ),
           const SizedBox(height: 20),
           Row(
@@ -1230,6 +1277,10 @@ class _PhaseDetailsStep extends StatelessWidget {
               color: scheme.outline,
               fontWeight: FontWeight.w500,
             ),
+          ),
+          MilkVolumeAgeHint(
+            ageGroup: childAgeGroup,
+            numChildren: numChildren,
           ),
         ],
       ],
@@ -1781,10 +1832,17 @@ class _ConsentStep extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               foregroundColor: scheme.primary,
             ),
-            onPressed: () => launchUrl(
-              Uri.parse('https://nourish-me.github.io/nourishme/privacy.html'),
-              mode: LaunchMode.externalApplication,
-            ),
+            onPressed: () {
+              final isDe = Localizations.localeOf(context)
+                  .languageCode
+                  .toLowerCase()
+                  .startsWith('de');
+              final url = isDe
+                  ? 'https://nourish-me.github.io/nourishme/privacy.html'
+                  : 'https://nourish-me.github.io/nourishme/privacy-en.html';
+              launchUrl(Uri.parse(url),
+                  mode: LaunchMode.externalApplication);
+            },
           ),
         ),
       ],

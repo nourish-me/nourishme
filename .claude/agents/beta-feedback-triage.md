@@ -52,7 +52,16 @@ Vanessa als Arbeits-Plan nutzen kann.
      brauchen
    - **Block 3 (später):** Feature-Requests + Polish + Edge-Case-Bugs
 
-6. **Task-Vorschläge.** Pro Punkt EIN Vorschlag im Format:
+6. **In `docs/beta-feedback-log.md` festhalten.** PFLICHT-Schritt nach
+   jeder Triage-Session: hänge unten an die Datei einen neuen Block an
+   mit Datum, anonymisiertem Tester-Kürzel (T1, T2, ... — keine echten
+   Namen, kein PII), Build-Version, Source (Sprachnachricht, WhatsApp-
+   Text, In-App-Screenshot, etc.), und pro Feedback-Punkt eine Zeile mit
+   Status (`open` / `in-progress` / `fixed` / `waiting-for-pattern`).
+   Hintergrund: Patterns werden nur sichtbar wenn die Stimmen kumulieren.
+   Single-Stimmen versanden im WhatsApp-Chaos sonst.
+
+7. **Task-Vorschläge.** Pro Punkt EIN Vorschlag im Format:
    ```
    [Kategorie] Kurze Beschreibung
    Status: <bug/ux/brief/feature>

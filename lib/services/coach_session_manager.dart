@@ -24,6 +24,23 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
 
   final Ref _ref;
 
+  // Threshold for "retroactive" log: a meal whose stored time is more than
+  // this far in the past is treated as a backfill entry the user is logging
+  // after the fact. The auto-coach reply pauses for these (per Vanessa's
+  // beta feedback: "for a yesterday entry the coach shouldn't run; the
+  // live-coach should only fire for things logged for NOW"). The user can
+  // still ask the coach proactively via the chat input.
+  static const Duration retroactiveThreshold = Duration(minutes: 60);
+
+  /// Returns true when [mealTime] is older than [retroactiveThreshold].
+  /// Pure helper - used by callers to decide whether to surface the
+  /// "coach paused" toast in the same gesture that would otherwise fire
+  /// a coach reply. [now] override is for tests.
+  static bool isRetroactiveMeal(DateTime mealTime, {DateTime? now}) {
+    final ref = now ?? DateTime.now();
+    return mealTime.isBefore(ref.subtract(retroactiveThreshold));
+  }
+
   // Single-meal convenience wrapper. Used by text + photo + standalone
   // barcode saves where there's nothing to bundle.
   void submitMeal(MealEntry meal, String locale) {
@@ -38,6 +55,18 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     unawaited(_runCallFor(meals, locale));
   }
 
+  /// Live-only variant: returns false (and does NOT submit) when the last
+  /// meal in [meals] is retroactive per [isRetroactiveMeal]. Callers use
+  /// the return value to show the "coach paused for retroactive entries"
+  /// toast in their own UI surface. Live submits behave exactly like
+  /// [submitMeals] and return true.
+  bool submitMealsIfLive(List<MealEntry> meals, String locale) {
+    if (meals.isEmpty) return false;
+    if (isRetroactiveMeal(meals.last.createdAt)) return false;
+    submitMeals(meals, locale);
+    return true;
+  }
+
   // Edit-path entry point. Regenerates the per-meal coach reply for one
   // already-logged meal whose values just changed. Routes through the
   // same in-flight / thinking-bubble mechanism as live saves so the user
@@ -45,8 +74,13 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
   // banner above the input. Caller is responsible for removing the old
   // coach response from the thread before invoking this (so a brief
   // moment of "no bubble + thinking-bubble" is the only visible flicker).
-  void regenerateForMeal(
+  //
+  // Returns false when [meal] is retroactive: edits of older entries also
+  // skip the auto-coach reply, matching the live-save retro-pause rule.
+  // Caller can surface the same "coach paused" toast it would on save.
+  bool regenerateForMeal(
       MealEntry meal, String locale, String fallbackMessage) {
+    if (isRetroactiveMeal(meal.createdAt)) return false;
     state = {...state, meal.id};
     unawaited(_runCallFor(
       [meal],
@@ -54,6 +88,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
       requestFollowUps: false,
       fallbackMessage: fallbackMessage,
     ));
+    return true;
   }
 
   // The coach reply must live on the SAME calendar day as its meal. It is
@@ -71,37 +106,53 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
   //
   // "Active" follows the same source the header uses: user-picked list
   // first, phase/diet default second.
-  static String? _microNudgeFor(
+  //
+  // Cooldown (#106): each nutrient gets at most one nudge per week.
+  // [mentionedAt] is the per-key map of last-mention timestamps from
+  // SettingsRepository.getMicroMentionedAt(); keys still inside the
+  // 7-day window are silently dropped from the candidate list. Returns
+  // null when nothing remains. The caller persists the included keys'
+  // timestamps via setMicroMentionedAt after building the nudge - we
+  // don't do that here because this method is pure.
+  static _MicroNudge? _microNudgeFor(
     UserProfileSettings profile,
     List<MealEntry> mealsForTotal,
-    MealEntry last, {
+    MealEntry last,
+    Map<String, DateTime> mentionedAt, {
     required bool isDe,
   }) {
     if (last.createdAt.hour < 14) return null;
     final keys = profile.selectedMicronutrients ??
         MicronutrientDefaults.forProfile(profile);
     if (keys.isEmpty) return null;
+    final now = DateTime.now();
+    const cooldown = Duration(days: 7);
     final lowParts = <String>[];
+    final includedKeys = <String>{};
     for (final key in keys) {
       final target = MicronutrientTargets.forKey(key, profile);
       final display = MicronutrientDisplay.forKey(key);
       if (target == null || display == null || target.value <= 0) continue;
       final intake = dailyIntakeFor(key, mealsForTotal, profile);
       final pct = (intake / target.value * 100).round();
-      if (pct < 70) {
-        final name =
-            isDe ? display.shortNameDe : display.shortNameEn;
-        lowParts.add(
-            '$name $pct% (${_fmtVal(intake)}/${_fmtVal(target.value)} ${target.unitLabel})');
+      if (pct >= 70) continue;
+      final lastMention = mentionedAt[key];
+      if (lastMention != null &&
+          now.difference(lastMention) < cooldown) {
+        continue;
       }
+      final name = isDe ? display.shortNameDe : display.shortNameEn;
+      lowParts.add(
+          '$name $pct% (${_fmtVal(intake)}/${_fmtVal(target.value)} ${target.unitLabel})');
+      includedKeys.add(key);
     }
     if (lowParts.isEmpty) return null;
-    if (isDe) {
-      return 'Mikronährstoff-Lücke heute (nach 14 Uhr): ${lowParts.join(", ")}. '
-          'Falls die aktuelle Mahlzeit dazu passt, erwähne ein konkretes Lebensmittel für die nächste Mahlzeit; sonst kein Hinweis.';
-    }
-    return 'Micronutrient gap today (after 2pm): ${lowParts.join(", ")}. '
-        'If the current meal fits, name one specific food for the next meal; otherwise skip it.';
+    final text = isDe
+        ? 'Mikronährstoff-Lücke heute (nach 14 Uhr): ${lowParts.join(", ")}. '
+            'Falls die aktuelle Mahlzeit dazu passt, erwähne ein konkretes Lebensmittel für die nächste Mahlzeit; sonst kein Hinweis.'
+        : 'Micronutrient gap today (after 2pm): ${lowParts.join(", ")}. '
+            'If the current meal fits, name one specific food for the next meal; otherwise skip it.';
+    return _MicroNudge(text: text, includedKeys: includedKeys);
   }
 
   // Returns the validated body-composition guardrail block to attach to
@@ -221,16 +272,30 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     // Build the optional micronutrient-nudge for the coach: list active
     // micros that are still under 70% of target AFTER 14:00 local time of
     // the meal. Empty list (or before 14:00) → no nudge field is sent, and
-    // the coach won't mention micros proactively.
-    final microNudge = profile != null
-        ? _microNudgeFor(profile, mealsForTotal, last, isDe: isDe)
+    // the coach won't mention micros proactively. Per-key 7-day cooldown
+    // (#106) filters out nutrients the coach has already pushed in the
+    // current week.
+    final settingsRepo = _ref.read(settingsRepositoryProvider);
+    final microMentioned = settingsRepo.getMicroMentionedAt();
+    final microNudgeResult = profile != null
+        ? _microNudgeFor(
+            profile, mealsForTotal, last, microMentioned, isDe: isDe)
         : null;
+    final microNudge = microNudgeResult?.text;
+    // Persist the mention timestamps for the keys we just included so the
+    // same nutrients don't get re-nudged for another 7 days. We persist
+    // pessimistically (even before the coach call returns) - the user
+    // intent is "stop reminding me", which is satisfied regardless of
+    // whether the coach actually used the nudge.
+    if (microNudgeResult != null && microNudgeResult.includedKeys.isNotEmpty) {
+      await settingsRepo.setMicroMentionedAt(
+          microNudgeResult.includedKeys, DateTime.now());
+    }
 
     // "What do you want to use up today?" - coach asks at most once a day,
     // and skips the ask entirely when ingredients are already stored. The
     // ask flips on only for live saves (not for edit-regenerates) so the
     // regen path doesn't double-prompt.
-    final settingsRepo = _ref.read(settingsRepositoryProvider);
     final ingredients = settingsRepo.getCoachTodaysIngredients();
     final askedToday = settingsRepo.wasCoachAskedToday();
     final askForIngredients = requestFollowUps != false &&
@@ -278,6 +343,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         ingredients: ingredients,
         askForIngredients: askForIngredients,
         goalGuardrails: goalGuardrails,
+        mealPattern: profile?.mealPattern ?? MealPattern.classic,
       );
       final coachAt = coachAnchorFor(last.createdAt);
       // Safety net for the em-dash habit: even with the explicit prompt
@@ -328,3 +394,12 @@ final coachSessionProvider =
     StateNotifierProvider<CoachSessionManager, Set<String>>(
   (ref) => CoachSessionManager(ref),
 );
+
+// Result of the micronutrient-nudge builder (#106). Carries both the
+// prompt text and the set of micronutrient keys it included so the
+// caller can persist mention-timestamps to apply the 7-day cooldown.
+class _MicroNudge {
+  final String text;
+  final Set<String> includedKeys;
+  const _MicroNudge({required this.text, required this.includedKeys});
+}

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/coach_response_type.dart';
 import '../models/meal_entry.dart';
 import 'consent_gate.dart';
 import 'prompts/chat_base_de.dart';
@@ -17,6 +18,17 @@ import 'prompts/per_meal_en.dart';
 import 'prompts/supplement_de.dart';
 import 'prompts/supplement_en.dart';
 import 'safety_rules.dart';
+
+// Reply envelope returned by every Anthropic round-trip (Task #88.5).
+// `text` is the content[0].text from the Anthropic response; `type` is the
+// Worker's nourishme_response_type tag (normal for live model replies,
+// emergency/escalation for safety-synth, blocked for output-post-check
+// fallbacks). Callers that don't care about type just unwrap `.text`.
+class CoachReply {
+  final String text;
+  final CoachResponseType type;
+  const CoachReply({required this.text, this.type = CoachResponseType.normal});
+}
 
 // Exception with a human-readable message safe to surface in the UI. The
 // caller can show e.userMessage directly; the technical detail is kept for
@@ -190,9 +202,19 @@ class ClaudeClient {
   // the network. Left null in tests so the existing fixture-only
   // tests don't have to wire up a fake SettingsRepository - the
   // production wiring in claudeClientProvider always provides it.
-  ClaudeClient({this.healthDataConsentAtResolver});
+  ClaudeClient({
+    this.healthDataConsentAtResolver,
+    this.installIdResolver,
+  });
 
   final DateTime? Function()? healthDataConsentAtResolver;
+
+  // Returns the user's anonymous install-id (same one the analytics
+  // service uses). The Worker pseudonymises it before logging — the
+  // raw install-id never appears in any audit-log line. Null/unset
+  // means the Worker logs as 'anon' (acceptable, just loses
+  // cross-event correlation for that call). Tests can leave this null.
+  final String Function()? installIdResolver;
 
   // We always go through our Cloudflare Worker proxy so the Anthropic key
   // never lives in the app bundle. The Worker injects the x-api-key header
@@ -235,7 +257,7 @@ class ClaudeClient {
       {String locale = 'en'}) {
     if (_isGerman(locale)) {
       if (numChildren <= 0) {
-        return 'Profil: aktuell keine Milchabgabe (z.B. Schwangerschaft oder bereits abgestillt).';
+        return 'Profil: aktuell keine Milchabgabe (z.B. Schwangerschaft oder Stillzeit bereits beendet).';
       }
       final share = sharePercent == 100
           ? 'ausschließlich (100%)'
@@ -265,7 +287,7 @@ class ClaudeClient {
     return 'Profile: feeds $kids with own milk, $share each.';
   }
 
-  Future<String> _post({
+  Future<CoachReply> _post({
     required String systemPrompt,
     required List<Map<String, dynamic>> messages,
     int maxTokens = 600,
@@ -276,6 +298,10 @@ class ClaudeClient {
     // Safety/supplement skip caching - their prompts are short or per-call
     // dynamic.
     bool cacheSystem = false,
+    // Locale-hint for the Worker: which language's safety system-prompt
+    // block to prepend (Task #88.2). Always pass the same locale the
+    // caller already uses for its own systemPrompt selection.
+    bool isDe = false,
   }) async {
     final url = _usingProxy
         ? Uri.parse('$_proxyUrl/messages')
@@ -288,6 +314,16 @@ class ClaudeClient {
       // Labels the call so the Worker can break COGS down by type (parse vs
       // coach vs photo vs chat). Not forwarded to Anthropic.
       headers['x-call-type'] = callType;
+      // Tells the Worker which locale's safety system-prompt block to
+      // prepend (Task #88.2). The Worker defaults to 'en' if missing.
+      headers['x-locale'] = isDe ? 'de' : 'en';
+      // Pseudonymous install-id for the Worker's audit log (Task #88.7).
+      // The Worker hashes it server-side with APP_SECRET; the raw value
+      // is never logged. Missing header → Worker logs 'anon'.
+      final installId = installIdResolver?.call();
+      if (installId != null && installId.isNotEmpty) {
+        headers['x-install-id'] = installId;
+      }
     } else {
       if (_legacyApiKey.isEmpty) {
         throw CoachApiException(
@@ -326,17 +362,17 @@ class ClaudeClient {
           .timeout(const Duration(seconds: 30));
     } on TimeoutException {
       throw CoachApiException(
-        'The coach is taking too long. Try again in a moment.',
+        'The coach is taking too long. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
         'timeout after 30s',
       );
     } on SocketException catch (e) {
       throw CoachApiException(
-        'No internet connection. Try again in a moment.',
+        'No internet connection. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
         e.message,
       );
     } on http.ClientException catch (e) {
       throw CoachApiException(
-        'Connection problem. Try again in a moment.',
+        'Connection problem. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
         e.message,
       );
     }
@@ -368,7 +404,13 @@ class ClaudeClient {
     try {
       final body = jsonDecode(raw) as Map<String, dynamic>;
       final content = body['content'] as List;
-      return (content.first as Map)['text'] as String;
+      final text = (content.first as Map)['text'] as String;
+      // The Worker tags safety-synthesised responses with this top-level
+      // field so the client can render escalation/emergency/blocked bubbles
+      // distinctly (Task #88.5). Anthropic never sets it; missing -> normal.
+      final type = CoachResponseType.fromWire(
+          body['nourishme_response_type'] as String?);
+      return CoachReply(text: text, type: type);
     } catch (e) {
       // 200 OK but the body isn't the Anthropic {content:[{text}]} shape we
       // expect, e.g. a proxy/edge error page served with a 200. Surface a
@@ -393,20 +435,53 @@ class ClaudeClient {
     // brand+portion values rather than re-estimating from scratch.
     // Typically the top 3 matches from mealHistorySuggestionsProvider.
     List<MealEntry> brandHistoryHints = const [],
+    // Recent entries logged around the current time of day. Used as a
+    // vocabulary anchor for photo-only input where no typed query exists
+    // to substring-match against - prevents the vision model from flipping
+    // Heidelbeeren -> Pflaumen on a morning shot when the user has logged
+    // Heidelbeeren 20 mornings in a row. Typically from
+    // mealHistoryByTimeOfDayProvider.
+    List<MealEntry> timeOfDayHints = const [],
   }) async {
     _assertHealthDataConsent();
     final isDe = _isGerman(locale);
+    // Input pre-classifier (Task #88.3). Emergency/escalation keywords in
+    // the user-typed text short-circuit the LLM call with a canned
+    // hand-off response. The Worker does the same check defensively.
+    // For parseMeal we surface the canned text via the existing
+    // is_meal=false + rejectionReason channel so the diary UI shows it
+    // as a snack without any UI changes; the prettier emergency/escalation
+    // bubble lands with Task #88.5 (typed response handling).
+    if (userText.isNotEmpty) {
+      final classified =
+          SafetyRules.classifyInput(userText, locale: locale);
+      if (classified.classification != InputClassification.normal) {
+        return MealParseResult(
+          isMeal: false,
+          rejectionReason: classified.response,
+          summary: '',
+          kcal: 0,
+          proteinG: 0,
+          carbsG: 0,
+          fatG: 0,
+          portionAmount: 0,
+          portionUnit: 'g',
+          portionAlias: null,
+          safetyWarnings: const [],
+        );
+      }
+    }
     // Phase context so safety_warnings stay relevant: a not-pregnant user
     // shouldn't get pregnancy-specific warnings (e.g. on an alcohol photo).
     final phaseDe = isPregnant
         ? 'schwanger (${trimester ?? 1}. Trimester)'
         : isLactating
-            ? 'produziert Muttermilch (stillt oder pumpt)'
+            ? 'produziert Muttermilch (direkt oder per Pumpe)'
             : 'nicht schwanger und produziert keine Muttermilch';
     final phaseEn = isPregnant
         ? 'pregnant (trimester ${trimester ?? 1})'
         : isLactating
-            ? 'producing breast milk (nursing or pumping)'
+            ? 'producing breast milk (directly or pumped)'
             : 'not pregnant and not producing breast milk';
     final phaseLine = isDe
         ? 'Phase der Nutzerin: $phaseDe. Gib NUR safety_warnings, die zu DIESER Phase passen, keine für andere Phasen.'
@@ -429,19 +504,47 @@ class ClaudeClient {
             : 'Estimate this entry based on the image.')
         : userText;
     final historyBlock = buildBrandHistoryBlock(brandHistoryHints, isDe: isDe);
+    final timeOfDayBlock = buildBrandHistoryBlock(
+      timeOfDayHints,
+      isDe: isDe,
+      timeOfDayFallback: true,
+    );
     content.add({
       'type': 'text',
-      'text': '$phaseLine$historyBlock\n\n$entryText',
+      'text': '$phaseLine$historyBlock$timeOfDayBlock\n\n$entryText',
     });
 
-    final text = await _post(
+    final reply = await _post(
       systemPrompt: isDe ? parsePromptDe : parsePromptEn,
       messages: [
         {'role': 'user', 'content': content},
       ],
       callType: imageBytes != null ? 'photo' : 'parse',
       cacheSystem: true,
+      isDe: isDe,
     );
+    // Worker-synthesised escalation/emergency/blocked responses arrive
+    // as plain prose (not the JSON meal schema parseMeal expects). Detect
+    // them via the response-type tag and surface the canned text via the
+    // existing is_meal=false rejectionReason channel - the diary UI shows
+    // it as a snack, no extra wiring needed for #93 MVP. Fancy bubble
+    // styling comes via the chat path; here it stays a simple snack.
+    if (reply.type != CoachResponseType.normal) {
+      return MealParseResult(
+        isMeal: false,
+        rejectionReason: reply.text,
+        summary: '',
+        kcal: 0,
+        proteinG: 0,
+        carbsG: 0,
+        fatG: 0,
+        portionAmount: 0,
+        portionUnit: 'g',
+        portionAlias: null,
+        safetyWarnings: const [],
+      );
+    }
+    final text = reply.text;
 
     final result = MealParseResult.fromModelText(text);
     // A non-meal (no parseable nutrition) routes to the coach chat; running
@@ -489,10 +592,10 @@ class ClaudeClient {
     final system = isDe
         ? '''Du bist ein Food-Safety-Prüfer. Die Nutzerin ist: $phaseDe.
 Die Standard-Risiken (Koffein, Alkohol, Quecksilber-Großraubfisch, rohe Milch/rohes Fleisch/roher Fisch, Leber im 1. Trimester, milchhemmende Kräuter) werden bereits separat automatisch geprüft. Nenne daher NUR zusätzliche, darüber hinausgehende Risiken und wiederhole diese Standard-Risiken NICHT.
-Antworte AUSSCHLIESSLICH mit einem JSON-Array kurzer deutscher Warn-Strings, z.B. ["Koffein: ca. 80 mg pro Dose, achte auf die Tagesgrenze von 200 mg"]. Wenn nichts kritisch ist, antworte mit []. Vermeide das Wort "Stillen", nutze "während du Muttermilch produzierst".'''
+Antworte AUSSCHLIESSLICH mit einem JSON-Array kurzer deutscher Warn-Strings, z.B. ["Koffein: ca. 80 mg pro Dose, achte auf die Tagesgrenze von 200 mg"]. Wenn nichts kritisch ist, antworte mit []. Vermeide das Verb "stillen" und alle Adjektivformen davon ("stillende Mutter", "beim Stillen") - das Nomen "Stillzeit" für die Lebensphase ist OK. Nutze stattdessen "während du Muttermilch produzierst" oder "in der Stillzeit".'''
         : '''You are a food-safety checker. The user is: $phaseEn.
 The standard risks (caffeine, alcohol, high-mercury predatory fish, raw milk / raw meat / raw fish, liver in the first trimester, lactation-suppressing herbs) are already checked separately and automatically. So name ONLY additional risks beyond those, and do NOT repeat the standard ones.
-Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: ~80 mg per can, mind the 200 mg daily limit"]. If nothing is critical, reply with []. Avoid the word "breastfeeding"; use "while you're producing breast milk".''';
+Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: ~80 mg per can, mind the 200 mg daily limit"]. If nothing is critical, reply with []. Avoid the verb "breastfeeding" and adjective forms ("breastfeeding mother") - the noun "lactation" for the life phase is OK. Use "while you're producing breast milk" or "during lactation" instead.''';
     // Deterministic floor: the known, finite risks (see safety_rules.dart) are
     // computed locally and ALWAYS returned, even if the model call below fails
     // or misses something. The model only adds extra, fuzzier warnings on top.
@@ -504,15 +607,19 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     final deterministic =
         SafetyRules.allWarnings(productName, phase, locale: locale);
     try {
-      final raw = (await _post(
+      final reply = await _post(
         systemPrompt: system,
         messages: [
           {'role': 'user', 'content': productName},
         ],
         maxTokens: 200,
         callType: 'safety',
-      ))
-          .trim();
+        isDe: isDe,
+      );
+      // A safety-synth response is not a JSON array; fall back to the
+      // deterministic warnings, the canned text isn't actionable here.
+      if (reply.type != CoachResponseType.normal) return deterministic;
+      final raw = reply.text.trim();
       final start = raw.indexOf('[');
       final end = raw.lastIndexOf(']');
       if (start == -1 || end == -1) return deterministic;
@@ -568,13 +675,23 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     // full multi-line string (with the validated 1800/300-500/6-8w/etc
     // numbers) so this method stays a pure passthrough.
     String? goalGuardrails,
+    // Meal-structure preference (Task #108). Drives whether the coach
+    // suggests 5 meals/day, 3+1, 3-only, or skips meal-rhythm cues
+    // entirely. Defaults to classic = 3+2 so callers that don't pass it
+    // get the DGE default behaviour.
+    String mealPattern = 'classic',
   }) async {
     final isDe = _isGerman(locale);
-    // The coach reasons about meal timing ("breakfast", "next meal") from
-    // this hour. Use the meal's logged-at timestamp when available (e.g.
-    // the user logs breakfast in the evening with a custom time), and fall
-    // back to wall-clock now for the standard same-moment case.
-    final hour = (loggedAt ?? DateTime.now()).hour;
+    // Distinguish the meal-time (when the user says they ate) from now
+    // (wall-clock when the coach is reasoning). Same moment for live
+    // logs; can be hours apart for retroactive logs (typical pattern:
+    // user logs breakfast at noon). The prompt prints BOTH so the model
+    // can reason about the gap and not say "iss was in ein paar Stunden"
+    // when the actual meal was 3 hours ago and lunch is imminent. PATTERN
+    // beta-feedback T2 + T3 (#102).
+    final now = DateTime.now();
+    final mealHour = (loggedAt ?? now).hour;
+    final nowHour = now.hour;
     final remaining = targetKcal - totalKcalToday;
     final userMessage = isDe
         ? _buildPerMealUserMessageDe(
@@ -598,7 +715,8 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
             isPregnant: isPregnant,
             trimester: trimester,
             dailyMilkVolumeMl: dailyMilkVolumeMl,
-            hour: hour,
+            mealHour: mealHour,
+            nowHour: nowHour,
             remaining: remaining,
             dietLine: buildDietLine(
                 isDe: true,
@@ -629,7 +747,8 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
             isPregnant: isPregnant,
             trimester: trimester,
             dailyMilkVolumeMl: dailyMilkVolumeMl,
-            hour: hour,
+            mealHour: mealHour,
+            nowHour: nowHour,
             remaining: remaining,
             dietLine: buildDietLine(
                 isDe: false,
@@ -671,11 +790,18 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     if (goalGuardrails != null && goalGuardrails.isNotEmpty) {
       finalUserMessage += '\n\n$goalGuardrails';
     }
+    // Meal-pattern preference line (#108). Always included so the model
+    // sees the user's chosen rhythm; the prompt rule (in per_meal_de/en)
+    // tells it how to honour it.
+    finalUserMessage += isDe
+        ? '\n\nMahlzeit-Stil-Präferenz: $mealPattern.'
+        : '\n\nMeal-pattern preference: $mealPattern.';
     if (requestFollowUps) {
       finalUserMessage += isDe ? followUpInstructionDe : followUpInstructionEn;
     }
 
-    return _post(
+    final reply = await _post(
+      isDe: isDe,
       systemPrompt: isDe ? perMealPromptDe : perMealPromptEn,
       messages: [
         {'role': 'user', 'content': finalUserMessage},
@@ -686,6 +812,7 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
       callType: 'coach',
       cacheSystem: true,
     );
+    return reply.text;
   }
 
   // Single-line summary of diet style + avoid-list + free-text notes, ready
@@ -702,8 +829,15 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
   // Returns empty string when no hints - keeps the prompt clean for the
   // common case.
   @visibleForTesting
-  static String buildBrandHistoryBlock(List<MealEntry> hints,
-      {required bool isDe}) {
+  static String buildBrandHistoryBlock(
+    List<MealEntry> hints, {
+    required bool isDe,
+    // When true the block is framed as a time-of-day vocabulary anchor for
+    // photo-only inputs: same line format, but the footer tells the model
+    // to bias the vision interpretation toward these summaries rather than
+    // copy the macros verbatim. The brand-match call site keeps the default.
+    bool timeOfDayFallback = false,
+  }) {
     if (hints.isEmpty) return '';
     final lines = <String>[];
     for (final m in hints.take(3)) {
@@ -716,12 +850,20 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
           ? '- ${m.summary}: $macros'
           : '- ${m.summary} ($portion): $macros');
     }
-    final header = isDe
-        ? '\n\nFrühere ähnliche Einträge dieser Nutzerin (Marke/Portion kennt sie schon):'
-        : '\n\nEarlier similar entries from this user (brand/portion she already tracks):';
-    final footer = isDe
-        ? '\nWenn der aktuelle Eintrag zu einem davon eindeutig passt, übernimm dessen Werte direkt - nicht neu schätzen.'
-        : '\nIf the current entry clearly matches one of these, use its values directly - do not re-estimate.';
+    final header = timeOfDayFallback
+        ? (isDe
+            ? '\n\nWas diese Nutzerin um diese Tageszeit häufig loggt (letzte 30 Tage, +/- 2h):'
+            : '\n\nWhat this user often logs around this time of day (last 30 days, +/- 2h):')
+        : (isDe
+            ? '\n\nFrühere ähnliche Einträge dieser Nutzerin (Marke/Portion kennt sie schon):'
+            : '\n\nEarlier similar entries from this user (brand/portion she already tracks):');
+    final footer = timeOfDayFallback
+        ? (isDe
+            ? '\nNutze diese als Vokabular-Anker fürs Bild: bei Farb-/Form-Ambiguität (dunkle runde Frucht, weisse Creme, rote Beere) bevorzuge die Variante die zu ihrem Muster passt. Werte trotzdem frisch aus dem Bild schätzen, nicht 1:1 übernehmen.'
+            : '\nUse these as a vocabulary anchor for the photo: with color/shape ambiguity (dark round fruit, white cream, red berry) prefer the variant matching her pattern. Still estimate values fresh from the image, do not copy verbatim.')
+        : (isDe
+            ? '\nWenn der aktuelle Eintrag zu einem davon eindeutig passt, übernimm dessen Werte direkt - nicht neu schätzen.'
+            : '\nIf the current entry clearly matches one of these, use its values directly - do not re-estimate.');
     return '$header\n${lines.join("\n")}$footer';
   }
 
@@ -803,7 +945,8 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     required bool isPregnant,
     required int? trimester,
     required int dailyMilkVolumeMl,
-    required int hour,
+    required int mealHour,
+    required int nowHour,
     required int remaining,
     String dietLine = '',
   }) {
@@ -815,6 +958,9 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
         : numChildrenNursing > 0
             ? 'Phase: Stillzeit, $numChildrenNursing Kind(er), Milchvolumen ca. $dailyMilkVolumeMl ml/Tag, Anteil $milkSharePercent%'
             : 'Phase: nicht schwanger, nicht milchproduzierend';
+    final retroLine = mealHour == nowHour
+        ? 'Mahlzeit-Zeit = jetzt ($nowHour Uhr).'
+        : 'Mahlzeit-Zeit: $mealHour Uhr. Jetzt: $nowHour Uhr (also nachträglich eingetragen, vor ${(nowHour - mealHour + 24) % 24} Stunden gegessen).';
     return '''
 === Profil der Nutzerin ===
 Alter: $ageYears Jahre · Größe: ${heightCm.toStringAsFixed(0)} cm · Gewicht: ${weightKg.toStringAsFixed(1)} kg
@@ -823,7 +969,7 @@ $phaseLine
 ${describeProfile(numChildrenNursing, milkSharePercent, locale: 'de')}$dietLine
 
 === Tageskontext ===
-Aktuelle Uhrzeit: $hour Uhr.
+$retroLine
 Tagesziel: $targetKcal kcal. Protein-Ziel: ca. $proteinTargetG g.
 Tagesstand inkl. dieser Mahlzeit: $totalKcalToday / $targetKcal kcal (verbleibend $remaining kcal).
 Protein heute: ${totalProteinToday.toStringAsFixed(0)} g.
@@ -832,7 +978,7 @@ Protein heute: ${totalProteinToday.toStringAsFixed(0)} g.
 ${mealRawText.isNotEmpty ? 'Originaltext: $mealRawText\n' : ''}Beschreibung: $mealSummary
 Gesamtwerte dieser Mahlzeit: $mealKcal kcal, Protein ${mealProteinG.toStringAsFixed(0)} g, KH ${mealCarbsG.toStringAsFixed(0)} g, Fett ${mealFatG.toStringAsFixed(0)} g.$warningLine
 
-Gib die strukturierte Coach-Antwort wie im System-Prompt definiert. Nutze die Profildaten oben.
+Gib die strukturierte Coach-Antwort wie im System-Prompt definiert. Nutze die Profildaten oben. Wenn die Mahlzeit nachträglich eingetragen wurde (Versatz > 0 h), beziehe deinen "Nächste Mahlzeit"-Vorschlag auf JETZT (nowHour), nicht auf die Mahlzeit-Zeit.
 ''';
   }
 
@@ -857,7 +1003,8 @@ Gib die strukturierte Coach-Antwort wie im System-Prompt definiert. Nutze die Pr
     required bool isPregnant,
     required int? trimester,
     required int dailyMilkVolumeMl,
-    required int hour,
+    required int mealHour,
+    required int nowHour,
     required int remaining,
     String dietLine = '',
   }) {
@@ -869,6 +1016,9 @@ Gib die strukturierte Coach-Antwort wie im System-Prompt definiert. Nutze die Pr
         : numChildrenNursing > 0
             ? 'Phase: producing milk, $numChildrenNursing child(ren), milk volume ~$dailyMilkVolumeMl ml/day, share $milkSharePercent%'
             : 'Phase: not pregnant, not producing milk';
+    final retroLine = mealHour == nowHour
+        ? 'Meal time = now ($nowHour:00).'
+        : 'Meal time: $mealHour:00. Now: $nowHour:00 (so this is a retroactive log, the meal was ${(nowHour - mealHour + 24) % 24} h ago).';
     return '''
 === User profile ===
 Age: $ageYears years · Height: ${heightCm.toStringAsFixed(0)} cm · Weight: ${weightKg.toStringAsFixed(1)} kg
@@ -877,7 +1027,7 @@ $phaseLine
 ${describeProfile(numChildrenNursing, milkSharePercent, locale: 'en')}$dietLine
 
 === Daily context ===
-Current time: $hour:00.
+$retroLine
 Daily target: $targetKcal kcal. Protein target: ~$proteinTargetG g.
 Today incl. this meal: $totalKcalToday / $targetKcal kcal (remaining $remaining kcal).
 Protein today: ${totalProteinToday.toStringAsFixed(0)} g.
@@ -886,17 +1036,39 @@ Protein today: ${totalProteinToday.toStringAsFixed(0)} g.
 ${mealRawText.isNotEmpty ? 'Original text: $mealRawText\n' : ''}Description: $mealSummary
 Totals for this meal: $mealKcal kcal, protein ${mealProteinG.toStringAsFixed(0)} g, carbs ${mealCarbsG.toStringAsFixed(0)} g, fat ${mealFatG.toStringAsFixed(0)} g.$warningLine
 
-Return the structured coach reply as defined in the system prompt. Use the profile data above.
+Return the structured coach reply as defined in the system prompt. Use the profile data above. If the meal was logged retroactively (time offset > 0 h), base your "Next meal" suggestion on NOW (nowHour), not on the meal-time.
 ''';
   }
 
-  Future<String> chat({
+  Future<CoachReply> chat({
     required List<ChatTurn> history,
     required String todayContext,
     String locale = 'en',
   }) async {
     _assertHealthDataConsent();
     final isDe = _isGerman(locale);
+    // Input pre-classifier (Task #88.3) on the LATEST user turn.
+    // Emergency / escalation keywords short-circuit with the canned
+    // response, no LLM call. The Worker also runs this check
+    // defensively. Only the freshest user message is checked - earlier
+    // turns might contain quotes of the bot's prior escalation reply
+    // and would re-fire forever otherwise.
+    final lastUser = history.lastWhere(
+      (t) => t.isUser,
+      orElse: () => const ChatTurn(isUser: true, text: ''),
+    );
+    if (lastUser.text.isNotEmpty) {
+      final classified =
+          SafetyRules.classifyInput(lastUser.text, locale: locale);
+      if (classified.classification != InputClassification.normal) {
+        return CoachReply(
+          text: classified.response ?? '',
+          type: classified.classification == InputClassification.emergency
+              ? CoachResponseType.emergency
+              : CoachResponseType.escalation,
+        );
+      }
+    }
     final messages = history
         .map((turn) => {
               'role': turn.isUser ? 'user' : 'assistant',
@@ -905,8 +1077,20 @@ Return the structured coach reply as defined in the system prompt. Use the profi
         .toList();
     final base = isDe ? chatPromptBaseDe : chatPromptBaseEn;
     final contextHeader = isDe ? 'Kontext heute:' : 'Context today:';
+    // Inject current wall-clock time so the model can reason about
+    // past-tense meal references ("had X for breakfast" said at noon
+    // means breakfast was hours ago, lunch is imminent). PATTERN beta-
+    // feedback T2 + T3 (#102) - T3 logs via natural-language chat and
+    // got "eat something in a few hours" because the model had no
+    // anchor on what time it was.
+    final now = DateTime.now();
+    final nowLine = isDe
+        ? 'Aktuelle Uhrzeit: ${now.hour}:${now.minute.toString().padLeft(2, '0')} Uhr.'
+        : 'Current time: ${now.hour}:${now.minute.toString().padLeft(2, '0')}.';
     return _post(
-      systemPrompt: '$base\n\n$contextHeader\n$todayContext',
+      isDe: isDe,
+      systemPrompt:
+          '$base\n\n$contextHeader\n$nowLine\n$todayContext',
       messages: messages,
       maxTokens: 600,
       callType: 'chat',
@@ -938,7 +1122,8 @@ Return the structured coach reply as defined in the system prompt. Use the profi
     final userText = isDe
         ? 'Extrahiere die Nährwerte aus dem Foto und gib das JSON zurück.'
         : 'Extract the nutrient values from the photo and return JSON.';
-    final text = await _post(
+    final reply = await _post(
+      isDe: isDe,
       systemPrompt: systemPrompt,
       messages: [
         {
@@ -959,6 +1144,7 @@ Return the structured coach reply as defined in the system prompt. Use the profi
       maxTokens: 400,
       callType: 'supplement_parse',
     );
+    final text = reply.text;
     final jsonStart = text.indexOf('{');
     final jsonEnd = text.lastIndexOf('}');
     if (jsonStart == -1 || jsonEnd == -1) {

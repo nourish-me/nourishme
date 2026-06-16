@@ -111,11 +111,17 @@ class _LegacyConsentMigrationDialogState
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
                   ),
-                  onPressed: () => launchUrl(
-                    Uri.parse(
-                        'https://nourish-me.github.io/nourishme/privacy.html'),
-                    mode: LaunchMode.externalApplication,
-                  ),
+                  onPressed: () {
+                    final isDe = Localizations.localeOf(context)
+                        .languageCode
+                        .toLowerCase()
+                        .startsWith('de');
+                    final url = isDe
+                        ? 'https://nourish-me.github.io/nourishme/privacy.html'
+                        : 'https://nourish-me.github.io/nourishme/privacy-en.html';
+                    launchUrl(Uri.parse(url),
+                        mode: LaunchMode.externalApplication);
+                  },
                 ),
               ),
             ],

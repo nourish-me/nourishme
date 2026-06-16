@@ -1,14 +1,28 @@
 /// Deterministic food-safety rules for pregnancy and lactation.
 ///
-/// These encode the KNOWN, finite risks (see docs/safety-rules-reference.md)
-/// as plain Dart so they can never be silently dropped by the language model.
-/// Each rule is a pure function — (product text + phase) -> warning or null —
-/// which makes it directly unit-testable. The model stays responsible only for
-/// the fuzzy, open-ended cases; these hard rules run regardless.
+/// These encode the KNOWN, finite risks (see docs/safety-rules-reference.md
+/// and docs/safety-rules-fachliche-pruefung.pdf) as plain Dart so they can
+/// never be silently dropped by the language model. Each rule is a pure
+/// function — (product text + phase) -> warning or null — which makes it
+/// directly unit-testable. The model stays responsible only for the fuzzy,
+/// open-ended cases; these hard rules run regardless.
 ///
-/// This module is the first slice (caffeine). The remaining rules (alcohol,
-/// raw animal products, mercury fish, liver/vitamin A) follow the same shape.
+/// **Single source of truth for rule DATA is `assets/safety-rules.json`.**
+/// Keyword/token/phrase lists and warning message templates live there so
+/// the Cloudflare Worker (output post-check, Task #88.4) can read the same
+/// authoritative file at deploy. This Dart file holds the MATCH LOGIC
+/// (containsWord vs tokenContains, phase-gating, trimester carve-out,
+/// energy-drink variant, etc.) that operates on the loaded data.
+///
+/// Initialization: call `SafetyRules.initFromAsset()` in `main()` before
+/// `runApp`. Tests load synchronously via
+/// `SafetyRules.initFromJsonString(File('assets/safety-rules.json').readAsStringSync())`
+/// in `setUpAll`.
 library;
+
+import 'dart:convert';
+
+import 'package:flutter/services.dart' show rootBundle;
 
 /// Who the user is right now. Safety warnings are phase-specific: a user who is
 /// neither pregnant nor lactating should not get pregnancy/lactation warnings.
@@ -28,16 +42,305 @@ class SafetyPhase {
   bool get isRelevant => isPregnant || isLactating;
 }
 
+/// Loaded representation of `assets/safety-rules.json`. One field per topic
+/// so the call sites can stay typed; the per-topic shape is heterogeneous
+/// (some topics use `keywords`, others `tokens` + `phrases`, the caffeine
+/// topic nests an `energyDrink` block, liver has `exclusions`, etc.) so we
+/// pull the bits each rule needs at construction time rather than forcing a
+/// uniform shape.
+class SafetyRulesData {
+  final String version;
+
+  // Caffeine
+  final List<String> caffeineKeywords;
+  final List<String> energyDrinkKeywords;
+  final Map<String, String> caffeineMessages; // locale -> default
+  final Map<String, String> energyDrinkPregnantMessages; // locale -> message
+
+  // Alcohol
+  final List<String> alcoholKeywords;
+  final List<String> alcoholFreeMarkers;
+  final Map<String, String> alcoholPregnantMessages; // locale -> message
+  final Map<String, String> alcoholLactatingMessages; // locale -> message
+
+  // Raw animal
+  final List<String> rawAnimalKeywords;
+  // Heat-prefix tokens that, when paired with a rawAnimal keyword in the
+  // same product string, switch the warning to the reassurance variant
+  // ("durchgebacken ist sicher"). Beta tester #99: pauschale Listerien-
+  // Warnung bei "Backcamembert" verunsicherte statt informierte.
+  final List<String> rawAnimalHeatedMarkers;
+  final Map<String, String> rawAnimalPregnantMessages;
+  final Map<String, String> rawAnimalPregnantHeatedMessages;
+
+  // Mercury fish
+  final List<String> mercuryFishTokens;
+  final List<String> mercuryFishPhrases;
+  final Map<String, String> mercuryFishPregnantMessages;
+  final Map<String, String> mercuryFishLactatingMessages;
+
+  // Liver
+  final List<String> liverTokens;
+  final List<String> liverPhrases;
+  final List<String> liverExclusions;
+  final Map<String, String> liverT1Messages;
+  final Map<String, String> liverT2PlusMessages;
+
+  // Milk-suppressing herbs
+  final List<String> herbTokens;
+  final List<String> largeAmountMarkers;
+  final Map<String, String> herbLactatingMessages;
+
+  // Algae
+  final List<String> algaeTokens;
+  final List<String> algaeExclusions;
+  final Map<String, String> algaePregnantMessages;
+
+  // Boar offal
+  final List<String> boarOffalTokens;
+  final List<String> boarOffalPhrases;
+  final Map<String, String> boarOffalMessages;
+
+  // Quinine
+  final List<String> quinineKeywords;
+  final Map<String, String> quininePregnantMessages;
+
+  // Topic detection patterns (for mergeWarnings dedupe).
+  final Map<SafetyTopic, TopicDetectionPattern> detectionPatterns;
+
+  // Input-trigger keyword lists for the emergency / escalation pre-check
+  // (Task #88.3). Map keys are locale codes ('de', 'en'). The Worker
+  // holds a sync'd inline copy in api/worker.js for defense in depth.
+  final Map<String, List<String>> emergencyKeywords;
+  final Map<String, String> emergencyResponses;
+  final Map<String, List<String>> escalationKeywords;
+  final Map<String, String> escalationResponses;
+
+  SafetyRulesData._({
+    required this.version,
+    required this.caffeineKeywords,
+    required this.energyDrinkKeywords,
+    required this.caffeineMessages,
+    required this.energyDrinkPregnantMessages,
+    required this.alcoholKeywords,
+    required this.alcoholFreeMarkers,
+    required this.alcoholPregnantMessages,
+    required this.alcoholLactatingMessages,
+    required this.rawAnimalKeywords,
+    required this.rawAnimalHeatedMarkers,
+    required this.rawAnimalPregnantMessages,
+    required this.rawAnimalPregnantHeatedMessages,
+    required this.mercuryFishTokens,
+    required this.mercuryFishPhrases,
+    required this.mercuryFishPregnantMessages,
+    required this.mercuryFishLactatingMessages,
+    required this.liverTokens,
+    required this.liverPhrases,
+    required this.liverExclusions,
+    required this.liverT1Messages,
+    required this.liverT2PlusMessages,
+    required this.herbTokens,
+    required this.largeAmountMarkers,
+    required this.herbLactatingMessages,
+    required this.algaeTokens,
+    required this.algaeExclusions,
+    required this.algaePregnantMessages,
+    required this.boarOffalTokens,
+    required this.boarOffalPhrases,
+    required this.boarOffalMessages,
+    required this.quinineKeywords,
+    required this.quininePregnantMessages,
+    required this.detectionPatterns,
+    required this.emergencyKeywords,
+    required this.emergencyResponses,
+    required this.escalationKeywords,
+    required this.escalationResponses,
+  });
+
+  factory SafetyRulesData.fromJson(Map<String, dynamic> json) {
+    final topics = json['topics'] as Map<String, dynamic>;
+    List<String> strList(dynamic raw) =>
+        ((raw as List?) ?? const []).cast<String>();
+
+    Map<String, String> messagesForKey(
+        Map<String, dynamic> topic, String key) {
+      // messages: { de: { key: "..." }, en: { key: "..." } } → flatten to
+      // { de: "...", en: "..." } for the variant we care about. Missing
+      // locale falls through to an empty string which would be a programmer
+      // error visible in tests.
+      final messages = (topic['messages'] as Map?)?.cast<String, dynamic>() ??
+          const <String, dynamic>{};
+      final out = <String, String>{};
+      messages.forEach((locale, variants) {
+        final variantMap =
+            (variants as Map?)?.cast<String, dynamic>() ?? const {};
+        final value = variantMap[key];
+        if (value is String) out[locale] = value;
+      });
+      return out;
+    }
+
+    final caffeine = topics['caffeine'] as Map<String, dynamic>;
+    final energyDrink = caffeine['energyDrink'] as Map<String, dynamic>;
+    final alcohol = topics['alcohol'] as Map<String, dynamic>;
+    final rawAnimal = topics['rawAnimal'] as Map<String, dynamic>;
+    final mercury = topics['mercuryFish'] as Map<String, dynamic>;
+    final liver = topics['liver'] as Map<String, dynamic>;
+    final herbs = topics['milkSuppressingHerbs'] as Map<String, dynamic>;
+    final algae = topics['algae'] as Map<String, dynamic>;
+    final boar = topics['boarOffal'] as Map<String, dynamic>;
+    final quinine = topics['quinine'] as Map<String, dynamic>;
+
+    final inputTriggers =
+        (json['inputTriggers'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{};
+    Map<String, List<String>> keywordsByLocale(String stage) {
+      final stageMap =
+          (inputTriggers[stage] as Map?)?.cast<String, dynamic>() ??
+              const <String, dynamic>{};
+      final byLocale =
+          (stageMap['keywords'] as Map?)?.cast<String, dynamic>() ??
+              const <String, dynamic>{};
+      final out = <String, List<String>>{};
+      byLocale.forEach((locale, list) {
+        if (list is List) out[locale] = list.cast<String>();
+      });
+      return out;
+    }
+
+    Map<String, String> responsesByLocale(String stage) {
+      final stageMap =
+          (inputTriggers[stage] as Map?)?.cast<String, dynamic>() ??
+              const <String, dynamic>{};
+      final raw = (stageMap['responses'] as Map?) ?? const {};
+      return raw.cast<String, String>();
+    }
+
+    final detectionRaw =
+        (json['topicDetectionPatterns'] as Map?)?.cast<String, dynamic>() ??
+            const {};
+    final patterns = <SafetyTopic, TopicDetectionPattern>{};
+    for (final entry in detectionRaw.entries) {
+      final topic = _topicByJsonKey[entry.key];
+      if (topic == null) continue;
+      final body = (entry.value as Map).cast<String, dynamic>();
+      patterns[topic] = TopicDetectionPattern(
+        containsAny: strList(body['containsAny']),
+        wordRegex: body['wordRegex'] as String?,
+      );
+    }
+
+    return SafetyRulesData._(
+      version: (json['version'] as String?) ?? 'unknown',
+      caffeineKeywords: strList(caffeine['keywords']),
+      energyDrinkKeywords: strList(energyDrink['keywords']),
+      caffeineMessages: messagesForKey(caffeine, 'default'),
+      energyDrinkPregnantMessages: messagesForKey(energyDrink, 'pregnant'),
+      alcoholKeywords: strList(alcohol['keywords']),
+      alcoholFreeMarkers: strList(alcohol['exclusionMarkers']),
+      alcoholPregnantMessages: messagesForKey(alcohol, 'pregnant'),
+      alcoholLactatingMessages: messagesForKey(alcohol, 'lactating'),
+      rawAnimalKeywords: strList(rawAnimal['keywords']),
+      rawAnimalHeatedMarkers: strList(rawAnimal['heatedMarkers']),
+      rawAnimalPregnantMessages: messagesForKey(rawAnimal, 'pregnant'),
+      rawAnimalPregnantHeatedMessages:
+          messagesForKey(rawAnimal, 'pregnantHeated'),
+      mercuryFishTokens: strList(mercury['tokens']),
+      mercuryFishPhrases: strList(mercury['phrases']),
+      mercuryFishPregnantMessages: messagesForKey(mercury, 'pregnant'),
+      mercuryFishLactatingMessages: messagesForKey(mercury, 'lactating'),
+      liverTokens: strList(liver['tokens']),
+      liverPhrases: strList(liver['phrases']),
+      liverExclusions: strList(liver['exclusions']),
+      liverT1Messages: messagesForKey(liver, 'trimester1'),
+      liverT2PlusMessages: messagesForKey(liver, 'trimester2plus'),
+      herbTokens: strList(herbs['tokens']),
+      largeAmountMarkers: strList(herbs['largeAmountMarkers']),
+      herbLactatingMessages: messagesForKey(herbs, 'lactating'),
+      algaeTokens: strList(algae['tokens']),
+      algaeExclusions: strList(algae['exclusions']),
+      algaePregnantMessages: messagesForKey(algae, 'pregnant'),
+      boarOffalTokens: strList(boar['tokens']),
+      boarOffalPhrases: strList(boar['phrases']),
+      boarOffalMessages: messagesForKey(boar, 'any'),
+      quinineKeywords: strList(quinine['keywords']),
+      quininePregnantMessages: messagesForKey(quinine, 'pregnant'),
+      detectionPatterns: patterns,
+      emergencyKeywords: keywordsByLocale('emergency'),
+      emergencyResponses: responsesByLocale('emergency'),
+      escalationKeywords: keywordsByLocale('escalation'),
+      escalationResponses: responsesByLocale('escalation'),
+    );
+  }
+}
+
+/// Match pattern used by mergeWarnings dedupe. `containsAny` triggers on
+/// any plain substring (cheap pre-filter); `wordRegex` is an optional
+/// stricter check that must be a Dart-compatible RegExp pattern.
+class TopicDetectionPattern {
+  final List<String> containsAny;
+  final String? wordRegex;
+  final RegExp? _compiled;
+
+  TopicDetectionPattern({
+    required this.containsAny,
+    this.wordRegex,
+  }) : _compiled = wordRegex == null ? null : RegExp(wordRegex);
+
+  bool matches(String lower) {
+    if (containsAny.any(lower.contains)) return true;
+    final compiled = _compiled;
+    if (compiled != null && compiled.hasMatch(lower)) return true;
+    return false;
+  }
+}
+
+// JSON key -> SafetyTopic. Kept here so the JSON stays human-readable
+// (camelCase) and the enum stays Dart-idiomatic.
+const Map<String, SafetyTopic> _topicByJsonKey = {
+  'alcohol': SafetyTopic.alcohol,
+  'caffeine': SafetyTopic.caffeine,
+  'mercuryFish': SafetyTopic.mercuryFish,
+  'liver': SafetyTopic.liver,
+  'rawAnimal': SafetyTopic.rawAnimal,
+  'algae': SafetyTopic.algae,
+  'quinine': SafetyTopic.quinine,
+  'boarOffal': SafetyTopic.boarOffal,
+  'milkSuppressingHerbs': SafetyTopic.milkSuppressingHerbs,
+};
+
 class SafetyRules {
-  // Caffeine-bearing items. Deliberately specific: bare "tea"/"Tee" is omitted
-  // because herbal/fruit teas carry no caffeine — only the caffeinated kinds
-  // are listed. Matched as whole words/phrases (see _containsWord), NOT raw
-  // substrings, so "Tomate" can't trip the "mate" keyword.
-  static const _caffeineKeywords = <String>[
-    'kaffee', 'coffee', 'espresso', 'cappuccino', 'latte', 'macchiato', 'mocha',
-    'cola', 'energy', 'red bull', 'mate', 'matcha', 'guarana',
-    'schwarztee', 'black tea', 'grüntee', 'gruentee', 'green tea',
-  ];
+  static SafetyRulesData? _data;
+
+  /// True once the JSON data is loaded. Rule methods throw a clear error
+  /// before init so a missed `main()` call surfaces immediately instead of
+  /// silently returning empty warnings.
+  static bool get isInitialized => _data != null;
+
+  /// Async asset load for app startup. Call from `main()` BEFORE `runApp`.
+  static Future<void> initFromAsset() async {
+    final raw = await rootBundle.loadString('assets/safety-rules.json');
+    initFromJsonString(raw);
+  }
+
+  /// Synchronous init for tests and the Worker-mirror code path. Parses
+  /// the given JSON string and replaces any previously loaded data.
+  static void initFromJsonString(String jsonString) {
+    final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+    _data = SafetyRulesData.fromJson(decoded);
+  }
+
+  static SafetyRulesData get _d {
+    final d = _data;
+    if (d == null) {
+      throw StateError(
+        'SafetyRules not initialized. Call SafetyRules.initFromAsset() in '
+        "main() before runApp, or SafetyRules.initFromJsonString(...) in a "
+        "test's setUpAll.",
+      );
+    }
+    return d;
+  }
 
   /// Whole-word/phrase match against a product string. Lowercases, strips
   /// non-German accents (é/è/à/ô/ç/ñ → e/a/o/c/n) so French / Italian /
@@ -49,9 +352,9 @@ class SafetyRules {
   /// silently dropping accented characters into whitespace, which used to
   /// break "Gruyère" → "gruy re" and miss the keyword entirely.
   ///
-  /// Keywords in this file are kept in their ASCII / German-umlaut form
-  /// (no foreign accents); _stripForeignAccents normalises the product
-  /// side to match.
+  /// Keywords in safety-rules.json are kept in their ASCII / German-umlaut
+  /// form (no foreign accents); _stripForeignAccents normalises the
+  /// product side to match.
   static String _stripForeignAccents(String s) {
     const map = {
       'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'å': 'a',
@@ -76,176 +379,6 @@ class SafetyRules {
     return cleaned.contains(' $keyword ');
   }
 
-  // Energy drinks get a stricter rule than other caffeine sources: DGE
-  // explicitly says pregnant women should avoid them entirely because of
-  // taurine, inositol and other ingredients whose interactions aren't
-  // well understood. Lactation keeps the 200 mg/day limit.
-  static const _energyDrinkKeywords = <String>[
-    'energy', 'energydrink', 'energy drink', 'red bull', 'monster',
-    'rockstar', 'relentless', 'effect',
-  ];
-
-  /// Rule 1 — caffeine (EFSA: 200 mg/day is safe in pregnancy AND lactation,
-  /// spread over the day). We can't sum exact mg without portion data, so the
-  /// warning states the daily limit when a caffeine-bearing item is detected.
-  /// Special case: energy drinks during pregnancy get a stricter "avoid
-  /// entirely" message per DGE; for lactation the 200 mg/day limit still
-  /// applies. Returns null when the phase isn't relevant or no caffeine
-  /// source matches.
-  static String? caffeine(String product, SafetyPhase phase,
-      {String locale = 'en'}) {
-    if (!phase.isRelevant) return null;
-    if (!_caffeineKeywords.any((k) => _containsWord(product, k))) return null;
-    final de = locale.toLowerCase().startsWith('de');
-    final isEnergyDrink =
-        _energyDrinkKeywords.any((k) => _containsWord(product, k));
-    if (isEnergyDrink && phase.isPregnant) {
-      return de
-          ? 'Energy-Drinks: in der Schwangerschaft komplett meiden (DGE, wegen Taurin, Inosit und weiteren Inhaltstoffen mit ungeklärten Wechselwirkungen).'
-          : 'Energy drinks: avoid entirely in pregnancy (DGE: taurine, inositol and other ingredients with unclear interactions).';
-    }
-    return de
-        ? 'Koffein: achte auf die Tagesgrenze von 200 mg (EFSA), über den Tag verteilt.'
-        : 'Caffeine: mind the 200 mg daily limit (EFSA), spread over the day.';
-  }
-
-  // Alcohol sources, DE + EN. German compounds (Rotwein, Glühwein...) are
-  // listed explicitly because whole-word matching won't find "wein" inside
-  // them — that same strictness is what stops "Schweinebraten" from matching
-  // "wein". Short words like "gin"/"rum" are safe here precisely because they
-  // match as whole words only ("Rumpsteak" / "Ingwer" don't trip them).
-  static const _alcoholKeywords = <String>[
-    'alkohol', 'alcohol',
-    'wein', 'wine', 'rotwein', 'weißwein', 'weisswein', 'glühwein', 'gluehwein',
-    'sekt', 'prosecco', 'champagner', 'champagne',
-    'bier', 'beer', 'pils',
-    'schnaps', 'wodka', 'vodka', 'whisky', 'whiskey', 'gin', 'rum',
-    'likör', 'likoer', 'liqueur', 'cocktail', 'aperol', 'spritz', 'sangria',
-    'brandy', 'cognac', 'tequila', 'baileys', 'eierlikör', 'eierlikoer',
-  ];
-
-  // Alcohol-free variants must never trigger the alcohol rule. Checked as raw
-  // substrings (markers like "0,0 %" contain non-letters) before the keyword
-  // scan.
-  static const _alcoholFreeMarkers = <String>[
-    'alkoholfrei', 'alcohol-free', 'alcohol free', 'non-alcoholic',
-    '0,0', '0.0',
-  ];
-
-  /// Rule 2 — alcohol. Pregnancy AND lactation: avoid entirely. The previous
-  /// lactation message ("~2-2.5 h wait per standard drink") came from older
-  /// guidelines (Hebammen consensus, LactMed-style); the current DGE position
-  /// paper + BfR risk assessment both recommend complete abstinence while
-  /// producing milk, because alcohol passes into milk and even a single
-  /// drink measurably affects milk-supply hormones. Plus the practical
-  /// argument: "standard drink" is defined inconsistently by users, so a
-  /// wait-time formula sets up a false-safety failure mode.
-  /// Returns null when the phase isn't relevant, the item is an alcohol-free
-  /// variant, or no alcohol source matches.
-  static String? alcohol(String product, SafetyPhase phase,
-      {String locale = 'en'}) {
-    if (!phase.isRelevant) return null;
-    final lower = product.toLowerCase();
-    if (_alcoholFreeMarkers.any(lower.contains)) return null;
-    if (!_alcoholKeywords.any((k) => _containsWord(product, k))) return null;
-    final de = locale.toLowerCase().startsWith('de');
-    if (phase.isPregnant) {
-      return de
-          ? 'Alkohol: in der Schwangerschaft ganz meiden, es gibt keine bekannte sichere Menge.'
-          : 'Alcohol: avoid completely in pregnancy; there is no known safe amount.';
-    }
-    return de
-        ? 'Alkohol: auch beim Milchproduzieren meiden (DGE/BfR). Alkohol geht in die Muttermilch über und kann schon nach kleinen Mengen die Milchmenge messbar drücken.'
-        : 'Alcohol: avoid while producing milk too (DGE/BfR). Alcohol passes into breast milk and even small amounts measurably affect milk supply.';
-  }
-
-  // Raw / undercooked animal products carrying listeria or toxoplasma risk.
-  // Compounds are listed explicitly (rohmilchkäse, weichkäse, briekäse) so
-  // word matching finds them; this same strictness is what keeps "Omelett"
-  // off "mett", "Brioche" off "brie", "Tatarensauce" off "tatar". Bare
-  // "lachs"/"salmon" is intentionally NOT a keyword — only the raw/smoked
-  // forms (Räucherlachs, Graved) are risky; cooked salmon is fine.
-  //
-  // Selection logic — we deliberately do NOT list every cheese / cured meat
-  // that could be raw-milk. Generic words like "Parmesan" or "Mozzarella"
-  // would false-positive on industrial pasteurised versions sold under the
-  // same name. We only list keywords where either (a) the standard
-  // traditional product IS raw-milk / raw / cold-smoked even in the
-  // pasteurised-by-default supermarket landscape (Appenzeller, Gruyère,
-  // Parmaschinken, Matjes), or (b) the wash-rind cheeses where the risk is
-  // structural (rind biology), independent of milk treatment.
-  //
-  // Origin of the additional entries: beta tester logged "Brötchen mit
-  // Appenzeller Käse" in pregnancy and the LLM confidently replied
-  // "ist pasteurisiert" — Appenzeller is traditionally raw-milk. So the
-  // list is expanded, and per_meal_de/en + parse_de/en prompts are tightened
-  // to never assert pasteurisation status from a cheese/meat/fish name.
-  static const _rawAnimalKeywords = <String>[
-    // Raw milk + raw-milk-direct (Vorzugsmilch is a German specialty that
-    // is genuinely unpasteurised and sold legally - easy to miss).
-    'rohmilch', 'rohmilchkäse', 'rohmilchkaese', 'raw milk',
-    'vorzugsmilch', 'hofmilch',
-    // Raw / cured meats, including Italian / Swiss / Spanish cured ham
-    // family - all traditionally air-cured raw, listeria + toxoplasma.
-    'mett', 'mettwurst', 'tatar', 'hackepeter', 'carpaccio', 'rohwurst', 'salami',
-    'rohschinken', 'parmaschinken', 'prosciutto', 'serrano', 'serranoschinken',
-    'coppa', 'bresaola', 'bündnerfleisch', 'buendnerfleisch', 'pancetta',
-    'lachsschinken',
-    // Wild / game (toxoplasma). Bare "wild" matches the German word for
-    // game/venison; "wild boar"/"wildschwein" cover the explicit cases.
-    // Note: wild boar offal (Wildschweinleber, Wildschwein-Innereien) is
-    // additionally flagged by the dedicated boarOffal rule below for
-    // PFAS / dioxin / PCB contamination per BfR, on top of this
-    // listeria/toxoplasma hit.
-    'wild', 'wildbraten', 'wildschwein', 'reh', 'rehbraten', 'hirsch',
-    // Raw / cold-smoked / pickled fish - the cooked/hot-smoked versions of
-    // many of these are fine, but the marketing names blur the line, so we
-    // warn on the names that ARE the cold-cured form (Matjes, Bismarck,
-    // Rollmops, Bückling are all uncooked-cured by definition).
-    'sushi', 'sashimi', 'roher fisch', 'raw fish', 'roher lachs',
-    'räucherlachs', 'raeucherlachs', 'räucherfisch', 'raeucherfisch',
-    'graved', 'gravlax', 'smoked salmon',
-    'matjes', 'bismarckhering', 'rollmops', 'bückling', 'bueckling',
-    'roher hering', 'sauerlappen',
-    // Raw molluscs (norovirus, hepatitis A on top of listeria).
-    'auster', 'austern', 'oyster', 'oysters',
-    // Cheeses. Wash-rind (Munster, Limburger, Reblochon, Vacherin, Romadur,
-    // Handkäse) carry the structural rind-biology risk; the raw-milk hard
-    // cheeses (Appenzeller, Gruyère, Comté, Parmigiano Reggiano, Pecorino,
-    // Manchego, Beaufort, Bergkäse) are listed by their traditional names.
-    // We list "Parmigiano Reggiano" explicitly but NOT bare "Parmesan" -
-    // the latter is sold pre-grated and industrially pasteurised in
-    // Germany, hitting it would mis-fire.
-    'weichkäse', 'weichkaese', 'camembert', 'brie', 'briekäse', 'briekaese',
-    'gorgonzola', 'roquefort', 'blauschimmel',
-    'munster', 'limburger', 'reblochon', 'vacherin', 'romadur', 'handkäse',
-    'handkaese',
-    'appenzeller', 'gruyere', 'comte',
-    'parmigiano reggiano', 'pecorino', 'manchego', 'beaufort',
-    'bergkäse', 'bergkaese', 'cantal',
-    // Egg-based raw sauces / desserts. Keywords kept in ASCII form;
-    // _stripForeignAccents normalises "Béarnaise" → "bearnaise" at match
-    // time so listing only "bearnaise" here covers both spellings.
-    'rohes ei', 'raw egg', 'tiramisu', 'mousse', 'feinkostsalat',
-    'hollandaise', 'sauce hollandaise', 'bearnaise', 'sauce bearnaise',
-    // Sprouts / seedlings - frequent salmonella source.
-    'sprossen', 'bohnensprossen', 'alfalfa', 'alfalfasprossen', 'mungo',
-    'mungosprossen', 'mungbohnensprossen',
-  ];
-
-  /// Rule 3 — raw animal products (listeria / toxoplasma). Unlike caffeine and
-  /// alcohol, this is a PREGNANCY-specific risk: the elevated listeriosis risk
-  /// is tied to pregnancy and doesn't carry through breast milk, so it does
-  /// NOT fire for a (non-pregnant) lactating user. Returns null otherwise.
-  static String? rawAnimalProducts(String product, SafetyPhase phase,
-      {String locale = 'en'}) {
-    if (!phase.isPregnant) return null;
-    if (!_rawAnimalKeywords.any((k) => _containsWord(product, k))) return null;
-    return locale.toLowerCase().startsWith('de')
-        ? 'Roh vom Tier: in der Schwangerschaft meiden (Listerien-/Toxoplasmose-Risiko), z.B. Rohmilch, rohes Fleisch/Fisch, Räucherfisch, Weichkäse.'
-        : 'Raw animal foods: avoid in pregnancy (listeria/toxoplasma risk), e.g. raw milk, raw meat/fish, smoked fish, soft cheese.';
-  }
-
   /// True if any whitespace token CONTAINS [needle] as a substring. Unlike
   /// _containsWord this deliberately matches inside a token, which is needed
   /// for German head-compounds (Thunfisch -> "Thunfischsalat", "Thunfischpizza").
@@ -262,15 +395,93 @@ class SafetyRules {
     return false;
   }
 
-  // High-mercury predatory fish. Distinctive names matched as token-substrings
-  // so compounds (Thunfischsalat, Haifischsteak, Hechtsuppe) are caught. Plain
-  // "Makrele" is intentionally absent — regular mackerel is low-mercury and
-  // even recommended; only "Königsmakrele" (king mackerel) is listed.
-  static const _mercuryFishTokens = <String>[
-    'thunfisch', 'tuna', 'hai', 'schwertfisch', 'swordfish', 'hecht', 'pike',
-    'königsmakrele', 'koenigsmakrele', 'marlin', 'butterfisch',
-  ];
-  static const _mercuryFishPhrases = <String>['king mackerel'];
+  static bool _isDe(String locale) => locale.toLowerCase().startsWith('de');
+
+  /// Rule 1 — caffeine (EFSA: 200 mg/day is safe in pregnancy AND lactation,
+  /// spread over the day). We can't sum exact mg without portion data, so the
+  /// warning states the daily limit when a caffeine-bearing item is detected.
+  /// Special case: energy drinks during pregnancy get a stricter "avoid
+  /// entirely" message per DGE; for lactation the 200 mg/day limit still
+  /// applies. Returns null when the phase isn't relevant or no caffeine
+  /// source matches.
+  static String? caffeine(String product, SafetyPhase phase,
+      {String locale = 'en'}) {
+    if (!phase.isRelevant) return null;
+    final d = _d;
+    if (!d.caffeineKeywords.any((k) => _containsWord(product, k))) return null;
+    final de = _isDe(locale);
+    final isEnergyDrink =
+        d.energyDrinkKeywords.any((k) => _containsWord(product, k));
+    if (isEnergyDrink && phase.isPregnant) {
+      return d.energyDrinkPregnantMessages[de ? 'de' : 'en'];
+    }
+    return d.caffeineMessages[de ? 'de' : 'en'];
+  }
+
+  /// Rule 2 — alcohol. Pregnancy AND lactation: avoid entirely. The previous
+  /// lactation message ("~2-2.5 h wait per standard drink") came from older
+  /// guidelines (Hebammen consensus, LactMed-style); the current DGE position
+  /// paper + BfR risk assessment both recommend complete abstinence while
+  /// producing milk, because alcohol passes into milk and even a single
+  /// drink measurably affects milk-supply hormones. Plus the practical
+  /// argument: "standard drink" is defined inconsistently by users, so a
+  /// wait-time formula sets up a false-safety failure mode.
+  /// Returns null when the phase isn't relevant, the item is an alcohol-free
+  /// variant, or no alcohol source matches.
+  static String? alcohol(String product, SafetyPhase phase,
+      {String locale = 'en'}) {
+    if (!phase.isRelevant) return null;
+    final d = _d;
+    final lower = product.toLowerCase();
+    if (d.alcoholFreeMarkers.any(lower.contains)) return null;
+    if (!d.alcoholKeywords.any((k) => _containsWord(product, k))) return null;
+    final de = _isDe(locale);
+    final localeKey = de ? 'de' : 'en';
+    if (phase.isPregnant) return d.alcoholPregnantMessages[localeKey];
+    return d.alcoholLactatingMessages[localeKey];
+  }
+
+  /// Rule 3 — raw animal products (listeria / toxoplasma). Unlike caffeine and
+  /// alcohol, this is a PREGNANCY-specific risk: the elevated listeriosis risk
+  /// is tied to pregnancy and doesn't carry through breast milk, so it does
+  /// NOT fire for a (non-pregnant) lactating user.
+  ///
+  /// Heat carve-out: if the product string also contains a heated-marker
+  /// token (gebacken, überbacken, ofen, gegrillt, baked, broiled, grilled,
+  /// ...) we return the reassurance variant instead of the avoid-message,
+  /// because heat reliably kills listeria. This avoids the
+  /// "Backcamembert -> pauschal meiden" false-positive (beta tester #99).
+  ///
+  /// Returns null otherwise.
+  static String? rawAnimalProducts(String product, SafetyPhase phase,
+      {String locale = 'en'}) {
+    if (!phase.isRelevant) return null;
+    final d = _d;
+    if (!d.rawAnimalKeywords.any((k) => _containsWord(product, k))) {
+      return null;
+    }
+    // Heat-marker check runs as token-substring (not word-boundary) so
+    // German compounds like "Backcamembert" / "Ofenkäse" match too. Safe
+    // because the precondition is already a rawAnimal hit - we never
+    // suppress a warning on unrelated bakery items like "Backwaren".
+    final isHeated =
+        d.rawAnimalHeatedMarkers.any((m) => _tokenContains(product, m));
+    final localeKey = _isDe(locale) ? 'de' : 'en';
+    // Heat reliably kills the pathogens (listeria/toxoplasma) so the same
+    // reassurance message fires for BOTH pregnant and lactating users.
+    // For lactating users this is what tells them "we noticed your input"
+    // when they log something like baked camembert - otherwise silence
+    // reads as a missed warning. The reassurance text says raw would be
+    // a listeria concern (specific to pregnancy) but fully heated is safe;
+    // for a lactating user this is still informative and not misleading.
+    if (isHeated) {
+      return d.rawAnimalPregnantHeatedMessages[localeKey];
+    }
+    // Raw (no heat marker) is only a direct risk during pregnancy. In
+    // lactation listeria/toxoplasma don't pass through milk, so silence.
+    if (!phase.isPregnant) return null;
+    return d.rawAnimalPregnantMessages[localeKey];
+  }
 
   /// Rule 4 — high-mercury predatory fish (BfR). Pregnancy: avoid. Lactation:
   /// limit (mercury passes into milk in small amounts). Returns null when the
@@ -278,27 +489,14 @@ class SafetyRules {
   static String? mercuryFish(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isRelevant) return null;
-    final hit = _mercuryFishTokens.any((k) => _tokenContains(product, k)) ||
-        _mercuryFishPhrases.any((k) => _containsWord(product, k));
+    final d = _d;
+    final hit = d.mercuryFishTokens.any((k) => _tokenContains(product, k)) ||
+        d.mercuryFishPhrases.any((k) => _containsWord(product, k));
     if (!hit) return null;
-    final de = locale.toLowerCase().startsWith('de');
-    if (phase.isPregnant) {
-      return de
-          ? 'Quecksilber: Großraubfisch (Thunfisch, Hai, Schwertfisch, Hecht) in der Schwangerschaft meiden.'
-          : 'Mercury: avoid large predatory fish (tuna, shark, swordfish, pike) in pregnancy.';
-    }
-    return de
-        ? 'Quecksilber: Großraubfisch (Thunfisch, Hai, Schwertfisch) beim Milchproduzieren einschränken.'
-        : 'Mercury: limit large predatory fish (tuna, shark, swordfish) while producing milk.';
+    final localeKey = _isDe(locale) ? 'de' : 'en';
+    if (phase.isPregnant) return d.mercuryFishPregnantMessages[localeKey];
+    return d.mercuryFishLactatingMessages[localeKey];
   }
-
-  // Liver sources (token-substring catches Kalbsleber, Hühnerleber, Leberwurst,
-  // Leberpastete). "retinol" covers high-dose vitamin A supplements.
-  static const _liverTokens = <String>['leber', 'liver', 'retinol'];
-  static const _liverPhrases = <String>['foie gras'];
-  // Leberkäse / Leberkäs / Leberkas (incl. -semmel compounds) is a meatloaf
-  // that traditionally contains NO liver despite the name — must not trigger.
-  static const _liverExclusions = <String>['leberkäs', 'leberkaes', 'leberkas'];
 
   /// Rule 5 — liver / high-dose vitamin A. Pregnancy across ALL trimesters
   /// (BfR + DGE position): T1 is strictest because retinol is teratogenic
@@ -312,33 +510,17 @@ class SafetyRules {
   static String? liverVitaminA(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isPregnant) return null;
+    final d = _d;
     final lower = product.toLowerCase();
-    if (_liverExclusions.any(lower.contains)) return null;
-    final hit = _liverTokens.any((k) => _tokenContains(product, k)) ||
-        _liverPhrases.any((k) => _containsWord(product, k));
+    if (d.liverExclusions.any(lower.contains)) return null;
+    final hit = d.liverTokens.any((k) => _tokenContains(product, k)) ||
+        d.liverPhrases.any((k) => _containsWord(product, k));
     if (!hit) return null;
-    final de = locale.toLowerCase().startsWith('de');
+    final localeKey = _isDe(locale) ? 'de' : 'en';
     final trimester = phase.trimester ?? 1;
-    if (trimester == 1) {
-      return de
-          ? 'Leber/Vitamin A: im 1. Trimester meiden (hoher Retinol-Gehalt, in hohen Dosen teratogen).'
-          : 'Liver/vitamin A: avoid in the first trimester (high retinol, teratogenic at high doses).';
-    }
-    return de
-        ? 'Leber/Vitamin A: in der gesamten Schwangerschaft sehr zurückhaltend (BfR: Verzicht auf Leber aller Tierarten wegen schwankend hoher Retinol-Werte).'
-        : 'Liver/vitamin A: stay very cautious throughout pregnancy (BfR advises avoiding liver of all species due to inconsistently high retinol content).';
+    if (trimester == 1) return d.liverT1Messages[localeKey];
+    return d.liverT2PlusMessages[localeKey];
   }
-
-  static const _lactationHerbTokens = <String>[
-    'salbei', 'sage', 'pfefferminz', 'peppermint',
-  ];
-  // Signals of a LARGE / medicinal amount. Deliberately specific (salbeiöl,
-  // pfefferminzöl — not bare "öl") so an everyday dish with "Olivenöl" doesn't
-  // trip it.
-  static const _largeAmountMarkers = <String>[
-    'literweise', 'abstill', 'konzentrat', 'tinktur', 'extrakt',
-    'ätherisch', 'essential oil', 'hochdosiert', 'salbeiöl', 'pfefferminzöl',
-  ];
 
   /// Rule 6 — sage/peppermint and milk supply. Deliberately SOFT: a
   /// milk-suppressing effect is NOT reliably established and, if any, needs
@@ -349,33 +531,14 @@ class SafetyRules {
   static String? lactationHerbs(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isLactating) return null;
-    if (!_lactationHerbTokens.any((k) => _tokenContains(product, k))) {
+    final d = _d;
+    if (!d.herbTokens.any((k) => _tokenContains(product, k))) {
       return null;
     }
     final lower = product.toLowerCase();
-    if (!_largeAmountMarkers.any(lower.contains)) return null;
-    return locale.toLowerCase().startsWith('de')
-        ? 'Hinweis: Salbei/Pfefferminze in großen Mengen können theoretisch die Milchbildung dämpfen. Alltagsmengen sind unkritisch.'
-        : 'Note: large amounts of sage/peppermint may theoretically lower milk supply. Everyday amounts are fine.';
+    if (!d.largeAmountMarkers.any(lower.contains)) return null;
+    return d.herbLactatingMessages[_isDe(locale) ? 'de' : 'en'];
   }
-
-  // Wild boar offal (Wildschwein-Innereien). BfR scopes this separately from
-  // the regular game/raw-animal hit: in addition to listeria/toxoplasma the
-  // organs of wild boar specifically carry elevated PFAS, dioxin and PCB
-  // loads from the food chain, with measurable accumulation. The standard
-  // game keywords (wildschwein) already fire the rawAnimal rule; this adds
-  // a SECOND warning when the user explicitly logs the offal-portion form.
-  // Single-token compounds (matched as token-substrings so "Wildschweinleber"
-  // is found inside "Wildschweinleberpastete" too).
-  static const _boarOffalTokens = <String>[
-    'wildschweinleber', 'wildschweinniere', 'wildschweininnereien',
-  ];
-  // Multi-word phrases (matched as whole-word/phrase so "Wildschwein-Innereien"
-  // and "wild boar offal" land here - the hyphen splits the German compound
-  // into two tokens and _tokenContains can't bridge that).
-  static const _boarOffalPhrases = <String>[
-    'wildschwein innereien', 'wild boar liver', 'wild boar offal',
-  ];
 
   /// Rule 7a (BfR) — wild boar offal: PFAS, dioxin, PCB. Pregnancy only;
   /// BfR also lists women of childbearing age and lactating women in the
@@ -384,27 +547,12 @@ class SafetyRules {
   static String? boarOffal(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isRelevant) return null;
-    final hit = _boarOffalTokens.any((k) => _tokenContains(product, k)) ||
-        _boarOffalPhrases.any((k) => _containsWord(product, k));
+    final d = _d;
+    final hit = d.boarOffalTokens.any((k) => _tokenContains(product, k)) ||
+        d.boarOffalPhrases.any((k) => _containsWord(product, k));
     if (!hit) return null;
-    return locale.toLowerCase().startsWith('de')
-        ? 'Wildschwein-Innereien: in Schwangerschaft und Stillzeit meiden (BfR: hohe PFAS-, Dioxin- und PCB-Gehalte).'
-        : 'Wild boar offal: avoid in pregnancy and lactation (BfR: elevated PFAS, dioxin and PCB content).';
+    return d.boarOffalMessages[_isDe(locale) ? 'de' : 'en'];
   }
-
-  // Quinine-bearing drinks: tonic water, bitter lemon, and some bitter
-  // spirits (Aperol-style aren't always quinine-based; bare "tonic" is
-  // the safest hit). BfR says pregnancy = avoid quinine. We match the
-  // explicit drink names because bare "tonic" would also catch unrelated
-  // wellness "skin tonic" / "hair tonic" entries that nobody logs as
-  // food anyway, but to be safe we use _containsWord (whole-word) for the
-  // generic ones.
-  static const _quinineKeywords = <String>[
-    'tonic water', 'tonic-water', 'tonicwater',
-    'bitter lemon', 'bitter-lemon', 'bitterlemon',
-    'gin tonic', 'gin-tonic', 'gintonic',
-    'chinin', 'quinine',
-  ];
 
   /// Rule 8 — quinine-containing drinks. Pregnancy: avoid (BfR). Returns null
   /// in lactation or for non-pregnant users — BfR scopes the recommendation
@@ -414,24 +562,10 @@ class SafetyRules {
   static String? quinine(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isPregnant) return null;
-    if (!_quinineKeywords.any((k) => _containsWord(product, k))) return null;
-    return locale.toLowerCase().startsWith('de')
-        ? 'Chininhaltige Getränke (Tonic Water, Bitter Lemon): in der Schwangerschaft meiden (BfR).'
-        : 'Quinine-containing drinks (tonic water, bitter lemon): avoid in pregnancy (BfR).';
+    final d = _d;
+    if (!d.quinineKeywords.any((k) => _containsWord(product, k))) return null;
+    return d.quininePregnantMessages[_isDe(locale) ? 'de' : 'en'];
   }
-
-  // Algae / seaweed products. DGE recommends pregnant users avoid these:
-  // iodine content swings wildly between batches (often above the 600 µg/d
-  // UL in a single serving) and many products carry arsenic and other
-  // contaminants. Listed by the names most likely to appear in user logs;
-  // "algen" (plural, NOT bare "alge") catches "Algensalat", "Algen-Smoothie",
-  // "Algenprodukte" without false-positiving "Algerien" (which contains
-  // "alge" but not "algen"). "algae" / "seaweed" cover the English forms.
-  static const _algaeTokens = <String>[
-    'algen', 'algae', 'seaweed',
-    'nori', 'wakame', 'kombu', 'kelp', 'dulse', 'arame', 'hijiki',
-    'spirulina', 'chlorella',
-  ];
 
   /// Rule 7 — algae / seaweed products. Pregnancy-only (DGE
   /// recommendation): unpredictable iodine load + arsenic + other
@@ -442,14 +576,14 @@ class SafetyRules {
   static String? algae(String product, SafetyPhase phase,
       {String locale = 'en'}) {
     if (!phase.isPregnant) return null;
+    final d = _d;
+    final lower = product.toLowerCase();
     // "Kombucha" (fermented tea) contains the substring "kombu" but is NOT
     // seaweed — exclude it so it can't trip the algae rule. Real "Kombu"
     // (the kelp) still fires because it never contains "kombucha".
-    if (product.toLowerCase().contains('kombucha')) return null;
-    if (!_algaeTokens.any((k) => _tokenContains(product, k))) return null;
-    return locale.toLowerCase().startsWith('de')
-        ? 'Algen/Algenprodukte: in der Schwangerschaft besser meiden. Jodgehalt schwankt stark und liegt oft über der Tagesobergrenze, dazu Arsen und andere Kontaminanten (DGE).'
-        : 'Algae/seaweed products: better avoided in pregnancy. Iodine content varies wildly and often exceeds the daily upper limit, plus arsenic and other contaminants (DGE).';
+    if (d.algaeExclusions.any(lower.contains)) return null;
+    if (!d.algaeTokens.any((k) => _tokenContains(product, k))) return null;
+    return d.algaePregnantMessages[_isDe(locale) ? 'de' : 'en'];
   }
 
   /// Runs every deterministic rule against [product] and returns the warnings
@@ -499,63 +633,63 @@ class SafetyRules {
     return out;
   }
 
+  /// Pre-classify user input BEFORE forwarding to the language model
+  /// (Task #88.3). Returns:
+  /// - `emergency` if a 112-tier symptom keyword matches (heavy bleeding,
+  ///   preterm labour, no baby movement, vision changes etc.). UI shows
+  ///   the emergency response, no LLM call.
+  /// - `escalation` for medical-handoff topics (medication, gestational
+  ///   diabetes, mastitis, postpartum depression etc.). UI shows the
+  ///   escalation response, no LLM call.
+  /// - `normal` otherwise (forward to Worker).
+  ///
+  /// Matched case-insensitive as substrings on the lowered user text.
+  /// The Worker holds a sync'd defense-in-depth copy of the same lists.
+  /// Returns the matched keyword as `ruleId` for audit-logging; that's
+  /// the only piece of input metadata we keep on the Worker side.
+  static InputClassificationResult classifyInput(String userText,
+      {String locale = 'en'}) {
+    final text = userText.toLowerCase();
+    if (text.isEmpty) return InputClassificationResult.normal;
+    final d = _d;
+    final localeKey = _isDe(locale) ? 'de' : 'en';
+
+    // Emergency takes precedence over escalation: a user typing "wehen +
+    // medikament" should land on the emergency response, not the (softer)
+    // escalation handoff.
+    final emergencyHit = (d.emergencyKeywords[localeKey] ?? const [])
+        .firstWhere(text.contains, orElse: () => '');
+    if (emergencyHit.isNotEmpty) {
+      return InputClassificationResult(
+        classification: InputClassification.emergency,
+        ruleId: emergencyHit,
+        response: d.emergencyResponses[localeKey],
+      );
+    }
+    final escalationHit = (d.escalationKeywords[localeKey] ?? const [])
+        .firstWhere(text.contains, orElse: () => '');
+    if (escalationHit.isNotEmpty) {
+      return InputClassificationResult(
+        classification: InputClassification.escalation,
+        ruleId: escalationHit,
+        response: d.escalationResponses[localeKey],
+      );
+    }
+    return InputClassificationResult.normal;
+  }
+
   /// Detect which safety topics a list of warning strings touches. Used by
   /// mergeWarnings to drop LLM elaborations on topics the deterministic
   /// rule already covered, and exposed for tests + (later) prompt
   /// instrumentation. Keyword-based detection by design - the warnings
   /// are natural prose, not structured tags.
   static Set<SafetyTopic> topicsFor(List<String> warnings) {
+    final patterns = _d.detectionPatterns;
     final out = <SafetyTopic>{};
     for (final w in warnings) {
       final lower = w.toLowerCase();
-      // Alcohol: also catch beverage-name walk-backs. LLM elaborations
-      // often phrase their "a glass is fine" advice without the word
-      // "alcohol" - referring to "ein Glas Wein", "a glass of wine",
-      // "Sekt", "beer", etc. We must drop those too.
-      if (lower.contains('alkohol') ||
-          lower.contains('alcohol') ||
-          RegExp(r'\bwein\b|\bwine\b|\bbier\b|\bbeer\b|sekt|prosecco|'
-                  r'champagn|cocktail|schnaps|whisk|spirits|'
-                  r'\brum\b|\bvodka\b|\bgin\b|likör|liqueur')
-              .hasMatch(lower)) {
-        out.add(SafetyTopic.alcohol);
-      }
-      if (lower.contains('koffein') || lower.contains('caffeine')) {
-        out.add(SafetyTopic.caffeine);
-      }
-      if (lower.contains('quecksilber') || lower.contains('mercury')) {
-        out.add(SafetyTopic.mercuryFish);
-      }
-      if (lower.contains('leber') ||
-          RegExp(r'\bliver\b').hasMatch(lower)) {
-        out.add(SafetyTopic.liver);
-      }
-      if (lower.contains('rohmilch') ||
-          lower.contains('raw milk') ||
-          lower.contains('rohes fleisch') ||
-          lower.contains('raw meat') ||
-          lower.contains('roher fisch') ||
-          lower.contains('raw fish') ||
-          lower.contains('weichkäse') ||
-          lower.contains('listerien') ||
-          lower.contains('listeria')) {
-        out.add(SafetyTopic.rawAnimal);
-      }
-      if (lower.contains('algen') || lower.contains('algae') ||
-          lower.contains('seetang') || lower.contains('seaweed')) {
-        out.add(SafetyTopic.algae);
-      }
-      if (lower.contains('chinin') || lower.contains('quinine') ||
-          lower.contains('tonic')) {
-        out.add(SafetyTopic.quinine);
-      }
-      if (lower.contains('wildschwein') ||
-          lower.contains('wild boar')) {
-        out.add(SafetyTopic.boarOffal);
-      }
-      if (lower.contains('salbei') || lower.contains('sage') ||
-          lower.contains('pfefferminz') || lower.contains('peppermint')) {
-        out.add(SafetyTopic.milkSuppressingHerbs);
+      for (final entry in patterns.entries) {
+        if (entry.value.matches(lower)) out.add(entry.key);
       }
     }
     return out;
@@ -572,4 +706,42 @@ enum SafetyTopic {
   quinine,
   boarOffal,
   milkSuppressingHerbs,
+}
+
+/// Result of the input pre-classifier (Task #88.3). `normal` means the
+/// input is safe to forward to the language model; the other two stages
+/// short-circuit with a fixed, hardcoded response.
+enum InputClassification {
+  /// No emergency or escalation keyword matched. Send to the Worker.
+  normal,
+
+  /// Acute danger pattern (heavy bleeding, preterm labour, no baby
+  /// movement, fainting, vision changes). UI shows the emergency
+  /// response immediately, no LLM call. Caller should also expose a
+  /// 112 tap-to-call affordance.
+  emergency,
+
+  /// Medical-handoff pattern (medication, gestational diabetes,
+  /// mastitis, postpartum depression, etc.). UI shows the escalation
+  /// response immediately, no LLM call.
+  escalation,
+}
+
+/// Result of [SafetyRules.classifyInput] - paired classification + the
+/// matched keyword (rule-ID) for audit logging + the locale-appropriate
+/// response text the UI should render. For [InputClassification.normal]
+/// the ruleId and response are null.
+class InputClassificationResult {
+  final InputClassification classification;
+  final String? ruleId;
+  final String? response;
+
+  const InputClassificationResult({
+    required this.classification,
+    this.ruleId,
+    this.response,
+  });
+
+  static const normal =
+      InputClassificationResult(classification: InputClassification.normal);
 }

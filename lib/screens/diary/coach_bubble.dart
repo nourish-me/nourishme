@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../main.dart' show rootScaffoldMessengerKey;
+import '../../models/coach_response_type.dart';
 import '../../providers/meal_providers.dart';
 import '../../providers/ui_providers.dart';
 import '../../utils/coach_followups.dart';
@@ -37,25 +39,50 @@ class CoachBubble extends ConsumerWidget {
   // coach asked the question with this meal. Null is fine (older code
   // paths, fallback bubbles).
   final String? mealId;
+  // Safety-layer classification (Task #88.5). normal = default amber lane;
+  // escalation/emergency/blocked switch the lane tint + icon so the user
+  // immediately sees this is not a regular coach tip but a safety hand-off.
+  final CoachResponseType responseType;
   const CoachBubble({
     super.key,
     required this.text,
     required this.isAnswer,
     this.mealId,
+    this.responseType = CoachResponseType.normal,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Borderless amber lane per Claude-Design-Brief: secondary tone at
-    // ~10% alpha so the lane sits as a whisper on the paper, not as a
-    // distinct chip. Dark-mode lifts the alpha slightly to keep the
-    // lane legible against the ink background but stays quiet.
-    final laneTint = scheme.secondary
-        .withValues(alpha: isDark ? 0.18 : 0.10);
+    // Lane styling per response type. Normal = the established amber
+    // "Bahn" at 10/18% alpha. Emergency = error tone, prominent.
+    // Escalation/blocked = tertiary or error-container, distinct from
+    // a normal coach tip but not as loud as emergency.
+    final (laneTint, iconColor, leadIcon) = switch (responseType) {
+      CoachResponseType.emergency => (
+          scheme.errorContainer.withValues(alpha: isDark ? 0.55 : 0.40),
+          scheme.error,
+          Icons.emergency_outlined,
+        ),
+      CoachResponseType.escalation => (
+          scheme.tertiaryContainer.withValues(alpha: isDark ? 0.45 : 0.30),
+          scheme.tertiary,
+          Icons.medical_services_outlined,
+        ),
+      CoachResponseType.blocked => (
+          scheme.surfaceContainerHighest
+              .withValues(alpha: isDark ? 0.85 : 0.70),
+          scheme.outline,
+          Icons.shield_outlined,
+        ),
+      CoachResponseType.normal => (
+          scheme.secondary.withValues(alpha: isDark ? 0.18 : 0.10),
+          scheme.secondary,
+          Icons.tips_and_updates_outlined,
+        ),
+    };
     final fg = scheme.onSurface;
-    final iconColor = scheme.secondary;
     final split = splitCoachResponse(text);
     final ask = ref.watch(coachAskStateProvider);
     final showIngredientsInput = mealId != null &&
@@ -91,7 +118,7 @@ class CoachBubble extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
                             child: Icon(
-                              Icons.tips_and_updates_outlined,
+                              leadIcon,
                               size: 16,
                               color: iconColor,
                             ),
@@ -100,6 +127,22 @@ class CoachBubble extends ConsumerWidget {
                           Expanded(
                             child: MarkdownBody(
                               data: split.body,
+                              // tel:112 tap-to-call for emergency bubbles
+                              // (#111). Also accepts https:// (future
+                              // disclaimer-page links). Failures degrade
+                              // silently - the user sees the bubble text
+                              // either way.
+                              onTapLink: (text, href, title) async {
+                                if (href == null || href.isEmpty) return;
+                                final uri = Uri.tryParse(href);
+                                if (uri == null) return;
+                                try {
+                                  await launchUrl(uri,
+                                      mode: LaunchMode.externalApplication);
+                                } catch (_) {
+                                  // ignore: the bubble still shows the number
+                                }
+                              },
                               styleSheet: MarkdownStyleSheet.fromTheme(
                                       Theme.of(context))
                                   .copyWith(
@@ -111,6 +154,11 @@ class CoachBubble extends ConsumerWidget {
                                     color: fg,
                                     fontStyle: FontStyle.italic),
                                 listBullet: TextStyle(color: fg),
+                                a: TextStyle(
+                                  color: iconColor,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                ),
                                 blockSpacing: 6,
                               ),
                             ),

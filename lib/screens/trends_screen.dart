@@ -5,9 +5,11 @@ import 'package:intl/intl.dart' as intl;
 import '../l10n/app_localizations.dart';
 import '../models/meal_entry.dart';
 import '../models/weight_entry.dart';
+import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../services/calorie_target.dart';
 import '../services/meal_aggregation.dart';
+import '../services/micronutrient_targets.dart';
 import '../theme/nourishme_colors.dart';
 import '../utils/date_format.dart';
 import '../utils/number_format.dart';
@@ -60,6 +62,9 @@ class TrendsScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           _MacroAveragesCard(
               stats: stats, scheme: scheme, textTheme: textTheme),
+          const SizedBox(height: 12),
+          _MicronutrientWeekCard(
+              scheme: scheme, textTheme: textTheme),
           const SizedBox(height: 12),
           _ConsistencyCard(
               stats: stats, scheme: scheme, textTheme: textTheme),
@@ -894,4 +899,323 @@ class _SparklinePainter extends CustomPainter {
       old.entries != entries ||
       old.lineColor != lineColor ||
       old.dotColor != dotColor;
+}
+
+// -------- Micronutrient week overview (#107) -----------------------------
+
+// One row in the week-overview list: nutrient key, name, % filled vs.
+// daily target (averaged over the last 7 days), unit label, intake/target
+// values for the detail sheet.
+class _MicroWeekRow {
+  final String key;
+  final String name;
+  final double pct; // 0..>100 (can exceed 100 with active supplements)
+  final double avgIntake;
+  final double target;
+  final String unitLabel;
+  // True when the user explicitly picked this nutrient to follow in the
+  // diary (or it's part of the phase-default set when the user hasn't
+  // customised). Used to surface tracked nutrients above untracked ones
+  // with a hairline divider between the two groups.
+  final bool isTracked;
+  const _MicroWeekRow({
+    required this.key,
+    required this.name,
+    required this.pct,
+    required this.avgIntake,
+    required this.target,
+    required this.unitLabel,
+    required this.isTracked,
+  });
+}
+
+class _MicronutrientWeekCard extends ConsumerWidget {
+  final ColorScheme scheme;
+  final TextTheme textTheme;
+  const _MicronutrientWeekCard({
+    required this.scheme,
+    required this.textTheme,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+    final meals = ref.watch(mealsProvider).valueOrNull ?? const <MealEntry>[];
+    final profile = ref.watch(userProfileProvider).valueOrNull;
+    if (profile == null) {
+      return const SizedBox.shrink();
+    }
+    final rows = _computeRows(meals, profile, locale);
+    return _Card(
+      scheme: scheme,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Eyebrow(
+              text: l10n.trendsMicronutrientWeekTitle,
+              scheme: scheme,
+              textTheme: textTheme),
+          const SizedBox(height: 6),
+          Text(
+            l10n.trendsMicronutrientWeekHint,
+            style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+          ),
+          const SizedBox(height: 12),
+          if (rows.isEmpty)
+            Text(
+              l10n.trendsMicronutrientEmpty,
+              style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
+            )
+          else
+            for (var i = 0; i < rows.length; i++) ...[
+              // Hairline between the tracked group and the rest. Falls only
+              // at the FIRST untracked row (so a layout with only tracked
+              // or only untracked rows has no extra divider).
+              if (i > 0 &&
+                  rows[i - 1].isTracked &&
+                  !rows[i].isTracked) ...[
+                Divider(
+                  height: 18,
+                  thickness: 0.5,
+                  color: scheme.outlineVariant,
+                ),
+              ],
+              _MicroBarRow(
+                row: rows[i],
+                scheme: scheme,
+                textTheme: textTheme,
+                onTap: () =>
+                    _openDetail(context, ref, rows[i], profile, locale),
+              ),
+              const SizedBox(height: 10),
+            ],
+        ],
+      ),
+    );
+  }
+
+  List<_MicroWeekRow> _computeRows(
+      List<MealEntry> allMeals, UserProfileSettings profile, String locale) {
+    if (allMeals.isEmpty) return const [];
+    // Group meals into the last 7 days. A day with zero meals still counts
+    // as a real day in the denominator so a quiet day doesn't artificially
+    // inflate the average. But: if the user has logged NOTHING in the
+    // entire 7-day window, drop the section (no signal worth showing).
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final cutoff = today.subtract(const Duration(days: 6));
+    final lastWeek = allMeals
+        .where((m) => !m.createdAt.isBefore(cutoff))
+        .toList(growable: false);
+    if (lastWeek.isEmpty) return const [];
+    // Build per-day buckets.
+    final byDay = <DateTime, List<MealEntry>>{};
+    for (final m in lastWeek) {
+      final day = DateTime(
+          m.createdAt.year, m.createdAt.month, m.createdAt.day);
+      byDay.putIfAbsent(day, () => []).add(m);
+    }
+    // The user's actively-tracked nutrients land above the rest with a
+    // hairline divider between the two groups. Falls back to the phase
+    // defaults if the user hasn't customised, so a brand-new profile
+    // still gets a sensible "primary" group.
+    final trackedKeys = (profile.selectedMicronutrients ??
+            MicronutrientDefaults.forProfile(profile))
+        .toSet();
+    final out = <_MicroWeekRow>[];
+    for (final key in MicronutrientKey.all) {
+      final target = MicronutrientTargets.forKey(key, profile);
+      final display = MicronutrientDisplay.forKey(key);
+      if (target == null || display == null || target.value <= 0) continue;
+      // Average daily intake across the 7 days we have data for.
+      double sum = 0;
+      var nDays = 0;
+      for (var i = 0; i < 7; i++) {
+        final day = cutoff.add(Duration(days: i));
+        final dayMeals = byDay[day] ?? const <MealEntry>[];
+        sum += dailyIntakeFor(key, dayMeals, profile);
+        nDays++;
+      }
+      if (nDays == 0) continue;
+      final avg = sum / nDays;
+      final pct = (avg / target.value) * 100;
+      out.add(_MicroWeekRow(
+        key: key,
+        name: display.nameForLocale(locale),
+        pct: pct,
+        avgIntake: avg,
+        target: target.value,
+        unitLabel: target.unitLabel,
+        isTracked: trackedKeys.contains(key),
+      ));
+    }
+    // Sort: tracked rows first, within each group lowest-coverage first,
+    // alphabetical name as the tie-breaker so equal-% rows have a stable
+    // order instead of bouncing around when new meals shift one of them.
+    out.sort((a, b) {
+      if (a.isTracked != b.isTracked) return a.isTracked ? -1 : 1;
+      final byPct = a.pct.compareTo(b.pct);
+      if (byPct != 0) return byPct;
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+    return out;
+  }
+
+  void _openDetail(BuildContext context, WidgetRef ref, _MicroWeekRow row,
+      UserProfileSettings profile, String locale) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetCtx) {
+        final sheetL10n = AppLocalizations.of(sheetCtx);
+        final sheetTheme = Theme.of(sheetCtx);
+        final sheetScheme = sheetTheme.colorScheme;
+        final sources = MicronutrientSources.forKey(row.key, locale);
+        // Supplement contribution figure for this nutrient (sums across
+        // ALL active supplements). null when supplement has no entry.
+        double supplementContribution = 0;
+        for (final s in profile.activeSupplements) {
+          supplementContribution += s.values[row.key] ?? 0;
+        }
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  row.name,
+                  style: sheetTheme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${row.pct.round()}% · Ø ${_fmtNumLocal(row.avgIntake)}/${_fmtNumLocal(row.target)} ${row.unitLabel}',
+                  style: sheetTheme.textTheme.bodyMedium
+                      ?.copyWith(color: _barColorFor(row.pct, sheetScheme)),
+                ),
+                if (supplementContribution > 0) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    sheetL10n.trendsMicronutrientSheetSupplementCovered(
+                      _fmtNumLocal(supplementContribution),
+                      row.unitLabel,
+                    ),
+                    style: sheetTheme.textTheme.bodySmall
+                        ?.copyWith(color: sheetScheme.tertiary),
+                  ),
+                ],
+                if (sources.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    sheetL10n.trendsMicronutrientSheetSourcesTitle,
+                    style: sheetTheme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  for (final s in sources)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text('• $s',
+                          style: sheetTheme.textTheme.bodyMedium),
+                    ),
+                ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(sheetCtx),
+                    child: Text(sheetL10n.trendsMicronutrientSheetClose),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MicroBarRow extends StatelessWidget {
+  final _MicroWeekRow row;
+  final ColorScheme scheme;
+  final TextTheme textTheme;
+  final VoidCallback onTap;
+  const _MicroBarRow({
+    required this.row,
+    required this.scheme,
+    required this.textTheme,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _barColorFor(row.pct, scheme);
+    final fill = (row.pct / 100).clamp(0.0, 1.0);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    row.name,
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                ),
+                Text(
+                  '${row.pct.round()}%',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Stack(
+                children: [
+                  Container(
+                    height: 6,
+                    color: scheme.surfaceContainerHighest,
+                  ),
+                  FractionallySizedBox(
+                    widthFactor: fill,
+                    child: Container(
+                      height: 6,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Color _barColorFor(double pct, ColorScheme scheme) {
+  if (pct >= 85) return Colors.green.shade600;
+  if (pct >= 60) return Colors.amber.shade700;
+  return scheme.error;
+}
+
+String _fmtNumLocal(double v) {
+  if (v >= 100) return v.toStringAsFixed(0);
+  if (v >= 10) return v.toStringAsFixed(1);
+  return v.toStringAsFixed(2);
 }

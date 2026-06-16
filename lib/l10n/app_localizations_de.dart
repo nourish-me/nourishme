@@ -388,6 +388,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Du musst nicht „Cappuccino 200 ml“ tippen. „Einen Cappuccino bitte“ oder „eine Schüssel Müsli mit Beeren“ reicht. Die App erkennt, dass es eine Mahlzeit ist, schätzt eine typische Portion und legt sie an.';
 
   @override
+  String get tip7Title => 'Anpassbar bis ins Detail';
+
+  @override
+  String get tip7Body =>
+      'Vieles steckt in den Einstellungen statt im Onboarding. Du findest dort: Mahlzeit-Rhythmus (3 Mahlzeiten / 5 kleine / intuitiv), Körperziel mit Mikro-Schutz, Ernährungsstil und Tabu-Liste, Multi-Supplements (mehrere Präparate gleichzeitig) und Favoriten verwalten. Lohnt sich ein Blick nach den ersten paar Tagen.';
+
+  @override
   String homeCoachBundling(int count) {
     return 'Coach wartet kurz auf weitere Items… ($count)';
   }
@@ -418,6 +425,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get confirmPastDaySavedToast =>
       'Eintrag gespeichert · Coach pausiert für vergangene Tage';
+
+  @override
+  String get confirmCoachRetroPausedToast =>
+      'Gespeichert · Coach pausiert für nachträgliche Einträge. Frag mich direkt im Chat wenn du eine Direction willst.';
 
   @override
   String get homeEmptyDayAdd => 'hinzufügen';
@@ -681,7 +692,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsPhaseLactating => 'Milchproduzierend';
 
   @override
-  String get settingsPhaseLactatingHint => 'Stillend oder pumpend';
+  String get settingsPhaseLactatingHint => 'Direkt oder per Pumpe';
 
   @override
   String get settingsPhasePregnant => 'Schwanger';
@@ -713,6 +724,26 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settingsMilkVolumeInfoDetail =>
       'Wenn du pumpst und dein Volumen kennst, trage es exakt ein. Anteil-Slider darüber liefert sonst eine Schätzung.';
+
+  @override
+  String get settingsMilkVolumeAgeRulesTitle =>
+      'Faustregeln je nach Kindesalter:';
+
+  @override
+  String get settingsMilkVolumeAgeRule0to6 =>
+      '0-6 Mo exklusiv: ~750-800 ml/Tag';
+
+  @override
+  String get settingsMilkVolumeAgeRule6to12 =>
+      '6-12 Mo mit Beikost: ~500-600 ml/Tag';
+
+  @override
+  String get settingsMilkVolumeAgeRule12plus =>
+      '12+ Mo mit Familienkost: ~200-400 ml/Tag';
+
+  @override
+  String get settingsMilkVolumeAgeRuleTwins =>
+      'Zwillinge exklusiv 0-6 Mo: ~1500 ml/Tag';
 
   @override
   String get settingsMilkVolumeInfoSource => 'DGE 2025, EFSA 2017';
@@ -858,6 +889,71 @@ class AppLocalizationsDe extends AppLocalizations {
       'Was kommt von dir, was aus Flasche, Pre oder Beikost?';
 
   @override
+  String get settingsMilkShareQuestion => 'Was bekommt dein Kind?';
+
+  @override
+  String get settingsMilkShareScenarioOnly => 'Nur deine Milch';
+
+  @override
+  String get settingsMilkShareScenarioOnlyHint =>
+      'Direkt aus der Brust oder per Flasche aus der Pumpe. Keine Pre, keine Beikost.';
+
+  @override
+  String get settingsMilkShareScenarioMostly =>
+      'Hauptsächlich deine Milch + Beikost oder Pre';
+
+  @override
+  String get settingsMilkShareScenarioMostlyHint =>
+      'Deine Milch ist die Hauptnahrung, dein Kind isst aber schon feste Mahlzeiten oder bekommt manchmal Pre-Milch dazu.';
+
+  @override
+  String get settingsMilkShareScenarioHalf => 'Etwa halbe-halbe';
+
+  @override
+  String get settingsMilkShareScenarioHalfHint =>
+      'Deine Milch und Beikost oder Pre etwa zu gleichen Teilen.';
+
+  @override
+  String get settingsMilkShareScenarioLittle =>
+      'Hauptsächlich Beikost oder Pre, wenig deiner Milch';
+
+  @override
+  String get settingsMilkShareScenarioLittleHint =>
+      'Hauptnahrung sind feste Mahlzeiten oder Pre. Du gibst deine Milch nur noch zu bestimmten Zeiten oder zum Trösten.';
+
+  @override
+  String get settingsMilkShareScenarioCustom =>
+      'Anders, Wert selbst einstellen';
+
+  @override
+  String get settingsMilkShareMultipleChildrenHint =>
+      'Bei mehreren Kindern: schätze den Durchschnitt über alle Kinder.';
+
+  @override
+  String get settingsMilkSharePerChildScenario => 'Für jedes Kind anders';
+
+  @override
+  String get settingsMilkSharePerChildScenarioHint =>
+      'Stell pro Kind einen eigenen Wert ein. Wir nehmen dann den Mittelwert für die Berechnung.';
+
+  @override
+  String get settingsMilkSharePerChildSheetTitle => 'Anteil pro Kind';
+
+  @override
+  String get settingsMilkSharePerChildSheetHint =>
+      '0% = keine deiner Milch, 100% = ausschließlich deine Milch.';
+
+  @override
+  String settingsMilkSharePerChildLabel(int index) {
+    return 'Kind $index';
+  }
+
+  @override
+  String settingsMilkSharePerChildSummaryEntry(int index, int percent) {
+    return 'Kind $index: $percent%';
+  }
+
+  @override
   String settingsMilkVolumePerDayLabel(int volume, int supplement) {
     return '$volume ml/Tag → +$supplement kcal/Tag';
   }
@@ -936,7 +1032,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingWelcomeReassurance =>
-      'Keine Sorge: alles was du jetzt einträgst kannst du jederzeit in den Einstellungen ändern.';
+      'Keine Sorge: alles was du in den folgenden Onboarding-Schritten einträgst kannst du jederzeit in den Einstellungen ändern.';
 
   @override
   String get onboardingPhaseQuestion => 'In welcher Phase bist du?';
@@ -950,7 +1046,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingPhaseLactationHint =>
-      'Du produzierst Muttermilch (stillend oder pumpend)';
+      'Du produzierst Muttermilch, direkt oder per Pumpe';
 
   @override
   String get onboardingPhasePregnancy => 'Schwangerschaft';
@@ -1063,10 +1159,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingDisclaimerBody =>
-      'NourishMe ist ein persönliches Wellness-Tool, kein medizinisches Produkt. Bei medizinischen Fragen sprich mit deiner Ärztin oder Hebamme. Bei Allergien oder Vorerkrankungen prüfe Coach-Vorschläge selbst.';
+      'NourishMe ist ein persönliches Wellness-Tool, kein medizinisches Produkt. Drei Sachen, die wichtig sind:\n\n• Die KI kann Fehler machen und kennt deine Krankengeschichte nicht. Was sie sagt, passt eventuell nicht zu dir.\n• Ersetzt keine ärztliche oder Hebammen-Beratung. Bei Allergien, Vorerkrankungen oder Symptomen prüfe Coach-Vorschläge selbst und sprich mit deiner Hebamme oder Ärztin.\n• Nicht für Notfälle. Bei akuten Beschwerden (starke Blutung, vorzeitige Wehen, kein Kindsbewegen, Ohnmacht, Sehstörungen) sofort 112 oder deine Klinik anrufen.';
 
   @override
   String get onboardingDisclaimerLink => 'Mehr dazu';
+
+  @override
+  String get coachDisclaimerBadge => 'Powered by AI · kein medizinischer Rat';
+
+  @override
+  String get coachDisclaimerSheetTitle => 'Wichtig zur App';
+
+  @override
+  String get coachDisclaimerSheetClose => 'Verstanden';
 
   @override
   String get settingsSectionDiet => 'Ernährung & Allergien';
@@ -1351,6 +1456,93 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsGoalBoth => 'Beides';
 
   @override
+  String get settingsMealPatternTitle => 'Mahlzeit-Stil';
+
+  @override
+  String get settingsMealPatternHint =>
+      'Was schlägt der Coach dir als nächste Mahlzeit vor?';
+
+  @override
+  String get settingsMealPatternClassic => '3 Hauptmahlzeiten + 2 Snacks';
+
+  @override
+  String get settingsMealPatternOneSnack => '3 Hauptmahlzeiten + 1 Snack';
+
+  @override
+  String get settingsMealPatternThreeMeals => '3 Hauptmahlzeiten ohne Snacks';
+
+  @override
+  String get settingsMealPatternIntuitive => 'Intuitiv (keine Vorschläge)';
+
+  @override
+  String get homePhotoMultiGallery => 'Mehrere Fotos (Galerie)';
+
+  @override
+  String multiPhotoReviewTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Mahlzeiten',
+      one: 'Eine Mahlzeit',
+    );
+    return '$_temp0 prüfen';
+  }
+
+  @override
+  String get multiPhotoReviewHint =>
+      'Verwerfe Mahlzeiten die du nicht möchtest und tippe dann „Alle speichern“. Details (Zeit, Menge, Beschreibung) kannst du danach im Tagebuch pro Eintrag anpassen.';
+
+  @override
+  String multiPhotoAllSavedSnackWithHint(int count) {
+    return '$count Mahlzeiten gespeichert. Im Tagebuch antippen zum Bearbeiten.';
+  }
+
+  @override
+  String get trendsMicronutrientWeekTitle => 'Mikronährstoffe diese Woche';
+
+  @override
+  String get trendsMicronutrientWeekHint =>
+      'Durchschnitt der letzten 7 Tage in % vom Tagesziel. Tippe einen Nährstoff für Details und Top-Quellen.';
+
+  @override
+  String get trendsMicronutrientEmpty =>
+      'Noch nicht genug Daten. Logge ein paar Mahlzeiten, dann wird hier eine Wochen-Übersicht sichtbar.';
+
+  @override
+  String get trendsMicronutrientSheetSourcesTitle => 'Top-Quellen';
+
+  @override
+  String trendsMicronutrientSheetSupplementCovered(String amount, String unit) {
+    return 'Dein Supplement deckt diesen Nährstoff ab (ca. $amount $unit/Tag).';
+  }
+
+  @override
+  String get trendsMicronutrientSheetClose => 'Schließen';
+
+  @override
+  String multiPhotoReviewSaveAll(int count) {
+    return 'Alle speichern ($count)';
+  }
+
+  @override
+  String get multiPhotoReviewDiscardItem => 'Verwerfen';
+
+  @override
+  String get multiPhotoReviewEditItem => 'Bearbeiten';
+
+  @override
+  String get multiPhotoParsingError =>
+      'Konnte das Foto nicht lesen, übersprungen.';
+
+  @override
+  String get multiPhotoNoFoodSkipped => 'Keine Mahlzeit erkannt, übersprungen.';
+
+  @override
+  String multiPhotoAllSavedSnack(int count) {
+    return '$count Mahlzeiten gespeichert.';
+  }
+
+  @override
   String get settingsGoalMacroImplication =>
       'Mehr Protein für Muskelschutz im Defizit. Im Bereich Makros sichtbar und anpassbar.';
 
@@ -1359,7 +1551,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsPhaseNeitherHint =>
-      'Aktuell weder schwanger noch stillend, z.B. nach dem Abstillen oder vor einer Schwangerschaft.';
+      'Aktuell weder schwanger noch milchproduzierend, z.B. nach der Stillzeit oder vor einer Schwangerschaft.';
 
   @override
   String get onboardingPhaseNeither => 'Weder noch';
@@ -1386,11 +1578,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get supplementSectionTitle => 'Nahrungsergänzung';
 
   @override
-  String get supplementOnboardingTitle => 'Nimmst du ein Supplement?';
+  String get supplementOnboardingTitle =>
+      'Nimmst du ein Schwangerschafts- oder Stillzeit-Supplement?';
 
   @override
   String get supplementOnboardingBody =>
-      'Folio, Femibion oder ähnliches? Fotografiere die Nährwerttabelle auf der Rückseite der Packung, dann rechnet die App die Werte automatisch jeden Tag mit.';
+      'Folio, Femibion, Elevit, Orthomol oder ähnliches? In dieser Phase sind Folsäure, Jod, DHA, B12, Eisen und Vitamin D schwer allein übers Essen zu decken. Fotografiere die Nährwerttabelle auf der Rückseite, dann rechnet die App die Werte automatisch jeden Tag mit.';
+
+  @override
+  String get settingsSupplementMissingHint =>
+      'Du hast noch kein Supplement eingetragen. In dieser Phase sind Folsäure, Jod, DHA, B12, Eisen und Vitamin D oft kritisch, ein Supplement deckt sie verlässlich ab.';
 
   @override
   String get supplementAddCta => 'Nährwerttabelle fotografieren';

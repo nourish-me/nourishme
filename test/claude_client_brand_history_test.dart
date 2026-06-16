@@ -121,4 +121,70 @@ void main() {
       expect(out, isNot(contains('Fifth')));
     });
   });
+
+  group('buildBrandHistoryBlock - timeOfDayFallback', () {
+    // The photo-only path feeds a time-of-day list of recent entries as a
+    // vocabulary anchor. Header and footer must differ from the brand-match
+    // variant: the model must NOT copy the macros 1:1 (the food in the photo
+    // is not necessarily one of these), only use the summaries to break
+    // color/shape ambiguity.
+    test('empty hints → empty string', () {
+      expect(
+        ClaudeClient.buildBrandHistoryBlock(
+          const [],
+          isDe: true,
+          timeOfDayFallback: true,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('DE header + footer signal "vocabulary anchor, not values"', () {
+      final out = ClaudeClient.buildBrandHistoryBlock(
+        [_entry(id: '1', summary: 'Heidelbeeren mit Joghurt', kcal: 180)],
+        isDe: true,
+        timeOfDayFallback: true,
+      );
+      expect(out, contains('Tageszeit'));
+      expect(out, contains('Vokabular-Anker'));
+      // Must NOT use the brand-match footer that says "übernimm dessen Werte
+      // direkt" - that would mis-instruct the vision model.
+      expect(out, isNot(contains('übernimm dessen Werte direkt')));
+    });
+
+    test('EN header + footer signal "vocabulary anchor, not values"', () {
+      final out = ClaudeClient.buildBrandHistoryBlock(
+        [_entry(id: '1', summary: 'Blueberries with yoghurt', kcal: 180)],
+        isDe: false,
+        timeOfDayFallback: true,
+      );
+      expect(out, contains('time of day'));
+      expect(out, contains('vocabulary anchor'));
+      expect(out, isNot(contains('use its values directly')));
+    });
+
+    test('per-entry line format identical to brand-match variant', () {
+      // Same _entry, both variants - line shape stays the same so the
+      // prompt model doesn't need to learn two formats.
+      final entry = _entry(
+        id: '1',
+        summary: 'Skyr Vanille',
+        kcal: 120,
+        protein: 18,
+        carbs: 9,
+        fat: 1,
+        portionAmount: 150,
+        portionUnit: 'g',
+      );
+      final brand =
+          ClaudeClient.buildBrandHistoryBlock([entry], isDe: true);
+      final tod = ClaudeClient.buildBrandHistoryBlock(
+        [entry],
+        isDe: true,
+        timeOfDayFallback: true,
+      );
+      expect(brand, contains('- Skyr Vanille (150 g): kcal 120'));
+      expect(tod, contains('- Skyr Vanille (150 g): kcal 120'));
+    });
+  });
 }

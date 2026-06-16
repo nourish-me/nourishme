@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nurturetrack/services/safety_rules.dart';
 
@@ -5,6 +7,16 @@ import 'package:nurturetrack/services/safety_rules.dart';
 // This is the safety layer that must NOT depend on the model remembering to
 // warn: known caffeine sources trigger the 200 mg/day limit, phase-gated.
 void main() {
+  setUpAll(() {
+    // Rule data lives in assets/safety-rules.json so the Cloudflare Worker
+    // can read the same file at deploy. Tests load it synchronously via
+    // dart:io (the host runtime has filesystem access; rootBundle does not
+    // in a plain unit-test environment).
+    SafetyRules.initFromJsonString(
+      File('assets/safety-rules.json').readAsStringSync(),
+    );
+  });
+
   const pregnant = SafetyPhase(isPregnant: true, trimester: 2);
   const pregnantT1 = SafetyPhase(isPregnant: true, trimester: 1);
   const pregnantNoTri = SafetyPhase(isPregnant: true);
@@ -175,6 +187,95 @@ void main() {
 
     test('cooked salmon is fine (bare "Lachs" is not a trigger)', () {
       expect(SafetyRules.rawAnimalProducts('gekochter Lachs', pregnant), isNull);
+    });
+
+    group('heated carve-out', () {
+      // Beta tester #99: "Backcamembert" pauschal als Listerien-Warnung
+      // verunsicherte. Hitze tötet Listerien zuverlässig - die Warnung
+      // bei einem klar erhitzten Lebensmittel switcht jetzt auf die
+      // Beruhigungs-Variante statt zu schweigen oder zu warnen.
+      test('Backcamembert pregnant → reassurance variant (durchgebacken sicher)',
+          () {
+        final w = SafetyRules.rawAnimalProducts('Backcamembert', pregnant,
+            locale: 'de');
+        expect(w, isNotNull);
+        expect(w, contains('durchgebacken'));
+        expect(w, isNot(contains('meiden')));
+      });
+
+      test('Ofencamembert (German compound) hits the heat marker', () {
+        final w = SafetyRules.rawAnimalProducts(
+            'Ofencamembert mit Preiselbeeren', pregnant,
+            locale: 'de');
+        expect(w, contains('durchgebacken'));
+      });
+
+      test('"gebackener Brie" multi-word → reassurance variant', () {
+        final w = SafetyRules.rawAnimalProducts('gebackener Brie', pregnant,
+            locale: 'de');
+        expect(w, contains('durchgebacken'));
+      });
+
+      test('"baked brie" English equivalent → reassurance variant', () {
+        final w =
+            SafetyRules.rawAnimalProducts('baked brie', pregnant, locale: 'en');
+        expect(w, isNotNull);
+        expect(w, contains('heated is safe'));
+        expect(w, isNot(contains('avoid')));
+      });
+
+      test('"grilled camembert" hits the EN heat marker', () {
+        final w = SafetyRules.rawAnimalProducts('grilled camembert', pregnant,
+            locale: 'en');
+        expect(w, contains('heated is safe'));
+      });
+
+      test('LACTATING + baked camembert → reassurance variant (#120)', () {
+        // Build +25 follow-up: Vanessa tested "baked camembert" while
+        // lactating and got NO warning at all because the rule used to be
+        // pregnancy-only. The rule now fires for both phases when a heat
+        // marker is present so the lactating user gets the same "fully
+        // heated is safe" reassurance instead of silence.
+        final w = SafetyRules.rawAnimalProducts('baked camembert', lactating,
+            locale: 'en');
+        expect(w, isNotNull);
+        expect(w, contains('heated is safe'));
+      });
+
+      test('LACTATING + Backcamembert (DE) → reassurance variant', () {
+        final w = SafetyRules.rawAnimalProducts('Backcamembert', lactating,
+            locale: 'de');
+        expect(w, isNotNull);
+        expect(w, contains('durchgebacken'));
+      });
+
+      test('LACTATING + raw Camembert (no heat marker) → still null', () {
+        // Raw cheese isn't a listeria concern via breast milk, so we
+        // intentionally stay silent here. Only the heat-marker carve-out
+        // lights up for lactation.
+        expect(
+          SafetyRules.rawAnimalProducts('Camembert', lactating, locale: 'de'),
+          isNull,
+        );
+      });
+
+      test('plain raw Camembert still gets the avoid-warning', () {
+        // No heat marker → original message wins. Frisch geschnittener
+        // Brie/Camembert beim Brunch ist real risikobehaftet.
+        final w =
+            SafetyRules.rawAnimalProducts('Camembert', pregnant, locale: 'de');
+        expect(w, isNotNull);
+        expect(w, contains('meiden'));
+        expect(w, isNot(contains('durchgebacken')));
+      });
+
+      test('heat marker WITHOUT a rawAnimal keyword does nothing (precondition)',
+          () {
+        // "Backwaren" enthält "back" als Substring, aber kein
+        // rawAnimal-Keyword - die rule bleibt stumm.
+        expect(SafetyRules.rawAnimalProducts('Backwaren', pregnant), isNull);
+        expect(SafetyRules.rawAnimalProducts('Ofengemüse', pregnant), isNull);
+      });
     });
 
     test('"Parmesan" alone is NOT a keyword (industrial grated parmesan in '
@@ -680,6 +781,101 @@ void main() {
           contains(SafetyTopic.milkSuppressingHerbs));
       expect(SafetyRules.topicsFor(['Pfefferminze-Tee']),
           contains(SafetyTopic.milkSuppressingHerbs));
+    });
+  });
+
+  group('classifyInput - emergency (acute risk)', () {
+    test('DE: starke Blutung triggers emergency, ruleId captured', () {
+      final r = SafetyRules.classifyInput('Ich habe seit heute morgen eine starke Blutung', locale: 'de');
+      expect(r.classification, InputClassification.emergency);
+      expect(r.ruleId, 'starke blutung');
+      expect(r.response, contains('112'));
+      expect(r.response, contains('Notfall'));
+    });
+
+    test('EN: heavy bleeding triggers emergency', () {
+      final r = SafetyRules.classifyInput("I've had heavy bleeding since this morning", locale: 'en');
+      expect(r.classification, InputClassification.emergency);
+      expect(r.ruleId, 'heavy bleeding');
+      expect(r.response, contains('emergency'));
+    });
+
+    test('DE: vorzeitige Wehen triggers emergency', () {
+      final r = SafetyRules.classifyInput('habe vorzeitige Wehen, was tun', locale: 'de');
+      expect(r.classification, InputClassification.emergency);
+    });
+
+    test('EN: baby not moving triggers emergency', () {
+      final r = SafetyRules.classifyInput('my baby is not moving today', locale: 'en');
+      expect(r.classification, InputClassification.emergency);
+    });
+
+    test('case-insensitive match', () {
+      final r = SafetyRules.classifyInput('STARKE BLUTUNG seit heute', locale: 'de');
+      expect(r.classification, InputClassification.emergency);
+    });
+  });
+
+  group('classifyInput - escalation (medical handoff)', () {
+    test('DE: Medikament triggers escalation, not emergency', () {
+      final r = SafetyRules.classifyInput('ich nehme ein Medikament, ist das ok?', locale: 'de');
+      expect(r.classification, InputClassification.escalation);
+      expect(r.ruleId, 'medikament');
+      expect(r.response, contains('Hebamme'));
+    });
+
+    test('EN: gestational diabetes triggers escalation', () {
+      final r = SafetyRules.classifyInput('I have gestational diabetes, what should I eat', locale: 'en');
+      expect(r.classification, InputClassification.escalation);
+      expect(r.response, contains('midwife'));
+    });
+
+    test('DE: Mastitis triggers escalation', () {
+      final r = SafetyRules.classifyInput('habe seit gestern Mastitis', locale: 'de');
+      expect(r.classification, InputClassification.escalation);
+    });
+
+    test('EN: postpartum depression triggers escalation', () {
+      final r = SafetyRules.classifyInput('I think I have postpartum depression', locale: 'en');
+      expect(r.classification, InputClassification.escalation);
+    });
+  });
+
+  group('classifyInput - precedence + non-matches', () {
+    test('emergency wins over escalation when both keywords appear', () {
+      // "starke blutung" (emergency) + "medikament" (escalation) in one input.
+      // Without precedence the escalation could shadow the more serious
+      // emergency; the API must surface the higher-risk classification.
+      final r = SafetyRules.classifyInput(
+        'ich habe starke Blutung und nehme ein Medikament',
+        locale: 'de',
+      );
+      expect(r.classification, InputClassification.emergency);
+    });
+
+    test('normal input returns normal, ruleId and response null', () {
+      final r = SafetyRules.classifyInput('Apfel und Joghurt zum Frühstück', locale: 'de');
+      expect(r.classification, InputClassification.normal);
+      expect(r.ruleId, isNull);
+      expect(r.response, isNull);
+    });
+
+    test('empty input returns normal (no false-fire on blank)', () {
+      final r = SafetyRules.classifyInput('', locale: 'de');
+      expect(r.classification, InputClassification.normal);
+    });
+
+    test('mention of medication in non-personal context still triggers escalation '
+        '(deliberately conservative: false positives are safer than misses)', () {
+      // We accept that "Medikament" mentioned hypothetically also triggers.
+      // The cost is a benign "talk to your midwife" message; the cost of
+      // missing a real medication question is wrong nutrition advice on
+      // a medical topic.
+      final r = SafetyRules.classifyInput(
+        'meine Schwester nimmt ein Medikament, hat das was mit Ernährung zu tun',
+        locale: 'de',
+      );
+      expect(r.classification, InputClassification.escalation);
     });
 
     test('off-topic text returns empty set', () {

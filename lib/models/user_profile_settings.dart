@@ -13,6 +13,12 @@ class UserProfileSettings {
   // Lactation
   final int numChildrenNursing;
   final int milkSharePercent;
+  // Multiples-only override: one share% per child. null/empty = use the
+  // single [milkSharePercent] above. When non-empty, [effectiveMilkSharePercent]
+  // returns the average; every downstream supply/kcal/coach context reads
+  // through that getter so this stays a single behaviour switch instead of
+  // a fork at every call site. Only meaningful when numChildrenNursing > 1.
+  final List<int>? perChildSharesPercent;
   // Static fallback bucket - kept for backward compat with profiles saved
   // before youngestChildBirthdate existed and for users who decline to
   // enter a birth date. New code paths should read [currentChildrenAgeGroup]
@@ -68,6 +74,13 @@ class UserProfileSettings {
   // never in pregnancy). 'both' → same guardrails as 'body'.
   final String goal;
 
+  // Meal-structure preference (Task #108). 'classic' (DGE default) =
+  // 3 main meals + 2 snacks. 'one_snack' = 3 main + 1 (afternoon) snack.
+  // 'three_meals' = 3 main meals, no snack push. 'intuitive' = the coach
+  // does not propose a meal-rhythm at all. Beta tester T3: "I never have
+  // a mid-morning snack" - the default rhythm felt judgemental.
+  final String mealPattern;
+
   const UserProfileSettings({
     required this.ageYears,
     this.birthdate,
@@ -78,6 +91,7 @@ class UserProfileSettings {
     this.trimester,
     required this.numChildrenNursing,
     required this.milkSharePercent,
+    this.perChildSharesPercent,
     required this.childrenAgeGroup,
     this.youngestChildBirthdate,
     this.dailyMilkVolumeMl = 0,
@@ -90,7 +104,28 @@ class UserProfileSettings {
     this.activeSupplements = const [],
     this.selectedMicronutrients,
     this.goal = CoachGoal.nutrients,
+    this.mealPattern = MealPattern.classic,
   });
+
+  // Resolved milk share that downstream code should use. Returns the
+  // arithmetic mean of [perChildSharesPercent] when the user has opted
+  // into the per-child mode (Mehrlinge case where each twin gets a
+  // different share). Otherwise falls back to the single [milkSharePercent].
+  // Caps at 100 and never returns negative.
+  int get effectiveMilkSharePercent {
+    final list = perChildSharesPercent;
+    if (list == null || list.isEmpty) return milkSharePercent;
+    final sum = list.fold<int>(0, (a, b) => a + b);
+    return (sum / list.length).round().clamp(0, 100);
+  }
+
+  // True when the user has switched to per-child mode (only meaningful for
+  // multiples). UI surfaces use this to decide whether to show the average
+  // as the single value or a per-child summary line.
+  bool get hasPerChildShares {
+    final list = perChildSharesPercent;
+    return list != null && list.isNotEmpty;
+  }
 
   // Age in completed years, computed from birthdate if available, otherwise
   // falling back to the stored ageYears for old profiles.
@@ -189,6 +224,7 @@ class UserProfileSettings {
     int? trimester,
     int? numChildrenNursing,
     int? milkSharePercent,
+    Object? perChildSharesPercent = _unset,
     int? childrenAgeGroup,
     Object? youngestChildBirthdate = _unset,
     int? dailyMilkVolumeMl,
@@ -208,6 +244,7 @@ class UserProfileSettings {
     List<ActiveSupplement>? activeSupplements,
     Object? selectedMicronutrients = _unset,
     String? goal,
+    String? mealPattern,
   }) =>
       UserProfileSettings(
         ageYears: ageYears ?? this.ageYears,
@@ -219,6 +256,9 @@ class UserProfileSettings {
         trimester: trimester ?? this.trimester,
         numChildrenNursing: numChildrenNursing ?? this.numChildrenNursing,
         milkSharePercent: milkSharePercent ?? this.milkSharePercent,
+        perChildSharesPercent: identical(perChildSharesPercent, _unset)
+            ? this.perChildSharesPercent
+            : perChildSharesPercent as List<int>?,
         childrenAgeGroup: childrenAgeGroup ?? this.childrenAgeGroup,
         youngestChildBirthdate: identical(youngestChildBirthdate, _unset)
             ? this.youngestChildBirthdate
@@ -235,6 +275,7 @@ class UserProfileSettings {
             ? this.selectedMicronutrients
             : selectedMicronutrients as List<String>?,
         goal: goal ?? this.goal,
+        mealPattern: mealPattern ?? this.mealPattern,
       );
 
   Map<String, dynamic> toJson() => {
@@ -247,6 +288,8 @@ class UserProfileSettings {
         'trimester': trimester,
         'numChildrenNursing': numChildrenNursing,
         'milkSharePercent': milkSharePercent,
+        if (perChildSharesPercent != null && perChildSharesPercent!.isNotEmpty)
+          'perChildSharesPercent': perChildSharesPercent,
         'childrenAgeGroup': childrenAgeGroup,
         if (youngestChildBirthdate != null)
           'youngestChildBirthdate': youngestChildBirthdate!.toIso8601String(),
@@ -262,6 +305,7 @@ class UserProfileSettings {
         if (selectedMicronutrients != null)
           'selectedMicronutrients': selectedMicronutrients,
         'goal': goal,
+        'mealPattern': mealPattern,
       };
 
   factory UserProfileSettings.fromJson(Map<String, dynamic> json) {
@@ -279,6 +323,10 @@ class UserProfileSettings {
       trimester: json['trimester'] as int?,
       numChildrenNursing: numChildren,
       milkSharePercent: share,
+      perChildSharesPercent: (json['perChildSharesPercent'] as List?)
+          ?.whereType<num>()
+          .map((n) => n.toInt())
+          .toList(),
       childrenAgeGroup: ageGroup,
       youngestChildBirthdate: (json['youngestChildBirthdate'] as String?) != null
           ? DateTime.tryParse(json['youngestChildBirthdate'] as String)
@@ -315,6 +363,7 @@ class UserProfileSettings {
           ?.whereType<String>()
           .toList(),
       goal: (json['goal'] as String?) ?? CoachGoal.nutrients,
+      mealPattern: (json['mealPattern'] as String?) ?? MealPattern.classic,
     );
   }
 }
@@ -376,6 +425,21 @@ class CoachGoal {
   static const both = 'both';
 
   static const all = [nutrients, body, both];
+}
+
+// Mahlzeit-Struktur the user picks in Settings (Task #108). Drives the
+// per_meal coach's "next meal" suggestion: classic = standard 3+2,
+// oneSnack = 3 main + 1 afternoon snack, threeMeals = 3 main meals no
+// snack push, intuitive = coach skips the "next meal" line entirely.
+// Default matches the DGE rhythm so existing profiles keep their current
+// behaviour.
+class MealPattern {
+  static const classic = 'classic';
+  static const oneSnack = 'one_snack';
+  static const threeMeals = 'three_meals';
+  static const intuitive = 'intuitive';
+
+  static const all = [classic, oneSnack, threeMeals, intuitive];
 }
 
 class DietStyle {

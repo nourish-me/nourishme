@@ -1,0 +1,299 @@
+{
+  "version": "1.0.0",
+  "lastReviewedAt": "2026-06-15",
+  "sources": ["DGE", "BfR", "EFSA", "LactMed", "Diätassistentin June 2026"],
+  "notes": "Single Source of Truth for NourishMe food-safety rules. Read by lib/services/safety_rules.dart at app start AND by the Cloudflare Worker output-post-check at deploy. Schema changes need a coordinated bump of both readers. Per-topic shape: keyword/token/phrase lists (data) plus per-locale per-phase message templates. Rule-specific match logic (containsWord vs tokenContains, phase-gate, trimester variants) stays in code.",
+  "topics": {
+    "caffeine": {
+      "keywords": [
+        "kaffee", "coffee", "espresso", "cappuccino", "latte", "macchiato", "mocha",
+        "cola", "energy", "red bull", "mate", "matcha", "guarana",
+        "schwarztee", "black tea", "grüntee", "gruentee", "green tea"
+      ],
+      "energyDrink": {
+        "keywords": [
+          "energy", "energydrink", "energy drink", "red bull", "monster",
+          "rockstar", "relentless", "effect"
+        ],
+        "messages": {
+          "de": {
+            "pregnant": "Energy-Drinks: in der Schwangerschaft komplett meiden (DGE, wegen Taurin, Inosit und weiteren Inhaltstoffen mit ungeklärten Wechselwirkungen)."
+          },
+          "en": {
+            "pregnant": "Energy drinks: avoid entirely in pregnancy (DGE: taurine, inositol and other ingredients with unclear interactions)."
+          }
+        }
+      },
+      "messages": {
+        "de": {
+          "default": "Koffein: achte auf die Tagesgrenze von 200 mg (EFSA), über den Tag verteilt."
+        },
+        "en": {
+          "default": "Caffeine: mind the 200 mg daily limit (EFSA), spread over the day."
+        }
+      }
+    },
+    "alcohol": {
+      "keywords": [
+        "alkohol", "alcohol",
+        "wein", "wine", "rotwein", "weißwein", "weisswein", "glühwein", "gluehwein",
+        "sekt", "prosecco", "champagner", "champagne",
+        "bier", "beer", "pils",
+        "schnaps", "wodka", "vodka", "whisky", "whiskey", "gin", "rum",
+        "likör", "likoer", "liqueur", "cocktail", "aperol", "spritz", "sangria",
+        "brandy", "cognac", "tequila", "baileys", "eierlikör", "eierlikoer"
+      ],
+      "exclusionMarkers": [
+        "alkoholfrei", "alcohol-free", "alcohol free", "non-alcoholic",
+        "0,0", "0.0"
+      ],
+      "messages": {
+        "de": {
+          "pregnant": "Alkohol: in der Schwangerschaft ganz meiden, es gibt keine bekannte sichere Menge.",
+          "lactating": "Alkohol: auch beim Milchproduzieren meiden (DGE/BfR). Alkohol geht in die Muttermilch über und kann schon nach kleinen Mengen die Milchmenge messbar drücken."
+        },
+        "en": {
+          "pregnant": "Alcohol: avoid completely in pregnancy; there is no known safe amount.",
+          "lactating": "Alcohol: avoid while producing milk too (DGE/BfR). Alcohol passes into breast milk and even small amounts measurably affect milk supply."
+        }
+      }
+    },
+    "rawAnimal": {
+      "_heatedNote": "When a heatedMarkers token appears in the same product string as a rawAnimal keyword, the warning switches from 'avoid' to a reassurance variant ('raw would be listeria; thoroughly heated is safe'). Tokens are matched as token-substring (case-insensitive) - 'back' inside 'Backcamembert', 'ofen' inside 'Ofencamembert', 'gegrillt' inside 'gegrillter Camembert', etc.",
+      "heatedMarkers": [
+        "gebacken", "überbacken", "ueberbacken", "ofen", "back",
+        "gegrillt", "flambiert", "frittiert",
+        "baked", "broiled", "grilled", "fried", "oven"
+      ],
+      "keywords": [
+        "rohmilch", "rohmilchkäse", "rohmilchkaese", "raw milk",
+        "vorzugsmilch", "hofmilch",
+        "mett", "mettwurst", "tatar", "hackepeter", "carpaccio", "rohwurst", "salami",
+        "rohschinken", "parmaschinken", "prosciutto", "serrano", "serranoschinken",
+        "coppa", "bresaola", "bündnerfleisch", "buendnerfleisch", "pancetta",
+        "lachsschinken",
+        "wild", "wildbraten", "wildschwein", "reh", "rehbraten", "hirsch",
+        "sushi", "sashimi", "roher fisch", "raw fish", "roher lachs",
+        "räucherlachs", "raeucherlachs", "räucherfisch", "raeucherfisch",
+        "graved", "gravlax", "smoked salmon",
+        "matjes", "bismarckhering", "rollmops", "bückling", "bueckling",
+        "roher hering", "sauerlappen",
+        "auster", "austern", "oyster", "oysters",
+        "weichkäse", "weichkaese", "camembert", "brie", "briekäse", "briekaese",
+        "backcamembert", "ofencamembert", "ofenbrie", "ofenkäse", "ofenkaese",
+        "baked camembert", "baked brie",
+        "gorgonzola", "roquefort", "blauschimmel",
+        "munster", "limburger", "reblochon", "vacherin", "romadur", "handkäse",
+        "handkaese",
+        "appenzeller", "gruyere", "comte",
+        "parmigiano reggiano", "pecorino", "manchego", "beaufort",
+        "bergkäse", "bergkaese", "cantal",
+        "rohes ei", "raw egg", "tiramisu", "mousse", "feinkostsalat",
+        "hollandaise", "sauce hollandaise", "bearnaise", "sauce bearnaise",
+        "sprossen", "bohnensprossen", "alfalfa", "alfalfasprossen", "mungo",
+        "mungosprossen", "mungbohnensprossen"
+      ],
+      "messages": {
+        "de": {
+          "pregnant": "Roh vom Tier: in der Schwangerschaft meiden (Listerien-/Toxoplasmose-Risiko), z.B. Rohmilch, rohes Fleisch/Fisch, Räucherfisch, Weichkäse.",
+          "pregnantHeated": "Roh wäre Listerien-Sorge; durchgebacken oder vollständig erhitzt ist sicher (Hitze tötet Listerien zuverlässig)."
+        },
+        "en": {
+          "pregnant": "Raw animal foods: avoid in pregnancy (listeria/toxoplasma risk), e.g. raw milk, raw meat/fish, smoked fish, soft cheese.",
+          "pregnantHeated": "Raw would be a listeria concern; thoroughly baked or fully heated is safe (heat reliably kills listeria)."
+        }
+      }
+    },
+    "mercuryFish": {
+      "tokens": [
+        "thunfisch", "tuna", "hai", "schwertfisch", "swordfish", "hecht", "pike",
+        "königsmakrele", "koenigsmakrele", "marlin", "butterfisch"
+      ],
+      "phrases": ["king mackerel"],
+      "messages": {
+        "de": {
+          "pregnant": "Quecksilber: Großraubfisch (Thunfisch, Hai, Schwertfisch, Hecht) in der Schwangerschaft meiden.",
+          "lactating": "Quecksilber: Großraubfisch (Thunfisch, Hai, Schwertfisch) beim Milchproduzieren einschränken."
+        },
+        "en": {
+          "pregnant": "Mercury: avoid large predatory fish (tuna, shark, swordfish, pike) in pregnancy.",
+          "lactating": "Mercury: limit large predatory fish (tuna, shark, swordfish) while producing milk."
+        }
+      }
+    },
+    "liver": {
+      "tokens": ["leber", "liver", "retinol"],
+      "phrases": ["foie gras"],
+      "exclusions": ["leberkäs", "leberkaes", "leberkas"],
+      "messages": {
+        "de": {
+          "trimester1": "Leber/Vitamin A: im 1. Trimester meiden (hoher Retinol-Gehalt, in hohen Dosen teratogen).",
+          "trimester2plus": "Leber/Vitamin A: in der gesamten Schwangerschaft sehr zurückhaltend (BfR: Verzicht auf Leber aller Tierarten wegen schwankend hoher Retinol-Werte)."
+        },
+        "en": {
+          "trimester1": "Liver/vitamin A: avoid in the first trimester (high retinol, teratogenic at high doses).",
+          "trimester2plus": "Liver/vitamin A: stay very cautious throughout pregnancy (BfR advises avoiding liver of all species due to inconsistently high retinol content)."
+        }
+      }
+    },
+    "milkSuppressingHerbs": {
+      "tokens": ["salbei", "sage", "pfefferminz", "peppermint"],
+      "largeAmountMarkers": [
+        "literweise", "abstill", "konzentrat", "tinktur", "extrakt",
+        "ätherisch", "essential oil", "hochdosiert", "salbeiöl", "pfefferminzöl"
+      ],
+      "messages": {
+        "de": {
+          "lactating": "Hinweis: Salbei/Pfefferminze in großen Mengen können theoretisch die Milchbildung dämpfen. Alltagsmengen sind unkritisch."
+        },
+        "en": {
+          "lactating": "Note: large amounts of sage/peppermint may theoretically lower milk supply. Everyday amounts are fine."
+        }
+      }
+    },
+    "algae": {
+      "tokens": [
+        "algen", "algae", "seaweed",
+        "nori", "wakame", "kombu", "kelp", "dulse", "arame", "hijiki",
+        "spirulina", "chlorella"
+      ],
+      "exclusions": ["kombucha"],
+      "messages": {
+        "de": {
+          "pregnant": "Algen/Algenprodukte: in der Schwangerschaft besser meiden. Jodgehalt schwankt stark und liegt oft über der Tagesobergrenze, dazu Arsen und andere Kontaminanten (DGE)."
+        },
+        "en": {
+          "pregnant": "Algae/seaweed products: better avoided in pregnancy. Iodine content varies wildly and often exceeds the daily upper limit, plus arsenic and other contaminants (DGE)."
+        }
+      }
+    },
+    "boarOffal": {
+      "tokens": [
+        "wildschweinleber", "wildschweinniere", "wildschweininnereien"
+      ],
+      "phrases": [
+        "wildschwein innereien", "wild boar liver", "wild boar offal"
+      ],
+      "messages": {
+        "de": {
+          "any": "Wildschwein-Innereien: in Schwangerschaft und Stillzeit meiden (BfR: hohe PFAS-, Dioxin- und PCB-Gehalte)."
+        },
+        "en": {
+          "any": "Wild boar offal: avoid in pregnancy and lactation (BfR: elevated PFAS, dioxin and PCB content)."
+        }
+      }
+    },
+    "quinine": {
+      "keywords": [
+        "tonic water", "tonic-water", "tonicwater",
+        "bitter lemon", "bitter-lemon", "bitterlemon",
+        "gin tonic", "gin-tonic", "gintonic",
+        "chinin", "quinine"
+      ],
+      "messages": {
+        "de": {
+          "pregnant": "Chininhaltige Getränke (Tonic Water, Bitter Lemon): in der Schwangerschaft meiden (BfR)."
+        },
+        "en": {
+          "pregnant": "Quinine-containing drinks (tonic water, bitter lemon): avoid in pregnancy (BfR)."
+        }
+      }
+    }
+  },
+  "inputTriggers": {
+    "_notes": "Symptom-based escalation keywords (Task #88.3). Pre-checked CLIENT-side before any Anthropic call: emergency → instant local emergency response, escalation → instant local handoff response, neither call hits the Worker. The Worker holds a synchronised JS-constant copy (see api/worker.js EMERGENCY_KEYWORDS / ESCALATION_KEYWORDS) and re-checks defensively so a tampered or stale client still cannot extract LLM advice for these inputs. Keywords are matched case-insensitive as substrings against the user message; keep them short and distinctive to avoid false positives.",
+    "emergency": {
+      "keywords": {
+        "de": [
+          "starke blutung", "blute stark", "stark am bluten",
+          "vorzeitige wehen", "frühzeitige wehen",
+          "kein kindsbewegen", "kindsbewegungen weg", "spürt kind nicht",
+          "ohnmächtig", "umgekippt", "kollaps",
+          "sehstörungen", "sehe doppelt", "verschwommen sehen", "schwarze punkte vor augen",
+          "starke kopfschmerzen mit sehstörungen", "preeklampsie", "präeklampsie",
+          "starke bauchschmerzen", "heftige bauchschmerzen",
+          "fruchtwasser geht ab", "blasensprung",
+          "atemnot", "bekomme keine luft", "brustschmerzen"
+        ],
+        "en": [
+          "heavy bleeding", "bleeding heavily", "lots of blood",
+          "strong bleeding", "severe bleeding", "much blood",
+          "preterm labour", "preterm labor", "early contractions",
+          "no baby movement", "baby not moving", "baby isn't moving", "baby is not moving",
+          "fainting", "passed out", "blacked out",
+          "blurred vision", "double vision", "spots in vision", "vision changes",
+          "severe headache with vision", "preeclampsia",
+          "severe abdominal pain", "intense abdominal pain",
+          "water broke", "amniotic fluid",
+          "shortness of breath", "can't breathe", "chest pain"
+        ]
+      },
+      "responses": {
+        "de": "Das klingt nach einem Notfall. Ruf bitte sofort die [112](tel:112) oder deine Klinik/Hebamme an. NourishMe ist nicht für Notfälle gedacht.",
+        "en": "This sounds like an emergency. Please call [112](tel:112) (EU emergency number) or your clinic/midwife immediately. NourishMe is not designed for emergencies."
+      }
+    },
+    "escalation": {
+      "keywords": {
+        "de": [
+          "medikament", "tablette einnehmen", "antibiotikum", "antibiotika",
+          "schwangerschaftsdiabetes", "gestationsdiabetes",
+          "bluthochdruck", "hypertonie",
+          "mastitis", "milchstau", "brustentzündung",
+          "wochenbettdepression", "postpartale depression", "postnatale depression",
+          "eisenmangel", "vitamin d mangel", "schilddrüsenproblem",
+          "diät machen", "abnehmen wollen",
+          "extreme erschöpfung", "chronisch müde"
+        ],
+        "en": [
+          "medication", "taking medicine", "antibiotic", "antibiotics",
+          "gestational diabetes", "type 2 diabetes",
+          "high blood pressure", "hypertension",
+          "mastitis", "blocked duct", "engorgement",
+          "postpartum depression", "postnatal depression",
+          "iron deficiency", "vitamin d deficiency", "thyroid issue",
+          "go on a diet", "want to lose weight",
+          "extreme exhaustion", "chronically tired"
+        ]
+      },
+      "responses": {
+        "de": "Das gehört zu deiner Hebamme oder Ärztin, nicht zu mir. Ich gebe nur allgemeine Ernährungs-Info und kann deine konkrete Situation nicht einschätzen. Bitte sprich das mit ihr durch.",
+        "en": "This is something for your midwife or doctor to discuss with you, not me. I give general nutrition info only and can't assess your specific situation. Please talk it through with them."
+      }
+    }
+  },
+  "topicDetectionPatterns": {
+    "alcohol": {
+      "containsAny": ["alkohol", "alcohol"],
+      "wordRegex": "\\bwein\\b|\\bwine\\b|\\bbier\\b|\\bbeer\\b|sekt|prosecco|champagn|cocktail|schnaps|whisk|spirits|\\brum\\b|\\bvodka\\b|\\bgin\\b|likör|liqueur"
+    },
+    "caffeine": {
+      "containsAny": ["koffein", "caffeine"]
+    },
+    "mercuryFish": {
+      "containsAny": ["quecksilber", "mercury"]
+    },
+    "liver": {
+      "containsAny": ["leber"],
+      "wordRegex": "\\bliver\\b"
+    },
+    "rawAnimal": {
+      "containsAny": [
+        "rohmilch", "raw milk", "rohes fleisch", "raw meat",
+        "roher fisch", "raw fish", "weichkäse", "listerien", "listeria"
+      ]
+    },
+    "algae": {
+      "containsAny": ["algen", "algae", "seetang", "seaweed"]
+    },
+    "quinine": {
+      "containsAny": ["chinin", "quinine", "tonic"]
+    },
+    "boarOffal": {
+      "containsAny": ["wildschwein", "wild boar"]
+    },
+    "milkSuppressingHerbs": {
+      "containsAny": ["salbei", "sage", "pfefferminz", "peppermint"]
+    }
+  }
+}

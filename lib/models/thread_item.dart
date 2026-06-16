@@ -1,3 +1,5 @@
+import 'coach_response_type.dart';
+
 enum ThreadItemType {
   meal,
   coachResponse,
@@ -11,6 +13,12 @@ class ThreadItem {
   final ThreadItemType type;
   final String? mealId;
   final String? text;
+  // Optional safety-layer classification (Task #88.5). Drives bubble
+  // styling: emergency = red-ish + clinic-call affordance, escalation
+  // = orange + "talk to midwife" framing, blocked = grey + fallback
+  // message. Null/normal renders as a regular coach bubble. Legacy
+  // entries (pre-#93) carry null and read as normal.
+  final CoachResponseType? responseType;
 
   const ThreadItem({
     required this.id,
@@ -18,6 +26,7 @@ class ThreadItem {
     required this.type,
     this.mealId,
     this.text,
+    this.responseType,
   });
 
   factory ThreadItem.meal({required String mealId, required DateTime at}) =>
@@ -32,6 +41,7 @@ class ThreadItem {
     String? mealId,
     required String text,
     required DateTime at,
+    CoachResponseType responseType = CoachResponseType.normal,
   }) =>
       ThreadItem(
         id: 'cr-${at.microsecondsSinceEpoch}',
@@ -39,6 +49,7 @@ class ThreadItem {
         type: ThreadItemType.coachResponse,
         mealId: mealId,
         text: text,
+        responseType: responseType,
       );
 
   factory ThreadItem.userQuestion({required String text, required DateTime at}) =>
@@ -49,12 +60,17 @@ class ThreadItem {
         text: text,
       );
 
-  factory ThreadItem.coachAnswer({required String text, required DateTime at}) =>
+  factory ThreadItem.coachAnswer({
+    required String text,
+    required DateTime at,
+    CoachResponseType responseType = CoachResponseType.normal,
+  }) =>
       ThreadItem(
         id: 'ca-${at.microsecondsSinceEpoch}',
         timestamp: at,
         type: ThreadItemType.coachAnswer,
         text: text,
+        responseType: responseType,
       );
 
   Map<String, dynamic> toJson() => {
@@ -63,6 +79,8 @@ class ThreadItem {
         'type': type.name,
         if (mealId != null) 'mealId': mealId,
         if (text != null) 'text': text,
+        if (responseType != null && responseType != CoachResponseType.normal)
+          'responseType': responseType!.wire,
       };
 
   factory ThreadItem.fromJson(Map<String, dynamic> j) => ThreadItem(
@@ -71,5 +89,8 @@ class ThreadItem {
         type: ThreadItemType.values.firstWhere((t) => t.name == j['type']),
         mealId: j['mealId'] as String?,
         text: j['text'] as String?,
+        responseType: j['responseType'] is String
+            ? CoachResponseType.fromWire(j['responseType'] as String)
+            : null,
       );
 }

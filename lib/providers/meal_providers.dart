@@ -104,6 +104,11 @@ final claudeClientProvider = Provider<ClaudeClient>((ref) {
   final settings = ref.read(settingsRepositoryProvider);
   return ClaudeClient(
     healthDataConsentAtResolver: settings.getHealthDataConsentAt,
+    // Same anonymous install-id the analytics service uses (#9). The
+    // Worker pseudonymises it with APP_SECRET before logging - the raw
+    // id never leaves the device's network surface beyond the headers,
+    // and is never persisted in any audit log line.
+    installIdResolver: settings.getOrCreateAnalyticsId,
   );
 });
 
@@ -223,6 +228,39 @@ final pendingScanBundleProvider =
 // brand of skyr, a specific cereal). Surfacing those as one-tap chips skips
 // a parseMeal call and keeps brand-accurate macros instead of a generic
 // estimate.
+// Recent meals from the user's last 30 days within +/- 2h of the current
+// wall-clock time. Used as a parseMeal hint when the input is photo-only
+// (no typed text to substring-match against), so the parser gets a
+// "this user often eats X at this time of day" vocabulary. Helps with
+// the Pflaumen-vs-Heidelbeeren color-ambiguity class of vision errors:
+// if the user has logged Heidelbeeren+Joghurt 20 mornings in a row,
+// the parser should not flip to Pflaumen+Sahne on the 21st.
+//
+// Returns up to 5 distinct summaries, most-recent occurrence wins per
+// summary. Empty if no history yet.
+final mealHistoryByTimeOfDayProvider = Provider<List<MealEntry>>((ref) {
+  final all = ref.watch(mealsProvider).valueOrNull ?? const [];
+  if (all.isEmpty) return const [];
+  final now = DateTime.now();
+  final cutoff = now.subtract(const Duration(days: 30));
+  final currentHour = now.hour;
+  final matches = <MealEntry>[];
+  final seen = <String>{};
+  for (final m in all) {
+    if (m.createdAt.isBefore(cutoff)) continue;
+    // Wrap-around aware window: 23:00 logged meal is relevant to a 01:00
+    // photo, and vice versa.
+    final hourDelta = (m.createdAt.hour - currentHour).abs();
+    final delta = hourDelta > 12 ? 24 - hourDelta : hourDelta;
+    if (delta > 2) continue;
+    final key = m.summary.toLowerCase();
+    if (!seen.add(key)) continue;
+    matches.add(m);
+    if (matches.length >= 5) break;
+  }
+  return matches;
+});
+
 final mealHistorySuggestionsProvider =
     Provider.family<List<MealEntry>, String>((ref, query) {
   final trimmed = query.trim();
