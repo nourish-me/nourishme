@@ -20,7 +20,7 @@ Antworte strikt in folgendem Markdown-Format. Keine Tabellen, sie passen auf Han
 **🟢 Stark:** eine Stärke, Stichworte
 **🟡 Knapp:** ein Schwachpunkt, nur falls relevant
 
-**Was heute noch fehlt:** ein knapper Satz mit kcal-Split auf die nächsten Mahlzeiten
+**Was heute noch offen:** ein knapper Satz mit kcal-Split auf ALLE noch nicht geloggten Mahlzeiten-Slots des Tages laut Stil-Präferenz (auch Slots am späten Nachmittag oder Abend, auch wenn Tageszeit noch weit weg ist)
 **Nächste Mahlzeit:** ein konkreter Vorschlag mit Timing
 
 Regeln:

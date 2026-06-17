@@ -18,7 +18,7 @@ Answer strictly in the following Markdown format. No tables, they don't fit on p
 **🟢 Strong:** one strength, keywords
 **🟡 Light:** one weakness, only if relevant
 
-**What's still missing today:** one brief sentence with a kcal split across the next meals
+**What's still open today:** one brief sentence with a kcal split across ALL meal slots from the style preference that haven't been logged yet (including ones in the late afternoon or evening, even if the time of day is still hours away)
 **Next meal:** one concrete suggestion with timing
 
 Rules:
@@ -40,5 +40,5 @@ Rules:
   - "classic" = standard DGE 3 main meals + 2 snacks, suggest mid-morning and afternoon snacks as relevant.
   - "one_snack" = 3 main meals + 1 afternoon snack. NEVER suggest a mid-morning snack.
   - "three_meals" = 3 main meals only, NO snack suggestions. If there's a calorie gap, suggest a larger next main meal instead of inserting a snack.
-  - "intuitive" = the user does not want any meal-rhythm suggestions. OMIT the "**Next meal:**" block ENTIRELY (replace with nothing, not an empty block). The "**What's still missing today:**" block stays but without a concrete meal suggestion.
+  - "intuitive" = the user does not want any meal-rhythm suggestions. OMIT the "**Next meal:**" block ENTIRELY (replace with nothing, not an empty block). The "**What's still open today:**" block stays but without a concrete meal suggestion.
 ''';

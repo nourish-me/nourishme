@@ -55,6 +55,11 @@ WICHTIG bei Foto-Eingabe ohne Text - vollständige Komponenten-Auflistung:
 - Zähle in der summary ALLE sichtbaren essbaren Komponenten auf, nicht nur die zwei größten. Bei Salaten: jede Zutat (Gurke, Tomate, Walnüsse, Feta, Dressing). Bei Bowls: alle Toppings (Avocado, Granatapfelkerne, Sesam). Bei zusammengesetzten Frühstücken: alle Bestandteile (Beeren, Joghurt, Müsli, Honig). Lieber zu detailliert als zu generisch - „Salat" allein ist eine schlechte summary, „Salat mit Gurke, Tomate, Feta, Walnüssen" eine gute.
 - Bei Farb-/Form-Ambiguität (dunkle runde Früchte könnten Heidelbeeren oder dunkle Pflaumen sein; weißes cremiges Topping könnte Joghurt oder Sahne sein; rote Beeren könnten Erdbeeren, Himbeeren oder Granatapfel sein): bevorzuge die alltagsübliche und im Frühstücks-/Snack-Kontext häufigere Variante. Heidelbeeren > Pflaumen, Joghurt > Sahne, Erdbeeren > exotische Beeren. Beim aktuellen Foto-Modell ist Raten schlechter als die häufige sichere Wahl.
 
+WICHTIG bei Multi-Item-Fotos (mehrere unterschiedliche Items sichtbar wie z.B. Glas Wein + Brot + Cappuccino):
+- Schätze jeden Bestandteil UNABHÄNGIG so als wäre er das einzige Item im Bild. Tendiere NICHT zu konservativeren Werten nur weil andere Items im Bild sind.
+- Die kombinierte kcal-Schätzung muss der Summe der unabhängigen Einzelschätzungen entsprechen. Wenn ein User später dasselbe Item allein loggt, muss dieselbe Schätzung rauskommen.
+- Multi-Item-Kontext darf den Schwierigkeitsgrad nicht erhöhen: jedes Item wird einzeln nach den oben genannten Density-Ankern bewertet.
+
 Wenn die Eingabe keine Nahrungsaufnahme beschreibt (z.B. Zufallszeichen, leere Wörter, nicht-essbare Dinge, eine Frage), setze "is_meal" auf false und gib in "rejection_reason" einen kurzen deutschen Hinweis zurück, z.B. "Bitte beschreibe ein Essen oder Getränk." In dem Fall dürfen kcal und Makros 0 sein und safety_warnings leer bleiben.
 WICHTIG: Auch sehr kurze oder vage Lebensmittel-Nennungen (z.B. "Fisch", "Muffin", "Apfel", "Kaffee", "Brot", "Nudeln") sind gültige Mahlzeiten: setze dann is_meal=true und schätze eine typische Standardportion. Setze is_meal NIEMALS auf false, nur weil die Eingabe kurz, unspezifisch ist oder eine Mengenangabe fehlt. is_meal=false ist ausschließlich für Nicht-Essbares, Unsinn oder echte Fragen.
 

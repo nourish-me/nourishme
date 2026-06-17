@@ -50,6 +50,11 @@ IMPORTANT for photo-only input (no text) - complete component listing:
 - Enumerate ALL visible edible components in the summary, not just the two largest. For salads: every ingredient (cucumber, tomato, walnuts, feta, dressing). For bowls: all toppings (avocado, pomegranate seeds, sesame). For composite breakfasts: all parts (berries, yoghurt, granola, honey). Better too detailed than too generic - "salad" alone is a poor summary, "salad with cucumber, tomato, feta, walnuts" is good.
 - For color/shape ambiguity (dark round fruits could be blueberries or dark plums; white creamy topping could be yoghurt or cream; red berries could be strawberries, raspberries or pomegranate): prefer the everyday and breakfast/snack-common variant. Blueberries > plums, yoghurt > cream, strawberries > exotic berries. With the current vision model, guessing is worse than the common safe pick.
 
+IMPORTANT for multi-item photos (multiple distinct items visible, e.g. glass of wine + bread + cappuccino):
+- Estimate each component INDEPENDENTLY as if it were the only item in the picture. Do NOT tend to more conservative values just because other items are also in the picture.
+- The combined kcal estimate must equal the sum of the independent per-item estimates. If a user later logs the same item alone, the estimate must come out the same.
+- Multi-item context must not increase the difficulty: every item is evaluated individually against the density anchors above.
+
 If the input doesn't describe food intake (e.g. random characters, empty words, non-edible things, a question), set "is_meal" to false and return a short English hint in "rejection_reason", e.g. "Please describe a food or drink." In that case kcal and macros may be 0 and safety_warnings empty.
 IMPORTANT: Even very short or vague food names (e.g. "fish", "muffin", "apple", "coffee", "bread", "pasta") are valid meals: set is_meal=true and estimate a typical standard portion. NEVER set is_meal=false just because the input is short, unspecific or lacks an amount. is_meal=false is only for non-edible things, nonsense, or genuine questions.
 
