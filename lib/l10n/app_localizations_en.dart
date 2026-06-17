@@ -264,6 +264,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmSafetyHeader => 'Please note';
 
   @override
+  String trendsMicronutrientSheetSourcesMore(int count) {
+    return 'Show $count more';
+  }
+
+  @override
+  String get confirmUnsupportedNutrientHeader =>
+      'Also detected, not in your daily target yet';
+
+  @override
+  String confirmUnsupportedNutrientHint(String nutrients) {
+    return 'The model also picked up $nutrients here. NourishMe doesn\'t track these nutrients in your daily target yet, the value is informational only.';
+  }
+
+  @override
   String get confirmCoachErrorFallback =>
       'Couldn\'t get a coach reply. Try again later.';
 
@@ -272,6 +286,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonCancel => 'Cancel';
+
+  @override
+  String get commonUndo => 'Undo';
 
   @override
   String get commonDelete => 'Delete';
@@ -1593,7 +1610,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSupplementMissingHint =>
-      'You haven\'t added a supplement yet. In this phase folate, iodine, DHA, B12, iron and vitamin D are often hard to cover through food alone, a supplement covers them reliably.';
+      'You haven\'t added a supplement yet. In this phase folate, iodine, DHA, B12, iron and vitamin D are often hard to cover through food alone, a supplement covers them reliably. When you add one, it counts toward your daily totals and the coach factors it in.';
 
   @override
   String get supplementAddCta => 'Photograph nutrition table';
@@ -1622,6 +1639,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get supplementFieldDoses => 'Doses per day';
+
+  @override
+  String get supplementFieldCapsulesPerServing => 'Capsules per serving';
 
   @override
   String get supplementSave => 'Save';

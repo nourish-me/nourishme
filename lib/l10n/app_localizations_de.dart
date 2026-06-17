@@ -266,6 +266,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get confirmSafetyHeader => 'Bitte beachte';
 
   @override
+  String trendsMicronutrientSheetSourcesMore(int count) {
+    return '+$count weitere anzeigen';
+  }
+
+  @override
+  String get confirmUnsupportedNutrientHeader =>
+      'Auch erkannt, noch nicht im Tagesziel';
+
+  @override
+  String confirmUnsupportedNutrientHint(String nutrients) {
+    return 'Das Modell hat hier auch $nutrients erfasst. NourishMe verfolgt diese Nährstoffe heute noch nicht im Tagesziel, der Wert ist nur informativ.';
+  }
+
+  @override
   String get confirmCoachErrorFallback =>
       'Coach-Antwort konnte nicht erstellt werden. Probier es später nochmal.';
 
@@ -274,6 +288,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get commonCancel => 'Abbrechen';
+
+  @override
+  String get commonUndo => 'Rückgängig';
 
   @override
   String get commonDelete => 'Löschen';
@@ -1602,7 +1619,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsSupplementMissingHint =>
-      'Du hast noch kein Supplement eingetragen. In dieser Phase sind Folsäure, Jod, DHA, B12, Eisen und Vitamin D oft kritisch, ein Supplement deckt sie verlässlich ab.';
+      'Du hast noch kein Supplement eingetragen. In dieser Phase sind Folsäure, Jod, DHA, B12, Eisen und Vitamin D oft kritisch, ein Supplement deckt sie verlässlich ab. Wenn du eins einträgst, zählt es jeden Tag in deine Versorgung und der Coach rechnet damit.';
 
   @override
   String get supplementAddCta => 'Nährwerttabelle fotografieren';
@@ -1631,6 +1648,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get supplementFieldDoses => 'Dosen pro Tag';
+
+  @override
+  String get supplementFieldCapsulesPerServing => 'Kapseln pro Portion';
 
   @override
   String get supplementSave => 'Speichern';

@@ -13,6 +13,7 @@ import '../models/thread_item.dart';
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
 import '../services/claude_client.dart';
+import '../services/safety_rules.dart';
 import '../utils/important_snack.dart';
 import '../services/coach_session_manager.dart';
 import '../services/notification_scheduler.dart';
@@ -102,6 +103,15 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   // the alias for _origPortion; _currentAlias is what we display/save now.
   late String? _origAlias;
   String? _currentAlias;
+  // Mutable copy of the parsed safety warnings. _reparseFromSummary
+  // overwrites this with the freshly parsed list - otherwise a stale
+  // alcohol warning persists when the user edits the description from
+  // "Glas Wein und Brot" to "Kaffee und Brot" (Build +34 tester report).
+  late List<String> _currentSafetyWarnings;
+  // Mirror for the parsed micronutrients map (re-parse must replace the
+  // stale numbers too, otherwise the "Auch erkannt" hint card and the
+  // persisted MealEntry.micronutrients keep the old reading).
+  Map<String, double>? _currentMicronutrients;
   bool _scaling = false;
   bool _saveAsFavorite = false;
   // When this meal is logged. Defaults to the existing time (edit / past-day)
@@ -124,6 +134,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     _origSummary = widget.parsed.summary;
     _origAlias = widget.parsed.portionAlias;
     _currentAlias = _origAlias;
+    _currentSafetyWarnings = List<String>.from(widget.parsed.safetyWarnings);
+    _currentMicronutrients = widget.parsed.micronutrients == null
+        ? null
+        : Map<String, double>.from(widget.parsed.micronutrients!);
     // Default date+time: edits keep the meal's original timestamp.
     // Fresh saves anchor to the day the user is CURRENTLY viewing in
     // the diary - that's what they expect when they tap "log" on a
@@ -215,6 +229,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         _origSummary = parsed.summary;
         _origAlias = parsed.portionAlias;
         _currentAlias = parsed.portionAlias;
+        // Build +34 fix: also replace warnings + micros so a stale
+        // alcohol/quecksilber warning from the previous parse doesn't
+        // ride along with a now-harmless description.
+        _currentSafetyWarnings = List<String>.from(parsed.safetyWarnings);
+        _currentMicronutrients = parsed.micronutrients == null
+            ? null
+            : Map<String, double>.from(parsed.micronutrients!);
         _summary.text = parsed.summary;
         _kcal.text = parsed.kcal.toString();
         _protein.text = parsed.proteinG.toStringAsFixed(1);
@@ -334,8 +355,8 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           portionAmount: portion,
           portionUnit: widget.parsed.portionUnit,
           portionAlias: _currentAlias,
-          safetyWarnings: widget.parsed.safetyWarnings,
-          micronutrients: widget.parsed.micronutrients,
+          safetyWarnings: _currentSafetyWarnings,
+          micronutrients: _currentMicronutrients,
         ),
         mealTime: _mealTime,
       );
@@ -363,12 +384,12 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       portionAmount: portion,
       portionUnit: widget.parsed.portionUnit,
       portionAlias: _currentAlias,
-      safetyWarnings: widget.parsed.safetyWarnings,
+      safetyWarnings: _currentSafetyWarnings,
       // Carry the parser's per-meal micronutrient estimates through to
       // storage. The daily-aggregation provider sums these across the
       // day's meals; absent on legacy entries or meals where the parser
       // judged all nutrients negligible.
-      micronutrients: widget.parsed.micronutrients,
+      micronutrients: _currentMicronutrients,
     );
     await ref.read(mealRepositoryProvider).save(meal);
     final analytics = ref.read(analyticsServiceProvider);
@@ -415,8 +436,8 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         fatG: fatG,
         portionAmount: portion,
         portionUnit: widget.parsed.portionUnit,
-        safetyWarnings: widget.parsed.safetyWarnings,
-        micronutrients: widget.parsed.micronutrients,
+        safetyWarnings: _currentSafetyWarnings,
+        micronutrients: _currentMicronutrients,
       );
       await ref.read(favoriteRepositoryProvider).save(favorite);
     }
@@ -663,7 +684,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   }
 
   Widget _buildBody(BuildContext context) {
-    final warnings = widget.parsed.safetyWarnings;
+    final warnings = _currentSafetyWarnings;
     final portionUnit = widget.parsed.portionUnit;
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -874,48 +895,74 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         ],
         if (warnings.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: scheme.tertiaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.warning_amber,
-                        size: 18, color: scheme.onTertiaryContainer),
-                    const SizedBox(width: 6),
-                    Text(
-                      AppLocalizations.of(context).confirmSafetyHeader,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: scheme.onTertiaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ...warnings.map(
-                  (w) => Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      '• $w',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: scheme.onTertiaryContainer,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _SafetyWarningsBlock(warnings: warnings),
         ],
+        // Task B9, Build +34: when the parser surfaces nutrients we don't
+        // currently track (magnesium, selenium, ...), tell the user that
+        // it WAS detected but isn't part of the daily target yet. The
+        // alternative was silent drop, which made the model look careless
+        // ("how did it miss the magnesium tablet I logged?").
+        Builder(builder: (context) {
+          final unsupported =
+              _unsupportedNutrientLabels(_currentMicronutrients, l10n);
+          if (unsupported.isEmpty) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: _UnsupportedNutrientNote(labels: unsupported),
+          );
+        }),
         const SizedBox(height: 16),
       ],
     );
+  }
+
+  // Returns the user-visible labels (German or English depending on the
+  // current l10n) for nutrient keys the parser sent through but which
+  // [MicronutrientKey.all] does not yet track. The keys arrive already
+  // canonicalized (see MealParseResult.canonicalNutrientKey), so D3 /
+  // cholecalciferol have been merged into vitamin_d_ug before we get here
+  // and won't show up as "unsupported".
+  List<String> _unsupportedNutrientLabels(
+      Map<String, double>? micros, AppLocalizations l10n) {
+    if (micros == null || micros.isEmpty) return const [];
+    final supported = MicronutrientKey.all.toSet();
+    final extras = <String>[];
+    for (final entry in micros.entries) {
+      if (supported.contains(entry.key)) continue;
+      // Belt + braces against the protein-leak bug a tester hit: macro
+      // keys MIGHT still appear in older persisted entries (or future
+      // model drift) - they're tracked above as kcal/macros, never as
+      // "also detected". Drop them here too.
+      if (_macroLeakKeys.contains(entry.key)) continue;
+      extras.add(_prettifyNutrientKey(entry.key));
+    }
+    return extras;
+  }
+
+  static const Set<String> _macroLeakKeys = {
+    'protein_g',
+    'carbs_g',
+    'carbohydrates_g',
+    'fat_g',
+    'kcal',
+    'kcal_total',
+    'energy_kcal',
+  };
+
+  // Best-effort human label for an unknown nutrient key. The supplement
+  // and meal prompts both use lower_snake_case + a trailing unit suffix
+  // (e.g. magnesium_mg, selenium_ug, vitamin_c_mg), so we split off the
+  // unit and Title-Case the rest. Falls back to the raw key on anything
+  // weirder so we never hide what we got.
+  String _prettifyNutrientKey(String key) {
+    final stripped = key.replaceAll(
+        RegExp(r'_(ug|mg|g|mcg|µg|kcal|kj|ml|l)$', caseSensitive: false), '');
+    if (stripped.isEmpty) return key;
+    return stripped
+        .split('_')
+        .where((part) => part.isNotEmpty)
+        .map((part) => part[0].toUpperCase() + part.substring(1))
+        .join(' ');
   }
 
   Widget _buildActionRow() {
@@ -932,32 +979,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   // one. Whatever the user picks gets passed back as the sheet's pop
   // value so the parent loop can branch accordingly.
   Future<void> _showAddAnotherChooser() async {
-    final l10n = AppLocalizations.of(context);
-    final chosen = await showModalBottomSheet<String>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.qr_code_scanner),
-              title: Text(l10n.confirmAddByBarcode),
-              onTap: () => Navigator.pop(sheetContext, 'barcode'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: Text(l10n.confirmAddByPhoto),
-              onTap: () => Navigator.pop(sheetContext, 'photo'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: Text(l10n.confirmAddByText),
-              onTap: () => Navigator.pop(sheetContext, 'text'),
-            ),
-          ],
-        ),
-      ),
-    );
+    final chosen = await showScanModeChooser(context);
     if (chosen == null || !mounted) return;
     // Save current meal into the pending bundle (no coach call yet) and
     // signal the parent loop which entry path to take next.
@@ -1327,6 +1349,150 @@ class _DateTimePill extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Picks the next scan-session mode (barcode / photo / text). Shared by
+// ConfirmScreen's "Add another" affordance and by the scan-session loop
+// when the user backs out of a sub-scanner mid-session (Task A5,
+// Build +34) - re-showing the chooser lets them switch entry mode
+// instead of dropping the whole session.
+Future<String?> showScanModeChooser(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
+  return showModalBottomSheet<String>(
+    context: context,
+    builder: (sheetContext) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.qr_code_scanner),
+            title: Text(l10n.confirmAddByBarcode),
+            onTap: () => Navigator.pop(sheetContext, 'barcode'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: Text(l10n.confirmAddByPhoto),
+            onTap: () => Navigator.pop(sheetContext, 'photo'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: Text(l10n.confirmAddByText),
+            onTap: () => Navigator.pop(sheetContext, 'text'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Informational card listing nutrients the parser identified but which
+// the app's daily tracking does not cover yet (Task B9). Visually softer
+// than the safety block (primaryContainer + info icon) so it reads as a
+// transparency note, not a warning.
+class _UnsupportedNutrientNote extends StatelessWidget {
+  final List<String> labels;
+  const _UnsupportedNutrientNote({required this.labels});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final joined = labels.join(', ');
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.40),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline,
+                  size: 18, color: scheme.onPrimaryContainer),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  l10n.confirmUnsupportedNutrientHeader,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: scheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.confirmUnsupportedNutrientHint(joined),
+            style: textTheme.bodySmall?.copyWith(
+              color: scheme.onPrimaryContainer,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Renders the per-meal safety warnings card with a severity-aware tier:
+// any `critical` warning (alcohol today) flips the whole block to the
+// error tone with the filled `error` icon so the user can't read past it.
+// Default `warn` keeps the long-standing soft tertiary card. Pulled out
+// of the build method so the visual contract is explicit and testable.
+class _SafetyWarningsBlock extends StatelessWidget {
+  final List<String> warnings;
+  const _SafetyWarningsBlock({required this.warnings});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final highest = SafetyRules.highestSeverity(warnings);
+    final isCritical = highest == SafetyWarningSeverity.critical;
+    final bg = isCritical ? scheme.errorContainer : scheme.tertiaryContainer;
+    final fg =
+        isCritical ? scheme.onErrorContainer : scheme.onTertiaryContainer;
+    final icon = isCritical ? Icons.error : Icons.warning_amber;
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: fg),
+              const SizedBox(width: 6),
+              Text(
+                AppLocalizations.of(context).confirmSafetyHeader,
+                style: textTheme.labelLarge?.copyWith(
+                  color: fg,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ...warnings.map(
+            (w) => Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                '• $w',
+                style: textTheme.bodySmall?.copyWith(color: fg),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

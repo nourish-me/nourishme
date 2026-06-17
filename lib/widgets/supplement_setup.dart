@@ -95,6 +95,28 @@ Future<ActiveSupplement?> runSupplementSetup(
   // still type the values in manually instead of being kicked back with a
   // snackbar. Surface the error inline above the form so they know the
   // photo didn't help, then let them fill in what they know.
+  //
+  // Tester report (Build +34): a successful API call that returned
+  // empty data (blurry photo, label unreadable) used to open the sheet
+  // silently with blank fields, leaving the user wondering whether the
+  // parse worked. Treat "no name AND no values" as parseError too, so
+  // the inline hint surfaces and the user knows to retake the photo or
+  // type manually.
+  // Trigger the hint whenever the parse came back without ANY nutrient
+  // values - even if the model guessed a product name. The values are
+  // the actionable part; an extracted name with zero nutrients is the
+  // same dead-end UX as a blank sheet (tester report Build +34: model
+  // returned "Premium Nutrition Selene" with empty values, user saw
+  // blank fields and no clue what went wrong).
+  final isEmptyParse = parsed != null && parsed.values.isEmpty;
+  final isDe = Localizations.localeOf(context).languageCode
+      .toLowerCase()
+      .startsWith('de');
+  if (isEmptyParse) {
+    errorMessage = isDe
+        ? 'Aus dem Foto konnten wir nichts auslesen. Ein neues Foto mit besserer Beleuchtung hilft, oder trag die Werte unten von Hand ein.'
+        : "We couldn't read anything off this photo. A clearer photo with better light usually helps, or type the values below by hand.";
+  }
   return await showModalBottomSheet<ActiveSupplement>(
     context: context,
     isScrollControlled: true,
@@ -103,7 +125,7 @@ Future<ActiveSupplement?> runSupplementSetup(
     builder: (sheetCtx) => _ReviewSheet(
       parsed: parsed ??
           const SupplementParseResult(name: '', values: {}, dosesPerDay: 1),
-      parseError: parsed == null ? errorMessage : null,
+      parseError: (parsed == null || isEmptyParse) ? errorMessage : null,
     ),
   );
 }
@@ -123,6 +145,7 @@ Future<ActiveSupplement?> showSupplementEditSheet(
     name: current.name,
     values: Map<String, double>.from(current.values),
     dosesPerDay: current.dosesPerDay,
+    servingSizeCapsules: current.servingSizeCapsules,
   );
   return showModalBottomSheet<ActiveSupplement>(
     context: context,
@@ -179,6 +202,7 @@ class _ReviewSheet extends StatefulWidget {
 class _ReviewSheetState extends State<_ReviewSheet> {
   late final TextEditingController _name;
   late int _dosesPerDay;
+  late int _servingSizeCapsules;
   // Per-key text controllers for the parsed values. We mutate via parseDouble
   // back to the map on save.
   late final Map<String, TextEditingController> _valueControllers;
@@ -188,6 +212,7 @@ class _ReviewSheetState extends State<_ReviewSheet> {
     super.initState();
     _name = TextEditingController(text: widget.parsed.name);
     _dosesPerDay = widget.parsed.dosesPerDay.clamp(1, 9);
+    _servingSizeCapsules = widget.parsed.servingSizeCapsules.clamp(1, 9);
     // Show ALL nine canonical nutrient slots, pre-filled with whatever
     // Vision parsed and otherwise blank. Lets the user manually type any
     // value the Vision pass missed (or all of them, if the parse failed).
@@ -226,6 +251,7 @@ class _ReviewSheetState extends State<_ReviewSheet> {
       name: _name.text.trim().isEmpty ? '?' : _name.text.trim(),
       values: values,
       dosesPerDay: _dosesPerDay,
+      servingSizeCapsules: _servingSizeCapsules,
       addedAt: DateTime.now(),
     ));
   }
@@ -313,6 +339,44 @@ class _ReviewSheetState extends State<_ReviewSheet> {
                       : null,
                 ),
               ],
+            ),
+            // Task A6, Build +34: a second stepper captures how many
+            // capsules/tablets make up ONE serving. The label sometimes
+            // reads "Tagesportion = 2 Kapseln"; until now we silently
+            // assumed 1 capsule = 1 serving which made the per-day
+            // totals confusing once the user counted capsules by hand.
+            Row(
+              children: [
+                Expanded(child: Text(l10n.supplementFieldCapsulesPerServing)),
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: _servingSizeCapsules > 1
+                      ? () => setState(() => _servingSizeCapsules--)
+                      : null,
+                ),
+                Text('$_servingSizeCapsules'),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: _servingSizeCapsules < 9
+                      ? () => setState(() => _servingSizeCapsules++)
+                      : null,
+                ),
+              ],
+            ),
+            // Task A6 + capsule-math fix, Build +34: small validation line
+            // so the user can sanity-check the steppers against the label
+            // ("Verzehrempfehlung: 2x täglich 2 Kapseln" should land on
+            // "2 × 2 = 4 Kapseln pro Tag"). Catches both an off-by-one
+            // in serving_size_capsules AND the model leaking daily-total
+            // values into the per-serving "values" field.
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 4),
+              child: Text(
+                locale.toLowerCase().startsWith('de')
+                    ? 'Tagesgesamt: $_dosesPerDay × $_servingSizeCapsules = ${_dosesPerDay * _servingSizeCapsules} Kapseln/Tag'
+                    : 'Daily total: $_dosesPerDay × $_servingSizeCapsules = ${_dosesPerDay * _servingSizeCapsules} capsules/day',
+                style: textTheme.bodySmall?.copyWith(color: scheme.outline),
+              ),
             ),
             const Divider(height: 24),
             for (final entry in _valueControllers.entries)

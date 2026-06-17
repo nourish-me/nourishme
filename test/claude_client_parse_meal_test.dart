@@ -138,6 +138,24 @@ void main() {
       );
       expect(r.micronutrients, isNull);
     });
+
+    test('Vitamin D variants alias onto vitamin_d_ug', () {
+      // Femibion 2 lists "Vitamin D3 1.5 µg" - that used to land as a
+      // ghost key (vitamin_d3_ug) and never count toward the daily total.
+      final r = MealParseResult.fromModelText(
+        '{"summary": "x", '
+        '"micronutrients": {"vitamin_d3_ug": 1.5, "cholecalciferol_ug": 2}}',
+      );
+      expect(r.micronutrients, {'vitamin_d_ug': 3.5});
+    });
+
+    test('canonical key + alias on the same payload sum together', () {
+      final r = MealParseResult.fromModelText(
+        '{"summary": "x", '
+        '"micronutrients": {"vitamin_d_ug": 5, "vitamin_d3_ug": 1}}',
+      );
+      expect(r.micronutrients, {'vitamin_d_ug': 6.0});
+    });
   });
 
   group('copyWith', () {

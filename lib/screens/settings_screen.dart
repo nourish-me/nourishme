@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -41,6 +42,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late DateTime _birthdate;
   late final TextEditingController _height;
   late final TextEditingController _weight;
+  // Focus-aware text-field bookkeeping (Build +34 fix to the auto-save
+  // Undo bug Vanessa flagged): per-controller FocusNode + the value that
+  // was in the field at the moment focus was acquired. We snapshot the
+  // pre-edit profile WHEN focus arrives and persist WHEN focus leaves -
+  // so the Undo action reverts to the user's pre-typing value instead of
+  // mid-typing intermediates (the old behaviour treated each keystroke as
+  // its own save batch, so typing "62" on top of "60" used to make Undo
+  // jump to "6" not back to "60").
+  late final FocusNode _heightFocus;
+  late final FocusNode _weightFocus;
+  late final FocusNode _notesFocus;
   // Macro split as percentages. 0 = follow auto-default, otherwise overridden.
   late int _customProteinPct;
   late int _customFatPct;
@@ -83,7 +95,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   List<String>? _selectedMicros;
   bool _initialized = false;
   String? _initialProfileJson;
-  bool _justSaved = false;
+  // Task A11, Build +34: settings auto-save with debounce + Undo snack.
+  // The timer batches consecutive mutations (slider drags, typing) into
+  // one save. The snapshot is the profile state BEFORE the first mutation
+  // in a batch, so the Undo action reverts the whole batch in one tap.
+  Timer? _autoSaveTimer;
+  UserProfileSettings? _pendingUndoSnapshot;
+  static const _autoSaveDebounce = Duration(milliseconds: 700);
   // Override for the next weight-history entry's recordedAt. Null = use
   // DateTime.now() on save. Set when the user taps the "Gewogen am"
   // pill that appears under the weight field after they actually change
@@ -110,9 +128,158 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _height.dispose();
       _weight.dispose();
       _dietaryNotes.dispose();
+      _heightFocus.dispose();
+      _weightFocus.dispose();
+      _notesFocus.dispose();
     }
     _stateVersion.dispose();
+    // Flush pending auto-save synchronously: the timer would fire after
+    // the widget tree is gone, so we drop it. The on-screen state was
+    // already mirrored locally; the next time the user opens Settings
+    // it rehydrates from the persisted profile, so we don't lose the
+    // most recent edit unless dispose happens within 700ms of a mutation.
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
     super.dispose();
+  }
+
+  // Reconstructs the profile that was last persisted (mirrors what's on
+  // disk + in userProfileProvider). Used as the Undo snapshot so we can
+  // revert the user back to the last known good state regardless of how
+  // many UI mutations or text-controller listener firings have happened
+  // since.
+  UserProfileSettings _lastPersistedSnapshot() {
+    final raw = _initialProfileJson;
+    if (raw == null) return _currentProfile();
+    return UserProfileSettings.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  // Wraps a state mutation with auto-save bookkeeping. Captures the
+  // pre-change profile snapshot (only on the FIRST mutation of a batch
+  // so multi-field undos still revert to the user's original state),
+  // applies the change, and schedules a debounced save.
+  void _mutate(VoidCallback fn) {
+    _pendingUndoSnapshot ??= _lastPersistedSnapshot();
+    setState(fn);
+    _scheduleAutoSave();
+  }
+
+  // Restarts the debounce timer. Consecutive _mutate calls within 700ms
+  // collapse into a single persist + snackbar.
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer(_autoSaveDebounce, _runAutoSave);
+  }
+
+  // Persists the current profile and shows a single Undo snackbar with
+  // the pre-batch snapshot. Tapping Undo restores that snapshot (state +
+  // repo) and silently writes it back; the snackbar shown for that revert
+  // has no Undo (you "undo" the undo by editing again).
+  Future<void> _runAutoSave() async {
+    _autoSaveTimer = null;
+    if (!mounted) return;
+    final snapshot = _pendingUndoSnapshot;
+    _pendingUndoSnapshot = null;
+    if (snapshot == null) return;
+    final newProfile = _currentProfile();
+    if (jsonEncode(newProfile.toJson()) == jsonEncode(snapshot.toJson())) {
+      // No effective change (e.g. text field reformatted, identical
+      // value re-picked). Skip the noise of an Undo snack pointing at
+      // itself.
+      return;
+    }
+    await _persistProfile(newProfile, previousForUndo: snapshot);
+  }
+
+  // Core write path. Shared by the auto-save tick and the Undo revert.
+  // When [previousForUndo] is supplied, the snackbar surfaces an Undo
+  // action that reverts to it. Without it, the snackbar is informational
+  // only (used after the user already tapped Undo).
+  Future<void> _persistProfile(UserProfileSettings newProfile,
+      {UserProfileSettings? previousForUndo}) async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    await ref.read(settingsRepositoryProvider).saveProfile(newProfile);
+    // Record a weight history entry whenever the value differs from the
+    // last save. Mirrors the logic from the legacy explicit-save path so
+    // the Trends-tab chart keeps its anchor points after a typed change.
+    final initial = _initialProfileJson;
+    final prevWeight = initial == null
+        ? null
+        : (jsonDecode(initial) as Map<String, dynamic>)['weightKg'] as num?;
+    if (prevWeight == null || prevWeight.toDouble() != newProfile.weightKg) {
+      await ref.read(weightRepositoryProvider).save(WeightEntry(
+            id: 'w-${DateTime.now().microsecondsSinceEpoch}',
+            weightKg: newProfile.weightKg,
+            recordedAt: _weightRecordedAt ?? DateTime.now(),
+          ));
+      ref.read(analyticsServiceProvider).capture('weight_logged',
+          properties: {'source': 'settings'});
+    }
+    _weightRecordedAt = null;
+    if (!mounted) return;
+    ref.invalidate(userProfileProvider);
+    _initialProfileJson = jsonEncode(newProfile.toJson());
+    final messenger = rootScaffoldMessengerKey.currentState;
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(l10n.settingsSavedSnackbar),
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        action: previousForUndo == null
+            ? null
+            : SnackBarAction(
+                label: l10n.commonUndo,
+                onPressed: () => _revertTo(previousForUndo),
+              ),
+      ),
+    );
+  }
+
+  // Restores state from [snapshot] (the profile before the most recent
+  // batch of mutations) and writes it back so the persisted profile + UI
+  // stay in sync. Cancels any debounce that hadn't fired yet.
+  Future<void> _revertTo(UserProfileSettings snapshot) async {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
+    _pendingUndoSnapshot = null;
+    if (!mounted) return;
+    setState(() => _rehydrateState(snapshot));
+    await _persistProfile(snapshot);
+  }
+
+  // Re-applies the values of [p] onto the existing controllers + fields.
+  // Used by Undo so we can revert without disposing/recreating the text
+  // controllers (which would lose focus / cursor positions).
+  void _rehydrateState(UserProfileSettings p) {
+    _birthdate = p.birthdate ?? UserProfileSettings.birthdateFromAge(p.ageYears);
+    _height.text = p.heightCm.toStringAsFixed(0);
+    _weight.text = p.weightKg.toStringAsFixed(1);
+    _activityFactor = p.activityFactor;
+    _phase = p.numChildrenNursing > 0
+        ? 'lactating'
+        : (p.isPregnant ? 'pregnant' : 'neither');
+    _trimester = p.trimester ?? 1;
+    _numChildren = p.numChildrenNursing > 0 ? p.numChildrenNursing : 1;
+    _milkSharePercent = p.milkSharePercent;
+    _perChildSharesPercent = p.perChildSharesPercent != null
+        ? List<int>.from(p.perChildSharesPercent!)
+        : null;
+    _childrenAgeGroup = p.currentChildrenAgeGroup;
+    _youngestChildBirthdate = p.youngestChildBirthdate;
+    _dailyVolumeMl = p.dailyMilkVolumeMl;
+    _customProteinPct = p.customProteinPct;
+    _customFatPct = p.customFatPct;
+    _dietStyle = p.dietStyle;
+    _restrictions = {...p.restrictions};
+    _dietaryNotes.text = p.dietaryNotes;
+    _selectedMicros =
+        p.selectedMicronutrients == null ? null : [...p.selectedMicronutrients!];
+    _goal = p.goal;
+    _mealPattern = p.mealPattern;
+    _supplements = [...p.activeSupplements];
   }
 
   void _hydrate(UserProfileSettings p) {
@@ -153,12 +320,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _supplements = [...p.activeSupplements];
     _initialProfileJson = jsonEncode(p.toJson());
 
+    _heightFocus = FocusNode();
+    _weightFocus = FocusNode();
+    _notesFocus = FocusNode();
+    // Keystroke listeners only rebuild dependent sections (macro recompute
+    // when weight changes, etc.) and do NOT schedule a save. Saves are
+    // tied to focus loss - see _bindFocusSave below. This is the +34 fix
+    // for the multi-keystroke Undo bug: typing "62" on top of "60" used
+    // to make Undo revert to "6" because each keystroke captured the
+    // intermediate state as the next snapshot. With focus-tied saves, one
+    // focused edit = one save = one undo target.
     for (final c in [_height, _weight, _dietaryNotes]) {
       c.addListener(() {
-        if (mounted) setState(() {});
+        if (!mounted) return;
+        setState(() {});
       });
     }
+    _bindFocusSave(_heightFocus);
+    _bindFocusSave(_weightFocus);
+    _bindFocusSave(_notesFocus);
     _initialized = true;
+  }
+
+  // Hook a FocusNode so we (1) snapshot the persisted profile the moment
+  // the field gains focus and (2) flush a save when focus leaves. The
+  // snapshot is captured here (not on the FIRST keystroke) so the Undo
+  // target is always the value before the user started typing, even if
+  // the keystroke listeners fired before focus actually arrived.
+  void _bindFocusSave(FocusNode node) {
+    node.addListener(() {
+      if (!mounted) return;
+      if (node.hasFocus) {
+        // New focus arrival - lock in the snapshot if there isn't one
+        // already pending. (?? ensures a snapshot mid-edit, e.g. switch
+        // between two text fields, doesn't overwrite an earlier snapshot.)
+        _pendingUndoSnapshot ??= _lastPersistedSnapshot();
+      } else {
+        // Focus left - flush any pending debounce as a save. Cancel the
+        // timer first so we don't double-save (the keystroke path doesn't
+        // schedule any more, but a slider or chip might have).
+        _autoSaveTimer?.cancel();
+        _autoSaveTimer = null;
+        _runAutoSave();
+      }
+    });
   }
 
   double _parseDouble(String s, double fallback) =>
@@ -186,7 +391,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       helpText: AppLocalizations.of(context).settingsMilkBirthdatePickerHelp,
     );
     if (picked != null) {
-      setState(() {
+      _mutate(() {
         _youngestChildBirthdate = picked;
         // Sync the static bucket to the derived value so other code paths
         // that still read it (and the on-screen segmented picker) stay
@@ -226,6 +431,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       helpText: AppLocalizations.of(context).homeDatePickerHelp,
     );
     if (picked != null && mounted) {
+      // _weightRecordedAt is only metadata for the next weight save; doesn't
+      // change the persisted profile by itself. No auto-save here; the
+      // listener on _weight will fire if the value actually moves.
       setState(() => _weightRecordedAt = picked);
     }
   }
@@ -239,7 +447,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       lastDate: now,
       helpText: AppLocalizations.of(context).settingsBirthdatePickerHelp,
     );
-    if (picked != null) setState(() => _birthdate = picked);
+    if (picked != null) _mutate(() => _birthdate = picked);
   }
 
   bool get _isLactating => _phase == 'lactating';
@@ -278,7 +486,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
 
   void _onSharePercentChanged(int v) {
-    setState(() {
+    _mutate(() {
       _milkSharePercent = v;
       _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
         numChildren: _numChildren,
@@ -289,7 +497,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _onPerChildSharesChanged(List<int>? list) {
-    setState(() {
+    _mutate(() {
       _perChildSharesPercent = list;
       final effective = (list != null && list.isNotEmpty)
           ? (list.fold<int>(0, (a, b) => a + b) / list.length).round()
@@ -303,7 +511,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _onNumChildrenChanged(int v) {
-    setState(() {
+    _mutate(() {
       _numChildren = v;
       // Per-child override only makes sense for multiples. Dropping to 1
       // (or 0) clears it so the single share value drives the estimate
@@ -331,7 +539,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _onAgeGroupChanged(int v) {
-    setState(() {
+    _mutate(() {
       _childrenAgeGroup = v;
       _dailyVolumeMl = UserProfileSettings.estimatedDailyVolumeMl(
         numChildren: _numChildren,
@@ -345,7 +553,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // the percent split would be inconsistent: visual clamp differs from
   // saved state).
   void _onProteinPctChanged(int newP) {
-    setState(() {
+    _mutate(() {
       _customProteinPct = newP;
       final profile = _currentProfile();
       final auto = autoMacroSplit(
@@ -359,7 +567,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _onFatPctChanged(int newF) {
-    setState(() {
+    _mutate(() {
       _customFatPct = newF;
       final profile = _currentProfile();
       final auto = autoMacroSplit(
@@ -371,74 +579,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         _customProteinPct = maxProtein;
       }
     });
-  }
-
-  bool get _isDirty {
-    if (_initialProfileJson == null) return false;
-    return jsonEncode(_currentProfile().toJson()) != _initialProfileJson;
-  }
-
-  Future<bool> _confirmDiscard() async {
-    final l10n = AppLocalizations.of(context);
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.confirmDiscardTitle),
-        content: Text(l10n.confirmDiscardBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.confirmDiscardConfirm),
-          ),
-        ],
-      ),
-    );
-    return discard ?? false;
-  }
-
-  // Persists the current edit state without closing any route. Detail pages
-  // call this from their own Save button and decide for themselves whether
-  // to pop the detail or stay open. Mutates _initialProfileJson so the
-  // dirty check resets to clean immediately after a successful save.
-  Future<void> _persist() async {
-    final l10n = AppLocalizations.of(context);
-    final newProfile = _currentProfile();
-    await ref.read(settingsRepositoryProvider).saveProfile(newProfile);
-    // Record a weight history entry whenever the value differs from the
-    // last save. profile.weightKg keeps driving BMR; this log accumulates
-    // for the Trends-tab line chart.
-    final initial = _initialProfileJson;
-    final prevWeight = initial == null
-        ? null
-        : (jsonDecode(initial) as Map<String, dynamic>)['weightKg'] as num?;
-    if (prevWeight == null || prevWeight.toDouble() != newProfile.weightKg) {
-      await ref.read(weightRepositoryProvider).save(WeightEntry(
-            id: 'w-${DateTime.now().microsecondsSinceEpoch}',
-            weightKg: newProfile.weightKg,
-            recordedAt: _weightRecordedAt ?? DateTime.now(),
-          ));
-      ref.read(analyticsServiceProvider).capture('weight_logged',
-          properties: {'source': 'settings'});
-    }
-    _weightRecordedAt = null; // reset for the next edit cycle
-    if (!mounted) return;
-    ref.invalidate(userProfileProvider);
-    _initialProfileJson = jsonEncode(newProfile.toJson()); // mark clean
-    _stateVersion.value++;
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        content: Text(l10n.settingsSavedSnackbar),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
   }
 
   Future<void> _resetApp() async {
@@ -492,19 +632,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       data: (profile) {
         if (!_initialized) _hydrate(profile);
-        return PopScope(
-          canPop: _justSaved || !_isDirty,
-          onPopInvokedWithResult: (didPop, _) async {
-            if (didPop) return;
-            final navigator = Navigator.of(context);
-            final discard = await _confirmDiscard();
-            if (discard && mounted) {
-              _justSaved = true; // bypass second confirm if any
-              navigator.pop();
-            }
-          },
-          child: _buildHub(context),
-        );
+        // No PopScope guard: every mutation auto-saves via _mutate, so
+        // exiting Settings never loses work. The Undo snackbar on each
+        // save is the safety net if the user changes something by
+        // mistake (Task A11, Build +34).
+        return _buildHub(context);
       },
     );
   }
@@ -555,37 +687,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  // Bottom Save button used inside every detail page. Persists the entire
-  // profile (any field the user touched in any page is committed in one go),
-  // shows the confirmation snackbar, then pops the detail back to the hub
-  // so the user lands on the updated OutcomeCard.
-  Widget _detailSaveButton(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: FilledButton(
-          onPressed: () async {
-            final navigator = Navigator.of(context);
-            await _persist();
-            if (mounted) navigator.pop();
-          },
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-          ),
-          child: Text(AppLocalizations.of(context).settingsButtonSave),
-        ),
-      ),
-    );
-  }
-
   Widget _buildAboutYouPage() {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.opaque,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context).settingsHubAboutYou),
-        ),
+    return PopScope(
+      // Snack from the auto-save lives on the root ScaffoldMessenger and
+      // would persist over the back-nav (blocking taps on the hub view
+      // below until it times out). Tester report Build +34: dismiss it
+      // the moment the user leaves the detail page.
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(AppLocalizations.of(context).settingsHubAboutYou),
+          ),
         body: ListenableBuilder(
           listenable: _stateVersion,
           builder: (context, _) => ListView(
@@ -593,9 +712,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               _PhaseSection(
                 phase: _phase,
-                onPhaseChanged: (v) => setState(() => _phase = v),
+                onPhaseChanged: (v) => _mutate(() => _phase = v),
                 trimester: _trimester,
-                onTrimesterChanged: (v) => setState(() => _trimester = v),
+                onTrimesterChanged: (v) => _mutate(() => _trimester = v),
               ),
               const SizedBox(height: 12),
               _Section(
@@ -604,7 +723,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   birthdate: _birthdate,
                   onBirthdateTap: _pickBirthdate,
                   height: _height,
+                  heightFocus: _heightFocus,
                   weight: _weight,
+                  weightFocus: _weightFocus,
                   weightChanged: _weightChanged,
                   weightRecordedAt: _weightRecordedAt,
                   onPickWeightDate: _pickWeightRecordedAt,
@@ -613,7 +734,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 12),
               _ActivitySection(
                 activityFactor: _activityFactor,
-                onChanged: (v) => setState(() => _activityFactor = v),
+                onChanged: (v) => _mutate(() => _activityFactor = v),
               ),
               if (_isLactating) ...[
                 const SizedBox(height: 12),
@@ -625,31 +746,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   youngestChildBirthdate: _youngestChildBirthdate,
                   onPickBirthdate: _pickYoungestChildBirthdate,
                   onClearBirthdate: () =>
-                      setState(() => _youngestChildBirthdate = null),
+                      _mutate(() => _youngestChildBirthdate = null),
                   sharePercent: _milkSharePercent,
                   onShareChanged: _onSharePercentChanged,
                   perChildSharesPercent: _perChildSharesPercent,
                   onPerChildSharesChanged: _onPerChildSharesChanged,
                   dailyVolumeMl: _dailyVolumeMl,
-                  onVolumeChanged: (v) => setState(() => _dailyVolumeMl = v),
+                  onVolumeChanged: (v) => _mutate(() => _dailyVolumeMl = v),
                 ),
               ],
             ],
           ),
+          ),
         ),
-        bottomNavigationBar: _detailSaveButton(context),
       ),
     );
   }
 
   Widget _buildCoachPage() {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.opaque,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context).settingsHubCoach),
-        ),
+    return PopScope(
+      // Same snack-dismiss-on-back as About-You above (Build +34 tester).
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(AppLocalizations.of(context).settingsHubCoach),
+          ),
         body: ListenableBuilder(
           listenable: _stateVersion,
           builder: (context, _) => ListView(
@@ -657,12 +785,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               _GoalSection(
                 goal: _goal,
-                onChanged: (v) => setState(() => _goal = v),
+                onChanged: (v) => _mutate(() => _goal = v),
               ),
               const SizedBox(height: 12),
               _MealPatternSection(
                 pattern: _mealPattern,
-                onChanged: (v) => setState(() => _mealPattern = v),
+                onChanged: (v) => _mutate(() => _mealPattern = v),
               ),
               const SizedBox(height: 12),
               _MacroSplitSection(
@@ -671,7 +799,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 fatPct: _customFatPct,
                 onProteinChanged: _onProteinPctChanged,
                 onFatChanged: _onFatPctChanged,
-                onReset: () => setState(() {
+                onReset: () => _mutate(() {
                   _customProteinPct = 0;
                   _customFatPct = 0;
                 }),
@@ -679,10 +807,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 12),
               _DietSection(
                 dietStyle: _dietStyle,
-                onDietStyleChanged: (v) => setState(() => _dietStyle = v),
+                onDietStyleChanged: (v) => _mutate(() => _dietStyle = v),
                 restrictions: _restrictions,
                 onRestrictionToggled: (tag, picked) {
-                  setState(() {
+                  _mutate(() {
                     if (picked) {
                       _restrictions = {..._restrictions, tag};
                     } else {
@@ -691,13 +819,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   });
                 },
                 notesController: _dietaryNotes,
+                notesFocus: _notesFocus,
                 isInPhase: _isPregnant || _isLactating,
               ),
               const SizedBox(height: 12),
               _MicronutrientsSection(
                 selected: _selectedMicros,
                 onToggle: (key) {
-                  setState(() {
+                  _mutate(() {
                     final current = _selectedMicros ?? <String>[];
                     final next = [...current];
                     if (next.contains(key)) {
@@ -710,7 +839,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         : next;
                   });
                 },
-                onReset: () => setState(() => _selectedMicros = null),
+                onReset: () => _mutate(() => _selectedMicros = null),
               ),
               const SizedBox(height: 12),
               _SupplementSection(
@@ -719,15 +848,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onAdd: () async {
                   final result = await runSupplementSetup(context, ref);
                   if (result != null && mounted) {
-                    setState(() => _supplements = [..._supplements, result]);
+                    _mutate(() => _supplements = [..._supplements, result]);
                   }
                 },
                 onEdit: (index, edited) =>
-                    setState(() => _supplements = [
+                    _mutate(() => _supplements = [
                           for (var i = 0; i < _supplements.length; i++)
                             if (i == index) edited else _supplements[i],
                         ]),
-                onRemove: (index) => setState(() => _supplements = [
+                onRemove: (index) => _mutate(() => _supplements = [
                       for (var i = 0; i < _supplements.length; i++)
                         if (i != index) _supplements[i],
                     ]),
@@ -735,7 +864,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: _detailSaveButton(context),
+      ),
       ),
     );
   }
@@ -1035,7 +1164,9 @@ class _ProfileFields extends StatelessWidget {
   final DateTime birthdate;
   final VoidCallback onBirthdateTap;
   final TextEditingController height;
+  final FocusNode heightFocus;
   final TextEditingController weight;
+  final FocusNode weightFocus;
   // Surfaced ONLY when the user has changed the weight value: lets them
   // log "I weighed myself this morning" with this morning's date instead
   // of the default DateTime.now() of the save moment. weightRecordedAt
@@ -1048,7 +1179,9 @@ class _ProfileFields extends StatelessWidget {
     required this.birthdate,
     required this.onBirthdateTap,
     required this.height,
+    required this.heightFocus,
     required this.weight,
+    required this.weightFocus,
     required this.weightChanged,
     required this.weightRecordedAt,
     required this.onPickWeightDate,
@@ -1083,9 +1216,17 @@ class _ProfileFields extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: height,
+                focusNode: heightFocus,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 textInputAction: TextInputAction.next,
+                // iOS numeric keyboard has no "Done" button - without an
+                // explicit dismiss the user is trapped in the field and
+                // the FocusLost-tied auto-save never fires. Tap-outside
+                // unfocuses, which lets the keyboard close, the focus
+                // listener trigger, and the Undo snack appear.
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context).settingsFieldHeight,
                   border: const OutlineInputBorder(),
@@ -1098,9 +1239,12 @@ class _ProfileFields extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: weight,
+                focusNode: weightFocus,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 textInputAction: TextInputAction.done,
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context).settingsFieldWeight,
                   border: const OutlineInputBorder(),
@@ -2020,6 +2164,7 @@ class _DietSection extends StatelessWidget {
   final Set<String> restrictions;
   final void Function(String tag, bool picked) onRestrictionToggled;
   final TextEditingController notesController;
+  final FocusNode notesFocus;
   // True when the user is currently pregnant OR lactating. Drives the
   // vegan-supplementation hint banner shown beneath the diet chips - the
   // overlap of "vegan" + this phase is where the dietitian flagged a
@@ -2031,6 +2176,7 @@ class _DietSection extends StatelessWidget {
     required this.restrictions,
     required this.onRestrictionToggled,
     required this.notesController,
+    required this.notesFocus,
     required this.isInPhase,
   });
 
@@ -2110,9 +2256,12 @@ class _DietSection extends StatelessWidget {
           const SizedBox(height: 16),
           TextField(
             controller: notesController,
+            focusNode: notesFocus,
             minLines: 1,
             maxLines: 3,
             textInputAction: TextInputAction.done,
+            onTapOutside: (_) =>
+                FocusManager.instance.primaryFocus?.unfocus(),
             decoration: InputDecoration(
               labelText: l10n.settingsDietNotesLabel,
               hintText: l10n.settingsDietNotesHint,

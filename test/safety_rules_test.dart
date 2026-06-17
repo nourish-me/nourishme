@@ -883,4 +883,45 @@ void main() {
       expect(SafetyRules.topicsFor(['Vitamin C']), isEmpty);
     });
   });
+
+  group('warning severity — alcohol is always critical', () {
+    test('alcohol pregnant warning → critical', () {
+      final w = SafetyRules.alcohol('Glas Rotwein', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(SafetyRules.severityFor(w!), SafetyWarningSeverity.critical);
+    });
+
+    test('alcohol lactating warning → critical', () {
+      final w = SafetyRules.alcohol('one beer', lactating, locale: 'en');
+      expect(w, isNotNull);
+      expect(SafetyRules.severityFor(w!), SafetyWarningSeverity.critical);
+    });
+
+    test('caffeine warning stays warn (default tier, not critical)', () {
+      final w = SafetyRules.caffeine('Kaffee', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(SafetyRules.severityFor(w!), SafetyWarningSeverity.warn);
+    });
+
+    test('mixed list → highestSeverity returns critical', () {
+      final coffee = SafetyRules.caffeine('Kaffee', pregnant, locale: 'de')!;
+      final wine = SafetyRules.alcohol('Rotwein', pregnant, locale: 'de')!;
+      expect(
+        SafetyRules.highestSeverity([coffee, wine]),
+        SafetyWarningSeverity.critical,
+      );
+    });
+
+    test('fuzzy / unknown warning text defaults to warn', () {
+      expect(
+        SafetyRules.severityFor('Achte auf ausreichend Trinken'),
+        SafetyWarningSeverity.warn,
+      );
+    });
+
+    test('highestSeverity on empty list defaults to warn', () {
+      expect(SafetyRules.highestSeverity(const []),
+          SafetyWarningSeverity.warn);
+    });
+  });
 }

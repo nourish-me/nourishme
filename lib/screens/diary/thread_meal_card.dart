@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/meal_entry.dart';
+import '../../services/safety_rules.dart';
 import '../../utils/number_format.dart';
 
 // Per-meal row in the diary thread — Time-Ledger layout (phase 3 of the
@@ -136,6 +137,10 @@ class _WarningIconButton extends StatelessWidget {
   void _show(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isCritical = SafetyRules.highestSeverity(warnings) ==
+        SafetyWarningSeverity.critical;
+    final headerColor = isCritical ? scheme.error : scheme.tertiary;
+    final headerIcon = isCritical ? Icons.error : Icons.warning_amber;
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -149,7 +154,7 @@ class _WarningIconButton extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.warning_amber, color: scheme.tertiary),
+                  Icon(headerIcon, color: headerColor),
                   const SizedBox(width: 8),
                   Text(
                     AppLocalizations.of(context).homeMealHintsHeader,
@@ -186,9 +191,12 @@ class _WarningIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isCritical = SafetyRules.highestSeverity(warnings) ==
+        SafetyWarningSeverity.critical;
     return IconButton(
-      icon: const Icon(Icons.warning_amber, size: 20),
-      color: Theme.of(context).colorScheme.tertiary,
+      icon: Icon(isCritical ? Icons.error : Icons.warning_amber, size: 20),
+      color: isCritical ? scheme.error : scheme.tertiary,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

@@ -108,6 +108,12 @@ class SafetyRulesData {
   // Topic detection patterns (for mergeWarnings dedupe).
   final Map<SafetyTopic, TopicDetectionPattern> detectionPatterns;
 
+  // Per-topic severity. Topics omit the key in JSON → default `warn`. Only
+  // alcohol is marked `critical` today (no known safe amount in pregnancy
+  // or lactation). Drives the rendering tier in the UI (errorContainer +
+  // Icons.error vs the standard tertiaryContainer + Icons.warning_amber).
+  final Map<SafetyTopic, SafetyWarningSeverity> topicSeverities;
+
   // Input-trigger keyword lists for the emergency / escalation pre-check
   // (Task #88.3). Map keys are locale codes ('de', 'en'). The Worker
   // holds a sync'd inline copy in api/worker.js for defense in depth.
@@ -151,6 +157,7 @@ class SafetyRulesData {
     required this.quinineKeywords,
     required this.quininePregnantMessages,
     required this.detectionPatterns,
+    required this.topicSeverities,
     required this.emergencyKeywords,
     required this.emergencyResponses,
     required this.escalationKeywords,
@@ -230,6 +237,18 @@ class SafetyRulesData {
       );
     }
 
+    // Per-topic severity. Default is `warn`; the JSON may bump a topic to
+    // `critical` (alcohol today). Unknown values fall back to `warn` rather
+    // than throwing, so a future severity tier doesn't crash older clients.
+    final severities = <SafetyTopic, SafetyWarningSeverity>{};
+    for (final entry in topics.entries) {
+      final topic = _topicByJsonKey[entry.key];
+      if (topic == null) continue;
+      final body = (entry.value as Map?)?.cast<String, dynamic>();
+      final label = body?['severity'] as String?;
+      severities[topic] = _severityByLabel[label] ?? SafetyWarningSeverity.warn;
+    }
+
     return SafetyRulesData._(
       version: (json['version'] as String?) ?? 'unknown',
       caffeineKeywords: strList(caffeine['keywords']),
@@ -266,6 +285,7 @@ class SafetyRulesData {
       quinineKeywords: strList(quinine['keywords']),
       quininePregnantMessages: messagesForKey(quinine, 'pregnant'),
       detectionPatterns: patterns,
+      topicSeverities: severities,
       emergencyKeywords: keywordsByLocale('emergency'),
       emergencyResponses: responsesByLocale('emergency'),
       escalationKeywords: keywordsByLocale('escalation'),
@@ -307,6 +327,11 @@ const Map<String, SafetyTopic> _topicByJsonKey = {
   'quinine': SafetyTopic.quinine,
   'boarOffal': SafetyTopic.boarOffal,
   'milkSuppressingHerbs': SafetyTopic.milkSuppressingHerbs,
+};
+
+const Map<String?, SafetyWarningSeverity> _severityByLabel = {
+  'warn': SafetyWarningSeverity.warn,
+  'critical': SafetyWarningSeverity.critical,
 };
 
 class SafetyRules {
@@ -678,6 +703,34 @@ class SafetyRules {
     return InputClassificationResult.normal;
   }
 
+  /// Visual severity for a single warning string. Looks up the topic via
+  /// [topicsFor] and returns the highest configured severity across all
+  /// matched topics. Warnings that don't match a known topic (model-fuzzy
+  /// elaborations) default to `warn`. This is the seam the UI uses to pick
+  /// the red vs. amber rendering — no schema change on the persisted
+  /// `safetyWarnings: List<String>` required.
+  static SafetyWarningSeverity severityFor(String warning) {
+    final d = _d;
+    final touched = topicsFor([warning]);
+    var max = SafetyWarningSeverity.warn;
+    for (final topic in touched) {
+      final s = d.topicSeverities[topic] ?? SafetyWarningSeverity.warn;
+      if (s.index > max.index) max = s;
+    }
+    return max;
+  }
+
+  /// Highest severity across [warnings] - drives the warnings card colour
+  /// in the ConfirmSheet (one critical warning makes the whole block red).
+  static SafetyWarningSeverity highestSeverity(List<String> warnings) {
+    var max = SafetyWarningSeverity.warn;
+    for (final w in warnings) {
+      final s = severityFor(w);
+      if (s.index > max.index) max = s;
+    }
+    return max;
+  }
+
   /// Detect which safety topics a list of warning strings touches. Used by
   /// mergeWarnings to drop LLM elaborations on topics the deterministic
   /// rule already covered, and exposed for tests + (later) prompt
@@ -706,6 +759,14 @@ enum SafetyTopic {
   quinine,
   boarOffal,
   milkSuppressingHerbs,
+}
+
+/// Visual severity tier for a food-safety warning. Ordered: higher index
+/// wins when merging multiple severities. New tiers can be appended without
+/// breaking older clients (unknown JSON labels fall back to `warn`).
+enum SafetyWarningSeverity {
+  warn,
+  critical,
 }
 
 /// Result of the input pre-classifier (Task #88.3). `normal` means the

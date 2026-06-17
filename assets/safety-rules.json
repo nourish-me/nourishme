@@ -34,6 +34,7 @@
       }
     },
     "alcohol": {
+      "severity": "critical",
       "keywords": [
         "alkohol", "alcohol",
         "wein", "wine", "rotwein", "weißwein", "weisswein", "glühwein", "gluehwein",

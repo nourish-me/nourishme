@@ -50,6 +50,14 @@ IMPORTANT for photo-only input (no text) - complete component listing:
 - Enumerate ALL visible edible components in the summary, not just the two largest. For salads: every ingredient (cucumber, tomato, walnuts, feta, dressing). For bowls: all toppings (avocado, pomegranate seeds, sesame). For composite breakfasts: all parts (berries, yoghurt, granola, honey). Better too detailed than too generic - "salad" alone is a poor summary, "salad with cucumber, tomato, feta, walnuts" is good.
 - For color/shape ambiguity (dark round fruits could be blueberries or dark plums; white creamy topping could be yoghurt or cream; red berries could be strawberries, raspberries or pomegranate): prefer the everyday and breakfast/snack-common variant. Blueberries > plums, yoghurt > cream, strawberries > exotic berries. With the current vision model, guessing is worse than the common safe pick.
 
+IMPORTANT for pasta shapes and named compound foods - shape vs. ingredient:
+- "Muschelnudeln" / "Conchiglie" / "Conchigliette" = shell-shaped pasta, NOT mussels. The shape descriptor is the FORM, not an additional ingredient. List ONLY "pasta" in components, NEVER "mussels".
+- "Sternchennudeln" / "Stelline" = star-shaped pasta, NOT actual stars.
+- "Buchstabennudeln" / "alphabet pasta" = letter-shaped pasta, NOT letters.
+- "Schmetterlingsnudeln" / "Farfalle" = bow-tie pasta, NOT butterflies.
+- General rule: in German "X-nudeln" compounds, the head noun (pasta) is the identity, the modifier describes the shape. Never list the shape modifier as a separate ingredient or base a safety warning on it.
+- Photo disambiguation: small ridged or moulded shapes floating in broth, tomato sauce or cream sauce, without visible hard shells or animal anatomy, are almost certainly dried pasta. Real mussels have characteristic dark shells and are not served in chicken broth with cheese. When in doubt, assume pasta.
+
 IMPORTANT for multi-item photos (multiple distinct items visible, e.g. glass of wine + bread + cappuccino):
 - Estimate each component INDEPENDENTLY as if it were the only item in the picture. Do NOT tend to more conservative values just because other items are also in the picture.
 - The combined kcal estimate must equal the sum of the independent per-item estimates. If a user later logs the same item alone, the estimate must come out the same.
@@ -97,7 +105,9 @@ Respond EXCLUSIVELY with JSON in this schema, no Markdown code fence, no text be
 PLAUSIBILITY ANCHORS (typical values per 100 g or 100 ml, raw or cooked; use these as a sanity check before rounding up):
 - Iodine: sea fish (salmon, cod, herring, pollock) 20-50 µg, haddock/cod up to 200 µg, whole milk 6-9 µg/100 ml, iodized salt ~2 µg/g, seaweed variable. Values >100 µg/100 g are implausible outside shellfish/lean sea fish. IMPORTANT for EU/DE: industrial baked goods, sausage, cheese and ready meals nearly always use iodised cooking salt, giving ~5-15 µg iodine per 100 g (bread, rolls, pizza, sausage, ready meals). For "pizza margherita 300 g" estimate ~15-45 µg, not zero. For "bread roll 60 g" ~3-9 µg, for "salami pizza 350 g" ~25-50 µg. This correction matters because without it the model systematically under-estimates iodine and makes users look chronically deficient.
 - Vitamin D: fatty sea fish (salmon 12-16, herring 22-26, mackerel 4 µg/100 g), egg ~1.1 µg per egg (60 g), mushrooms only if UV-treated. Lean meat, vegetables, grains near zero.
-- DHA: fatty sea fish (salmon 1100-1400, herring 1500-2000, mackerel 1100-1300, sardine 900-1100 mg/100 g), egg yolk 30-40 mg/egg. Lean meat, plants, lean fish near zero.
+- DHA: fatty sea fish (salmon 1100-1400, herring 1500-2000, mackerel 1100-1300, sardine 900-1100 mg/100 g), egg yolk 30-40 mg/egg. Lean meat, plants, lean fish near zero. STRICT DHA ZERO RULE: if the meal contains NO fatty sea fish (salmon/herring/mackerel/sardine/anchovy/tuna), NO fish oil supplement and NO algae oil, then dha_mg = 0 and the key is OMITTED entirely. Plant omega-3 sources (flaxseed, chia, walnuts, almonds, rapeseed oil, soy oil) contain ALA (precursor), NOT DHA - the body converts under 5% of ALA to DHA and we do NOT count that as DHA.
+- B12: only in animal products and fortified foods. For purely plant-based meals without B12-fortified soy milk/plant drink/nutritional yeast: omit b12_ug entirely (value 0). No conversion path.
+- Vitamin D: almost exclusively in animal products (fatty sea fish, egg yolk, butter) and UV-treated mushrooms. For purely plant-based meals without those sources: omit vitamin_d_ug.
 - B12: beef 2-3 µg/100 g, pork/poultry 0.5-1 µg, salmon/trout ~3 µg, fatty smoked fish (herring, mackerel, sardine) 8-9 µg/100 g, milk/yogurt 0.4 µg/100 g. Plant foods zero.
 - Iron: cooked legumes (lentils 3, chickpeas 2.5, beans 2 mg/100 g), beef 2.5-3, cooked spinach 3.5, tofu 2.5 mg/100 g. Whole-grain cereals 2-3 mg/100 g.
 - Folate: cooked legumes (lentils 180, chickpeas 170 µg/100 g), raw leafy greens (spinach 145, lamb's lettuce 145 µg/100 g), sunflower seeds 230 µg/100 g, cooked broccoli 60 µg/100 g.

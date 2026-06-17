@@ -1139,12 +1139,11 @@ class _MicronutrientWeekCard extends ConsumerWidget {
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 6),
-                  for (final s in sources)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Text('• $s',
-                          style: sheetTheme.textTheme.bodyMedium),
-                    ),
+                  // Task B13, Build +34: prose-style top sources, capped
+                  // at 2 with a "+N weitere" link that reveals the rest.
+                  // The full list was overwhelming when the user only
+                  // wanted a quick "where do I get this from" cue.
+                  _MicroSourcesProse(sources: sources),
                 ],
                 const SizedBox(height: 20),
                 SizedBox(
@@ -1241,4 +1240,55 @@ String _fmtNumLocal(double v) {
   if (v >= 100) return v.toStringAsFixed(0);
   if (v >= 10) return v.toStringAsFixed(1);
   return v.toStringAsFixed(2);
+}
+
+// Top-sources prose for the micronutrient detail sheet. Renders the first
+// two sources joined by a comma; if more exist a "+N weitere" link reveals
+// the rest. Local stateful widget because the modal sheet itself is
+// stateless and rebuilds whole-cloth on toggle.
+class _MicroSourcesProse extends StatefulWidget {
+  final List<String> sources;
+  const _MicroSourcesProse({required this.sources});
+
+  @override
+  State<_MicroSourcesProse> createState() => _MicroSourcesProseState();
+}
+
+class _MicroSourcesProseState extends State<_MicroSourcesProse> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final all = widget.sources;
+    final visible =
+        _expanded || all.length <= 2 ? all : all.take(2).toList();
+    final hidden = all.length - visible.length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          visible.join(', '),
+          style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+        ),
+        if (hidden > 0) ...[
+          const SizedBox(height: 6),
+          InkWell(
+            onTap: () => setState(() => _expanded = true),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                l10n.trendsMicronutrientSheetSourcesMore(hidden),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }

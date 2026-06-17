@@ -50,6 +50,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
   bool _sending = false;
   int _lastFocusRequest = 0;
   int _lastPrefillVersion = 0;
+  int _lastSubmitVersion = 0;
   // Mirror of _controller.text used to drive the history-suggestion chip row.
   // Stored separately so build() can watch it without subscribing to every
   // TextField rebuild path.
@@ -528,18 +529,40 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       String? next = firstType;
       while (next != null) {
         if (!mounted) break;
+        final cameFromPicker = next == 'picker';
+        String? stepResult;
         switch (next) {
           case 'barcode':
-            next = await _doBarcodeStep();
+            stepResult = await _doBarcodeStep();
             break;
           case 'photo':
-            next = await _doPhotoStep();
+            stepResult = await _doPhotoStep();
             break;
           case 'text':
-            next = await _doTextStep();
+            stepResult = await _doTextStep();
+            break;
+          case 'picker':
+            stepResult =
+                mounted ? await showScanModeChooser(context) : null;
             break;
           default:
-            next = null;
+            stepResult = null;
+        }
+        if (stepResult != null) {
+          next = stepResult;
+        } else if (!cameFromPicker &&
+            mounted &&
+            ref.read(pendingScanBundleProvider).isNotEmpty) {
+          // Task A5, Build +34: at least one item already saved in this
+          // session. Cancelling the next sub-scanner surfaces the picker
+          // so the user can switch entry mode (barcode → photo) without
+          // restarting. First-step cancels still exit cleanly because
+          // the bundle is empty. cameFromPicker guard prevents the loop
+          // trap where dismissing the picker re-triggered the picker
+          // forever (tester report Build +34).
+          next = 'picker';
+        } else {
+          next = null;
         }
         if (mounted) FocusManager.instance.primaryFocus?.unfocus();
       }
@@ -1090,8 +1113,17 @@ class _HomeInputState extends ConsumerState<HomeInput> {
     } else if (query.length >= 2) {
       final tokens =
           query.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+      // Task A2, Build +34: when the history-suggestion strip surfaces a
+      // recent meal with the same summary as a favorite, drop the favorite
+      // duplicate. The history chip is strictly more useful (carries the
+      // actual portion + safety the user logged before) and showing both
+      // looks like a bug.
+      final historySummaries = <String>{
+        for (final m in historySuggestions) m.summary.toLowerCase(),
+      };
       favorites = allFavorites.where((f) {
         final summary = f.summary.toLowerCase();
+        if (historySummaries.contains(summary)) return false;
         return tokens.every(summary.contains);
       }).take(3).toList();
     } else if (_query.isEmpty && focusedDayMeals.isEmpty) {
@@ -1109,10 +1141,10 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       if (focusReq > 0) _focusAndOpenKeyboard();
     }
 
-    // Tap on a coach follow-up chip writes a payload here. Pull it into the
-    // text field, place the cursor at the end, then clear the provider so a
-    // repeat tap with the same label still fires (version counter handles
-    // the case where the user wipes the field and taps the same chip again).
+    // Prefill payload (non-coach uses, e.g. notification tap, history
+    // suggestion): write into the text field, place caret at end, clear.
+    // Coach follow-up chips no longer go through this path - see the
+    // submit-request listener below (Task A1, Build +34).
     final prefill = ref.watch(mealInputPrefillProvider);
     if (prefill != null && prefill.version != _lastPrefillVersion) {
       _lastPrefillVersion = prefill.version;
@@ -1124,6 +1156,22 @@ class _HomeInputState extends ConsumerState<HomeInput> {
         if (mounted) {
           ref.read(mealInputPrefillProvider.notifier).state = null;
         }
+      });
+    }
+
+    // Coach follow-up chip → send directly. The chip writes the question
+    // into [coachSubmitRequestProvider]; we fire `_askAsQuestion` on the
+    // next frame so we don't reenter the build phase, clear the request,
+    // and let the loading banner take over. The text controller stays
+    // untouched so the user can keep drafting in parallel if they want.
+    final submitReq = ref.watch(coachSubmitRequestProvider);
+    if (submitReq != null && submitReq.version != _lastSubmitVersion) {
+      _lastSubmitVersion = submitReq.version;
+      final text = submitReq.text;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(coachSubmitRequestProvider.notifier).state = null;
+        _askAsQuestion(text);
       });
     }
 

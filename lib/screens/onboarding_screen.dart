@@ -1686,6 +1686,36 @@ class _SupplementStep extends StatelessWidget {
             l10n.supplementOnboardingBody,
             style: textTheme.bodyMedium?.copyWith(color: scheme.outline),
           ),
+          if (supplements.isEmpty) ...[
+            const SizedBox(height: 16),
+            // Same empty-state hint copy as Settings (Task B7) - keeps the
+            // value-prop "what happens once you add one" visible in BOTH
+            // surfaces so onboarding doesn't read as just "snap a photo".
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer.withValues(alpha: 0.40),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.medication_outlined,
+                      size: 18, color: scheme.onPrimaryContainer),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l10n.settingsSupplementMissingHint,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           for (var i = 0; i < supplements.length; i++) ...[
             _OnboardingSupplementListItem(

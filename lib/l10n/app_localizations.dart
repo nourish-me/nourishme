@@ -560,6 +560,24 @@ abstract class AppLocalizations {
   /// **'Please note'**
   String get confirmSafetyHeader;
 
+  /// No description provided for @trendsMicronutrientSheetSourcesMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {count} more'**
+  String trendsMicronutrientSheetSourcesMore(int count);
+
+  /// No description provided for @confirmUnsupportedNutrientHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Also detected, not in your daily target yet'**
+  String get confirmUnsupportedNutrientHeader;
+
+  /// No description provided for @confirmUnsupportedNutrientHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The model also picked up {nutrients} here. NourishMe doesn\'t track these nutrients in your daily target yet, the value is informational only.'**
+  String confirmUnsupportedNutrientHint(String nutrients);
+
   /// No description provided for @confirmCoachErrorFallback.
   ///
   /// In en, this message translates to:
@@ -577,6 +595,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get commonCancel;
+
+  /// No description provided for @commonUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get commonUndo;
 
   /// No description provided for @commonDelete.
   ///
@@ -2861,7 +2885,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSupplementMissingHint.
   ///
   /// In en, this message translates to:
-  /// **'You haven\'t added a supplement yet. In this phase folate, iodine, DHA, B12, iron and vitamin D are often hard to cover through food alone, a supplement covers them reliably.'**
+  /// **'You haven\'t added a supplement yet. In this phase folate, iodine, DHA, B12, iron and vitamin D are often hard to cover through food alone, a supplement covers them reliably. When you add one, it counts toward your daily totals and the coach factors it in.'**
   String get settingsSupplementMissingHint;
 
   /// No description provided for @supplementAddCta.
@@ -2917,6 +2941,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Doses per day'**
   String get supplementFieldDoses;
+
+  /// No description provided for @supplementFieldCapsulesPerServing.
+  ///
+  /// In en, this message translates to:
+  /// **'Capsules per serving'**
+  String get supplementFieldCapsulesPerServing;
 
   /// No description provided for @supplementSave.
   ///

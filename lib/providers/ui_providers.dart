@@ -57,6 +57,20 @@ class MealInputPrefill {
 final mealInputPrefillProvider =
     StateProvider<MealInputPrefill?>((ref) => null);
 
+// One-shot "fire this coach question NOW" payload. Pushed by the coach
+// follow-up chip (Task A1, Build +34) so a tap sends the question
+// immediately instead of pasting it into the input. HomeInput listens
+// for changes and routes the text into `_askAsQuestion`. Same versioned-
+// payload shape as the prefill so a repeat tap re-fires.
+class CoachSubmitRequest {
+  final String text;
+  final int version;
+  const CoachSubmitRequest({required this.text, required this.version});
+}
+
+final coachSubmitRequestProvider =
+    StateProvider<CoachSubmitRequest?>((ref) => null);
+
 // True while a chat-question coach call is in flight; drives the
 // CoachLoadingBanner above the input. Per-meal coach state is
 // tracked separately on inFlightMealIds in CoachSessionManager - this

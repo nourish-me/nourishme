@@ -87,9 +87,23 @@
   "confirmDiscardConfirm": "Verwerfen",
   "confirmHintsHeader": "Hinweise zu dieser Mahlzeit",
   "confirmSafetyHeader": "Bitte beachte",
+  "trendsMicronutrientSheetSourcesMore": "+{count} weitere anzeigen",
+  "@trendsMicronutrientSheetSourcesMore": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "confirmUnsupportedNutrientHeader": "Auch erkannt, noch nicht im Tagesziel",
+  "confirmUnsupportedNutrientHint": "Das Modell hat hier auch {nutrients} erfasst. NourishMe verfolgt diese Nährstoffe heute noch nicht im Tagesziel, der Wert ist nur informativ.",
+  "@confirmUnsupportedNutrientHint": {
+    "placeholders": {
+      "nutrients": { "type": "String" }
+    }
+  },
   "confirmCoachErrorFallback": "Coach-Antwort konnte nicht erstellt werden. Probier es später nochmal.",
   "commonDone": "Fertig",
   "commonCancel": "Abbrechen",
+  "commonUndo": "Rückgängig",
   "commonDelete": "Löschen",
   "commonGenericError": "Etwas ist schiefgelaufen. Probier es nochmal.",
   "commonSendError": "Senden hat nicht geklappt. Probier es nochmal.",
@@ -599,7 +613,7 @@
   "supplementSectionTitle": "Nahrungsergänzung",
   "supplementOnboardingTitle": "Nimmst du ein Schwangerschafts- oder Stillzeit-Supplement?",
   "supplementOnboardingBody": "Folio, Femibion, Elevit, Orthomol oder ähnliches? In dieser Phase sind Folsäure, Jod, DHA, B12, Eisen und Vitamin D schwer allein übers Essen zu decken. Fotografiere die Nährwerttabelle auf der Rückseite, dann rechnet die App die Werte automatisch jeden Tag mit.",
-  "settingsSupplementMissingHint": "Du hast noch kein Supplement eingetragen. In dieser Phase sind Folsäure, Jod, DHA, B12, Eisen und Vitamin D oft kritisch, ein Supplement deckt sie verlässlich ab.",
+  "settingsSupplementMissingHint": "Du hast noch kein Supplement eingetragen. In dieser Phase sind Folsäure, Jod, DHA, B12, Eisen und Vitamin D oft kritisch, ein Supplement deckt sie verlässlich ab. Wenn du eins einträgst, zählt es jeden Tag in deine Versorgung und der Coach rechnet damit.",
   "supplementAddCta": "Nährwerttabelle fotografieren",
   "supplementSkipCta": "Nein, nehme keins",
   "supplementSourceCamera": "Kamera",
@@ -609,6 +623,7 @@
   "supplementReviewHint": "Werte aus deinem Etikett. Du kannst Name und Mengen vor dem Speichern anpassen.",
   "supplementFieldName": "Name",
   "supplementFieldDoses": "Dosen pro Tag",
+  "supplementFieldCapsulesPerServing": "Kapseln pro Portion",
   "supplementSave": "Speichern",
   "supplementCancel": "Verwerfen",
   "supplementRetry": "Anderes Foto",

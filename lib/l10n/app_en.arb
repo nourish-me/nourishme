@@ -126,9 +126,23 @@
   "confirmDiscardConfirm": "Discard",
   "confirmHintsHeader": "Notes for this meal",
   "confirmSafetyHeader": "Please note",
+  "trendsMicronutrientSheetSourcesMore": "Show {count} more",
+  "@trendsMicronutrientSheetSourcesMore": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "confirmUnsupportedNutrientHeader": "Also detected, not in your daily target yet",
+  "confirmUnsupportedNutrientHint": "The model also picked up {nutrients} here. NourishMe doesn't track these nutrients in your daily target yet, the value is informational only.",
+  "@confirmUnsupportedNutrientHint": {
+    "placeholders": {
+      "nutrients": { "type": "String" }
+    }
+  },
   "confirmCoachErrorFallback": "Couldn't get a coach reply. Try again later.",
   "commonDone": "Done",
   "commonCancel": "Cancel",
+  "commonUndo": "Undo",
   "commonDelete": "Delete",
   "commonGenericError": "Something went wrong. Try again.",
   "commonSendError": "Couldn't send. Try again.",
@@ -739,7 +753,7 @@
   "supplementSectionTitle": "Supplement",
   "supplementOnboardingTitle": "Are you taking a pregnancy or lactation supplement?",
   "supplementOnboardingBody": "Folic acid, prenatal multivitamin (Femibion, Elevit, Orthomol or similar)? In this phase folate, iodine, DHA, B12, iron and vitamin D are hard to cover through food alone. Snap a photo of the nutrition table on the back and the app adds the values to your daily totals automatically.",
-  "settingsSupplementMissingHint": "You haven't added a supplement yet. In this phase folate, iodine, DHA, B12, iron and vitamin D are often hard to cover through food alone, a supplement covers them reliably.",
+  "settingsSupplementMissingHint": "You haven't added a supplement yet. In this phase folate, iodine, DHA, B12, iron and vitamin D are often hard to cover through food alone, a supplement covers them reliably. When you add one, it counts toward your daily totals and the coach factors it in.",
   "supplementAddCta": "Photograph nutrition table",
   "supplementSkipCta": "No, not taking one",
   "supplementSourceCamera": "Camera",
@@ -749,6 +763,7 @@
   "supplementReviewHint": "Values from your label. You can edit the name and amounts before saving.",
   "supplementFieldName": "Name",
   "supplementFieldDoses": "Doses per day",
+  "supplementFieldCapsulesPerServing": "Capsules per serving",
   "supplementSave": "Save",
   "supplementCancel": "Discard",
   "supplementRetry": "Different photo",

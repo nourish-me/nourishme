@@ -199,22 +199,24 @@ class CoachBubble extends ConsumerWidget {
                                     width: 0.8,
                                   ),
                                   onPressed: () {
+                                    // Task A1, Build +34: a chip tap fires
+                                    // the coach question straight away
+                                    // instead of pasting it into the input
+                                    // (the prior paste-then-tap-send flow
+                                    // was an unnecessary extra step that
+                                    // beta testers consistently fumbled).
                                     final next = ref
-                                            .read(mealInputPrefillProvider
+                                            .read(coachSubmitRequestProvider
                                                 .notifier)
                                             .state
                                             ?.version ??
                                         0;
                                     ref
-                                        .read(mealInputPrefillProvider
+                                        .read(coachSubmitRequestProvider
                                             .notifier)
-                                        .state = MealInputPrefill(
+                                        .state = CoachSubmitRequest(
                                             text: chip,
                                             version: next + 1);
-                                    ref
-                                        .read(mealInputFocusRequestProvider
-                                            .notifier)
-                                        .state++;
                                     ref
                                         .read(analyticsServiceProvider)
                                         .capture('coach_chip_tapped');

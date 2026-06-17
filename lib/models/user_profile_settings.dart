@@ -385,12 +385,20 @@ class ActiveSupplement {
   final String name; // e.g. 'Femibion 2', user-editable after parse
   final Map<String, double> values; // unit-suffixed nutrient keys → per-day amount
   final int dosesPerDay; // metadata only; values already account for it
+  // Task A6, Build +34: how many capsules make up ONE serving on the
+  // label. Many prenatal supplements list "per Tagesportion = 2 Kapseln"
+  // and the parsed values already encompass that serving. We capture the
+  // capsule count so the review sheet can surface "1 Portion = 2 Kapseln"
+  // to the user and so a future correction (user takes half-dose) has
+  // somewhere to live. Default 1 if the label doesn't say.
+  final int servingSizeCapsules;
   final DateTime addedAt; // for "added on X" display + cache eviction later
 
   const ActiveSupplement({
     required this.name,
     required this.values,
     required this.dosesPerDay,
+    this.servingSizeCapsules = 1,
     required this.addedAt,
   });
 
@@ -398,6 +406,7 @@ class ActiveSupplement {
         'name': name,
         'values': values,
         'dosesPerDay': dosesPerDay,
+        'servingSizeCapsules': servingSizeCapsules,
         'addedAt': addedAt.toIso8601String(),
       };
 
@@ -408,8 +417,24 @@ class ActiveSupplement {
           (k, v) => MapEntry(k as String, (v as num).toDouble()),
         ),
         dosesPerDay: json['dosesPerDay'] as int? ?? 1,
+        servingSizeCapsules: json['servingSizeCapsules'] as int? ?? 1,
         addedAt:
             DateTime.tryParse(json['addedAt'] as String? ?? '') ?? DateTime.now(),
+      );
+
+  ActiveSupplement copyWith({
+    String? name,
+    Map<String, double>? values,
+    int? dosesPerDay,
+    int? servingSizeCapsules,
+    DateTime? addedAt,
+  }) =>
+      ActiveSupplement(
+        name: name ?? this.name,
+        values: values ?? this.values,
+        dosesPerDay: dosesPerDay ?? this.dosesPerDay,
+        servingSizeCapsules: servingSizeCapsules ?? this.servingSizeCapsules,
+        addedAt: addedAt ?? this.addedAt,
       );
 }
 

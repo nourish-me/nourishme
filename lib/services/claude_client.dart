@@ -165,9 +165,54 @@ class MealParseResult {
           : value is String
               ? double.tryParse(value.trim())
               : null;
-      if (n != null) out[key] = n;
+      if (n == null) return;
+      final canonical = canonicalNutrientKey(key);
+      // Drop macros if the model accidentally packed them into the
+      // micronutrients block (Build +34 tester report): protein_g /
+      // carbs_g / fat_g / kcal already live on the parent JSON as
+      // top-level fields. If they leak into "micronutrients" the B9
+      // "also detected" card lists them as unsupported nutrients, which
+      // is misleading - they ARE tracked, just in the macro lane.
+      if (_macroKeys.contains(canonical)) return;
+      // Multiple inputs (e.g. vitamin_d_ug + cholecalciferol_ug from a
+      // supplement label) can canonicalize to the same key. Sum them so we
+      // don't silently drop one branch.
+      out.update(canonical, (prev) => prev + n, ifAbsent: () => n);
     });
     return out;
+  }
+
+  static const Set<String> _macroKeys = {
+    'protein_g',
+    'carbs_g',
+    'carbohydrates_g',
+    'fat_g',
+    'kcal',
+    'kcal_total',
+    'energy_kcal',
+  };
+
+  // Aliases for AI-returned nutrient keys. The prompts ask the model to
+  // return canonical keys (e.g. vitamin_d_ug), but supplement labels in
+  // the wild list "Vitamin D3", "Cholecalciferol", "D2", etc. and the
+  // model often passes those through verbatim. This map folds the common
+  // chemical-name variants back onto the canonical key so the daily
+  // aggregation actually counts them.
+  static const Map<String, String> _nutrientAliases = {
+    // Vitamin D variants (cholecalciferol = D3, ergocalciferol = D2)
+    'vitamin_d3_ug': 'vitamin_d_ug',
+    'vitamin_d2_ug': 'vitamin_d_ug',
+    'cholecalciferol_ug': 'vitamin_d_ug',
+    'ergocalciferol_ug': 'vitamin_d_ug',
+    'd3_ug': 'vitamin_d_ug',
+    'd2_ug': 'vitamin_d_ug',
+    'vit_d_ug': 'vitamin_d_ug',
+  };
+
+  @visibleForTesting
+  static String canonicalNutrientKey(String key) {
+    final lower = key.trim().toLowerCase();
+    return _nutrientAliases[lower] ?? lower;
   }
 
   /// Returns a copy with [safetyWarnings] replaced. Used to fold the
@@ -1168,10 +1213,21 @@ Return the structured coach reply as defined in the system prompt. Use the profi
       );
     }
     final dosesPerDay = (parsed['doses_per_day'] as num?)?.toInt() ?? 1;
-    final perDose = (parsed['values'] as Map?)?.map(
-          (k, v) => MapEntry(k as String, (v as num).toDouble()),
-        ) ??
-        const <String, double>{};
+    final servingSizeCapsules =
+        (parsed['serving_size_capsules'] as num?)?.toInt() ?? 1;
+    final rawValues = parsed['values'] as Map?;
+    final perDose = <String, double>{};
+    if (rawValues != null) {
+      rawValues.forEach((k, v) {
+        if (k is! String || v is! num) return;
+        final canonical = MealParseResult.canonicalNutrientKey(k);
+        perDose.update(
+          canonical,
+          (prev) => prev + v.toDouble(),
+          ifAbsent: () => v.toDouble(),
+        );
+      });
+    }
     // Bake dosesPerDay into the stored values so the daily-aggregation
     // provider can just add them once without needing the dose count.
     final perDay = <String, double>{
@@ -1182,6 +1238,7 @@ Return the structured coach reply as defined in the system prompt. Use the profi
       name: (parsed['name'] as String?)?.trim() ?? '',
       values: perDay,
       dosesPerDay: dosesPerDay,
+      servingSizeCapsules: servingSizeCapsules,
     );
   }
 
@@ -1200,10 +1257,16 @@ class SupplementParseResult {
   final String name;
   final Map<String, double> values; // per-day, already × dosesPerDay
   final int dosesPerDay; // metadata only for display
+  // How many physical capsules / tablets make up ONE serving (Task A6,
+  // Build +34). Default 1 if the label doesn't say. Surfaced in the
+  // review sheet so the user sees "1 Portion = 2 Kapseln" alongside the
+  // doses-per-day pill.
+  final int servingSizeCapsules;
 
   const SupplementParseResult({
     required this.name,
     required this.values,
     required this.dosesPerDay,
+    this.servingSizeCapsules = 1,
   });
 }
