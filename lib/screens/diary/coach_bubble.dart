@@ -273,10 +273,14 @@ class _IngredientsReplyInputState
     await ref
         .read(coachAskStateProvider.notifier)
         .submitIngredients(text);
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
+    final messenger = rootScaffoldMessengerKey.currentState;
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(
       SnackBar(
         content: Text(snackText),
-        duration: const Duration(seconds: 3),
+        // Bump from 3 s -> 4 s to align with the Build +35 snackbar
+        // audit (Material 3: 4 s minimum for short confirmations).
+        duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating,
       ),
     );

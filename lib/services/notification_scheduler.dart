@@ -219,6 +219,79 @@ class NotificationScheduler {
     );
   }
 
+  // Rebuilds today's reminder chain in one pass against the user's actual
+  // meal history. For every enabled slot, looks for at least one meal
+  // logged today whose coverage bucket maps to that slot - if found,
+  // today's fire is cancelled and the chain re-anchors to tomorrow's
+  // same time. Slots without a covering meal keep their next firing.
+  //
+  // Why this exists on top of skipCoveredReminder (Build +35 tester
+  // report): a single-meal cancel can fail silently (iOS plugin race
+  // when the app gets backgrounded mid-save), and a recurring reminder
+  // would still fire. Calling this from BOTH the meal-save path AND
+  // app-foreground re-establishes "if a meal exists for this slot
+  // today, don't nag for it" as a converging invariant.
+  static Future<void> recomputeSkipsForToday({
+    required List<DateTime> todayMealTimes,
+    required ReminderSettings settings,
+    required AppLocalizations l10n,
+  }) async {
+    await init();
+    if (!settings.masterEnabled) return;
+
+    final now = tz.TZDateTime.now(tz.local);
+    final coveredSlots = <ReminderSlot>{};
+    for (final mealAt in todayMealTimes) {
+      if (mealAt.year != now.year ||
+          mealAt.month != now.month ||
+          mealAt.day != now.day) {
+        continue;
+      }
+      final slot = slotForMealTime(mealAt, settings);
+      if (slot != null) coveredSlots.add(slot);
+    }
+
+    final details = NotificationDetails(
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: false,
+        presentSound: true,
+      ),
+      android: AndroidNotificationDetails(
+        _channelId,
+        l10n.reminderChannelName,
+        channelDescription: l10n.reminderChannelDescription,
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+      ),
+    );
+
+    for (final entry in settings.entries) {
+      if (!entry.enabled) continue;
+      final todayFire = tz.TZDateTime(
+          tz.local, now.year, now.month, now.day, entry.hour, entry.minute);
+      final isCovered = coveredSlots.contains(entry.slot);
+      if (isCovered && todayFire.isAfter(now)) {
+        // A meal already covers this slot today. Push the chain to
+        // tomorrow so the reminder doesn't fire later today.
+        await _plugin.cancel(entry.slot.index);
+        await _plugin.zonedSchedule(
+          entry.slot.index,
+          ReminderCopy.titleFor(entry.slot, l10n),
+          ReminderCopy.bodyFor(entry.slot, l10n),
+          todayFire.add(const Duration(days: 1)),
+          details,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      }
+      // Slots without coverage are left alone; rescheduleFor already
+      // owns the "next occurrence" chain for them.
+    }
+  }
+
   // Returns the slot whose coverage bucket contains [mealAt]'s time-of-day,
   // or null when no slot is enabled. Buckets partition the day along the
   // midpoints between adjacent enabled slots: a meal at 12:00 with enabled

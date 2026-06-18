@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
-import '../main.dart' show rootScaffoldMessengerKey;
+import '../main.dart'
+    show rootScaffoldMessengerKey, snackbarDismissOnNavObserver;
 
 import '../models/favorite_meal.dart';
 import '../models/meal_entry.dart';
@@ -212,10 +213,14 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           );
       if (!mounted) return;
       if (!parsed.isMeal) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
           SnackBar(
             content: Text(parsed.rejectionReason ??
                 AppLocalizations.of(context).commonGenericError),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
           ),
         );
         return;
@@ -247,14 +252,24 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       });
     } on CoachApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.userMessage)),
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(e.userMessage),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context).commonGenericError),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
         ),
       );
     } finally {
@@ -397,16 +412,24 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       'method': widget.source.analyticsLabel,
       'edited': widget.existingMealId != null,
     });
-    // Smart-skip: if this meal covers a reminder slot (by time-of-day
-    // bucket), cancel today's occurrence of that slot and re-anchor its
-    // daily chain to tomorrow. Fire-and-forget so the save UX isn't gated
-    // on the notification plugin round-trip.
-    NotificationScheduler.skipCoveredReminder(
-      mealAt: meal.createdAt,
+    // Build +35 robustness: recompute the WHOLE today-skip set against
+    // every meal currently logged today. The old single-meal skip
+    // (skipCoveredReminder) sometimes lost the cancel call when the
+    // app was backgrounded mid-save, so the recurring reminder still
+    // fired ~1 h after the user logged - tester report. The bulk
+    // version converges: even if one save's call drops, the next save
+    // catches up.
+    final todayMeals = ref.read(todayMealsProvider);
+    final todayMealTimes = [
+      ...todayMeals.map((m) => m.createdAt),
+      meal.createdAt,
+    ];
+    NotificationScheduler.recomputeSkipsForToday(
+      todayMealTimes: todayMealTimes,
       settings: reminderSettings,
       l10n: reminderL10n,
     ).catchError((Object e, StackTrace _) {
-      debugPrint('skipCoveredReminder failed: $e');
+      debugPrint('recomputeSkipsForToday failed: $e');
     });
     // Track how often the food-safety feature actually surfaces a warning, so
     // we can tell whether it earns its keep.
@@ -515,6 +538,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         // Drain any pending bundle without firing - retro-saves
         // shouldn't carry today's queued meals into a coach call later.
         bundleNotifier.state = const [];
+        // Tell the global nav observer to skip the next auto-dismiss
+        // so the snack survives the pop that follows this save (Build
+        // +35 follow-up: the snack used to vanish the moment the
+        // confirm sheet popped).
+        snackbarDismissOnNavObserver.markPersistent();
         rootScaffoldMessengerKey.currentState?.showSnackBar(
           importantSnack(
             message:
@@ -522,6 +550,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
             dismissLabel: snackDismissLabel,
           ),
         );
+        scheduleImportantSnackForceDismiss();
         // Same-day retro saves stay on the current focusedDay, so the
         // scrollToDayProvider (which switches days) isn't enough. Push
         // the meal-id directly so the diary scrolls to the new entry
@@ -600,6 +629,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final isRetroEdit =
         CoachSessionManager.isRetroactiveMeal(meal.createdAt);
     if (isPastDayEdit || isRetroEdit) {
+      snackbarDismissOnNavObserver.markPersistent();
       rootScaffoldMessengerKey.currentState?.showSnackBar(
         importantSnack(
           message:
@@ -607,6 +637,7 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           dismissLabel: snackDismissLabel,
         ),
       );
+      scheduleImportantSnackForceDismiss();
       return;
     }
 
@@ -751,6 +782,8 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                 // keyboard is a single tap. Multi-line is preserved for
                 // photo-parsed multi-component summaries that wrap.
                 textInputAction: TextInputAction.done,
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
                 onSubmitted: (_) => FocusScope.of(context).unfocus(),
                 // Outlined notch-label per beta feedback: the borderless
                 // input read as read-only, users didn't realise the meal
@@ -934,9 +967,35 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       // model drift) - they're tracked above as kcal/macros, never as
       // "also detected". Drop them here too.
       if (_macroLeakKeys.contains(entry.key)) continue;
-      extras.add(_prettifyNutrientKey(entry.key));
+      // Build +35 follow-up: surface the actual quantity + unit so the
+      // user can SEE what the model detected ("Vitamin C 45 mg") instead
+      // of just the bare name ("Vitamin C"). Tester report: "ich
+      // verstehe den Hinweis nicht ganz" - the value gives the hint
+      // concrete content.
+      final label = _prettifyNutrientKey(entry.key);
+      final unit = _unitForNutrientKey(entry.key);
+      final value = _formatNutrientValue(entry.value);
+      extras.add(unit.isEmpty ? '$label $value' : '$label $value $unit');
     }
     return extras;
+  }
+
+  String _unitForNutrientKey(String key) {
+    final lower = key.toLowerCase();
+    if (lower.endsWith('_ug') || lower.endsWith('_mcg') ||
+        lower.endsWith('µg')) {
+      return 'µg';
+    }
+    if (lower.endsWith('_mg')) return 'mg';
+    if (lower.endsWith('_g')) return 'g';
+    if (lower.endsWith('_ml')) return 'ml';
+    return '';
+  }
+
+  String _formatNutrientValue(double v) {
+    if (v >= 100) return v.toStringAsFixed(0);
+    if (v >= 10) return v.toStringAsFixed(1);
+    return v.toStringAsFixed(1);
   }
 
   static const Set<String> _macroLeakKeys = {
@@ -998,7 +1057,6 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   @override
   Widget build(BuildContext context) {
     if (widget.asSheet) {
-      final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
       return PopScope(
         canPop: !_userTouched,
         onPopInvokedWithResult: (didPop, _) async {
@@ -1019,19 +1077,19 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
               children: [
                 _buildSheetHeader(),
                 Flexible(child: _buildBody(context)),
-                // When the keyboard is up, replace the full action row with a
-                // compact accessory bar so the user has a "Speichern" button
-                // immediately above the keys (iOS-Numpad has no Done key).
-                if (keyboardOpen)
-                  _KeyboardAccessoryBar(onSave: _save)
-                else
-                  SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: _buildActionRow(),
-                    ),
+                // Build +35 follow-up: dropped the bespoke keyboard-up
+                // accessory bar. It flickered to/from the regular action
+                // row when the keyboard slid in/out. With onTapOutside
+                // on each TextField the user dismisses the keyboard by
+                // tapping anywhere outside; the action row stays
+                // consistently visible.
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: _buildActionRow(),
                   ),
+                ),
               ],
             ),
           ),
@@ -1076,21 +1134,16 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ],
         ),
           body: _buildBody(context),
-          // Edit-mode (full Scaffold) used to show only the full action row in
-          // the bottomNavigationBar. iOS keyboard kept it above the keys but
-          // occluded the Save button visually for some users when the
-          // description field was focused. Switch to the same accessory-bar
-          // pattern as sheet mode: compact "Done + Save" bar while the
-          // keyboard is up, full Discard + Save action row otherwise.
-          bottomNavigationBar:
-              MediaQuery.of(context).viewInsets.bottom > 0
-                  ? _KeyboardAccessoryBar(onSave: _save)
-                  : SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: _buildActionRow(),
-                      ),
-                    ),
+          // Build +35 follow-up: keyboard-accessory bar dropped (same
+          // reason as the sheet mode). Action row stays in the bottom
+          // bar through keyboard transitions; onTapOutside on TextFields
+          // handles dismiss.
+          bottomNavigationBar: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildActionRow(),
+            ),
+          ),
         ),
       ),
     );
@@ -1121,6 +1174,13 @@ class _SmallField extends StatelessWidget {
           ? const TextInputType.numberWithOptions(decimal: true)
           : TextInputType.number,
       textInputAction: TextInputAction.done,
+      // Build +35 follow-up: replace the bespoke keyboard accessory bar
+      // with the standard onTapOutside dismiss. The accessory bar caused
+      // an amber/beige "Fertig/Speichern" flicker between accessory and
+      // ActionRow as the keyboard slid in/out - cleaner to just let the
+      // keyboard collapse and show the regular action row throughout.
+      onTapOutside: (_) =>
+          FocusManager.instance.primaryFocus?.unfocus(),
       onSubmitted: (_) {
         if (onSubmit != null) {
           onSubmit!();
@@ -1192,49 +1252,6 @@ class _SheetHeaderContent extends StatelessWidget {
               color: saveAsFavorite ? scheme.secondary : null,
             ),
             onPressed: onToggleFavorite,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _KeyboardAccessoryBar extends StatelessWidget {
-  final VoidCallback onSave;
-  const _KeyboardAccessoryBar({required this.onSave});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainer,
-        border: Border(
-          top: BorderSide(
-            color: scheme.outlineVariant.withValues(alpha: 0.5),
-            width: 0.5,
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: () => FocusScope.of(context).unfocus(),
-            child: Text(
-              AppLocalizations.of(context).commonDone,
-              style: TextStyle(color: scheme.outline),
-            ),
-          ),
-          const SizedBox(width: 4),
-          FilledButton.tonal(
-            onPressed: onSave,
-            style: FilledButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-            child: Text(AppLocalizations.of(context).confirmSave),
           ),
         ],
       ),

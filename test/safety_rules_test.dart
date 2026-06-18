@@ -924,4 +924,93 @@ void main() {
           SafetyWarningSeverity.warn);
     });
   });
+
+  group('rawAnimalProducts — mussels add coverage (Build +35)', () {
+    test('Miesmuscheln in Weißwein triggers Listeria warning for pregnant', () {
+      final w = SafetyRules.rawAnimalProducts(
+        'Miesmuscheln in Weißwein', pregnant, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('Listerien'));
+    });
+
+    test('Muschelnudeln (Hühnersuppe) does NOT trigger the rule', () {
+      final w = SafetyRules.rawAnimalProducts(
+        'Hühnersuppe mit Muschelnudeln, Karotten', pregnant, locale: 'de');
+      expect(w, isNull);
+    });
+
+    test('Conchiglie context excludes the rule', () {
+      final w = SafetyRules.rawAnimalProducts(
+        'Suppe mit Conchiglie und Hühnchen', pregnant, locale: 'de');
+      expect(w, isNull);
+    });
+
+    test('Mussels (English) trigger shellfish warning when lactating '
+        '(Build +35 follow-up)', () {
+      final w = SafetyRules.rawAnimalProducts(
+        'Mussels in white wine', lactating, locale: 'en');
+      expect(w, isNotNull);
+      expect(w, contains('shellfish'));
+    });
+
+    test('Miesmuscheln trigger Stillzeit-Shellfish-Warnung (Build +35 follow-up)',
+        () {
+      final w = SafetyRules.rawAnimalProducts(
+        'Miesmuscheln in Weißwein', lactating, locale: 'de');
+      expect(w, isNotNull);
+      expect(w, contains('Muscheln'));
+    });
+
+    test('Lactating + raw beef stays silent (only shellfish, not all raw)', () {
+      final w = SafetyRules.rawAnimalProducts(
+        'Mett mit Zwiebel', lactating, locale: 'de');
+      expect(w, isNull);
+    });
+  });
+
+  group('applyContextExclusions — phantom mussel warning', () {
+    const mussel =
+        'Muscheln sind rohe oder gering erhitzte Meerestiere und tragen erhöhtes Listeria-Risiko.';
+    const alcohol = 'Alkohol: bei Stillzeit komplett meiden.';
+
+    test('Muschelnudeln context suppresses mussel warning', () {
+      final out = SafetyRules.applyContextExclusions(
+        [mussel],
+        'Hühnersuppe mit Muschelnudeln',
+      );
+      expect(out, isEmpty);
+    });
+
+    test('Conchiglie context suppresses mussel warning too', () {
+      final out = SafetyRules.applyContextExclusions(
+        [mussel],
+        'Suppe mit Conchiglie',
+      );
+      expect(out, isEmpty);
+    });
+
+    test('Other warnings survive when only mussel is filtered', () {
+      final out = SafetyRules.applyContextExclusions(
+        [mussel, alcohol],
+        'Glas Wein mit Muschelnudeln',
+      );
+      expect(out, [alcohol]);
+    });
+
+    test('Real mussel context (no pasta) keeps the warning', () {
+      final out = SafetyRules.applyContextExclusions(
+        [mussel],
+        'Miesmuscheln in Weißwein',
+      );
+      expect(out, [mussel]);
+    });
+
+    test('Case-insensitive match', () {
+      final out = SafetyRules.applyContextExclusions(
+        [mussel],
+        'CONCHIGLIE mit Hähnchen',
+      );
+      expect(out, isEmpty);
+    });
+  });
 }

@@ -271,12 +271,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get confirmUnsupportedNutrientHeader =>
-      'Auch erkannt, noch nicht im Tagesziel';
+  String get confirmUnsupportedNutrientHeader => 'Auch in dieser Mahlzeit';
 
   @override
   String confirmUnsupportedNutrientHint(String nutrients) {
-    return 'Das Modell hat hier auch $nutrients erfasst. NourishMe verfolgt diese Nährstoffe heute noch nicht im Tagesziel, der Wert ist nur informativ.';
+    return '$nutrients. Wir tracken diese Nährstoffe noch nicht im Tagesziel, aber sie sind im Eintrag gespeichert.';
   }
 
   @override

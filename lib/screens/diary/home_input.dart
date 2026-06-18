@@ -14,6 +14,7 @@ import '../../providers/meal_providers.dart';
 import '../../providers/ui_providers.dart';
 import '../../services/claude_client.dart';
 import '../../services/coach_session_manager.dart';
+import '../../services/micronutrient_targets.dart';
 import '../../utils/important_snack.dart';
 import '../../utils/photo_exif.dart';
 import '../../utils/weight_trend.dart';
@@ -441,6 +442,61 @@ class _HomeInputState extends ConsumerState<HomeInput> {
     if (trend != null) {
       buffer.writeln(formatWeightTrendForCoach(trend, isDe: isDe));
     }
+
+    // Build +35 fix for the DHA-tester report: the chat coach used to
+    // see only kcal/macros and would tell the user "0 mg DHA in deinen
+    // Einträgen" even when the header showed a 325 % checkmark - the
+    // two sources disagreed because the coach had no view on micros
+    // or supplements. We now feed both into the context so the coach
+    // can answer "your day shows X mg DHA, mostly from Femibion 2"
+    // honestly. Capped to nutrients that actually have a non-zero
+    // reading so we don't spam the prompt with zeroes.
+    if (profile != null) {
+      final micros = ref.read(todayMicronutrientsProvider);
+      final targets = MicronutrientTargets.allFor(profile);
+      final lines = <String>[];
+      for (final key in MicronutrientKey.all) {
+        final value = micros[key] ?? 0;
+        if (value <= 0) continue;
+        final target = targets[key];
+        final display = MicronutrientSources.forKey(key, locale);
+        final label = MicronutrientDisplay.forKey(key);
+        final shortName = label == null
+            ? key
+            : (isDe ? label.shortNameDe : label.shortNameEn);
+        final unit = label?.unitLabel ?? '';
+        final targetPart = target == null
+            ? ''
+            : ' / ${target.value.toStringAsFixed(target.value >= 10 ? 0 : 1)} $unit';
+        lines.add('- $shortName: ${value.toStringAsFixed(value >= 10 ? 0 : 1)} $unit$targetPart');
+        // No usage of `display` here, but the call validates the source
+        // list parses; future work can quote sources directly.
+        display.length;
+      }
+      if (lines.isNotEmpty) {
+        buffer.writeln(isDe
+            ? '=== Mikronährstoffe heute (aus Mahlzeiten + aktiven Supplements) ==='
+            : '=== Micronutrients today (from meals + active supplements) ===');
+        buffer.writeln(lines.join('\n'));
+      }
+      if (profile.activeSupplements.isNotEmpty) {
+        buffer.writeln(isDe
+            ? '=== Aktive Supplements ==='
+            : '=== Active supplements ===');
+        for (final s in profile.activeSupplements) {
+          final contribs = <String>[];
+          for (final entry in s.values.entries) {
+            final label = MicronutrientDisplay.forKey(entry.key);
+            if (label == null) continue;
+            final unit = label.unitLabel;
+            final name = isDe ? label.shortNameDe : label.shortNameEn;
+            contribs.add('$name ${entry.value.toStringAsFixed(entry.value >= 10 ? 0 : 1)} $unit');
+          }
+          buffer.writeln('- ${s.name}: ${contribs.join(", ")}');
+        }
+      }
+    }
+
     return buffer.toString();
   }
 
@@ -780,11 +836,15 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
       // Multi-photo and retro-coach snacks carry information the user
       // can't predict (which days, why no coach); use the longer,
-      // dismissable importantSnack instead of the 3-4s default.
+      // dismissable importantSnack instead of the 3-4s default. Mark
+      // persistent so the snack survives any pop/push that fires while
+      // multi-photo session winds down (Build +35 follow-up).
+      snackbarDismissOnNavObserver.markPersistent();
       rootScaffoldMessengerKey.currentState?.showSnackBar(importantSnack(
         message: snackText,
         dismissLabel: importantSnackLabel(context),
       ));
+      scheduleImportantSnackForceDismiss();
     } finally {
       if (mounted) setState(() => _sending = false);
     }

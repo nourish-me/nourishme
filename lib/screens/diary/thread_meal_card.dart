@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/meal_entry.dart';
+import '../../providers/ui_providers.dart';
 import '../../services/safety_rules.dart';
 import '../../utils/number_format.dart';
 
@@ -18,7 +20,7 @@ import '../../utils/number_format.dart';
 // sits between the name and kcal so it doesn't push the kcal column off
 // alignment with neighbouring rows.
 
-class ThreadMealCard extends StatelessWidget {
+class ThreadMealCard extends ConsumerWidget {
   final MealEntry meal;
   final VoidCallback onEdit;
   final VoidCallback onDuplicate;
@@ -33,9 +35,14 @@ class ThreadMealCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    // Build +35 follow-up: highlight pulse on the meal that was just
+    // logged for a past day. Triggered by home_screen's scroll-to-meal
+    // handler. Fades back to transparent after ~1.8 s.
+    final isHighlighted =
+        ref.watch(highlightedMealIdProvider) == meal.id;
     final time = TimeOfDay.fromDateTime(meal.createdAt);
     final timeLabel =
         '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
@@ -67,8 +74,13 @@ class ThreadMealCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onEdit,
-        child: DecoratedBox(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOut,
           decoration: BoxDecoration(
+            color: isHighlighted
+                ? scheme.secondaryContainer.withValues(alpha: 0.6)
+                : Colors.transparent,
             border: Border(
               bottom: BorderSide(color: scheme.outlineVariant, width: 0.5),
             ),

@@ -61,6 +61,11 @@
     },
     "rawAnimal": {
       "_heatedNote": "When a heatedMarkers token appears in the same product string as a rawAnimal keyword, the warning switches from 'avoid' to a reassurance variant ('raw would be listeria; thoroughly heated is safe'). Tokens are matched as token-substring (case-insensitive) - 'back' inside 'Backcamembert', 'ofen' inside 'Ofencamembert', 'gegrillt' inside 'gegrillter Camembert', etc.",
+      "_exclusionsNote": "Exclusions prevent the muschel-* keyword from matching pasta-shape compounds ('Muschelnudeln' isn't seafood). Mirrors the algae 'kombucha vs kombu' exclusion pattern. Matched as substrings on the lowercased input.",
+      "exclusions": [
+        "muschelnudel", "muschelpasta", "conchiglie", "conchigliette",
+        "shell pasta", "pasta shell"
+      ],
       "heatedMarkers": [
         "gebacken", "überbacken", "ueberbacken", "ofen", "back",
         "gegrillt", "flambiert", "frittiert",
@@ -80,6 +85,8 @@
         "matjes", "bismarckhering", "rollmops", "bückling", "bueckling",
         "roher hering", "sauerlappen",
         "auster", "austern", "oyster", "oysters",
+        "muschel", "muscheln", "miesmuschel", "miesmuscheln", "mussel", "mussels",
+        "venusmuschel", "jakobsmuschel", "jakobsmuscheln", "clam", "clams", "scallop", "scallops",
         "weichkäse", "weichkaese", "camembert", "brie", "briekäse", "briekaese",
         "backcamembert", "ofencamembert", "ofenbrie", "ofenkäse", "ofenkaese",
         "baked camembert", "baked brie",
@@ -97,13 +104,21 @@
       "messages": {
         "de": {
           "pregnant": "Roh vom Tier: in der Schwangerschaft meiden (Listerien-/Toxoplasmose-Risiko), z.B. Rohmilch, rohes Fleisch/Fisch, Räucherfisch, Weichkäse.",
-          "pregnantHeated": "Roh wäre Listerien-Sorge; durchgebacken oder vollständig erhitzt ist sicher (Hitze tötet Listerien zuverlässig)."
+          "pregnantHeated": "Roh wäre Listerien-Sorge; durchgebacken oder vollständig erhitzt ist sicher (Hitze tötet Listerien zuverlässig).",
+          "lactatingShellfish": "Muscheln & Schalentiere: nur durchgegart verzehren. Roh oder halbgar können sie Norovirus, Hepatitis A oder Vibrio enthalten - das macht dich selbst krank und unterbricht das Stillen (BfR)."
         },
         "en": {
           "pregnant": "Raw animal foods: avoid in pregnancy (listeria/toxoplasma risk), e.g. raw milk, raw meat/fish, smoked fish, soft cheese.",
-          "pregnantHeated": "Raw would be a listeria concern; thoroughly baked or fully heated is safe (heat reliably kills listeria)."
+          "pregnantHeated": "Raw would be a listeria concern; thoroughly baked or fully heated is safe (heat reliably kills listeria).",
+          "lactatingShellfish": "Mussels & shellfish: eat only when fully cooked. Raw or undercooked, they can carry norovirus, hepatitis A or vibrio - which makes you ill yourself and interrupts breastfeeding (BfR)."
         }
-      }
+      },
+      "lactationShellfishKeywords": [
+        "muschel", "muscheln", "miesmuschel", "miesmuscheln",
+        "auster", "austern", "venusmuschel", "jakobsmuschel", "jakobsmuscheln",
+        "mussel", "mussels", "oyster", "oysters", "clam", "clams",
+        "scallop", "scallops"
+      ]
     },
     "mercuryFish": {
       "tokens": [

@@ -84,6 +84,27 @@ Future<void> main() async {
       settingsRepo.getReminders(),
       l10n,
     );
+    // Build +35: also reconcile "if a meal was already logged today for
+    // this reminder slot, suppress today's fire". Catches the case
+    // where yesterday's save-time call to recomputeSkipsForToday
+    // dropped silently (iOS background race) and the recurring chain
+    // would otherwise nag the user.
+    final mealsRepoNow = mealRepo;
+    final todayMealTimes = mealsRepoNow
+        .all()
+        .where((m) {
+          final now = DateTime.now();
+          return m.createdAt.year == now.year &&
+              m.createdAt.month == now.month &&
+              m.createdAt.day == now.day;
+        })
+        .map((m) => m.createdAt)
+        .toList();
+    await NotificationScheduler.recomputeSkipsForToday(
+      todayMealTimes: todayMealTimes,
+      settings: settingsRepo.getReminders(),
+      l10n: l10n,
+    );
   }());
   final hasProfile = settingsRepo.hasProfile();
   final themeMode = _parseThemeMode(settingsRepo.getThemeMode());
@@ -160,6 +181,46 @@ ThemeMode _parseThemeMode(String s) {
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
+// Navigator observer that hides any active SnackBar whenever a route
+// pushes or pops (Build +35 snackbar audit). The root ScaffoldMessenger
+// is global, so without this hook a snackbar shown on screen A would
+// keep blocking taps on screen B for the full 15 s duration. The audit
+// covers all snackbars in the app (settings auto-save, important snack
+// for retro saves, errors etc.) - cross-screen persistence was the
+// "snack hält ewig" tester report.
+class _SnackbarDismissOnNavObserver extends NavigatorObserver {
+  // Set via [markPersistent] right before a `showSnackBar` whose snack
+  // is supposed to outlive the immediately-following pop/push. Build
+  // +35 follow-up: the importantSnack the confirm-sheet shows after a
+  // past-day save was getting hidden the instant the sheet popped -
+  // user never saw it. The flag is consumed on the first nav event.
+  bool _suppressOnce = false;
+
+  void markPersistent() {
+    _suppressOnce = true;
+  }
+
+  void _dismiss() {
+    if (_suppressOnce) {
+      _suppressOnce = false;
+      return;
+    }
+    rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      _dismiss();
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      _dismiss();
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) =>
+      _dismiss();
+}
+
+final snackbarDismissOnNavObserver = _SnackbarDismissOnNavObserver();
+
 class NourishMeApp extends ConsumerWidget {
   final bool showOnboarding;
   const NourishMeApp({super.key, required this.showOnboarding});
@@ -169,6 +230,7 @@ class NourishMeApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     return MaterialApp(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
+      navigatorObservers: [snackbarDismissOnNavObserver],
       title: 'NourishMe',
       // Field Manual palette. Hand-tuned brand colors instead of M3 auto-
       // generation. See lib/theme/nourishme_colors.dart for the tokens.

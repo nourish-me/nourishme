@@ -186,6 +186,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
             curve: Curves.easeOut,
           );
+          // Build +35 follow-up: ensureVisible occasionally NO-OPs on
+          // iOS when the item is inside a SlideTransition + nested
+          // ListView (tester report: "lands on yesterday but not at
+          // the entry"). Verify the scroll actually positioned the
+          // item near the top; if not, fall back to a manual
+          // animateTo that computes the offset from the item's
+          // RenderBox vs the viewport.
+          if (renderObject.attached && _scroll.hasClients) {
+            final viewportTop = _scroll.position.pixels;
+            final viewportHeight = _scroll.position.viewportDimension;
+            final itemTopInViewport =
+                renderObject.localToGlobal(Offset.zero).dy;
+            final itemAbsoluteOffset = viewportTop + itemTopInViewport;
+            // If the item's top isn't within 60 px of the viewport
+            // top after ensureVisible, force-animate.
+            if (itemTopInViewport < -10 ||
+                itemTopInViewport > viewportHeight * 0.4) {
+              final target = itemAbsoluteOffset.clamp(
+                0.0,
+                _scroll.position.maxScrollExtent,
+              );
+              await _scroll.animateTo(
+                target,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          }
           _programmaticScroll = false;
           return;
         } catch (_) {
@@ -461,12 +489,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       _handledScrollToMealId = pendingMealScrollId;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        // Let the new meal item land in the focused-day thread before we
-        // try to scroll to its key.
-        await Future<void>.delayed(const Duration(milliseconds: 80));
-        if (!mounted) return;
-        if (_mealKeys.containsKey(pendingMealScrollId)) {
-          await _scrollToNewMeal(pendingMealScrollId);
+        // Build +35 follow-up #2: a single 80ms wait was too tight when
+        // the scroll-to-meal request rides alongside a day-switch
+        // (past-day save). New approach: self-contained. The handler
+        //  1) locates the meal in the latest mealsProvider snapshot,
+        //  2) makes sure focusedDay matches the meal's day (does the
+        //     switch itself if needed, instead of relying on a parallel
+        //     scrollToDayProvider handler),
+        //  3) waits in a retry loop until _mealKeys has the entry.
+        // Up to ~2s total. The scrollToDayProvider handler may also
+        // fire in parallel; that's fine - setting focusedDay twice to
+        // the same value is a no-op.
+        final mealsAll =
+            ref.read(mealsProvider).valueOrNull ?? const <MealEntry>[];
+        final meal = mealsAll.cast<MealEntry?>().firstWhere(
+              (m) => m?.id == pendingMealScrollId,
+              orElse: () => null,
+            );
+        if (meal != null) {
+          final mealDay = DateTime(
+              meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
+          final focusedNow = ref.read(focusedDayProvider);
+          final focusedKey =
+              DateTime(focusedNow.year, focusedNow.month, focusedNow.day);
+          if (mealDay != focusedKey) {
+            ref.read(focusedDayProvider.notifier).state = mealDay;
+          }
+        }
+        bool scrolled = false;
+        for (var i = 0; i < 10; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+          if (!mounted) return;
+          if (_mealKeys.containsKey(pendingMealScrollId)) {
+            await _scrollToNewMeal(pendingMealScrollId);
+            scrolled = true;
+            break;
+          }
+        }
+        if (!scrolled) {
+          debugPrint(
+              'scrollToMealId: meal key never mounted for $pendingMealScrollId after 2s');
+        }
+        // Build +35 follow-up: trigger a 1.5 s highlight pulse on the
+        // target meal card as a belt-and-braces visual anchor. Even if
+        // the scroll didn't move the viewport as expected, the user
+        // can see WHERE her new entry is.
+        if (mounted) {
+          ref.read(highlightedMealIdProvider.notifier).state =
+              pendingMealScrollId;
+          Future.delayed(const Duration(milliseconds: 1800), () {
+            if (!mounted) return;
+            final current = ref.read(highlightedMealIdProvider);
+            if (current == pendingMealScrollId) {
+              ref.read(highlightedMealIdProvider.notifier).state = null;
+            }
+          });
         }
         if (mounted) {
           ref.read(scrollToMealIdProvider.notifier).state = null;

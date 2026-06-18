@@ -100,8 +100,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // one save. The snapshot is the profile state BEFORE the first mutation
   // in a batch, so the Undo action reverts the whole batch in one tap.
   Timer? _autoSaveTimer;
+  // Separate "show the Undo snackbar after a quiet period" timer
+  // (Build +35 follow-up). The save itself fires fast (700ms debounce)
+  // so data is safe. The snack waits another 1.5 s of silence so a
+  // burst of consecutive changes collapses into a single trailing
+  // snack instead of stacking three or four nearly-overlapping ones.
+  Timer? _quietSnackTimer;
   UserProfileSettings? _pendingUndoSnapshot;
+  UserProfileSettings? _quietSnackSnapshot;
   static const _autoSaveDebounce = Duration(milliseconds: 700);
+  // Tighter than the first iteration (1500ms) - Vanessa flagged the
+  // combined 1.5s + 4s snack as "bleibt zu lang". 0.8s quiet window
+  // + 3s snack = 3.8s total, still inside MD3 spec for action snacks.
+  static const _quietSnackDelay = Duration(milliseconds: 800);
   // Override for the next weight-history entry's recordedAt. Null = use
   // DateTime.now() on save. Set when the user taps the "Gewogen am"
   // pill that appears under the weight field after they actually change
@@ -140,6 +151,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // most recent edit unless dispose happens within 700ms of a mutation.
     _autoSaveTimer?.cancel();
     _autoSaveTimer = null;
+    _quietSnackTimer?.cancel();
+    _quietSnackTimer = null;
+    _snackForceDismissTimer?.cancel();
+    _snackForceDismissTimer = null;
     super.dispose();
   }
 
@@ -161,6 +176,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // applies the change, and schedules a debounced save.
   void _mutate(VoidCallback fn) {
     _pendingUndoSnapshot ??= _lastPersistedSnapshot();
+    // A fresh mutation cancels any pending "show the snack after quiet"
+    // timer - we're not quiet anymore. The snack will get re-armed at
+    // the next _runAutoSave tick.
+    _quietSnackTimer?.cancel();
+    _quietSnackTimer = null;
     setState(fn);
     _scheduleAutoSave();
   }
@@ -193,13 +213,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   // Core write path. Shared by the auto-save tick and the Undo revert.
-  // When [previousForUndo] is supplied, the snackbar surfaces an Undo
-  // action that reverts to it. Without it, the snackbar is informational
-  // only (used after the user already tapped Undo).
+  // When [previousForUndo] is supplied AND quietMode is true, the
+  // snackbar is deferred until 1.5 s of mutation-free silence; consecutive
+  // saves within a burst no longer stack visible snacks. Without
+  // previousForUndo, the snack is informational and shows immediately
+  // (used after the user already tapped Undo).
   Future<void> _persistProfile(UserProfileSettings newProfile,
       {UserProfileSettings? previousForUndo}) async {
     if (!mounted) return;
-    final l10n = AppLocalizations.of(context);
     await ref.read(settingsRepositoryProvider).saveProfile(newProfile);
     // Record a weight history entry whenever the value differs from the
     // last save. Mirrors the logic from the legacy explicit-save path so
@@ -221,12 +242,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (!mounted) return;
     ref.invalidate(userProfileProvider);
     _initialProfileJson = jsonEncode(newProfile.toJson());
+    if (previousForUndo != null) {
+      // Save-side flow: arm a quiet-window timer instead of showing
+      // immediately, so a burst of consecutive mutations collapses
+      // into one trailing snack. Each _mutate() call cancels this
+      // timer and a fresh one will be armed by the next _runAutoSave.
+      _quietSnackSnapshot = previousForUndo;
+      _quietSnackTimer?.cancel();
+      _quietSnackTimer = Timer(_quietSnackDelay, _showQuietSnack);
+    } else {
+      // Revert-side flow: this snack confirms the user's own Undo tap
+      // and should appear immediately, no quiet window needed.
+      _showSavedSnack(previousForUndo: null);
+    }
+  }
+
+  void _showQuietSnack() {
+    if (!mounted) return;
+    final snapshot = _quietSnackSnapshot;
+    _quietSnackSnapshot = null;
+    _quietSnackTimer = null;
+    if (snapshot == null) return;
+    _showSavedSnack(previousForUndo: snapshot);
+  }
+
+  void _showSavedSnack({required UserProfileSettings? previousForUndo}) {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
     final messenger = rootScaffoldMessengerKey.currentState;
     messenger?.hideCurrentSnackBar();
     messenger?.showSnackBar(
       SnackBar(
         content: Text(l10n.settingsSavedSnackbar),
-        duration: const Duration(seconds: 4),
+        // Build +35 follow-up: 3 s instead of 4 s. Combined with the
+        // 0.8 s quiet window the total user-perceived snack life is
+        // ~3.8 s, which sits inside MD3 "action snackbar 3-10 s" and
+        // addresses the "bleibt zu lang" tester report.
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         action: previousForUndo == null
             ? null
@@ -236,14 +288,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
       ),
     );
+    // Belt-and-braces force-dismiss: tester report Build +35 found
+    // SnackBars with action + floating behavior sometimes ignore the
+    // declared duration on iOS. Manual hide guarantees the snack
+    // disappears at the time we promised.
+    _scheduleSnackForceDismiss(const Duration(seconds: 3, milliseconds: 200));
+  }
+
+  Timer? _snackForceDismissTimer;
+  void _scheduleSnackForceDismiss(Duration after) {
+    _snackForceDismissTimer?.cancel();
+    _snackForceDismissTimer = Timer(after, () {
+      if (!mounted) return;
+      rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+    });
   }
 
   // Restores state from [snapshot] (the profile before the most recent
   // batch of mutations) and writes it back so the persisted profile + UI
-  // stay in sync. Cancels any debounce that hadn't fired yet.
+  // stay in sync. Cancels any debounce or pending snack that hadn't
+  // fired yet.
   Future<void> _revertTo(UserProfileSettings snapshot) async {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = null;
+    _quietSnackTimer?.cancel();
+    _quietSnackTimer = null;
+    _quietSnackSnapshot = null;
     _pendingUndoSnapshot = null;
     if (!mounted) return;
     setState(() => _rehydrateState(snapshot));

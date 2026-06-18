@@ -569,13 +569,13 @@ abstract class AppLocalizations {
   /// No description provided for @confirmUnsupportedNutrientHeader.
   ///
   /// In en, this message translates to:
-  /// **'Also detected, not in your daily target yet'**
+  /// **'Also in this meal'**
   String get confirmUnsupportedNutrientHeader;
 
   /// No description provided for @confirmUnsupportedNutrientHint.
   ///
   /// In en, this message translates to:
-  /// **'The model also picked up {nutrients} here. NourishMe doesn\'t track these nutrients in your daily target yet, the value is informational only.'**
+  /// **'{nutrients}. We don\'t track these nutrients in your daily target yet, but they are stored with the entry.'**
   String confirmUnsupportedNutrientHint(String nutrients);
 
   /// No description provided for @confirmCoachErrorFallback.

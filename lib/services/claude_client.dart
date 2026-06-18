@@ -596,6 +596,15 @@ class ClaudeClient {
     // food-safety rules on it would mis-fire (e.g. on the question "darf ich
     // Kaffee trinken?"), so only apply the deterministic floor to real meals.
     if (!result.isMeal) return result;
+    // Build +35: drop LLM phantom warnings keyed on confusable food
+    // names (e.g. "Muscheln" triggered for shell-shaped pasta). The
+    // canonical input for context is the user's text PLUS the parsed
+    // summary, so both "ich hatte Muschelnudeln" and "Conchigliette"
+    // suppress the false mussel caution.
+    final cleanedModelWarnings = SafetyRules.applyContextExclusions(
+      result.safetyWarnings,
+      '$userText ${result.summary}',
+    );
     final deterministic = SafetyRules.allWarnings(
       '$userText ${result.summary}',
       SafetyPhase(
@@ -605,11 +614,10 @@ class ClaudeClient {
       ),
       locale: locale,
     );
-    if (deterministic.isEmpty) return result;
-    return result.copyWith(
-      safetyWarnings:
-          SafetyRules.mergeWarnings(deterministic, result.safetyWarnings),
-    );
+    final merged = deterministic.isEmpty
+        ? cleanedModelWarnings
+        : SafetyRules.mergeWarnings(deterministic, cleanedModelWarnings);
+    return result.copyWith(safetyWarnings: merged);
   }
 
   // Safety-only check for a known product (e.g. one scanned via Open Food

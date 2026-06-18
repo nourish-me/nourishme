@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../main.dart' show rootScaffoldMessengerKey;
 
 // Builds a SnackBar tuned for "user needs to actually read this" messages
 // (Coach paused, Past-day saved, Cross-day bulk, etc.). Style intent
@@ -23,6 +24,10 @@ import '../l10n/app_localizations.dart';
 // don't want to wake AppLocalizations.of(context) on a possibly-stale
 // BuildContext from a finally{} block. importantSnackLabel() pulls it
 // off a live context once, up-front.
+// Canonical duration for the importantSnack helper. Exported so callers
+// can chain a belt-and-braces force-dismiss timer at the same length.
+const Duration importantSnackDuration = Duration(seconds: 8);
+
 SnackBar importantSnack({
   required String message,
   required String dismissLabel,
@@ -30,16 +35,27 @@ SnackBar importantSnack({
     SnackBar(
       content: Text(message),
       behavior: SnackBarBehavior.floating,
-      // Long-but-finite: 15 s covers "read the message + tap the action
-      // if you want, otherwise it goes away on its own." Persistent-
-      // until-dismiss was the first iteration but Vanessa flagged it as
-      // too sticky for retro logs ("die sollten nicht bleiben bis man
-      // sie dismissen"). 15 s is comfortably longer than Material 3's
-      // 10 s "long" default; the explicit Verstanden action still lets
-      // attentive readers dismiss it earlier.
-      duration: const Duration(seconds: 15),
+      // Build +35 snackbar audit: 8 s sits inside Material 3's 4-10 s
+      // range for snackbars-with-action and is short enough that the
+      // tester complaint ("hält ewig, ich kann nicht woanders klicken")
+      // doesn't recur. Combined with the snackbarDismissOnNavObserver in
+      // main.dart, snacks now also disappear the moment the user
+      // navigates away. The explicit Verstanden action stays so
+      // attentive readers can dismiss earlier.
+      duration: importantSnackDuration,
       action: SnackBarAction(label: dismissLabel, onPressed: () {}),
     );
+
+// Belt-and-braces force-dismiss: Flutter's floating SnackBar with an
+// action sometimes ignores its declared duration on iOS (tester report
+// Build +35 follow-up: "snack stays forever"). Schedule a manual
+// hideCurrentSnackBar to guarantee dismissal.
+void scheduleImportantSnackForceDismiss() {
+  Future.delayed(importantSnackDuration + const Duration(milliseconds: 200),
+      () {
+    rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+  });
+}
 
 String importantSnackLabel(BuildContext context) =>
     AppLocalizations.of(context).snackDismiss;

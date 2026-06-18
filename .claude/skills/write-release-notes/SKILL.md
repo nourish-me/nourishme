@@ -19,31 +19,63 @@ marketing-y, immer DE + EN parallel.
 
 ## Pflicht-Struktur (für jede Sprache identisch)
 
-1. **Ein Intro-Satz**, freundlich, persönlich, nicht generisch. Mein
-   Default-Template:
-   - EN: *„Today is your lucky day - we've just shipped more updates
+1. **Ein Intro-Satz**, freundlich, persönlich, nicht generisch.
+   **Variieren bei jedem Build** — Tester sollen nicht das Gefühl
+   bekommen sie lesen denselben Boilerplate-Satz. Vanessa hat das
+   ausdrücklich gewünscht: jede Release-Notes-Runde bekommt eine
+   neue Formulierung mit gleichem Vibe (warm, ehrlich, persönlich).
+   Beispiele aus denen ich frei rotiere ODER eine ähnliche neue
+   Variante schreibe:
+   - „Today is your lucky day, we've just shipped more updates
      thanks to more feedback we received. Happy testing and please
-     continue sharing your thoughts!"*
-   - DE: *„Heute ist dein Glückstag - wir haben gerade weitere Updates
-     auf den Weg gebracht, dank weiterem Feedback, das wir bekommen
-     haben. Viel Spaß beim Testen und teile gerne weiter deine
-     Gedanken mit uns!"*
-   - Vanessa fügt das Intro manchmal selbst dazu — wenn sie es im
-     Auftrag explizit verlangt, sonst frag kurz, ob sie ein eigenes
-     Intro setzt.
+     continue sharing your thoughts!"
+   - „Frischer Build is up. Diese Runde gehen viele Sachen direkt
+     auf Feedback zurück das ihr geschickt habt, danke!"
+   - „Kleines Update, einige große Fixes. Wenn ihr etwas testet was
+     hier nicht auftaucht, immer her damit."
+   - „New build is up. Mostly polish + a couple of safety fixes you
+     flagged. Open for feedback as always."
+   - „Update ist drauf. Hauptthema diesmal: [konkretes Thema, z.B.
+     Settings-Auto-Save / Coach-Mikronährstoffe / Safety-Schicht].
+     Schaut gern explizit dort hin und sagt Bescheid."
+   - „Hi Tester:innen, hier kommt der nächste Build. Bestätigt mir
+     gerne ob [X] jetzt besser läuft."
+
+   Wähle eine andere Variante als beim VORLETZTEN Build (falls
+   bekannt). Wenn ein konkretes Hauptthema im Build dominiert
+   (z.B. „Stillzeit-Onboarding refactor"), spiele es im Intro
+   namentlich an, das hilft Tester:innen sich gezielt darauf zu
+   fokussieren.
+
+   Vanessa fügt das Intro manchmal selbst dazu — wenn sie es im
+   Auftrag explizit verlangt, sonst frag kurz, ob sie ein eigenes
+   Intro setzt.
 
 2. **Bullet-Liste, sortiert nach User-Impact** (größter zuerst,
    kleinster zuletzt). Drei bis sechs Bullets ist die übliche Länge.
    Ein Bullet pro abgeschlossenem Change, NICHT pro Commit.
 
 3. **TestFlight-Auto-Update-Tipp am Ende** (immer, sofern Vanessa
-   nicht explizit "ohne Tipp" sagt):
-   - EN: *„💡 Tip: open the TestFlight app, tap on NourishMe, and
-     switch on 'Automatic Updates' - that way you'll get every new
-     build straight away without us having to nudge you."*
-   - DE: *„💡 Tipp: Öffne die TestFlight-App, tippe auf NourishMe und
-     stelle 'Automatische Updates' an - dann landet jeder neue Build
-     automatisch bei dir, ohne dass wir dich anstupsen müssen."*
+   nicht explizit "ohne Tipp" sagt). **Auch hier variieren** — die
+   Botschaft („schalte Auto-Updates in TestFlight ein") ist fest,
+   die Formulierung wechselt von Build zu Build. Beispiele für die
+   Rotation:
+   - „💡 Tip: open the TestFlight app, tap on NourishMe, and switch
+     on 'Automatic Updates' - that way you'll get every new build
+     straight away without us having to nudge you."
+   - „💡 Tipp: In der TestFlight-App auf NourishMe tippen und
+     'Automatische Updates' aktivieren, dann ploppt jeder neue
+     Build automatisch auf dem Handy auf."
+   - „💡 Klein-Tipp: TestFlight → NourishMe → Auto-Updates an, sonst
+     verpasst ihr Builds und ich muss euch immer pingen."
+   - „💡 Reminder: TestFlight kann automatisch updaten, ein Tap
+     drauf, 'Automatic Updates' on, fertig."
+   - „💡 Falls noch nicht: in der TestFlight-App unter NourishMe
+     'Automatische Updates' einschalten, dann ist der nächste Build
+     sofort bei dir."
+
+   Wähle eine andere Variante als beim letzten Build. Tonalität
+   bleibt locker und nicht-zwanghaft.
 
 ## Ranking nach User-Impact (Reihenfolge der Bullets)
 
@@ -137,8 +169,11 @@ Upload." Statt Bullets erfinden.
 - Internals als Bullet auflisten („refactored the diary state to a
   single-day model"). Tester interessiert nicht WIE, sondern WAS sie
   sehen.
-- Intro-Sätze, die jeden Build gleich klingen („Hi testers! Here's
-  what's new!"). Den Standardsatz oben benutzen oder Vanessa fragen.
+- Intro-Sätze die jeden Build gleich klingen („Hi testers! Here's
+  what's new!"). Aus dem Pool oben rotieren oder eine neue Variante
+  schreiben, NIE zweimal exakt dasselbe Intro.
+- Outro-Auto-Update-Tipps die wörtlich identisch sind zum letzten
+  Build. Botschaft bleibt gleich, Formulierung wechselt.
 - Beide Sprachen mit Em-Dashes — würde gegen Projekt-Konvention
   verstoßen.
 - Auto-Update-Tipp weglassen, ohne explizite Bitte. Die meisten

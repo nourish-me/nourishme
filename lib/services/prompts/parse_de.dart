@@ -121,6 +121,18 @@ PLAUSIBILITÄTS-ANKER (typische Werte pro 100 g bzw. 100 ml im rohen oder gegart
 - Ballaststoffe: Vollkornbrot 6-8 g/100 g, Vollkornnudeln gekocht 4-5 g/100 g, Weißbrot 2-3 g/100 g, Müsli (Mix) 8-12 g/100 g, Haferflocken trocken 10 g/100 g, Hülsenfrüchte gekocht (Linsen 8, Bohnen 6, Kichererbsen 7 g/100 g), Brokkoli/Rosenkohl gegart 3-4 g/100 g, Apfel/Birne 2-3 g/100 g, Banane 2 g/100 g, Beeren 4-6 g/100 g, Nüsse 6-10 g/100 g, Leinsamen 27 g/100 g. Mageres Fleisch, Fisch, Milchprodukte null.
 - Vitamin A (in RAE): Rinderleber 7700, Hühnerleber 12.000, Leberwurst 4000-8000 µg/100 g (Achtung in T1 Schwangerschaft - separate Regel greift). Süßkartoffel gegart 700-1000, Karotte roh/gegart 700-850, Kürbis gegart 500, Grünkohl gegart 350, Spinat gegart 470 µg RAE/100 g (alle aus β-Carotin). Vollei ca. 75 µg RAE/Stück, Butter ca. 650 µg/100 g, Vollmilch 30 µg/100 ml, fetter Käse 200-300 µg/100 g. Mageres Fleisch (außer Leber), Getreide, Hülsenfrüchte nahe null.
 
-WICHTIG zur Effizienz: liste NUR Nährstoffe deren Wert in dieser Mahlzeit mindestens ~5% der Tagesreferenz (DGE 2025) erreicht. Bei kleineren Werten den Key komplett weglassen. Bei einer Mahlzeit ohne nennenswerte Mikronährstoffe (z.B. Wasser, reiner Zuckerdrink) das gesamte micronutrients-Feld weglassen. Werte sind pro DIESE Mahlzeit, nicht pro 100g.
+WICHTIG zur Effizienz: liste primär Nährstoffe aus der Allowed-Liste oben deren Wert in dieser Mahlzeit mindestens ~5% der Tagesreferenz (DGE 2025) erreicht. Bei kleineren Werten den Key komplett weglassen. Bei einer Mahlzeit ohne nennenswerte Mikronährstoffe (z.B. Wasser, reiner Zuckerdrink) das gesamte micronutrients-Feld weglassen. Werte sind pro DIESE Mahlzeit, nicht pro 100g.
+
+Zusätzlich ERWARTET (Task B9, +35): erfasse signifikante Mengen weiterer Nährstoffe die wir nicht in der Allowed-Liste tracken - ergänze sie aktiv im micronutrients-Block mit unit-suffigierten Keys. Konkrete Erwartungen je nach Lebensmittel:
+- Spinat / Grünkohl / Mangold: magnesium_mg, potassium_mg, vitamin_c_mg, vitamin_k_ug
+- Sesam / Sonnenblumenkerne / Kürbiskerne: magnesium_mg, copper_mg, manganese_mg, selenium_ug
+- Nüsse (Mandeln, Walnüsse, Cashew, Haselnüsse): magnesium_mg, copper_mg, manganese_mg, vitamin_e_mg
+- Vollkorn / Hafer: magnesium_mg, manganese_mg, selenium_ug (bei Hafer aus Nordamerika ggf. auch Jod über Boden)
+- Paranüsse: selenium_ug (extrem hoch, ~95 µg pro Nuss)
+- Beeren / Zitrusfrüchte: vitamin_c_mg
+- Bananen / Avocado / Süßkartoffel: potassium_mg
+- Schalentiere / fetter Seefisch: selenium_ug, iodine_ug
+
+Wir zeigen sie der Nutzerin als „Auch in dieser Mahlzeit"-Info-Hinweis mit Menge - sie zählen NICHT ins Tagesziel, machen aber transparent welche Nährstoffe das Modell erfasst hat. Gleiche 5%-Schwelle der jeweiligen DGE-Referenz, gleiche pro-Mahlzeit-Basis. Werte mit Unit-Suffix (`_mg`, `_ug`, `_g`). Niemals Makros (protein_g/carbs_g/fat_g/kcal) hier reinpacken - die haben eigene Felder oben.
 Bei is_meal=false: micronutrients weglassen.
 ''';

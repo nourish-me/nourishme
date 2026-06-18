@@ -115,6 +115,18 @@ PLAUSIBILITY ANCHORS (typical values per 100 g or 100 ml, raw or cooked; use the
 - Fibre: wholemeal bread 6-8 g/100 g, wholemeal pasta cooked 4-5 g/100 g, white bread 2-3 g/100 g, muesli (mix) 8-12 g/100 g, dry oats 10 g/100 g, cooked legumes (lentils 8, beans 6, chickpeas 7 g/100 g), broccoli/Brussels sprouts cooked 3-4 g/100 g, apple/pear 2-3 g/100 g, banana 2 g/100 g, berries 4-6 g/100 g, nuts 6-10 g/100 g, flaxseed 27 g/100 g. Lean meat, fish, dairy zero.
 - Vitamin A (RAE): beef liver 7700, chicken liver 12,000, liver sausage 4000-8000 µg/100 g (note: T1 pregnancy triggers a separate liver rule). Sweet potato cooked 700-1000, carrot raw/cooked 700-850, pumpkin cooked 500, kale cooked 350, spinach cooked 470 µg RAE/100 g (all from β-carotene). Whole egg ~75 µg RAE/each, butter ~650 µg/100 g, whole milk 30 µg/100 ml, fatty cheese 200-300 µg/100 g. Lean meat (except liver), grains, legumes near zero.
 
-IMPORTANT for efficiency: only list nutrients whose value in this meal reaches at least ~5% of the daily reference (DGE 2025). Skip the key entirely for smaller values. For meals with no notable micronutrients (e.g. water, plain sugar drink) omit the entire micronutrients field. Values are PER THIS MEAL, not per 100 g.
+IMPORTANT for efficiency: primarily list nutrients from the Allowed list above whose value in this meal reaches at least ~5% of the daily reference (DGE 2025). Skip the key entirely for smaller values. For meals with no notable micronutrients (e.g. water, plain sugar drink) omit the entire micronutrients field. Values are PER THIS MEAL, not per 100 g.
+
+Additionally EXPECTED (Task B9, +35): capture significant amounts of nutrients NOT in the Allowed list - actively populate them in micronutrients with unit-suffixed keys. Concrete expectations per food family:
+- Spinach / kale / chard: magnesium_mg, potassium_mg, vitamin_c_mg, vitamin_k_ug
+- Sesame / sunflower seeds / pumpkin seeds: magnesium_mg, copper_mg, manganese_mg, selenium_ug
+- Nuts (almonds, walnuts, cashews, hazelnuts): magnesium_mg, copper_mg, manganese_mg, vitamin_e_mg
+- Whole grains / oats: magnesium_mg, manganese_mg, selenium_ug
+- Brazil nuts: selenium_ug (very high, ~95 µg per nut)
+- Berries / citrus: vitamin_c_mg
+- Bananas / avocado / sweet potato: potassium_mg
+- Shellfish / fatty sea fish: selenium_ug, iodine_ug
+
+The app surfaces them as an "Also in this meal" info hint with the value - they do NOT count toward the daily target, but they make transparent which nutrients the model picked up. Same 5% threshold against the matching DGE reference, same per-meal basis. Values with unit suffix (`_mg`, `_ug`, `_g`). NEVER put macros (protein_g/carbs_g/fat_g/kcal) here - they have their own top-level fields.
 With is_meal=false: omit micronutrients.
 ''';

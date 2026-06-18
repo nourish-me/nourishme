@@ -70,8 +70,19 @@ class SafetyRulesData {
   // ("durchgebacken ist sicher"). Beta tester #99: pauschale Listerien-
   // Warnung bei "Backcamembert" verunsicherte statt informierte.
   final List<String> rawAnimalHeatedMarkers;
+  // Substring exclusions that suppress a rawAnimal hit on pasta-shape
+  // compounds (Build +35: "Muschelnudeln" must not trigger the Muschel
+  // keyword). Mirrors the algae 'kombucha vs kombu' exclusion logic.
+  final List<String> rawAnimalExclusions;
+  // Subset of rawAnimal keywords that ALSO triggers a warning during
+  // lactation (Build +35 follow-up): raw mussels/oysters/clams/scallops
+  // carry norovirus, hepatitis A and vibrio that make the mother ill
+  // directly - even though listeria/toxoplasma don't pass through milk,
+  // a stillende Mutter being knocked out interrupts breastfeeding.
+  final List<String> rawAnimalLactationShellfishKeywords;
   final Map<String, String> rawAnimalPregnantMessages;
   final Map<String, String> rawAnimalPregnantHeatedMessages;
+  final Map<String, String> rawAnimalLactatingShellfishMessages;
 
   // Mercury fish
   final List<String> mercuryFishTokens;
@@ -134,8 +145,11 @@ class SafetyRulesData {
     required this.alcoholLactatingMessages,
     required this.rawAnimalKeywords,
     required this.rawAnimalHeatedMarkers,
+    required this.rawAnimalExclusions,
+    required this.rawAnimalLactationShellfishKeywords,
     required this.rawAnimalPregnantMessages,
     required this.rawAnimalPregnantHeatedMessages,
+    required this.rawAnimalLactatingShellfishMessages,
     required this.mercuryFishTokens,
     required this.mercuryFishPhrases,
     required this.mercuryFishPregnantMessages,
@@ -261,9 +275,14 @@ class SafetyRulesData {
       alcoholLactatingMessages: messagesForKey(alcohol, 'lactating'),
       rawAnimalKeywords: strList(rawAnimal['keywords']),
       rawAnimalHeatedMarkers: strList(rawAnimal['heatedMarkers']),
+      rawAnimalExclusions: strList(rawAnimal['exclusions']),
+      rawAnimalLactationShellfishKeywords:
+          strList(rawAnimal['lactationShellfishKeywords']),
       rawAnimalPregnantMessages: messagesForKey(rawAnimal, 'pregnant'),
       rawAnimalPregnantHeatedMessages:
           messagesForKey(rawAnimal, 'pregnantHeated'),
+      rawAnimalLactatingShellfishMessages:
+          messagesForKey(rawAnimal, 'lactatingShellfish'),
       mercuryFishTokens: strList(mercury['tokens']),
       mercuryFishPhrases: strList(mercury['phrases']),
       mercuryFishPregnantMessages: messagesForKey(mercury, 'pregnant'),
@@ -482,6 +501,11 @@ class SafetyRules {
       {String locale = 'en'}) {
     if (!phase.isRelevant) return null;
     final d = _d;
+    // Pasta-shape exclusions (Build +35): "Muschelnudeln" / "Conchiglie"
+    // contain the "muschel" substring but are pasta, not seafood. Mirror
+    // of the algae kombucha/kombu pattern.
+    final lower = product.toLowerCase();
+    if (d.rawAnimalExclusions.any(lower.contains)) return null;
     if (!d.rawAnimalKeywords.any((k) => _containsWord(product, k))) {
       return null;
     }
@@ -502,10 +526,20 @@ class SafetyRules {
     if (isHeated) {
       return d.rawAnimalPregnantHeatedMessages[localeKey];
     }
-    // Raw (no heat marker) is only a direct risk during pregnancy. In
-    // lactation listeria/toxoplasma don't pass through milk, so silence.
-    if (!phase.isPregnant) return null;
-    return d.rawAnimalPregnantMessages[localeKey];
+    // Raw (no heat marker) - pregnancy gets the broad listeria/toxo
+    // warning. Lactation is mostly silent (those pathogens don't pass
+    // through breast milk) EXCEPT for raw shellfish/molluscs, which
+    // carry norovirus/hepatitis A/vibrio that make the mother ill
+    // herself (Build +35 follow-up tester report). BfR backs this.
+    if (phase.isPregnant) {
+      return d.rawAnimalPregnantMessages[localeKey];
+    }
+    if (phase.isLactating &&
+        d.rawAnimalLactationShellfishKeywords
+            .any((k) => _containsWord(product, k))) {
+      return d.rawAnimalLactatingShellfishMessages[localeKey];
+    }
+    return null;
   }
 
   /// Rule 4 — high-mercury predatory fish (BfR). Pregnancy: avoid. Lactation:
@@ -701,6 +735,48 @@ class SafetyRules {
       );
     }
     return InputClassificationResult.normal;
+  }
+
+  /// Defense-in-depth filter that removes phantom safety warnings the
+  /// language model invents from confusable food names (Build +35
+  /// tester report: a photo of Muschelnudeln-soup triggered both a
+  /// "shell pasta" parse AND a freehand "Muscheln rohe Meerestiere"
+  /// warning, because the LLM saw the substring "Muschel" in the
+  /// product name and improvised a listeria caution that has nothing
+  /// to do with pasta).
+  ///
+  /// Filters mussel-style warnings when the meal context contains
+  /// pasta-shape language ("Muschelnudeln", "Conchiglie", etc.). The
+  /// canonical Pasta-form anchor in parse_de/en should already prevent
+  /// this in most cases; this is the belt-and-suspenders layer.
+  static List<String> applyContextExclusions(
+      List<String> warnings, String originalInput) {
+    final inputLower = originalInput.toLowerCase();
+    final inputSuggestsPasta = const [
+      'muschelnudel',
+      'muschelpasta',
+      'conchiglie',
+      'conchigliette',
+      'shell pasta',
+      'pasta shell',
+    ].any(inputLower.contains);
+    if (!inputSuggestsPasta) return warnings;
+    // Drop any warning that names "Muscheln" / "mussels" as the
+    // hazardous ingredient. The bare presence of the substring is
+    // enough - the LLM-fuzzy warning isn't structured.
+    return warnings.where((w) {
+      final lower = w.toLowerCase();
+      if (!lower.contains('muschel') && !lower.contains('mussel')) {
+        return true;
+      }
+      // Keep the warning only if it explicitly says it does NOT apply
+      // (e.g. "Muschelnudeln sind Pasta, nicht Muscheln") - very rare,
+      // but don't suppress a legitimate reassurance line.
+      if (lower.contains('keine muschel') || lower.contains('not mussel')) {
+        return true;
+      }
+      return false;
+    }).toList();
   }
 
   /// Visual severity for a single warning string. Looks up the topic via

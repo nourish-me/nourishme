@@ -35,6 +35,13 @@ final scrollToDayProvider = StateProvider<DateTime?>((ref) => null);
 // scrolling so a repeat save with the same id still fires.
 final scrollToMealIdProvider = StateProvider<String?>((ref) => null);
 
+// Build +35 follow-up: after a past-day save the scroll-to-meal request
+// pairs with a 1.5 s highlight pulse on the target meal card. The pulse
+// gives the user a clear visual anchor ("here's the thing you just
+// logged") even when Scrollable.ensureVisible doesn't move the viewport
+// as expected on iOS. Cleared automatically after the highlight runs.
+final highlightedMealIdProvider = StateProvider<String?>((ref) => null);
+
 // Bumped whenever something elsewhere in the app has signaled that the
 // user almost certainly wants to type into the meal input next: picking
 // a photo, finishing onboarding, tapping a coach follow-up chip. The

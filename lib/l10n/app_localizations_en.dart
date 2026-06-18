@@ -269,12 +269,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get confirmUnsupportedNutrientHeader =>
-      'Also detected, not in your daily target yet';
+  String get confirmUnsupportedNutrientHeader => 'Also in this meal';
 
   @override
   String confirmUnsupportedNutrientHint(String nutrients) {
-    return 'The model also picked up $nutrients here. NourishMe doesn\'t track these nutrients in your daily target yet, the value is informational only.';
+    return '$nutrients. We don\'t track these nutrients in your daily target yet, but they are stored with the entry.';
   }
 
   @override
