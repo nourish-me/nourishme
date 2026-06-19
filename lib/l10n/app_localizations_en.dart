@@ -50,6 +50,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yesterdayHeader => 'Yesterday';
 
   @override
+  String get diaryPastDayEyebrow => 'Past day';
+
+  @override
   String get settingsTooltip => 'Settings';
 
   @override
@@ -746,7 +749,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsMilkVolumeAgeRule6to12 =>
-      '6-12 mo with solids: ~500-600 ml/day';
+      '6-12 mo: ~500-600 ml/day (more if still milk-only)';
 
   @override
   String get settingsMilkVolumeAgeRule12plus =>
@@ -970,7 +973,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settingsMilkVolumePerDayLabel(int volume, int supplement) {
-    return '$volume ml/day → +$supplement kcal/day';
+    return '$volume ml → +$supplement kcal';
   }
 
   @override
@@ -1109,7 +1112,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Energy cost of milk synthesis is ~0.84 kcal per ml. Typical volumes: single 0-6mo ~780 ml/day, twins ~1500 ml/day, 6-12mo ~575 ml, >12mo ~300 ml. If you pump and know your volume, enter it exactly.';
 
   @override
-  String get onboardingResultEyebrow => 'CALCULATION';
+  String get computedForYouMarker => 'Calculated for you';
+
+  @override
+  String get onboardingVolumeEstimateHint =>
+      'Estimated from your answers above. Only adjust if you know your volume more precisely (e.g. because you pump).';
 
   @override
   String get onboardingResultMacrosEyebrow => 'MACRONUTRIENTS · DAILY TARGET';
@@ -1574,6 +1581,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsPhaseNeitherHint =>
       'Currently neither pregnant nor producing breast milk, e.g. after weaning or before a pregnancy.';
+
+  @override
+  String get settingsPhaseBoth => 'Pregnant + producing milk';
+
+  @override
+  String get settingsPhaseBothHint =>
+      'Pregnant while also producing breast milk (tandem phase).';
 
   @override
   String get onboardingPhaseNeither => 'Neither';

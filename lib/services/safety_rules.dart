@@ -737,6 +737,39 @@ class SafetyRules {
     return InputClassificationResult.normal;
   }
 
+  /// Strips LLM-generated warnings that talk about pregnancy when the
+  /// user is in lactation phase, not pregnant. Two testers independently
+  /// reported (Build +35): the model invented pregnancy-specific
+  /// listeria warnings on raw cheese / smoked salmon / cured ham even
+  /// for lactating users, where those risks don't apply (listeria and
+  /// toxoplasma don't pass through breast milk). The parse_de/en
+  /// prompt now bans this explicitly, but the model occasionally
+  /// drifts; this filter is the deterministic safety net.
+  ///
+  /// Pattern: any warning containing pregnancy-marker substrings is
+  /// dropped when phase is lactation-only. Pregnancy-pregnancy users
+  /// keep all warnings (they're for that phase). Bilingual marker
+  /// list is intentionally narrow to avoid false positives.
+  static List<String> filterPregnancyWarningsIfLactationOnly(
+      List<String> warnings, SafetyPhase phase) {
+    if (phase.isPregnant) return warnings;
+    if (!phase.isLactating) return warnings;
+    const pregnancyMarkers = [
+      'schwanger',
+      'schwangerschaft',
+      'pregnan', // pregnant, pregnancy
+      'gestation', // gestation, gestational
+      'trimester',
+      'fötal',
+      'fetal',
+      'embryo',
+    ];
+    return warnings.where((w) {
+      final lower = w.toLowerCase();
+      return !pregnancyMarkers.any(lower.contains);
+    }).toList();
+  }
+
   /// Defense-in-depth filter that removes phantom safety warnings the
   /// language model invents from confusable food names (Build +35
   /// tester report: a photo of Muschelnudeln-soup triggered both a

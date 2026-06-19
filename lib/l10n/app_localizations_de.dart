@@ -50,6 +50,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get yesterdayHeader => 'Gestern';
 
   @override
+  String get diaryPastDayEyebrow => 'Vergangener Tag';
+
+  @override
   String get settingsTooltip => 'Einstellungen';
 
   @override
@@ -754,7 +757,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsMilkVolumeAgeRule6to12 =>
-      '6-12 Mo mit Beikost: ~500-600 ml/Tag';
+      '6-12 Mo: ~500-600 ml/Tag (mehr wenn noch ohne Beikost)';
 
   @override
   String get settingsMilkVolumeAgeRule12plus =>
@@ -978,7 +981,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settingsMilkVolumePerDayLabel(int volume, int supplement) {
-    return '$volume ml/Tag → +$supplement kcal/Tag';
+    return '$volume ml → +$supplement kcal';
   }
 
   @override
@@ -1117,7 +1120,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Energiekosten der Milchsynthese liegen bei ~0,84 kcal pro ml Milch. Typische Volumina: einzeln 0-6 Mo ~780 ml/Tag, Zwillinge ~1.500 ml/Tag, 6-12 Mo ~575 ml, >12 Mo ~300 ml. Wenn du abpumpst und dein Volumen kennst, trage es genau ein.';
 
   @override
-  String get onboardingResultEyebrow => 'BERECHNUNG';
+  String get computedForYouMarker => 'Berechnet für dich';
+
+  @override
+  String get onboardingVolumeEstimateHint =>
+      'Aus deinen Angaben oben geschätzt. Nur anpassen, wenn du dein Volumen genauer kennst (z.B. weil du abpumpst).';
 
   @override
   String get onboardingResultMacrosEyebrow => 'MAKRONÄHRSTOFFE · TAGESBEDARF';
@@ -1583,6 +1590,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settingsPhaseNeitherHint =>
       'Aktuell weder schwanger noch milchproduzierend, z.B. nach der Stillzeit oder vor einer Schwangerschaft.';
+
+  @override
+  String get settingsPhaseBoth => 'Schwanger + milchproduzierend';
+
+  @override
+  String get settingsPhaseBothHint =>
+      'Du bist schwanger und produzierst gleichzeitig Milch (Tandem-Phase).';
 
   @override
   String get onboardingPhaseNeither => 'Weder noch';

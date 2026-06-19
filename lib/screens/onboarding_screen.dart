@@ -16,6 +16,7 @@ import '../services/notification_scheduler.dart';
 import '../utils/number_format.dart';
 import '../utils/profile_labels.dart';
 import '../widgets/child_age_input.dart';
+import '../widgets/computed_card.dart';
 import '../widgets/info_button.dart';
 import '../widgets/milk_share_selector.dart';
 import '../widgets/milk_volume_age_hint.dart';
@@ -403,6 +404,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // in-memory Riverpod state that survives an app reset, so without this a
     // reset + re-onboarding would reopen whatever tab was last active.
     ref.read(selectedTabProvider.notifier).state = 0;
+    // Same problem as the tab index: focusedDayProvider is in-memory and
+    // survives a Hive reset. Reset to today so post-reset onboarding lands
+    // on the current day instead of whatever day was focused before.
+    final now = DateTime.now();
+    ref.read(focusedDayProvider.notifier).state =
+        DateTime(now.year, now.month, now.day);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const MainScaffold()),
     );
@@ -1300,43 +1307,73 @@ class _PhaseDetailsStep extends StatelessWidget {
               onPerChildChanged: onPerChildSharesChanged,
             ),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(l10n.settingsMilkVolume,
-                      style: textTheme.titleSmall),
-                ),
-                InfoButton(
-                  fact: NutritionFact(
-                    topic: l10n.settingsMilkVolumeInfoTopic,
-                    summary: l10n.settingsMilkVolumeInfoTitle,
-                    detail: l10n.onboardingVolumeInfoDetail,
-                    source: l10n.settingsMilkVolumeInfoSource,
+            // Build +36 fix (Isabella tester report): the volume slider
+            // is a CALCULATED output from the questions above, not a
+            // free-input. Wrap it in a primary-tinted card with a
+            // "Schätzung aus deinen Angaben" framing so the user knows
+            // they can leave it as-is. The slider remains editable for
+            // mothers who know their volume more precisely.
+            // Build +36 rework (Isabella tester report + Vanessa local
+            // test): the volume slider is a CALCULATED output from the
+            // questions above, not a free-input. Wrapped in the shared
+            // ComputedCard so it visually matches the Schritt-7
+            // Tagesziel card. Same "Calculated for you" marker, same
+            // surfaceContainerLow + hairline outlineVariant. Slider stays
+            // editable for mothers who know their volume more precisely.
+            ComputedCard(
+              eyebrow: l10n.computedForYouMarker,
+              title: l10n.settingsMilkVolume,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.settingsMilkVolumePerDayLabel(
+                            dailyVolumeMl,
+                            UserProfileSettings.volumeBasedSupplement(
+                                dailyVolumeMl),
+                          ),
+                          style: textTheme.titleMedium?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      InfoButton(
+                        fact: NutritionFact(
+                          topic: l10n.settingsMilkVolumeInfoTopic,
+                          summary: l10n.settingsMilkVolumeInfoTitle,
+                          detail: l10n.onboardingVolumeInfoDetail,
+                          source: l10n.settingsMilkVolumeInfoSource,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            Slider(
-              value: dailyVolumeMl.toDouble().clamp(0, 3000),
-              min: 0,
-              max: 3000,
-              divisions: 60,
-              label: '$dailyVolumeMl ml',
-              onChanged: (v) => onVolumeChanged(v.round()),
-            ),
-            Text(
-              l10n.settingsMilkVolumePerDayLabel(
-                dailyVolumeMl,
-                UserProfileSettings.volumeBasedSupplement(dailyVolumeMl),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.onboardingVolumeEstimateHint,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+                  ),
+                  Slider(
+                    value: dailyVolumeMl.toDouble().clamp(0, 3000),
+                    min: 0,
+                    max: 3000,
+                    divisions: 60,
+                    label: '$dailyVolumeMl ml',
+                    onChanged: (v) => onVolumeChanged(v.round()),
+                  ),
+                  MilkVolumeAgeHint(
+                    ageGroup: childAgeGroup,
+                    numChildren: numChildren,
+                  ),
+                ],
               ),
-              style: textTheme.bodySmall?.copyWith(
-                color: scheme.outline,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            MilkVolumeAgeHint(
-              ageGroup: childAgeGroup,
-              numChildren: numChildren,
             ),
           ],
         ],
@@ -1370,29 +1407,18 @@ class _SummaryStep extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       children: [
         Text(
-          l10n.onboardingResultEyebrow,
-          style: textTheme.labelSmall?.copyWith(
-            color: scheme.outline,
-            letterSpacing: 1.4,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
           l10n.settingsTodayTarget,
           style: textTheme.titleLarge?.copyWith(
             color: scheme.onSurface,
           ),
         ),
-        const SizedBox(height: 24),
-        // Editorial result card with the big italic kcal hero.
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: scheme.outlineVariant, width: 1),
-          ),
+        const SizedBox(height: 16),
+        // Build +36 rework: the editorial result card is now wrapped in
+        // the shared ComputedCard so Schritt 5 (Volumen) and Schritt 7
+        // (Tagesziel) speak the same visual language. Hero kcal, lede
+        // and macro table stay; only the surrounding chrome changed.
+        ComputedCard(
+          eyebrow: l10n.computedForYouMarker,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

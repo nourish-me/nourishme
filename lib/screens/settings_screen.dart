@@ -328,9 +328,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _height.text = p.heightCm.toStringAsFixed(0);
     _weight.text = p.weightKg.toStringAsFixed(1);
     _activityFactor = p.activityFactor;
-    _phase = p.numChildrenNursing > 0
-        ? 'lactating'
-        : (p.isPregnant ? 'pregnant' : 'neither');
+    _phase = (p.isPregnant && p.numChildrenNursing > 0)
+        ? 'both'
+        : p.numChildrenNursing > 0
+            ? 'lactating'
+            : (p.isPregnant ? 'pregnant' : 'neither');
     _trimester = p.trimester ?? 1;
     _numChildren = p.numChildrenNursing > 0 ? p.numChildrenNursing : 1;
     _milkSharePercent = p.milkSharePercent;
@@ -360,9 +362,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // Lactation wins if user has children; pregnant if flagged; else
     // 'neither' (was 'lactating' default before the 3rd option existed,
     // which surfaced fields the user couldn't fill in).
-    _phase = p.numChildrenNursing > 0
-        ? 'lactating'
-        : (p.isPregnant ? 'pregnant' : 'neither');
+    _phase = (p.isPregnant && p.numChildrenNursing > 0)
+        ? 'both'
+        : p.numChildrenNursing > 0
+            ? 'lactating'
+            : (p.isPregnant ? 'pregnant' : 'neither');
     _trimester = p.trimester ?? 1;
     _numChildren = p.numChildrenNursing > 0 ? p.numChildrenNursing : 1;
     _milkSharePercent = p.milkSharePercent;
@@ -520,8 +524,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (picked != null) _mutate(() => _birthdate = picked);
   }
 
-  bool get _isLactating => _phase == 'lactating';
-  bool get _isPregnant => _phase == 'pregnant';
+  bool get _isLactating => _phase == 'lactating' || _phase == 'both';
+  bool get _isPregnant => _phase == 'pregnant' || _phase == 'both';
 
   UserProfileSettings _currentProfile() => UserProfileSettings(
         ageYears: _ageFromBirthdate(_birthdate),
@@ -1143,13 +1147,20 @@ class _PhaseSection extends StatelessWidget {
             onTap: () => onPhaseChanged('pregnant'),
           ),
           _PhaseChoice(
+            value: 'both',
+            label: l10n.settingsPhaseBoth,
+            subtitle: l10n.settingsPhaseBothHint,
+            selected: phase == 'both',
+            onTap: () => onPhaseChanged('both'),
+          ),
+          _PhaseChoice(
             value: 'neither',
             label: l10n.settingsPhaseNeither,
             subtitle: l10n.settingsPhaseNeitherHint,
             selected: phase == 'neither',
             onTap: () => onPhaseChanged('neither'),
           ),
-          if (phase == 'pregnant') ...[
+          if (phase == 'pregnant' || phase == 'both') ...[
             const SizedBox(height: 12),
             Text(l10n.settingsPhaseTrimester, style: textTheme.bodyMedium),
             const SizedBox(height: 6),

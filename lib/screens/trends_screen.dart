@@ -1231,9 +1231,13 @@ class _MicroBarRow extends StatelessWidget {
 }
 
 Color _barColorFor(double pct, ColorScheme scheme) {
-  if (pct >= 85) return Colors.green.shade600;
-  if (pct >= 60) return Colors.amber.shade700;
-  return scheme.error;
+  // Single-accent rule shared with Tagebuch + Verlauf + NutrientCell:
+  // pine for met (>=100), amber for progress (>0..<100), outline for empty.
+  // Red (`error`) is reserved for actual errors / safety warnings, not
+  // for under-target micros. See Build +36 design briefing.
+  if (pct >= 100) return scheme.primary;
+  if (pct > 0) return scheme.secondary;
+  return scheme.outline;
 }
 
 String _fmtNumLocal(double v) {

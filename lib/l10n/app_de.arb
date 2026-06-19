@@ -14,6 +14,7 @@
   "diaryFilterOnMsg": "Nur Mahlzeiten, Coach-Antworten ausgeblendet",
   "diaryFilterOffMsg": "Coach-Antworten wieder eingeblendet",
   "yesterdayHeader": "Gestern",
+  "diaryPastDayEyebrow": "Vergangener Tag",
   "settingsTooltip": "Einstellungen",
 
   "emptyTodayHeadline": "Was hast du heute gegessen?",
@@ -276,7 +277,7 @@
   "settingsMilkVolumeInfoDetail": "Wenn du pumpst und dein Volumen kennst, trage es exakt ein. Anteil-Slider darüber liefert sonst eine Schätzung.",
   "settingsMilkVolumeAgeRulesTitle": "Faustregeln je nach Kindesalter:",
   "settingsMilkVolumeAgeRule0to6": "0-6 Mo exklusiv: ~750-800 ml/Tag",
-  "settingsMilkVolumeAgeRule6to12": "6-12 Mo mit Beikost: ~500-600 ml/Tag",
+  "settingsMilkVolumeAgeRule6to12": "6-12 Mo: ~500-600 ml/Tag (mehr wenn noch ohne Beikost)",
   "settingsMilkVolumeAgeRule12plus": "12+ Mo mit Familienkost: ~200-400 ml/Tag",
   "settingsMilkVolumeAgeRuleTwins": "Zwillinge exklusiv 0-6 Mo: ~1500 ml/Tag",
   "settingsMilkVolumeInfoSource": "DGE 2025, EFSA 2017",
@@ -353,7 +354,7 @@
     "placeholders": { "index": { "type": "int" }, "percent": { "type": "int" } }
   },
   "settingsMilkSharePerChildSummaryEntry": "Kind {index}: {percent}%",
-  "settingsMilkVolumePerDayLabel": "{volume} ml/Tag → +{supplement} kcal/Tag",
+  "settingsMilkVolumePerDayLabel": "{volume} ml → +{supplement} kcal",
   "settingsMilkVolumeInfoTopic": "Tagesvolumen Muttermilch",
   "settingsMilkVolumeInfoTitle": "Energie = Volumen × 0,84 kcal/ml",
 
@@ -401,8 +402,9 @@
   "onboardingVolumeShareQuestionSingular": "Wie groß ist dein Anteil an der Ernährung?",
   "onboardingVolumeShareQuestionPlural": "Wie groß ist dein Anteil pro Kind?",
   "onboardingVolumeInfoDetail": "Die Energiekosten der Milchsynthese liegen bei ~0,84 kcal pro ml Milch. Typische Volumina: einzeln 0-6 Mo ~780 ml/Tag, Zwillinge ~1.500 ml/Tag, 6-12 Mo ~575 ml, >12 Mo ~300 ml. Wenn du abpumpst und dein Volumen kennst, trage es genau ein.",
+  "computedForYouMarker": "Berechnet für dich",
+  "onboardingVolumeEstimateHint": "Aus deinen Angaben oben geschätzt. Nur anpassen, wenn du dein Volumen genauer kennst (z.B. weil du abpumpst).",
 
-  "onboardingResultEyebrow": "BERECHNUNG",
   "onboardingResultMacrosEyebrow": "MAKRONÄHRSTOFFE · TAGESBEDARF",
   "onboardingLedeBase": "Grundbedarf + Aktivität: {kcal} kcal",
   "onboardingLedePregnancy": "+ {kcal} kcal Schwangerschaft (T{trimester})",
@@ -601,6 +603,8 @@
 
   "settingsPhaseNeither": "Weder noch",
   "settingsPhaseNeitherHint": "Aktuell weder schwanger noch milchproduzierend, z.B. nach der Stillzeit oder vor einer Schwangerschaft.",
+  "settingsPhaseBoth": "Schwanger + milchproduzierend",
+  "settingsPhaseBothHint": "Du bist schwanger und produzierst gleichzeitig Milch (Tandem-Phase).",
   "onboardingPhaseNeither": "Weder noch",
   "onboardingPhaseNeitherHint": "Weder schwanger noch produziere ich Muttermilch.",
 

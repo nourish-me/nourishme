@@ -601,17 +601,29 @@ class ClaudeClient {
     // canonical input for context is the user's text PLUS the parsed
     // summary, so both "ich hatte Muschelnudeln" and "Conchigliette"
     // suppress the false mussel caution.
-    final cleanedModelWarnings = SafetyRules.applyContextExclusions(
+    final modelPhase = SafetyPhase(
+      isPregnant: isPregnant,
+      trimester: trimester,
+      isLactating: isLactating,
+    );
+    // Build +36 fix (P0 from beta-feedback): two testers reported the
+    // LLM injecting pregnancy-specific listeria warnings on cheese /
+    // raw fish / cured ham even when their profile said lactation.
+    // Strip these before the merge - the lactation phase has its own
+    // (much narrower) deterministic warnings; pregnancy-coded prose
+    // doesn't belong here.
+    final phaseFilteredModelWarnings =
+        SafetyRules.filterPregnancyWarningsIfLactationOnly(
       result.safetyWarnings,
+      modelPhase,
+    );
+    final cleanedModelWarnings = SafetyRules.applyContextExclusions(
+      phaseFilteredModelWarnings,
       '$userText ${result.summary}',
     );
     final deterministic = SafetyRules.allWarnings(
       '$userText ${result.summary}',
-      SafetyPhase(
-        isPregnant: isPregnant,
-        trimester: trimester,
-        isLactating: isLactating,
-      ),
+      modelPhase,
       locale: locale,
     );
     final merged = deterministic.isEmpty

@@ -12,6 +12,8 @@ import '../services/micronutrient_targets.dart';
 import '../utils/date_format.dart';
 import '../widgets/empty/empty_history.dart';
 import '../widgets/kcal_summary.dart';
+import '../widgets/micronutrient/micronutrient_donut.dart';
+import '../widgets/micronutrient/nutrient_cell.dart';
 import 'settings_screen.dart';
 
 class HistoryScreen extends ConsumerWidget {
@@ -92,12 +94,18 @@ class HistoryScreen extends ConsumerWidget {
 // KcalSummary used in the Tagebuch toolbar. Tapping it opens that day in
 // the Tagebuch where the actual meal entries live (Slide-Actions, Coach
 // bubbles etc. are handled there).
-// One micronutrient pill: short label + percent of target reached.
+// One micronutrient pill: short label + percent of target reached, plus
+// the single-accent state shared with the donut/cell widgets elsewhere.
 // Pre-computed in the screen so _DayCard stays a pure presentation widget.
 class _MicroPill {
   final String name;
   final int pct;
-  const _MicroPill({required this.name, required this.pct});
+  final MicronutrientState state;
+  const _MicroPill({
+    required this.name,
+    required this.pct,
+    required this.state,
+  });
 }
 
 List<_MicroPill> _computeMicroPills(
@@ -111,48 +119,19 @@ List<_MicroPill> _computeMicroPills(
     if (t == null || d == null || t.value <= 0) continue;
     final intake = dailyIntakeFor(key, meals, profile);
     final pct = (intake / t.value * 100).round();
-    pills.add(_MicroPill(name: d.nameForLocale(locale), pct: pct));
+    final state = micronutrientStateFor(
+      intake: intake,
+      target: t.value,
+      awareness: false,
+      hasUpperLimit: false,
+    );
+    pills.add(_MicroPill(
+      name: d.nameForLocale(locale),
+      pct: pct,
+      state: state,
+    ));
   }
   return pills;
-}
-
-class _MicroPillChip extends StatelessWidget {
-  final _MicroPill pill;
-  final ColorScheme scheme;
-  const _MicroPillChip({required this.pill, required this.scheme});
-
-  @override
-  Widget build(BuildContext context) {
-    // Three-state color: empty / on-track / over. Quietly tints the chip
-    // background so a row of pills reads "where am I today" at a glance.
-    final Color bg;
-    final Color fg;
-    if (pill.pct < 50) {
-      bg = scheme.surfaceContainerHighest;
-      fg = scheme.onSurfaceVariant;
-    } else if (pill.pct < 120) {
-      bg = scheme.primaryContainer;
-      fg = scheme.onPrimaryContainer;
-    } else {
-      bg = scheme.tertiaryContainer;
-      fg = scheme.onTertiaryContainer;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        '${pill.name} ${pill.pct}%',
-        style: TextStyle(
-          color: fg,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
 }
 
 class _DayCard extends StatelessWidget {
@@ -237,13 +216,20 @@ class _DayCard extends StatelessWidget {
                   macroTargets: macroTargets,
                 ),
                 if (microPills.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final pill in microPills)
-                        _MicroPillChip(pill: pill, scheme: scheme),
+                      for (int i = 0; i < microPills.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 16),
+                        Expanded(
+                          child: NutrientCell(
+                            name: microPills[i].name,
+                            percent: microPills[i].pct.toDouble(),
+                            state: microPills[i].state,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],

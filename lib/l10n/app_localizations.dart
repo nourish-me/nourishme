@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Yesterday'**
   String get yesterdayHeader;
 
+  /// No description provided for @diaryPastDayEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Past day'**
+  String get diaryPastDayEyebrow;
+
   /// No description provided for @settingsTooltip.
   ///
   /// In en, this message translates to:
@@ -1427,7 +1433,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMilkVolumeAgeRule6to12.
   ///
   /// In en, this message translates to:
-  /// **'6-12 mo with solids: ~500-600 ml/day'**
+  /// **'6-12 mo: ~500-600 ml/day (more if still milk-only)'**
   String get settingsMilkVolumeAgeRule6to12;
 
   /// No description provided for @settingsMilkVolumeAgeRule12plus.
@@ -1805,7 +1811,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMilkVolumePerDayLabel.
   ///
   /// In en, this message translates to:
-  /// **'{volume} ml/day → +{supplement} kcal/day'**
+  /// **'{volume} ml → +{supplement} kcal'**
   String settingsMilkVolumePerDayLabel(int volume, int supplement);
 
   /// No description provided for @settingsMilkVolumeInfoTopic.
@@ -2042,11 +2048,17 @@ abstract class AppLocalizations {
   /// **'Energy cost of milk synthesis is ~0.84 kcal per ml. Typical volumes: single 0-6mo ~780 ml/day, twins ~1500 ml/day, 6-12mo ~575 ml, >12mo ~300 ml. If you pump and know your volume, enter it exactly.'**
   String get onboardingVolumeInfoDetail;
 
-  /// No description provided for @onboardingResultEyebrow.
+  /// No description provided for @computedForYouMarker.
   ///
   /// In en, this message translates to:
-  /// **'CALCULATION'**
-  String get onboardingResultEyebrow;
+  /// **'Calculated for you'**
+  String get computedForYouMarker;
+
+  /// No description provided for @onboardingVolumeEstimateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated from your answers above. Only adjust if you know your volume more precisely (e.g. because you pump).'**
+  String get onboardingVolumeEstimateHint;
 
   /// No description provided for @onboardingResultMacrosEyebrow.
   ///
@@ -2827,6 +2839,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Currently neither pregnant nor producing breast milk, e.g. after weaning or before a pregnancy.'**
   String get settingsPhaseNeitherHint;
+
+  /// No description provided for @settingsPhaseBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnant + producing milk'**
+  String get settingsPhaseBoth;
+
+  /// No description provided for @settingsPhaseBothHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnant while also producing breast milk (tandem phase).'**
+  String get settingsPhaseBothHint;
 
   /// No description provided for @onboardingPhaseNeither.
   ///

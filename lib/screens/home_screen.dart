@@ -35,6 +35,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   late final AnimationController _dayFlipController;
 
   final _scroll = ScrollController();
+  // Timestamp of the most-recent _scrollToBottom dispatch. Used to
+  // coalesce rapid sequential scroll-to-bottom calls during the meal
+  // save flow (meal-entry insert + coach-thinking bubble + coach reply
+  // fire 3-4 scroll-to-bottom calls inside 500 ms, each animating 250 ms
+  // → visible flicker). 300 ms cooldown collapses these into one.
+  DateTime? _lastScrollDispatchAt;
   final Map<String, GlobalKey> _mealKeys = {};
   // True while a programmatic scroll is running. Suppresses both the
   // scroll-up-to-load-more trigger and the auto-follow-to-bottom on item add,
@@ -143,15 +149,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
-  void _scrollToBottom({bool animate = true}) {
+  void _scrollToBottom({bool animate = true, bool force = false}) {
     if (!_scroll.hasClients) return;
+    // Coalesce rapid sequential scroll-to-bottoms (multi-bubble save
+    // flow). If we just dispatched a scroll within the last 300 ms,
+    // skip this one - the existing scroll is enough, and stacking
+    // animations on top of each other reads as flicker. Callers that
+    // need to bypass (e.g. user-triggered tab switch) can pass force.
+    if (!force) {
+      final now = DateTime.now();
+      if (_lastScrollDispatchAt != null &&
+          now.difference(_lastScrollDispatchAt!) <
+              const Duration(milliseconds: 300)) {
+        return;
+      }
+      _lastScrollDispatchAt = now;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scroll.hasClients) return;
       final pos = _scroll.position.maxScrollExtent;
       if (animate) {
         _scroll.animateTo(
           pos,
-          duration: const Duration(milliseconds: 250),
+          duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
         );
       } else {
@@ -578,31 +598,70 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: InkWell(
-          onTap: () => _pickDate(context),
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            child: Row(
+        title: Builder(
+          builder: (ctx) {
+            // Date IS the screen title (per Build +36 design rework).
+            // On today: bare titleLarge + caret. On a past day: a
+            // labelSmall Mono eyebrow ("VERGANGENER TAG") above, plus a
+            // primaryContainer "Heute" chip next to the date as the
+            // one-tap reset. Tap on the title/caret still opens the
+            // date picker via _pickDate.
+            final isToday = _isFocusedOnToday(ref);
+            final l10nLocal = AppLocalizations.of(ctx);
+            final dayTitle = _focusedDayTitle(ctx);
+            final dateTrigger = InkWell(
+              onTap: () => _pickDate(context),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      dayTitle,
+                      style: textTheme.titleLarge?.copyWith(
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: scheme.outline,
+                      size: 22,
+                    ),
+                  ],
+                ),
+              ),
+            );
+            if (isToday) return dateTrigger;
+            // Past day: eyebrow + date (no inline "Heute"-Chip). The
+            // back-to-today TextButton lives in actions (right side) to
+            // match the Apple/Google Calendar pattern - clearer action
+            // affordance + no tap-target competition with the date tap.
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Plain title. The pulse animation that used to live
-                // here read as visually noisy; the body-slide below
-                // (YAZIO-style) plus the haptic are the swipe cue.
-                Text(_focusedDayTitle(context)),
-                const SizedBox(width: 2),
-                Icon(Icons.arrow_drop_down, size: 22, color: scheme.outline),
+                Text(
+                  l10nLocal.diaryPastDayEyebrow.toUpperCase(),
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.secondary,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                dateTrigger,
               ],
-            ),
-          ),
+            );
+          },
         ),
         centerTitle: false,
         actions: [
-          // Today-jump shortcut: when the diary is sitting on a past
-          // day, a single tap brings the user back to today without
-          // having to walk through the date-picker. Hidden when already
-          // on today so the AppBar doesn't accumulate a redundant
-          // action on the most-common state. Google-Calendar-Pattern.
+          // Today-jump: on past days, a single tap returns to today
+          // (Apple/Google Calendar pattern). Hidden when already on today
+          // so the action cluster stays calm. Build +36 v2: moved from
+          // the title row back to actions per re-test feedback - the
+          // inline chip read as a label, not an action.
           if (!_isFocusedOnToday(ref))
             TextButton(
               onPressed: () {
@@ -624,11 +683,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           // lock_outline is the most-generic "security/safety" glyph we
           // could pick - shield_outlined still read as a "warning" cue to
           // Vanessa; the lock is calm and doesn't suggest danger.
-          IconButton(
-            icon: const Icon(Icons.lock_outline),
-            tooltip: AppLocalizations.of(context).coachDisclaimerBadge,
-            onPressed: () => _showDisclaimerSheet(context),
-          ),
+          //
+          // Hidden on past days (today is the primary logging surface).
+          if (_isFocusedOnToday(ref))
+            IconButton(
+              icon: const Icon(Icons.lock_outline),
+              tooltip: AppLocalizations.of(context).coachDisclaimerBadge,
+              onPressed: () => _showDisclaimerSheet(context),
+            ),
           if (canFilter)
           IconButton(
             icon: Icon(_mealsOnly

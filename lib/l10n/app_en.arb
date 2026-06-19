@@ -23,6 +23,7 @@
   "diaryFilterOnMsg": "Meals only, coach replies hidden",
   "diaryFilterOffMsg": "Coach replies shown again",
   "yesterdayHeader": "Yesterday",
+  "diaryPastDayEyebrow": "Past day",
   "settingsTooltip": "Settings",
 
   "emptyTodayHeadline": "What did you eat today?",
@@ -348,7 +349,7 @@
   "settingsMilkVolumeInfoDetail": "If you pump and know your volume, enter it exactly. Otherwise the share slider above gives an estimate.",
   "settingsMilkVolumeAgeRulesTitle": "Rules of thumb by child age:",
   "settingsMilkVolumeAgeRule0to6": "0-6 mo exclusive: ~750-800 ml/day",
-  "settingsMilkVolumeAgeRule6to12": "6-12 mo with solids: ~500-600 ml/day",
+  "settingsMilkVolumeAgeRule6to12": "6-12 mo: ~500-600 ml/day (more if still milk-only)",
   "settingsMilkVolumeAgeRule12plus": "12+ mo with family food: ~200-400 ml/day",
   "settingsMilkVolumeAgeRuleTwins": "Twins exclusive 0-6 mo: ~1500 ml/day",
   "settingsMilkVolumeInfoSource": "DGE 2025, EFSA 2017",
@@ -444,7 +445,7 @@
   "@settingsMilkSharePlural": {
     "placeholders": {"percent": {"type": "int"}}
   },
-  "settingsMilkVolumePerDayLabel": "{volume} ml/day → +{supplement} kcal/day",
+  "settingsMilkVolumePerDayLabel": "{volume} ml → +{supplement} kcal",
   "@settingsMilkVolumePerDayLabel": {
     "placeholders": {
       "volume": {"type": "int"},
@@ -517,8 +518,9 @@
   "onboardingVolumeShareQuestionSingular": "What's your share of the feeding?",
   "onboardingVolumeShareQuestionPlural": "What's your share per child?",
   "onboardingVolumeInfoDetail": "Energy cost of milk synthesis is ~0.84 kcal per ml. Typical volumes: single 0-6mo ~780 ml/day, twins ~1500 ml/day, 6-12mo ~575 ml, >12mo ~300 ml. If you pump and know your volume, enter it exactly.",
+  "computedForYouMarker": "Calculated for you",
+  "onboardingVolumeEstimateHint": "Estimated from your answers above. Only adjust if you know your volume more precisely (e.g. because you pump).",
 
-  "onboardingResultEyebrow": "CALCULATION",
   "onboardingResultMacrosEyebrow": "MACRONUTRIENTS · DAILY TARGET",
   "onboardingLedeBase": "Base + activity: {kcal} kcal",
   "@onboardingLedeBase": {
@@ -741,6 +743,8 @@
 
   "settingsPhaseNeither": "Neither",
   "settingsPhaseNeitherHint": "Currently neither pregnant nor producing breast milk, e.g. after weaning or before a pregnancy.",
+  "settingsPhaseBoth": "Pregnant + producing milk",
+  "settingsPhaseBothHint": "Pregnant while also producing breast milk (tandem phase).",
   "onboardingPhaseNeither": "Neither",
   "onboardingPhaseNeitherHint": "I'm neither pregnant nor producing breast milk.",
 

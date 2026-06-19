@@ -22,21 +22,29 @@ Vorgängerversion ging verloren (kein Git-Backup). Dies ist Rebuild mit absichtl
 - Design: Material Design 3 mit hand-tuned "Field Manual" Palette (siehe `lib/theme/nourishme_colors.dart`)
 - Landing: statische HTML/CSS in `docs/`, GitHub Pages
 
-## MVP Scope (in dieser Reihenfolge)
+## Produkt-Scope (Phase-Test)
 
-1. Essen tracken via Freitext-Eingabe: Claude parsed Freitext oder Foto in strukturierte Daten (Kalorien, Makros) plus Food-Safety-Warnings.
-2. Kalorien-Target basierend auf Lebenssituation: Mifflin-St Jeor plus Aufschlag fürs Stillen/Schwangerschaft, anpassbar an Anzahl Kinder und tatsächliches Milchvolumen.
-3. Food Safety Hints: Quecksilberfisch, Koffein-Schwellen, Alkohol-Wartezeiten, rohe Milchprodukte, riskante Kräuter, alles aus offiziellen Quellen (DGE, BfR, EFSA, LactMed, FDA/EPA).
-4. Tagebuch / Verlauf: durchscrollbare Tage mit Einträgen plus Kalorien-Summe vs. Target.
+NourishMe coacht Essen, Trinken und Supplements (kcal, Makros, Mikros und Safety) entlang einer definierten Lifecycle-Journey.
 
-## Out of Scope (für später, nicht jetzt bauen)
+**Phasen:** Schwangerschaft, Stillzeit (inkl. Teilstillen und Abstill-Taper), Abgestillt = Maintenance. Der Laktations-Aufschlag skaliert mit der Stillfrequenz Richtung 0; abgestillt fällt er weg. Preconception/Kinderwunsch ist fürs MVP bewusst raus (anderer Funnel, noch-nicht-schwangere Userinnen); Aufnahme später ist ein 1-Zeilen-Flip.
+
+**In-Scope-Test:** Ein Feature gehört rein, wenn es eine Empfehlung zu Essen, Trinken, Supplements oder Safety für die aktuelle Phase VERÄNDERT.
+
+- Gewicht/Aktivität: erfassbar und intern für die kcal-Kalibrierung trendbar; im UI keine eigenständige Trend-, Ziel- oder Streak-Anzeige.
+- Wasser: in scope als Hydration-Daily-Status (erhöhter Bedarf in der Stillzeit), keine Streak-UI.
+
+**Communication-Layer** (eigene In-Scope-Kategorie): Coach-Tone und Guardrails (z.B. „Tagesziel = Wochenrichtwert", Pattern-Avoidance-Sprache) sind in scope, weil sie die Empfehlung VERMITTELN. Bewusst getrennt vom Test, damit der scharf bleibt.
+
+**Out of scope (Idea-Backlog):** allgemeine Gesundheit, Fitness, Gewichts-/Abnehm-Tracking, Cycle/Period, Schlaf, Mental-Health-Support - jedes Feature, das den In-Scope-Test nicht besteht, gehört in den Idea-Backlog (`docs/idea-backlog.md`). Cycle ist bewusst raus, obwohl PMS-Cravings den Test technisch bestehen würden: eigene Lifecycle-Phase mit eigenem Datentyp, während Schwangerschaft/Stillzeit ohnehin meist abwesend/unterdrückt, erst post-wean relevant. Revisit beim Ausbau der Maintenance-Phase.
+
+## Architektur-Out-of-Scope
+
+Tech-Entscheidungen, die bewusst raus bleiben (Implementation-Cut, nicht Produkt-Cut):
 
 - User-Accounts, Auth, Onboarding-Server-Sync
 - Supabase / Backend (Worker reicht für API-Proxy)
 - Deep Links / Password Reset
 - Multi-User
-- Mahlzeit-Editing (im MVP: löschen plus neu hinzufügen reicht)
-- Push Notifications, Reminders
 - Social Features, Sharing
 - Material Design 2 Polish
 
@@ -66,6 +74,8 @@ Vorgängerversion ging verloren (kein Git-Backup). Dies ist Rebuild mit absichtl
 ## Sprache
 
 Code und Code-Kommentare auf Englisch. Commit-Messages auf Englisch. UI-Strings auf Deutsch. Kommunikation mit Vanessa: Deutsch.
+
+**Markdown-Docs in `docs/`** auf Englisch, mit Tester-/Vanessa-Quotes verbatim als deutsche Blockquotes (`> "..."`). Obsidian-Mirror (außerhalb des Repos, unter `~/My Drive/Obsidian Vault/Nurture Track/`) ist 1:1-Spiegel der `docs/`-Markdown-Files. CLAUDE.md selbst bleibt Deutsch (interne AI-Instruction, nicht docs/).
 
 ## Wichtige Notizen für Claude Code
 

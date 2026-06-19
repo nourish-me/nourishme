@@ -968,6 +968,66 @@ void main() {
     });
   });
 
+  group('filterPregnancyWarningsIfLactationOnly — Build +36 P0', () {
+    const pregLister =
+        'Mozzarella nur aus pasteurisierter Milch verwenden (Listeria-Risiko in der Schwangerschaft erhöht).';
+    const pregExplicit =
+        'Räucherlachs in der Schwangerschaft meiden (Listeria).';
+    const pregEng =
+        'Raw cheese during pregnancy can carry listeria.';
+    const generalIron = 'Eisen ist in dieser Mahlzeit knapp.';
+    const alcohol =
+        'Alkohol: bei Stillzeit komplett meiden.';
+
+    test('Lactation: pregnancy-specific listeria warning is dropped', () {
+      final out = SafetyRules.filterPregnancyWarningsIfLactationOnly(
+        [pregLister, generalIron],
+        lactating,
+      );
+      expect(out, [generalIron]);
+    });
+
+    test('Lactation: explicit Schwangerschaft phrase dropped', () {
+      final out = SafetyRules.filterPregnancyWarningsIfLactationOnly(
+        [pregExplicit],
+        lactating,
+      );
+      expect(out, isEmpty);
+    });
+
+    test('Lactation: English pregnancy phrase dropped', () {
+      final out = SafetyRules.filterPregnancyWarningsIfLactationOnly(
+        [pregEng],
+        lactating,
+      );
+      expect(out, isEmpty);
+    });
+
+    test('Lactation: alcohol warning (no pregnancy-marker) survives', () {
+      final out = SafetyRules.filterPregnancyWarningsIfLactationOnly(
+        [alcohol],
+        lactating,
+      );
+      expect(out, [alcohol]);
+    });
+
+    test('Pregnancy: all warnings pass through unchanged', () {
+      final out = SafetyRules.filterPregnancyWarningsIfLactationOnly(
+        [pregLister, alcohol, generalIron],
+        pregnant,
+      );
+      expect(out, [pregLister, alcohol, generalIron]);
+    });
+
+    test('Neither phase: warnings pass through (filter is a no-op)', () {
+      final out = SafetyRules.filterPregnancyWarningsIfLactationOnly(
+        [pregLister, alcohol],
+        neither,
+      );
+      expect(out, [pregLister, alcohol]);
+    });
+  });
+
   group('applyContextExclusions — phantom mussel warning', () {
     const mussel =
         'Muscheln sind rohe oder gering erhitzte Meerestiere und tragen erhöhtes Listeria-Risiko.';

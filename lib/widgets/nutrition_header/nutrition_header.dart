@@ -410,52 +410,17 @@ class _MicrosRow extends StatelessWidget {
       hasUpperLimit: display.hasUpperLimit,
     );
     final color = _microColor(state, scheme);
-    final isMet = state == MicronutrientState.met;
     final isOver = state == MicronutrientState.over;
     final isAwareness = state == MicronutrientState.awareness;
-    final isEmpty = state == MicronutrientState.empty && !isPast;
-    // Today empty: show the day's reference target as goal anchor.
-    // Past day: show the absolute intake ("180 µg") instead of "%" -
-    // pure recap, no goal framing. "Met" still gets the check icon on
-    // both modes because that's already a recap of "you hit it".
-    Widget? overrideText;
-    if (isMet) {
-      overrideText = Icon(Icons.check, size: 14, color: color, weight: 700);
-    } else if (isEmpty) {
-      overrideText = Text(
-        '${_formatTargetValue(target.value)} ${target.unitLabel}',
-        style: TextStyle(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w600,
-          color: scheme.onSurfaceVariant,
-          height: 1.1,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
-      );
-    } else if (isPast) {
-      overrideText = Text(
-        '${_formatTargetValue(intake)} ${target.unitLabel}',
-        style: TextStyle(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w600,
-          color: color,
-          height: 1.1,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
-      );
-    }
-    // Awareness-state nutrients (Cholin etc., no DRI target, only an
-    // awareness reference) used to render italic + dashed track to
-    // signal "this one isn't a strict target". Vanessa's Build+25
-    // feedback: the italic was just confusing - the info_outline icon
-    // already carries the "awareness, not target" meaning. Keep the icon,
-    // drop the italic + dashed track so the header reads as one
-    // consistent type system.
+    // Vanessa Build +36 re-test: removed the previous isMet check-icon
+    // override and the isEmpty/isPast target/intake-value overrides. The
+    // Tagebuch strip now speaks the same single-accent language as the
+    // Verlauf NutrientCell: always show "pct%" (empty=0%, met=110%, etc.).
+    // Past-day intake recap also goes back to pct so strip ↔ tile match.
     return MiniPctCell(
       name: isOver ? '${display.nameForLocale(locale)} · UL' : display.nameForLocale(locale),
       percent: pct,
       color: color,
-      pctOverridesText: overrideText,
       nameTrailing: [
         // Diet-adapted glyph only meaningful when the slot was chosen by
         // the default rule (vegan/vegetarian B12 swap). Once the user
@@ -470,15 +435,6 @@ class _MicrosRow extends StatelessWidget {
       ],
       onTap: onMicroTap == null ? null : () => onMicroTap!(key),
     );
-  }
-
-  // Same rule as MicronutrientCell used previously: integer when ≥50,
-  // otherwise let the source decide (most micronutrient targets are
-  // whole numbers anyway).
-  String _formatTargetValue(double target) {
-    if (target >= 50) return target.round().toString();
-    if (target == target.roundToDouble()) return target.toStringAsFixed(0);
-    return target.toStringAsFixed(1);
   }
 
   Color _microColor(MicronutrientState state, ColorScheme scheme) {

@@ -1,195 +1,460 @@
-# Beta-Feedback-Log
+# Beta Feedback Log
 
-Sammelstelle für Tester-Stimmen aus der Beta-Phase. Jede Session ein
-Block. Tester anonymisiert (T1, T2, ...) damit der Log nicht
-versehentlich PII enthält wenn er später in einem Demo-Screenshot
-landet. Status pro Punkt: open / in-progress / fixed / waiting-for-
-pattern.
+Collection point for tester voices from the beta phase. One block per session, sorted chronologically. **Internal document** - real names are in here so Vanessa can trace per-tester what needs to be addressed where. Do NOT share in demo screenshots or public repos.
 
-Pattern-Regel: einzelne Stimmen werden notiert, aber NICHT sofort
-invasiv umgesetzt. Erst wenn zwei oder mehr Tester denselben Punkt
-unabhängig nennen, wird das ein UI-/Feature-Change. Ausnahme:
-no-brainer-Verbesserungen die allen Testern nützen (z.B. Prompt-
-Schärfung, Coach-Tone) kommen direkt rein.
+**Pattern rule:** single voices are noted but NOT acted on invasively right away. Only when two or more testers independently raise the same point does it become a UI/feature change. Exception: no-brainer improvements that benefit every tester (prompt sharpening, coach tone, safety corrections) go in directly.
 
----
+## Legend
 
-## 2026-06-15 · T1 · Build +24 · Sprachnachricht
+**Type:**
+- 🐛 Bugfix - broken behaviour or wrong data, usually small to medium
+- 💎 Polish - UX/tone/trigger fine-tuning, usually small
+- 🚀 Feature - new mechanic, usually larger
 
-Tester-Profil: stillende Mutter, viel unterwegs mit Kleinkind.
+**Status:**
+- ✅ fixed
+- 🟡 planned (open)
+- ❓ waiting on tester follow-up
+- 🔬 single voice, collecting
+- ⛔ closed (closed-by-tester / clarified / wontfix / out-of-scope)
 
-1. **Foto-Erkennung ungenau** (status: in-progress, no-brainer)
-   - Beispiel A: „Pflaumen mit Sahne" geloggt statt Heidelbeeren mit
-     Joghurt. Farb-/Form-Verwechslung.
-   - Beispiel B: Salat mit viel Kleinzeug (Gurken, Tomaten, Nüsse) -
-     das Kleinzeug wird nicht erkannt.
-   - Geplant: Foto-Prompt schärfen (alle Komponenten enumerieren,
-     bei Ambiguität alltägliche Variante bevorzugen). Plus
-     Brand-History auch beim Foto-Parse injizieren, sodass die
-     User-eigene Loggings den Foto-Parse beeinflussen.
+**Build column:**
+- `+36` = already shipped
+- `→ +37` = planned for build
+- `→ ?` = not yet scheduled
 
-2. **Vergisst zu loggen weil Handy nicht am Tisch** (status: waiting)
-   - Push-Erinnerungen existieren, vermutlich Discovery-Problem.
-   - Erst klären ob sie die Pushes aktiv hat, dann entscheiden.
+## View 1 - Master Long List (sorted by priority)
 
-3. **Retroaktiv loggen - wie?** (status: waiting)
-   - Geht über AppBar-Tag-Picker oder Pille im Speichern-Sheet.
-   - Erst klären ob sie das nicht entdeckt hat, dann entscheiden ob
-     UI-Hint nötig ist.
+Order: **priority descending** (P1 → P3), within priority: bugs + polish (small) before features (large). All shipped fixes are consolidated in the "Done" table at the bottom; closed/clarified items follow.
 
-4. **Tagesziel nicht erreicht, kleine Snacks vergessen** (status: in-progress)
-   - Doppel-Problem: psychologisch (Frust) + technisch (Snacks
-     loggen ist Reibung).
-   - Geplant: Coach-Botschaft „Tagesziel ist Richtwert über die
-     Woche" als Guardrail im per-meal-Prompt, schützt alle Tester
-     vor Perfektionismus-Frust. Plus: in der Antwort die Favoriten-
-     Funktion erklären (ein-Tap-Re-Log für regelmäßige Snacks).
+### P1 - open
 
----
+| # | Item | Tester | Type | Status | Build | Prio | Reason |
+|---|---|---|---|---|---|---|---|
+| 2 | Day-switch scroll race / past-day-scroll | Isabella | 🐛 | 🟡 | → +37 | P1 | scroll race condition, related to F3, banner pattern planned |
+| 3 | kcal estimate calibration (over/under) | Simone + Henrike | 🐛 | ❓ | → ? | P1 | Henrike's piece fixed in +36 (single-food anchors); need Simone v36 retest before deciding on main-dish anchor |
+| 4 | Component granularity per meal | Sarah + Corina | 🚀 | 🟡 | → +39 | P1 | 2 voices, data model extension |
+| 5 | More than 3 micros + dedicated tab | Sarah + Isabella | 🚀 | 🟡 | → +39 | P1 | 2 voices, header overflow |
+| 6 | Weekly micronutrient overview (dedicated tab) | Celine | 🚀 | 🟡 | → +39 | P1 | Task #107, partial addressing in +36 history pills |
 
-## 2026-06-15 · T3 · Build vor +24 · WhatsApp-Voice + Follow-Up
+### P2 - open
 
-Tester-Profil: stillende Mutter, ~1-jähriges Kind, beruflich tätig
-(Schule), nutzt CHAT-Path zum Loggen statt Tagebuch-Add-Sheet
-(wichtig für #102 - der per_meal-Fix allein hilft ihr nicht).
+| # | Item | Tester | Type | Status | Build | Prio | Reason |
+|---|---|---|---|---|---|---|---|
+| 15 | Coach guardrail for daily-target frustration | Eva | 💎 | 🟡 | → +37 | P2 | coach tone, "daily target is weekly average" |
+| 16 | Repeat-meal discovery (favourites via coach hint) | Eva + Svenja + Corina | 💎 | 🟡 | → +37 | P2 | 3 voices, discovery cluster |
+| 17 | Iodine-gap nag trigger tuning (supplement w/o iodine) | Celine | 💎 | ❓ | → +37 | P2 | clinical micro for lactation; waiting on Celine's preferred trigger mode |
+| 18 | Daily-weight + auto kcal-adjust | Corina | 🚀 | 🟡 | → +37 | P2 | per scope: input mechanism for kcal calibration, no trend/streak UI |
+| 19 | Workout/sport sessions in kcal balance | Julia + Corina | 🚀 | 🟡 | → +38 | P2 | 2 voices; per scope: kcal-input, not fitness tracker (no streak/trend UI) |
+| 20 | Multi-photo bulk flow for afternoon catch-up | Celine | 🚀 | 🟡 | → +38 | P2 | Task #105, new save flow |
+| 21 | Water tap counter | Corina | 🚀 | 🟡 | → +38 | P2 | per scope: hydration daily status (raised need in lactation), no streak UI |
 
-1. **Backfill / Coach kennt Mahlzeit-Zeit nicht** (status: in-progress, PATTERN T2+T3)
-   - Sie loggt fast immer verspätet, Coach sagt „iss was in ein
-     paar Stunden" obwohl Mittag in 20 Min ist.
-   - Follow-Up: sie nutzt NICHT den Tagebuch-Add-Flow, sondern den
-     Coach-Chat („I had X for breakfast"). Daher kommt der per_meal-
-     Fix (#102) bei ihr nicht an. Task #102 ist erweitert um den
-     chat-Pfad (chat_base_de/en Prompt: erkenne vergangene-Mahlzeit-
-     Sprache, reasone mit Zeit-Versatz).
+### P3 - open
 
-2. **Delete-Bug** (status: closed-by-tester)
-   - T3 zog am 2026-06-15 zurück: „forget about it." Vermutlich
-     auf altem Build oder reproduziert sich nicht mehr. Task #104
-     deprioritised, nicht gelöscht (falls wer anders ähnliches
-     berichtet, wieder hochziehen).
+| # | Item | Tester | Type | Status | Build | Prio | Reason |
+|---|---|---|---|---|---|---|---|
+| 25 | Supplement setup timeout on Google screenshot | Henrike | 🐛 | ❓ | → ? | P3 | edge case, vision model with unusual source, tester follow-up pending |
+| 26 | Time picker AM/PM cumbersome | Julia | 💎 | 🟡 | → +40 | P3 | single voice, polish round |
+| 27 | Pattern-avoidance weekly coach | Corina | 🚀 | 🟡 | → +38 | P3 | single voice, new coach mode |
 
-3. **„Coffee remember" Feature** (status: waiting)
-   - Vermutlich Favoriten-Discovery-Problem. Rückfrage raus.
+### Done (history, all priorities)
 
-4. **Kalorien-Schätzung zu hoch (2600 kcal)** (status: clarified, no action)
-   - Follow-Up: 1J-Kind, 3-4 Mahlzeiten + Snack, Rest Muttermilch
-     2-3× tagsüber + nachts. „500 ml feels right" nach Überlegen.
-   - Damit ist die Schätzung wahrscheinlich KORREKT (500ml ≈ 420
-     kcal supplement + Mifflin ~1500 + Aktivität ~750 = ~2600).
-     „Fühlt sich hoch an" weil sie an non-lactation Wert (1900-
-     2000) gewöhnt ist.
-   - Action: build +25 Szenarien-Cards können ihr trotzdem helfen
-     („Hauptsächlich Beikost + etwas deiner Milch" = 20% wäre evtl.
-     zu niedrig, „halbe-halbe" = 50% wäre realistischer Pick).
-     Coach könnte zukünftig explizit erklären woher der Aufschlag
-     kommt (Idee, kein Task heute). Falls ihre Waage nach 2-4
-     Wochen verlässlich abnimmt → Target stimmt. Falls schnell
-     abnimmt → Activity-Factor runterstellen.
+Sorted by Prio descending, then by Build descending.
 
-5. **Snack-Empfehlungen zu häufig** (status: open, T3 confirmed)
-   - „Setting it up before would be fine." → bestätigt Settings-
-     Toggle für Mahlzeit-Struktur. NEUER Task: #108. No-brainer
-     für +25.
+| # | Item | Tester | Type | Status | Build | Prio | Reason |
+|---|---|---|---|---|---|---|---|
+| 1 | Lactation profile gets pregnancy warnings | Isabella + Julia | 🐛 | ✅ | +36 | P0 | 2 voices, clinical safety, wrong phase-gate in LLM |
+| 7 | Retro-logging discovery (header pill) | Eva + Svenja + Isabella | 💎 | ✅ | +36 | P1 | 3 voices, discovery cluster |
+| 11 | kcal single-food too high (egg 155 vs 100) | Henrike | 🐛 | ✅ | +36 | P1 | single-food anchors in prompt |
+| 8 | DHA hallucination 325% from porridge | Sarah | 🐛 | ✅ | +35 | P1 | clinical safety, ALA-to-DHA error |
+| 9 | Shell-pasta confusion (Conchigliette) | Simone | 🐛 | ✅ | +34/+35 | P1 | phantom listeria warning |
+| 10 | Push reminder fires despite logging | Simone + Corina | 🐛 | ✅ | +35 | P1 | 2 voices |
+| 14 | Salad midwife disclaimer | Corina | 💎 | ✅ | +35 | P1 | per-meal tone hardening |
+| 12 | Photo recognition inaccurate | Eva | 💎 | ✅ | up to +33 | P1 | prompt sharpening across multiple builds |
+| 13 | Backcamembert false-positive raw-milk warning | Celine | 🐛 | ✅ | old | P1 | heat marker in SafetyRules |
+| 23 | Onboarding daily-volume slider as "estimated card" | Isabella | 💎 | ✅ | +36 | P2 | single voice, no-brainer polish |
+| 24 | History tiles show micros with status icons | Isabella + Sarah + Corina | 💎 | ✅ | +36 | P2 | 3 voices, partial addressing |
+| 22 | Snack recommendations too frequent | Corina | 💎 | ✅ | +25 | P2 | settings toggle for meal structure |
 
-6. **Recruitment-Angebot 9 stillende Mütter** (status: open, strategic)
-   - Forms-URL bekommen, Antwort an T3 raus mit waitlist-Link.
-     Vanessa muss noch Worker-Cap und Beta-Onboarding-Velocity
-     einschätzen bevor wir die Welle starten.
+### Closed / clarified / out-of-scope / waiting (no action item)
+
+| # | Item | Tester | Status | Comment |
+|---|---|---|---|---|
+| 28 | Cycle / period awareness | Corina | ⛔ | out-of-scope per CLAUDE.md Produkt-Scope; moved to `docs/idea-backlog.md`. Revisit when maintenance phase grows or 3+ voices ask. |
+| 29 | Delete bug | Corina | ⛔ | closed-by-tester |
+| 30 | Daily calorie estimate too high (2600 kcal) | Corina | ⛔ | clarified, correctly computed from Mifflin + activity + lactation supplement |
+| 31 | "Coffee remember" feature | Corina | ❓ | likely favourites discovery problem (covered by #16) |
+| 32 | Forgets to log because phone isn't at table | Eva | ❓ | push reminder discovery (covered by reminder work) |
+| 33 | Praise even for chocolate lands well | Celine | ✅ | confirmation of non-judgemental tone |
 
 ---
 
-## 2026-06-16 · T5 · Build +24 · WhatsApp-Text
+## View 2 - Per-Tester View
 
-Tester-Profil: neu, eine Nachricht bisher.
+For per-tester update messages: what each tester reported, with status and build.
 
-1. **Retro-Logging Discovery: „Essen für den Vortag eintragen"** (status: open, PATTERN T1+T5)
-   - Wörtlich: „es wäre toll, wenn man Essen zB für den Vortag
-     nachträglich eintragen könnte."
-   - Feature EXISTIERT in +24 schon (AppBar-Datum-Tap → Mini-
-     Kalender → Tag picken → Mahlzeit normal loggen).
-   - Pattern: T1 hatte das exakt gleiche Discovery-Problem. Damit
-     qualifiziert für UI-Verbesserung (Task #113).
-   - Antwort an T5 raus mit Anleitung wie's heute geht +
-     Rückfrage ob sie es nicht gefunden oder zu fummelig fand.
+### Eva (T1) — lactation, often out and about with toddler
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| Photo recognition inaccurate | 💎 | ✅ | up to +33 |
+| Retro-logging discovery (header pill) | 💎 | ✅ | +36 |
+| Daily-target frustration (snacks forgotten, coach guardrail) | 💎 | 🟡 | → +37 |
+| Repeat-meal discovery (favourites via coach) | 💎 | 🟡 | → +37 |
+| Forgets to log because phone isn't at table | - | ❓ | - |
+
+### Celine (T2) — lactation, works at a school
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| Backcamembert false-positive raw-milk warning | 🐛 | ✅ | old |
+| Praise even for chocolate (tone confirmation) | - | ✅ | - |
+| Iodine-gap nag trigger tuning | 💎 | ❓ | → +37 |
+| Multi-photo bulk flow for afternoon | 🚀 | 🟡 | → +38 |
+| Weekly micronutrient overview (dedicated tab) | 🚀 | 🟡 | → +39 (partial in +36) |
+
+### Corina (T3) — lactation, 1-year-old child
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| Salad midwife disclaimer | 💎 | ✅ | +35 |
+| Push reminder fires despite logging | 🐛 | ✅ | +35 |
+| Snack recommendations too frequent | 💎 | ✅ | +25 |
+| History tiles show micros | 💎 | ✅ | +36 |
+| Repeat-meal discovery (favourites) | 💎 | 🟡 | → +37 |
+| Daily-weight + auto kcal-adjust | 🚀 | 🟡 | → +37 |
+| Workout/sport sessions in kcal balance | 🚀 | 🟡 | → +38 |
+| Water tap counter | 🚀 | 🟡 | → +38 |
+| Pattern-avoidance weekly coach | 🚀 | 🟡 | → +38 |
+| Component granularity per meal | 🚀 | 🟡 | → +39 |
+| Cycle / period awareness | - | ⛔ | out-of-scope (see idea-backlog) |
+| Delete bug | - | ⛔ | closed-by-tester |
+| Daily calorie estimate 2600 kcal | - | ⛔ | clarified |
+| "Coffee remember" feature | - | ❓ | - |
+| Recruitment of 9 lactating moms | - | strategic | - |
+
+### Svenja (T5) — new
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| Retro-logging discovery (header pill) | 💎 | ✅ | +36 |
+| Repeat-meal discovery (favourites via coach) | 💎 | 🟡 | → +37 |
+
+### Simone (T6) — lactation
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| Shell-pasta confusion (Conchigliette) | 🐛 | ✅ | +34/+35 |
+| Push reminder fires despite logging | 🐛 | ✅ | +35 |
+| kcal estimate too low (320 vs 555) | 🐛 | ❓ | → ? |
+
+### Sarah (T7) — lactation, Folio supplement
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| DHA hallucination 325% from porridge | 🐛 | ✅ | +35 |
+| Coach chat sees micros + supplements | 💎 | ✅ | +35 |
+| Component granularity per meal | 🚀 | 🟡 | → +39 |
+| More than 3 micros + dedicated tab | 🚀 | 🟡 | → +39 |
+
+### Isabella Hoesch (T8) — TestFlight, iPhone 11
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| Lactation profile gets pregnancy warnings | 🐛 | ✅ | +36 |
+| Onboarding daily-volume slider as "estimated card" | 💎 | ✅ | +36 |
+| History tiles show micros with status icons | 💎 | ✅ | +36 |
+| Retro-logging discovery (pizza for yesterday) | 💎 | ✅ | +36 |
+| Day switch lands at end of today's chat | 🐛 | 🟡 | → +37 |
+| More than 3 micros + dedicated tab | 🚀 | 🟡 | → +39 |
+
+### Henrike Böckmann (T9) — TestFlight, iPhone 16 Pro
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| kcal single-food too high (egg 155 vs 100) | 🐛 | ✅ | +36 |
+| Supplement setup timeout on Google screenshot | 🐛 | ❓ | → ? |
+
+### Julia Mayer (T10) — TestFlight, iPhone 14 Pro
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| Lactation profile gets pregnancy warnings | 🐛 | ✅ | +36 |
+| Time picker AM/PM cumbersome | 💎 | 🟡 | → +40 |
+| Workout/sport sessions in kcal balance | 🚀 | 🟡 | → +38 |
 
 ---
 
-## 2026-06-15 · T2 · Build +24 · WhatsApp-Text
+## Pattern Clusters (reference)
 
-Tester-Profil: arbeitet/unterrichtet (Schule erwähnt), entspannte
-Esserin, schaut neugierig auf Daten statt akribisch zu tracken.
+Which themes were mentioned how often. For pattern-rule decisions.
 
-1. **Multi-Photo-Upload nachmittags nachpflegen** (status: open, single-Stimme)
-   - „Heute keine Zeit gehabt, nachmittags mehrere Fotos auf einmal"
-   - Drei UI-Optionen skizziert: (a) Multi-Select Picker + Auto-Forward
-     durch ConfirmSheets, (b) Bulk-Queue mit Listen-Edit, (c) Quick-Save
-     ohne Confirm-Stage.
-   - **No-brainer-Vorzieher: EXIF-Timestamp aus Foto-Metadata
-     übernehmen** (heute nehmen wir vermutlich DateTime.now(), das ist
-     auch für Single-Photo retro-uploads kaputt). Verifizieren ob
-     image_picker EXIF mitliefert.
-   - Rückfragen an T2 raus: bevorzugtes UX-Pattern, Zeit-Quelle.
-   - Pattern-Status: 1/N für Bulk-Flow, auf zweite Stimme warten.
-
-2. **Backcamembert False-Positive Rohmilch-Warnung** (status: in-progress, no-brainer)
-   - Unsere SafetyRule trifft auf „camembert" als Rohmilch-Keyword,
-     Backcamembert ist aber durchgebacken (Hitze tötet Listerien).
-     Warnung schafft Unsicherheit statt Klarheit.
-   - Geplant: „Erhitzt-Marker"-Liste in SafetyRules (gebacken,
-     überbacken, gegrillt, im Ofen, heiß, flambiert) - bei Treffer
-     Warnung unterdrücken ODER in Beruhigungs-Form umformulieren.
-     Plus parse_de Prompt-Hint: bei Erhitzt-Präfix den Hitze-Aspekt
-     erwähnen statt pauschal warnen.
-   - Pattern-Status: ausreichend (technischer Fix mit klarer Logik,
-     keine UX-Entscheidung nötig).
-
-3. **Lob auch bei Schokolade kommt gut an** (status: fixed, Konfirmation)
-   - Positiver Datenpunkt für den per_meal-Coach 🟢 Stark-Zeile-Tone.
-   - Keine Änderung, nur Bestätigung dass die nicht-judgemental-Linie
-     bei pleasure foods ankommt.
-
-4. **Jod systematisch zu niedrig** (status: waiting + in-progress)
-   - Mehrere Hypothesen vor wir bauen:
-     (a) Nimmt sie ein Schwangerschafts-Supplement (Femibion etc.) und
-         hat es in den Settings eingetragen? Femibion enthält 150 µg Jod
-         = 100% Tagesziel.
-     (b) LLM schätzt Jod systematisch zu niedrig weil jodiertes Salz
-         in industriell verarbeiteten Produkten unter Detection-Schwelle.
-     (c) Tatsächlich jod-arme Ernährung (in DE statistisch häufig).
-   - No-brainer geplant:
-     - parse_de Jod-Plausibility-Anchor erweitern um jodiertes Salz
-       in Brot/Pizza/etc.
-     - Onboarding-Frage „nimmst du ein Schwangerschafts-Supplement?"
-       (heute existiert das Feature, aber kein aktiver Push im Setup).
-   - Pattern-basierte Trigger (wöchentlicher Hinweis bei chronischer
-     Lücke, Mikronährstoff-Trends-Tab) auf zweite Stimme warten.
-   - Rückfragen an T2 raus: Supplement aktiv? Donut täglich beachten?
-     Wäre Wochen-Übersicht hilfreich?
-
-### Antworten T2 auf Rückfragen · 2026-06-15
-
-1. **Multi-Photo-Zeit**: Uhrzeit weiß sie grob. Bevorzugt:
-   alle Fotos auf einmal speichern, dann einzeln editieren wo nötig
-   → Option (b) Bulk-Queue mit Inline-Edit aus meinem Vorschlag.
-   Festigt das Pattern: Task #98 (EXIF) ist nur Teil-Fix, echtes
-   Feature ist Multi-Photo-Bulk-Flow. NEUER Task: #105.
-
-2. **Jod-Supplement**: sie HAT ein Supplement im Onboarding
-   eingetragen, das enthält nur einfach kein Jod. Also Werte
-   sind ECHT. Aber: „App zeigt es dauernd an und das verunsichert
-   sie." → NEUES Problem: Mikronährstoff-Lücken-Trigger (#47) ist
-   zu nervig wenn der Nährstoff chronisch defizitär ist und die
-   User bewusst keine Veränderung will. NEUER Task: #106 (Lücken-
-   Nag-Cooldown / Opt-out per Mikronährstoff). Auch: Task #101
-   (Active-Supplement-Push im Onboarding) ist NICHT der Fix für
-   T2 (Supplement war schon eingetragen), bleibt aber general-
-   purpose Verbesserung.
-
-3. **Wochenübersicht**: „fände sie super." → bestätigt
-   Mikronährstoff-Trends-Tab als wertvolles Feature. NEUER Task: #107.
-
-4. **Donut sporadisch, nicht täglich**: bestätigt dass passive
-   Benachrichtigung (Push? wöchentliche Coach-Bubble?) besser ist
-   als sichtbar prominenter Donut-Status. Fließt in #107 ein.
+| Cluster | Voices | Type | Severity |
+|---|---|---|---|
+| ⚠️ Safety phase: lactation profile gets pregnancy warnings (fixed +36) | 2 (Isabella + Julia) | 🐛 | **P0** |
+| kcal estimate calibration (over/under) | 2 (Henrike + Simone) | 🐛 | P1 |
+| Retro-logging discovery (fixed +36) | 3 (Eva + Svenja + Isabella) | 💎 | P1 |
+| Micronutrient visibility + depth | 4 (Isabella + Sarah ×2 + Corina) | 🚀 | P1 |
+| Repeat-meal discovery / favourites | 3 (Eva + Svenja + Corina) | 💎 | P2 |
+| Activity / workout / daily-calorie-adjust | 2 (Julia + Corina) | 🚀 | P2 |
+| Water tracking | 1 (Corina) | 🚀 | P2 |
+| Weight tracking + auto-adjust | 1 (Corina) | 🚀 | P2 |
+| Picker UX (time + date) | 1 (Julia) | 💎 | P3 |
+| Supplement setup robustness (timeout) | 1 (Henrike) | 🐛 | P3 |
+| Cycle / period awareness | 1 (Corina) | ⛔ | out-of-scope, see idea-backlog |
+| Onboarding daily-volume discoverability (fixed +36) | 1 (Isabella) | 💎 | P3 |
+| Pattern-avoidance weekly coach | 1 (Corina) | 🚀 | P3 |
 
 ---
+
+## Code Bugs (separate from tester feedback)
+
+From the code review session:
+
+| Severity | Finding | Status |
+|---|---|---|
+| High | **Protein target with overweight** was wrong in coach path. Reported by dietitian. | ✅ fixed (`proteinTargetGrams`) |
+| High | **Micronutrient cast** `(v as num)` could crash meal save. | ✅ fixed (`_parseMicronutrients`) |
+| Medium | **Midnight ordering bug**. | ✅ fixed (`coachAnchorFor`) |
+| Medium | **Kombucha** triggered the algae rule incorrectly. | ✅ fixed (exclusion) |
+| Medium | **Beta bug "bundled scan + text lands at top"** - reported, never reproduced. | 🐛 open |
+| Medium | **`ThreadRepository.add()`** race on rapid bundle save. | 🐛 open, hard to test deterministically |
+
+---
+
+## Open Items Without Tester Status
+
+- 🐛 F3 past-day scroll: highlight pulse as patch in +35, real fix still open
+- 💎 A6 capsule math: prompt hardening in +34/+35, model adherence to verify (Henrike tested Femibion)
+- ✅ Salad midwife bug: per_meal hardening in +35, Vanessa tested herself
+
+## Known Limitations (wontfix-discussed)
+
+- Push reminder with <1 min lead time: iOS system race, not app-fixable (Corina's test with 1-min lead)
+- Progressive disclosure in Settings: was never in, won't be added back (decided by Vanessa)
+
+---
+
+## Detail Blocks (chronological by session)
+
+Original notes per session as a detail view. View 1 + View 2 above aggregate from this.
+
+## 2026-06-15 · Eva (T1) · Build +24 · voice message
+
+Profile: lactating mother, often out and about with toddler.
+
+1. **Photo recognition inaccurate** (status: in-progress, no-brainer)
+   - Example A: "plums with cream" instead of blueberries with yogurt.
+   - Example B: salad with cucumber/tomato/nuts → small items not recognised.
+   - Planned: sharpen photo prompt, inject brand history.
+
+2. **Forgets to log because phone isn't at the table** (status: waiting)
+   - Discovery problem with push reminders.
+
+3. **Retroactive logging - how?** (status: open, PATTERN Eva+Svenja+Isabella)
+   - Exists (AppBar day picker), discovery problem.
+
+4. **Daily target not reached, small snacks forgotten** (status: in-progress)
+   - Coach "daily target is a weekly average" as guardrail. Plus explain favourites feature.
+
+---
+
+## 2026-06-15 · Celine (T2) · Build +24 · WhatsApp text
+
+Profile: works at a school, relaxed eater, looks at data curiously rather than tracking meticulously.
+
+1. **Multi-photo upload for afternoon catch-up** (status: open)
+   - Preference: save all photos at once + edit individually → bulk queue.
+   - Task #105 created.
+
+2. **Backcamembert false-positive raw-milk warning** (status: ✅ fixed)
+   - Heat marker added to SafetyRules.
+
+3. **Praise even for chocolate lands well** (status: ✅ fixed, confirmation)
+   - Confirms non-judgemental tone works.
+
+4. **Iodine systematically low** (status: waiting/in-progress)
+   - Has Femibion-style supplement (no iodine). Values are REAL.
+   - Micronutrient-gap trigger is too naggy when nutrient is chronically deficient. Task #106.
+   - Confirmed: weekly overview would be great (Task #107).
+   - Donut sporadic → passive notification > prominent donut status.
+
+---
+
+## 2026-06-15 · Corina (T3) · Build before +24 · WhatsApp voice + follow-up
+
+Profile: lactating mother, ~1-year-old child, working (school), uses CHAT path to log.
+
+1. **Backfill / coach doesn't know meal time** (status: in-progress, PATTERN Celine+Corina)
+   - She logs late, coach reacts at the wrong time of day.
+   - Chat path: chat_base_de/en now detects past-meal language.
+
+2. **Delete bug** (status: closed-by-tester)
+
+3. **"Coffee remember" feature** (status: waiting)
+   - Likely favourites discovery problem.
+
+4. **Calorie estimate too high (2600 kcal)** (status: clarified, no action)
+   - Correctly computed from Mifflin + activity + lactation supplement.
+
+5. **Snack recommendations too frequent** (status: ✅ fixed)
+   - Task #108: settings toggle for meal structure, shipped in +25.
+
+6. **Recruitment of 9 lactating mothers** (status: open, strategic)
+
+---
+
+## 2026-06-16 · Svenja (T5) · Build +24 · WhatsApp text
+
+Profile: new, one message so far.
+
+1. **Retro-logging discovery: "log food for the day before"** (status: open, PATTERN Eva+Svenja+Isabella)
+   - Feature exists, discovery problem.
+
+---
+
+## 2026-06-17 · Simone (T6) · Build +33 → +34/+35 · WhatsApp
+
+Profile: lactating mother.
+
+1. **Shell-pasta bug: photo confused with mussels** (status: ✅ fixed in +34/+35)
+   - Photo of chicken soup with Conchigliette → coach interpreted as mussels, phantom listeria warning in the diary.
+   - Pasta-shape anchor in parse prompt (+34) + safety-layer filter + rawAnimal exclusion (+35).
+   - Verification pending (Simone was still on v33 at first retest, should retest the same photo on v35).
+
+2. **Calorie estimate too low (320 vs ~555)** (status: open, PATTERN Simone+Henrike)
+   - First estimate of Conchigliette soup was 320 kcal, real ~555 for 380g.
+   - Henrike reports the opposite: single items too high.
+
+3. **Push reminder fires despite meal log** (status: ✅ fixed in +35)
+   - Default reminder times (8am breakfast) fired even though she had logged earlier.
+   - recomputeSkipsForToday built, verification pending.
+
+---
+
+## 2026-06-17 → 2026-06-18 · Corina (T3) Round 2 · Build +33 → +35 · WhatsApp
+
+Profile: same as T3, now with more detailed feedback after a testing round.
+
+1. **Daily-weight logging with hard adjustment** (status: open)
+   - Manual entry in the morning (normal scale, no smart scale).
+   - Wants the calorie target to auto-adjust.
+   - Per scope: input mechanism for kcal calibration, no trend/streak UI in the app.
+
+2. **Cycle / period context** (status: ⛔ out-of-scope per CLAUDE.md Produkt-Scope, moved to idea-backlog)
+
+   > „You retain more water in certain phases"
+   >
+   > „horrible PMS with crazy cravings"
+
+   - Wanted the app to know the cycle (manually or via Apple Health).
+   - Decision: cycle is its own lifecycle phase; revisit when maintenance phase grows or 3+ voices ask. See `docs/idea-backlog.md`.
+
+3. **Food-avoidance pattern coach** (status: open)
+   - „du isst zu viel Zucker"-style coaching, not micronutrient-deficit style.
+   - Coach weekly review with pattern detection.
+
+4. **Water tracking** (status: open)
+   - Tap-glass icon, personalisable („not all glasses are equal").
+   - Proposed: setting for „1 glass = X ml" + „1 bottle = Y ml", two icons under the diary header.
+   - Per scope: in scope as hydration daily status (raised need in lactation), no streak UI.
+
+5. **Push reminder fires despite meal log** (status: ✅ fixed in +35)
+   - Same bug as Simone. To verify on v35.
+
+---
+
+## 2026-06-17 → 2026-06-18 · Sarah (T7) · Build +33 → +35 · WhatsApp
+
+Profile: lactating mother, has Folio supplement.
+
+1. **DHA hallucination 325% from porridge** (status: ✅ fixed in +35)
+   - Porridge with walnuts + flaxseed → model counted ALA as DHA.
+   - DHA zero rule in parse prompt + coach now sees micros + supplements in chat context.
+   - Sarah confirmed the v35 fix:
+
+   > „Bei Jod sehe ich jetzt aus welcher Mahlzeit es kommt" ✅
+
+2. **Component granularity per meal** (status: open, PATTERN Sarah+Corina)
+
+   > „Bei Jod sehe ich jetzt aus welcher Mahlzeit es kommt, weiß aber noch nicht aus welchem Bestandteil."
+
+   - Wants per-component (oats/walnuts/almond milk) view of who contributes what.
+
+3. **More than 3 micros + dedicated tab** (status: open, PATTERN Sarah+Isabella)
+   - Today: max 3 micros in header. Wants more data without header overflow.
+   - Suggestion: top 3 prominent, dedicated tab for all selected.
+
+---
+
+## 2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots
+
+Profile: iPhone 11, iOS 26.4.2, sends structured TestFlight feedback.
+
+1. **Onboarding daily-volume slider misunderstood** (status: open)
+
+   > „Bei Babies die keine Flasche nehmen schwer zu beantworten."
+
+   - Doesn't realise the value is an output of the previous questions.
+   - Solution proposal: visual separation as „calculated card" with different background.
+
+2. **Day switch lands at end of TODAY's chat** (status: open)
+   - Expected: start of selected day's chat.
+   - Scroll race condition on day switch. Related to F3 (past-day scroll).
+
+3. **⚠️ Lactation profile shows pregnancy warnings** (status: open at time of report, fixed in +36)
+   - Red beets and mozzarella carpaccio → warning „avoid raw-milk cheese in pregnancy" although Isabella set lactation.
+   - Hypothesis: LLM layer too defensive or deterministic rule has wrong phase gate.
+
+4. **Cannot add retroactive entry** (status: open, PATTERN Eva+Svenja+Isabella)
+   - Pizza from yesterday → couldn't set the date. Discovery problem.
+
+5. **History tiles show only kcal, not micros** (status: open at time, addressed in +36)
+
+   > „Tägliche Übersicht über meine Nährwerte und was noch fehlt cool."
+
+   - Plus: „nährstoffreiche Ernährung motiviert mehr als ein Kalorienziel."
+
+---
+
+## 2026-06-13 → 17 · Henrike Böckmann (T9) · TestFlight v20/v33 · Screenshots
+
+Profile: iPhone 16 Pro, iOS 26.5.
+
+1. **Supplement setup timeout on Google search screenshot** (status: open)
+   - Searched for Femibion via Google and uploaded the screenshot (not a photo of the label).
+   - Coach response:
+
+   > „The coach is taking too long, try again in a moment."
+
+   - Likely: vision model struggled with the unusual source.
+
+2. **kcal estimate too high (egg: 155 vs ~100)** (status: open at time, fixed for single items in +36)
+
+   > „Grundsätzlich kommt es mir so vor dass eher über- als unterschätzt wird."
+
+   - Conflict with Simone, who reported under-estimate on a German main dish.
+   - Hypothesis: model is generous on single items, conservative on complex dishes.
+
+---
+
+## 2026-06-17 · Julia Mayer (T10) · TestFlight v33 · Screenshots
+
+Profile: iPhone 14 Pro, iOS 26.5.
+
+1. **Time picker AM/PM cumbersome** (status: open)
+
+   > „Das Auswählen der Uhrzeit (morgens oder der Switch auf abends) wird nicht immer übernommen."
+
+   - Suggestion: a morning/evening slider at the top, then a single clock face instead of two.
+
+2. **⚠️ Lactation profile shows pregnancy warnings** (status: open at time, fixed in +36)
+
+   > „Ich habe angegeben, dass ich eine stillende Mutter bin. Trotzdem erhalte ich Warnungen für Lebensmittel, die in der Schwangerschaft nicht erlaubt sind."
+
+   - Screenshot shows a pancake meal with smoked-salmon/ham/raw-milk related warning.
+
+3. **Workout/sport sessions in kcal balance** (status: open, PATTERN Julia+Corina)
+   - Activity level hard to set at the start because it varies.
+   - Wants to add sport sessions as kcal-plus.
+   - Per scope: in scope as kcal-input mechanism, not as fitness tracker (no streak/trend UI).
