@@ -101,6 +101,17 @@ class SettingsRepository {
   Future<void> setBundlingToastSeen() =>
       _box.put(_bundlingToastSeenKey, 'true');
 
+  // Favorites-Discovery tip (Build +36-8): three testers (Eva, Svenja,
+  // Corina) all asked for a "remember my recurring meals" feature, not
+  // knowing that the star icon in the confirm screen already does that.
+  // Show a one-time SnackBar on the first meal save to surface it.
+  static const _favoritesTipSeenKey = 'favorites_tip_seen';
+
+  bool hasSeenFavoritesTip() => _box.get(_favoritesTipSeenKey) == 'true';
+
+  Future<void> setFavoritesTipSeen() =>
+      _box.put(_favoritesTipSeenKey, 'true');
+
   // Stable, anonymous identifier for product analytics. Generated once and
   // persisted; carries no personal data, just lets PostHog group events from
   // the same install. Survives until the app data is cleared.

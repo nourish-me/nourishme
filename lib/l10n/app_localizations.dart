@@ -170,6 +170,12 @@ abstract class AppLocalizations {
   /// **'Past day'**
   String get diaryPastDayEyebrow;
 
+  /// No description provided for @favoritesTipMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: tap the star in the top right when you save to mark this meal as a favourite for quick re-logging.'**
+  String get favoritesTipMessage;
+
   /// No description provided for @settingsTooltip.
   ///
   /// In en, this message translates to:

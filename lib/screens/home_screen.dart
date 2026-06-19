@@ -490,6 +490,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         if (!mounted) return;
         if (preferredMealId != null && _mealKeys.containsKey(preferredMealId)) {
           await _scrollToNewMeal(preferredMealId);
+        } else {
+          // Build +36-9 (Isabella): when switching days via the AppBar
+          // date-picker (no specific meal target), jump to the top of
+          // the new day's content so the user sees the start of that
+          // day's chat, not whatever scroll position the previous day
+          // was at (which was usually "end of today's chat"). jumpTo
+          // instead of animateTo because the day-flip slide animation
+          // already provides the transition cue.
+          if (_scroll.hasClients) {
+            _scroll.jumpTo(0);
+          }
         }
         if (mounted) {
           ref.read(scrollToDayProvider.notifier).state = null;

@@ -466,6 +466,23 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
 
     if (!mounted) return;
+    // Build +36-8: Favoriten-Discovery one-time tip. Three testers
+    // (Eva, Svenja, Corina) all asked for "remember my recurring
+    // meals" without knowing the star icon already does that. Show
+    // a SnackBar on the first meal save when the user did NOT tick
+    // the favorite this time (so the discovery still applies).
+    final settingsRepo = ref.read(settingsRepositoryProvider);
+    if (!settingsRepo.hasSeenFavoritesTip() && !_saveAsFavorite) {
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.favoritesTipMessage),
+          duration: const Duration(seconds: 6),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      settingsRepo.setFavoritesTipSeen();
+    }
     // Dismiss keyboard before popping so the next screen doesn't render with
     // half its height eaten by the keyboard.
     FocusScope.of(context).unfocus();

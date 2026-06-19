@@ -53,6 +53,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryPastDayEyebrow => 'Past day';
 
   @override
+  String get favoritesTipMessage =>
+      'Tip: tap the star in the top right when you save to mark this meal as a favourite for quick re-logging.';
+
+  @override
   String get settingsTooltip => 'Settings';
 
   @override
