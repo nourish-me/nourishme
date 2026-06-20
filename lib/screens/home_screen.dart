@@ -493,14 +493,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         } else {
           // Build +36-9 (Isabella): when switching days via the AppBar
           // date-picker (no specific meal target), jump to the top of
-          // the new day's content so the user sees the start of that
-          // day's chat, not whatever scroll position the previous day
-          // was at (which was usually "end of today's chat"). jumpTo
-          // instead of animateTo because the day-flip slide animation
-          // already provides the transition cue.
-          if (_scroll.hasClients) {
-            _scroll.jumpTo(0);
+          // the new day's content. Re-test showed a single jumpTo(0) at
+          // 80ms post-focusedDay-flip lands on the second entry because
+          // the ListView's layout hasn't fully settled - hasClients is
+          // true but maxScrollExtent is still 0 / mid-layout. Re-issue
+          // jumpTo(0) across a few frames so we outlast layout settling
+          // and any race with auto-scroll observers.
+          _programmaticScroll = true;
+          for (var attempt = 0; attempt < 6; attempt++) {
+            if (!mounted) {
+              _programmaticScroll = false;
+              return;
+            }
+            if (_scroll.hasClients) {
+              _scroll.jumpTo(0);
+            }
+            await Future<void>.delayed(const Duration(milliseconds: 50));
           }
+          _programmaticScroll = false;
         }
         if (mounted) {
           ref.read(scrollToDayProvider.notifier).state = null;
@@ -659,6 +669,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     color: scheme.secondary,
                     letterSpacing: 1.2,
                     fontWeight: FontWeight.w600,
+                    // Tighten line-height so the eyebrow + date Column
+                    // fits inside the default 56 px AppBar (re-test:
+                    // eyebrow was clipping at the top).
+                    fontSize: 10,
+                    height: 1.0,
                   ),
                 ),
                 dateTrigger,

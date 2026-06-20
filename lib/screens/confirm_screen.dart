@@ -694,9 +694,31 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       helpText: AppLocalizations.of(context).homeTimePickerHelp,
     );
     if (pickedTime == null || !mounted) return;
+    // Future-time guard: a date picked today must not combine with a
+    // future time-of-day. Date-picker itself blocks future days via
+    // lastDate, but Time-Picker has no upper bound, so today + 14:00
+    // at 07:56 is the leak. Past days remain unbounded (you can log a
+    // late-night meal from yesterday at any time). Tester report
+    // 2026-06-20 Vanessa during +36 re-test.
+    final candidateMealTime = DateTime(pickedDate.year, pickedDate.month,
+        pickedDate.day, pickedTime.hour, pickedTime.minute);
+    final nowAtValidation = DateTime.now();
+    final isToday = pickedDate.year == nowAtValidation.year &&
+        pickedDate.month == nowAtValidation.month &&
+        pickedDate.day == nowAtValidation.day;
+    if (isToday && candidateMealTime.isAfter(nowAtValidation)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(AppLocalizations.of(context).confirmMealTimeFutureBlocked),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     setState(() {
-      _mealTime = DateTime(pickedDate.year, pickedDate.month, pickedDate.day,
-          pickedTime.hour, pickedTime.minute);
+      _mealTime = candidateMealTime;
       _userTouched = true;
     });
   }

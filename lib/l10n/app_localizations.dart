@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Tip: tap the star in the top right when you save to mark this meal as a favourite for quick re-logging.'**
   String get favoritesTipMessage;
 
+  /// No description provided for @confirmMealTimeFutureBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'No future entries allowed. Pick a time up to now.'**
+  String get confirmMealTimeFutureBlocked;
+
   /// No description provided for @settingsTooltip.
   ///
   /// In en, this message translates to:

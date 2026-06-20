@@ -57,6 +57,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tip: tap the star in the top right when you save to mark this meal as a favourite for quick re-logging.';
 
   @override
+  String get confirmMealTimeFutureBlocked =>
+      'No future entries allowed. Pick a time up to now.';
+
+  @override
   String get settingsTooltip => 'Settings';
 
   @override
