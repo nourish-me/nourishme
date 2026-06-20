@@ -56,7 +56,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get favoritesTipMessage =>
       'Tipp: mit dem Stern oben rechts beim Speichern wird die Mahlzeit ein Favorit für schnellen Re-Log.';
 
-
   @override
   String get settingsTooltip => 'Einstellungen';
 
