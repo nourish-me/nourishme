@@ -42,6 +42,9 @@ Order: **priority descending** (P1 → P3), within priority: bugs + polish (smal
 |---|---|---|---|---|---|---|---|
 | 17 | Iodine-gap nag trigger tuning (supplement w/o iodine) | Celine | 💎 | 🟡 | → +37 | P2 | Celine confirmed she takes Femibion w/o iodine deliberately, so values are real. Pre-committed direction in WhatsApp: cooldown logic (chronic micros mentioned max 1×/week) + Settings-Toggle as escape hatch. Build paused pending JTBD clarification: is 1×/week still too often (vs. Toggle as default), and does this apply only to iodine or to other deliberate non-supplements too. |
 | 18 | Daily-weight + auto kcal-adjust | Corina | 🚀 | 🟡 | → +37 | P2 | Corina: manual morning input, active recommendation ("eat less today" / "ok to eat more"). Per scope: input mechanism, no trend/streak UI. |
+| 35 | Item language not normalized at scan time (saves in product's native language) | Lotte | 🐛 | 🟡 | → +37 | P2 | Lotte's nut mix barcode-scan saved the item name in French (product's native language) instead of her UI language (EN). Fix: normalize/translate item name to user UI language at scan time so re-tracking is consistent. Single voice but clear bug. |
+| 37 | DHA shown 0 from eggs despite coach mentioning DHA | Rebecca | 🐛 | 🟡 | → +37 | P2 | Rebecca logged eggs, coach said „there is DHA in eggs" but the logged DHA value was 0. LLM prose mentions DHA, structured value not populated. Inverse of #8 (Sarah's DHA hallucination from ALA). Eggs actually contain ~30-90 mg DHA per egg, so 0 is wrong. |
+| 38 | German banner in English-UI supplement form (i18n inconsistency) | Rebecca | 🐛 | 🟡 | → +37 | P2 | Rebecca's supplement form shows „Coaching ist noch nicht aktiviert: bitte willige im Onboarding ein..." in German while the rest of the form (Name, Folate, Iron, etc.) is in English. Plus possibly a separate issue: warning shown despite onboarding completion - needs investigation. |
 | 21 | Water tap counter | Corina | 🚀 | 🟡 | → +38 | P2 | Corina: two icons on home screen ("my glass" + "my bottle"), both with custom sizes in Settings. Tap to log, no reminders. Per scope: hydration daily status, no streak UI. |
 
 ### P3 - open
@@ -50,6 +53,8 @@ Order: **priority descending** (P1 → P3), within priority: bugs + polish (smal
 |---|---|---|---|---|---|---|---|
 | 26 | Time picker AM/PM cumbersome | Julia | 💎 | 🟡 | → +40 | P3 | single voice, polish round |
 | 27 | Pattern-avoidance weekly coach | Corina | 🚀 | 🟡 | → +38 | P3 | Corina, weekly coach review. Concrete example: "hey, you've had a lot of sugar this week"-style behaviour-pattern feedback. |
+| 36 | Item list mixed languages when re-tracking | Lotte | 💎 | 🔬 | → ? | P3 | Lotte's daily Müsli appears as "Wirrwarr an Sprachen" in the re-track list because items saved at different times kept their original language. Likely solved as a downstream effect of #35 (normalize at scan), but might also need a one-time backfill / display-time fallback. Single voice, collecting. |
+| 39 | Trimester auto-advance from due date | Rebecca | 🚀 | 🔬 | → ? | P3 | Rebecca entered 2T manually and wondered if a due-date input could auto-advance the trimester over time. Single voice, polish-feature. Passes in-scope test (does change recommendations based on trimester transitions). |
 
 ### Done (history, all priorities)
 
@@ -86,7 +91,7 @@ Sorted by Prio descending, then by Build descending.
 | 32 | Forgets to log because phone isn't at table | Eva | ❓ | push reminder discovery (covered by reminder work) |
 | 33 | Praise even for chocolate lands well | Celine | ✅ | confirmation of non-judgemental tone |
 | 25 | Supplement setup timeout on Google screenshot | Henrike | ⛔ | closed: Henrike confirmed the supplement-setup worked on retest. Timeout was likely a train-connectivity issue, not an app bug. |
-| 34 | App-Value-Confirmation | Sarah | ✅ | „App richtig gut um einen bewussteren Blick für Nährstoffe zu bekommen" (Sarah, 2026-06-19 WhatsApp). Bestätigung des Core-Value-Props der App. |
+| 34 | App-Value-Confirmation | Sarah + Lotte + Rebecca | ✅ | „App richtig gut um einen bewussteren Blick für Nährstoffe zu bekommen" (Sarah, 2026-06-19 WhatsApp). „Super Aufschluss darüber was in der Ernährung fehlt (z.B. bei mir Protein), Bilderkennung klappt erstaunlich gut und das lesen der Barcodes" (Lotte, 2026-06-19 WhatsApp). „Logging is suuuuper straightforward (impressed with the computer vision accuracy) and the last couple days has actually helped me quite a bit in terms of just being more mindful" (Rebecca, 2026-06-19 WhatsApp). 3 voices confirming the core value-prop. |
 
 ---
 
@@ -334,6 +339,57 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 >
 > Danke nochmal für das gründliche Testen + die Aktivitäts-Klarstellung per E-Mail!
 
+### Rebecca Brill (T12) — TestFlight, EN UI, pregnant 2T EN
+
+| Feedback                                                       | Type | Status | Build                            |
+| -------------------------------------------------------------- | ---- | ------ | -------------------------------- |
+| Tandem (pregnant + breastfeeding) discovery + auto-readjust    | 🐛   | ✅      | +36 (4th Tandem option in Settings) |
+| Trimester auto-advance from due date                           | 🚀   | 🔬     | → ?                              |
+| DHA shown 0 from eggs despite coach mentioning DHA             | 🐛   | 🟡     | → +37                            |
+| German banner in English-UI supplement form (i18n)             | 🐛   | 🟡     | → +37                            |
+| App-Value-Confirmation (logging straightforward, CV accuracy, mindfulness) | - | ✅      | -                                |
+
+**Update-Message [EN] — short ack for tonight, full version after the next build (2026-06-19):**
+
+> Hi Rebecca, thanks so much for the thoughtful feedback - really happy you're enjoying it! 💛
+>
+> Quick note for tonight, will come back properly in a day or two with concrete fixes:
+> - Pregnant + breastfeeding becomes a dedicated 4th option in the next version (Settings → Profile), which solves both the discovery AND the auto-readjust-to-one thing you hit
+> - The DHA-in-eggs showing 0 and the German banner in the otherwise-English supplement form are real bugs, noted
+> - Auto-trimester from a due date is a clever idea, looking into it
+>
+> Coming back to you in 1-2 days with a new build. And keep the notes coming - exactly the kind of detail that helps ❤️
+
+### Lotte (T11) — beta, EN UI DE
+
+| Feedback                                                       | Type | Status | Build                                |
+| -------------------------------------------------------------- | ---- | ------ | ------------------------------------ |
+| App-Value-Confirmation (micro insight, photo, barcode work well) | -    | ✅      | -                                    |
+| Item language not normalized at scan time (French nut mix)     | 🐛   | 🟡     | → +37                                |
+| Item list mixed languages when re-tracking (Müsli)             | 💎   | 🔬     | → ?                                  |
+| Tracking feels more cumbersome than expected                   | -    | ❓      | likely favourites discovery (#16)    |
+| Doesn't know app is bilingual                                  | -    | ❓      | discovery, mention in update message |
+
+**Update-Message [DE] — DEFERRED until +36 TestFlight upload (2026-06-19):**
+
+Don't send yet - the message references the favourites SnackBar tip (T41) which only lands when +36 ships. Sending earlier would invalidate the discovery argument. Send right after Lotte has the +36 build.
+
+> Hey Lotte, mega Dankeschön für die ausführliche erste Rückmeldung! Vier Sachen zu deinen Punkten:
+>
+> **Zur Bildkennung + Barcode-Erkennung + Mikro-Lücken-Aufdeckung:** freut mich riesig zu hören, genau das soll die App. ✅
+>
+> **Zur Nussmischung auf Französisch + Sprach-Wirrwarr im Re-Tracking:** ist ein Bug von uns. Beim Barcode-Scan übernimmt die App aktuell den Produktnamen in der Sprache die das Produkt zurückgibt, statt in deiner UI-Sprache. Fix kommt in der nächsten App-Version: bei Scan-Zeit wird der Name normalisiert, dann ist auch die Re-Track-Liste konsistent.
+>
+> **Zur App-Sprache:** ja, die App kann auch Deutsch! Sie folgt der iPhone-System-Sprache - wenn dein iPhone auf Englisch steht, ist die App auch Englisch. Wechsel über iOS → Einstellungen → Allgemein → Sprache & Region (oder gezielt für NourishMe: iOS → Einstellungen → NourishMe → Sprache).
+>
+> **Zum „mühsam"-Punkt:** wenn du oft das gleiche isst (Müsli morgens), gibt's eine Favoriten-Funktion - beim Save-Sheet siehst du oben rechts einen Stern, einmal drücken → beim nächsten Mal loggst du's mit einem Tap statt Foto/Eingabe. In der kommenden Version wird der Stern explizit beworben (per einmaligem Hinweis bei der ersten Mahlzeit), weil ihn viele übersehen. Probier's ein paar Tage mit deinem Müsli und sag mir gerne wie das wirkt.
+>
+> Ein paar Rückfragen weil du frisch dabei bist:
+> - Wie war der Einstieg (Onboarding, erste Mahlzeit, Coach-Antwort)?
+> - Gibt's andere Stellen wo du gestockt bist oder dir was anders gewünscht hast, auch Kleinigkeiten?
+>
+> Danke nochmal!
+
 ---
 
 ## Pattern Clusters (reference)
@@ -346,7 +402,7 @@ Which themes were mentioned how often. For pattern-rule decisions.
 | kcal estimate calibration (over/under) | 2 (Henrike + Simone) | 🐛 | P1 |
 | Retro-logging discovery (fixed +36) | 3 (Eva + Svenja + Isabella) | 💎 | P1 |
 | Micronutrient visibility + depth | 4 (Isabella + Sarah ×2 + Corina) | 🚀 | P1 |
-| Repeat-meal discovery / favourites | 3 (Eva + Svenja + Corina) | 💎 | P2 |
+| Repeat-meal discovery / favourites | 4 (Eva + Svenja + Corina + Lotte) | 💎 | P2 |
 | Dynamic activity adjustment (HealthKit + manual fallback) - parked in idea-backlog | 2 (Julia + Corina) | 🚀 | P2 |
 | Water tracking | 1 (Corina) | 🚀 | P2 |
 | Weight tracking + auto-adjust | 1 (Corina) | 🚀 | P2 |
@@ -355,6 +411,9 @@ Which themes were mentioned how often. For pattern-rule decisions.
 | Cycle / period awareness | 1 (Corina) | ⛔ | out-of-scope, see idea-backlog |
 | Onboarding daily-volume discoverability (fixed +36) | 1 (Isabella) | 💎 | P3 |
 | Pattern-avoidance weekly coach | 1 (Corina) | 🚀 | P3 |
+| Item language normalization (scan + re-track display) | 1 (Lotte) | 🐛 | P2 |
+| App-Value-Confirmation (positive feedback) | 3 (Sarah + Lotte + Rebecca) | ✅ | - |
+| i18n inconsistencies (mixed-language strings in single screen) | 2 (Lotte + Rebecca) | 🐛 | P2 |
 
 ---
 
@@ -609,3 +668,28 @@ Profile: iPhone 14 Pro, iOS 26.5.
    - Activity level hard to set at the start because it varies.
    - Wants to add sport sessions as kcal-plus.
    - Per scope: in scope as kcal-input mechanism, not as fitness tracker (no streak/trend UI).
+
+## 2026-06-19 · Lotte (T11) · TestFlight (current beta) · WhatsApp text
+
+New tester. Three-point feedback after first sessions, EN UI on her phone.
+
+1. **App-Value-Confirmation** (positive)
+
+   > „Es gibt einem super Aufschluss darüber was in der Ernährung fehlt (z.b. bei mir Protein), Bilderkennung klappt erstaunlich gut und das lesen der Barcodes"
+
+   - Confirms three core mechanics: micronutrient gap insight, photo recognition, barcode scanning. Joins Sarah (#34) in the App-Value-Confirmation cluster (2 voices).
+
+2. **Item language not normalized at scan time** (🐛, single voice, P2)
+
+   > „die App ist bei mir Englisch (weiß gar nicht ob es eine andere gibt?!). wenn ich etwas eingebe/scanne funktioniert sowohl deutsch als auch Englisch, aber wenn ich etwas erneut tracken will wie bspw. Das Müsli was ich jeden morgen esse ist es irgendwie ein kleines wirrwarr an sprachen. Idealerweise würde mir unabhängig der Sprache etwas vorgeschlagen."
+
+   > „ich habe eine nussmischung gescannt und die App hat sie mir auf Französisch gespeichert 😅 das macht es natürlich erst recht schwer die Mischung wieder zu finden wenn ich sie nochmal esse."
+
+   - Two symptoms of the same root cause: items are stored with whatever-language name they came in with (product DB returns name in product's native language; user can type DE or EN; previous saves keep their original language). Fix: normalize at scan/save time to user's UI language. Plus a display-side fallback for already-saved items in other languages would help the existing Müsli case.
+   - Discovery angle: Lotte also doesn't know the app has a German option ("weiß gar nicht ob es eine andere gibt?!"). Worth addressing explicitly in her update message.
+
+3. **Tracking feels more cumbersome than expected** (❓, likely favourites discovery)
+
+   > „in summe muss ich sagen, dass es mühsamer ist als ich dachte alles aufzuschreiben, was aber vllt auch an meinem random Essverhalten liegt 🙈"
+
+   - 4th voice in the favourites-discovery cluster (Eva + Svenja + Corina + Lotte). The +36 SnackBar tip (T41) should help, but for Lotte specifically: validate post-+36 whether the SnackBar surface is enough or whether the daily Müsli case needs an even stronger discovery push.
