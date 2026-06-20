@@ -619,6 +619,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     return Scaffold(
       appBar: AppBar(
+        // Past-day adds an eyebrow above the date title, which needs
+        // more vertical room than the default 56 px toolbar. Bump to 64
+        // when not on today; today keeps the default for a tighter look.
+        // 8 px delta is small enough to not jitter perceptibly on
+        // day-switch, large enough to stop the eyebrow clipping.
+        toolbarHeight: _isFocusedOnToday(ref) ? null : 64,
         title: Builder(
           builder: (ctx) {
             // Date IS the screen title (per Build +36 design rework).
@@ -669,11 +675,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     color: scheme.secondary,
                     letterSpacing: 1.2,
                     fontWeight: FontWeight.w600,
-                    // Tighten line-height so the eyebrow + date Column
-                    // fits inside the default 56 px AppBar (re-test:
-                    // eyebrow was clipping at the top).
-                    fontSize: 10,
-                    height: 1.0,
                   ),
                 ),
                 dateTrigger,

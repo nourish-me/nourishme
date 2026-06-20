@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -672,53 +673,66 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     }
   }
 
-  // Phase 6 of the diary refactor: one combined "Heute · 08:24" pill
-  // replaces the two separate date + time pills. Tapping it walks the
-  // user through a date picker first, then a time picker, in the same
-  // gesture - so a retro-add is one tap-and-decide flow instead of two
-  // pills the user has to discover are independent. Cancelling either
-  // picker keeps _mealTime unchanged.
+  // Build +36 picker rework (Vanessa + Julia feedback): one combined
+  // Cupertino wheel for date + time replaces the previous showDatePicker
+  // + showTimePicker chain. Native iOS feel, 24h format (no AM/PM), and
+  // maximumDate=now blocks future entries inside the picker itself
+  // instead of post-hoc rejecting with a SnackBar. Single decision, one
+  // pop-down to dismiss. Cancelling keeps _mealTime unchanged.
   Future<void> _pickMealDateTime() async {
     final now = DateTime.now();
-    final pickedDate = await showDatePicker(
+    final initial = _mealTime.isAfter(now) ? now : _mealTime;
+    DateTime tempPicked = initial;
+    final picked = await showModalBottomSheet<DateTime>(
       context: context,
-      initialDate: _mealTime,
-      firstDate: DateTime(now.year - 2),
-      lastDate: now,
-      helpText: AppLocalizations.of(context).homeDatePickerHelp,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final materialL10n = MaterialLocalizations.of(sheetContext);
+        final scheme = Theme.of(sheetContext).colorScheme;
+        return SafeArea(
+          child: SizedBox(
+            height: 320,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                        child: Text(materialL10n.cancelButtonLabel),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(sheetContext).pop(tempPicked),
+                        style: TextButton.styleFrom(
+                          foregroundColor: scheme.primary,
+                        ),
+                        child: Text(materialL10n.okButtonLabel),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.dateAndTime,
+                    initialDateTime: initial,
+                    minimumDate: DateTime(now.year - 2),
+                    maximumDate: DateTime.now(),
+                    use24hFormat: true,
+                    onDateTimeChanged: (dt) => tempPicked = dt,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
-    if (pickedDate == null || !mounted) return;
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_mealTime),
-      helpText: AppLocalizations.of(context).homeTimePickerHelp,
-    );
-    if (pickedTime == null || !mounted) return;
-    // Future-time guard: a date picked today must not combine with a
-    // future time-of-day. Date-picker itself blocks future days via
-    // lastDate, but Time-Picker has no upper bound, so today + 14:00
-    // at 07:56 is the leak. Past days remain unbounded (you can log a
-    // late-night meal from yesterday at any time). Tester report
-    // 2026-06-20 Vanessa during +36 re-test.
-    final candidateMealTime = DateTime(pickedDate.year, pickedDate.month,
-        pickedDate.day, pickedTime.hour, pickedTime.minute);
-    final nowAtValidation = DateTime.now();
-    final isToday = pickedDate.year == nowAtValidation.year &&
-        pickedDate.month == nowAtValidation.month &&
-        pickedDate.day == nowAtValidation.day;
-    if (isToday && candidateMealTime.isAfter(nowAtValidation)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text(AppLocalizations.of(context).confirmMealTimeFutureBlocked),
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
+    if (picked == null || !mounted) return;
     setState(() {
-      _mealTime = candidateMealTime;
+      _mealTime = picked;
       _userTouched = true;
     });
   }

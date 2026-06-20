@@ -51,7 +51,6 @@ Order: **priority descending** (P1 → P3), within priority: bugs + polish (smal
 
 | # | Item | Tester | Type | Status | Build | Prio | Reason |
 |---|---|---|---|---|---|---|---|
-| 26 | Time picker AM/PM cumbersome | Julia | 💎 | 🟡 | → +40 | P3 | single voice, polish round |
 | 27 | Pattern-avoidance weekly coach | Corina | 🚀 | 🟡 | → +38 | P3 | Corina, weekly coach review. Concrete example: "hey, you've had a lot of sugar this week"-style behaviour-pattern feedback. |
 | 36 | Item list mixed languages when re-tracking | Lotte | 💎 | 🔬 | → ? | P3 | Lotte's daily Müsli appears as "Wirrwarr an Sprachen" in the re-track list because items saved at different times kept their original language. Likely solved as a downstream effect of #35 (normalize at scan), but might also need a one-time backfill / display-time fallback. Single voice, collecting. |
 | 39 | Trimester auto-advance from due date | Rebecca | 🚀 | 🔬 | → ? | P3 | Rebecca entered 2T manually and wondered if a due-date input could auto-advance the trimester over time. Single voice, polish-feature. Passes in-scope test (does change recommendations based on trimester transitions). |
@@ -78,6 +77,7 @@ Sorted by Prio descending, then by Build descending.
 | 15 | Coach guardrail for daily-target frustration | Eva | 💎 | ✅ | +36 | P2 | Coach prompt-rule: when daily kcal is below target by evening, gentle reminder that daily target is a weekly average. No nag, no forced snack suggestions. |
 | 16 | Repeat-meal discovery (favourites via coach hint) | Eva + Svenja + Corina | 💎 | ✅ | +36 | P2 | 3 voices, discovery cluster. Shipped as one-time SnackBar tip after first meal save pointing at the existing favourites feature (star icon when saving). |
 | 22 | Snack recommendations too frequent | Corina | 💎 | ✅ | +25 | P2 | settings toggle for meal structure |
+| 26 | Time picker AM/PM cumbersome | Julia | 💎 | ✅ | +37 | P3 | Picker komplett auf CupertinoDatePicker.dateAndTime umgestellt: 24h-Format (kein AM/PM), kombiniertes Date+Time-Wheel in einem Sheet, maximumDate=now blockt zukünftige Werte im Picker selbst. Schliesst gleichzeitig Vanessa's Future-Time-Block-Bug aus dem +36-Re-Test. |
 
 ### Closed / clarified / out-of-scope / waiting (no action item)
 
@@ -318,7 +318,7 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | Feedback | Type | Status | Build |
 |---|---|---|---|
 | Lactation profile gets pregnancy warnings | 🐛 | ✅ | +36 |
-| Time picker AM/PM cumbersome | 💎 | 🟡 | → +40 |
+| Time picker AM/PM cumbersome | 💎 | ✅ | +37 |
 | Dynamic activity adjustment (HealthKit + manual fallback) | 🚀 | ⛔ | parked in idea-backlog |
 
 **Update-Message [DE]:**
@@ -406,7 +406,7 @@ Which themes were mentioned how often. For pattern-rule decisions.
 | Dynamic activity adjustment (HealthKit + manual fallback) - parked in idea-backlog | 2 (Julia + Corina) | 🚀 | P2 |
 | Water tracking | 1 (Corina) | 🚀 | P2 |
 | Weight tracking + auto-adjust | 1 (Corina) | 🚀 | P2 |
-| Picker UX (time + date) | 1 (Julia) | 💎 | P3 |
+| Picker UX (time + date) - fixed +37 via CupertinoDatePicker | 1 (Julia) | 💎 | P3 |
 | Supplement setup robustness (timeout) | 1 (Henrike) | 🐛 | P3 |
 | Cycle / period awareness | 1 (Corina) | ⛔ | out-of-scope, see idea-backlog |
 | Onboarding daily-volume discoverability (fixed +36) | 1 (Isabella) | 💎 | P3 |
