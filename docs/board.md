@@ -6,8 +6,6 @@ kanban-plugin: board
 
 ## Backlog
 
-- [ ] **German banner in EN supplement form** · Rebecca (1) · #P2
-	The supplement form's coaching-not-yet-enabled banner appears in German while the rest of the form (Name, Folate, Iron, etc.) is in English. There's also a secondary suspicion: the warning shows even though onboarding consent was given, which needs separate investigation. (Source: View 2 table; no chronological block for Rebecca yet.)
 - [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 ^l47km2
 	The coach prose mentions DHA in eggs, but the structured DHA value in the meal entry stays at 0. Eggs typically deliver 30-90 mg DHA each, so 0 is wrong. The fix direction (populate a realistic structured value vs stop the coach mentioning nutrients not reflected in the data) gets decided in Explore. (Source: View 2 table; no chronological block.)
 - [ ] **Iodine-gap nag trigger tuning** · Celine (1) · #P2 · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^jbqo1t
@@ -54,15 +52,15 @@ kanban-plugin: board
 	The pure validation and data-flow logic in the onboarding screens has no unit-test coverage today, even though the path is tested manually each TestFlight cycle. Tests would catch regressions in the data layer (not UI bugs). *Source too thin for more detail.*
 
 
-## Warten auf Testerin
-
-_(leer — Tester-Rückfragen werden jetzt im Explore-Schritt gestellt; Karten warten nicht mehr hier)_
-
-
 ## Explore
 
 - [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] ^s7c7jg
 	Two patch attempts on the day-switch scroll bug have not converged. The home screen has at least seven concurrent scroll dispatchers (newly-rendered meals, totals-delta, focused-day-change, scroll-to-meal, scroll-to-bottom-bump, initState bottom, retry loops) and the right next step is a single audit pass that maps every dispatcher against every user flow before any further code change. Output: a state-machine doc plus a single coordinating handler that owns scroll-on-day-or-meal-change. Acceptance: switching to a past day via the AppBar date picker must land the diary at the top of that day, not mid-conversation (Isabella's original repro, formerly the separate "Day-switch scroll race" Backlog card, now folded in here).
+
+
+## Warten auf Testerin
+
+_(leer — Tester-Rückfragen entstehen jetzt im Explore-Schritt; Karten wandern aus Explore hierher, wenn wir auf eine Testerin-Antwort warten)_
 
 
 ## Blocked
@@ -81,6 +79,8 @@ _(leer — Tester-Rückfragen werden jetzt im Explore-Schritt gestellt; Karten w
 
 ## Review & Test
 
+- [ ] **German banner in EN supplement form** · Rebecca (1) · #P2 · 🔧 i18n fixed, needs device verify
+	The coaching-not-yet-enabled banner showed in German inside the otherwise-English supplement form. Root cause: the consent-gate exception in `claude_client.dart` carries a hardcoded German `userMessage` (the service layer has no l10n access), which leaked verbatim into the form. Fixed in `supplement_setup.dart` by localizing that one exception in the catch (EN/DE), matching the file's existing isDe pattern. The secondary "banner despite consent" suspicion is NOT a gate bug: the consent resolver reads the Hive box live on every call (see the `claudeClientProvider` comment plus `ConsentGate`), so a written consent is seen immediately. The most likely cause for Rebecca is a legacy profile onboarded before the mandatory Art. 9 consent step, whose box has no `health_data_consent_at`, which makes the banner technically correct. Open: a quick device check that the banner now renders in English. (Source: View 2 table; no chronological block for Rebecca yet.)
 
 
 ## Shipped
