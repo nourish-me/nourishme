@@ -85,12 +85,12 @@ kanban-plugin: board
 
 ## Geplant
 
-- [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] · [[docs/plans/2026-06-21-scroll-coordinator|→ Plan]] ^s7c7jg
-	Single scroll coordinator (Option B): replace the 8 timer-driven dispatchers with one coordinator + ScrollIntent, resolved after the focused-day data emits and lays out (not a fixed 80 ms). Fixes day-switch-lands-mid-conversation, unifies the 4 day-change entries, removes the D3+D4 save races. Plan: [[docs/plans/2026-06-21-scroll-coordinator]]. Acceptance: day-switch via any entry lands at day-top, today at bottom, a logged meal on the meal.
 
 
 ## Bau
 
+- [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] · [[docs/plans/2026-06-21-scroll-coordinator|→ Plan]] ^s7c7jg
+	Single scroll coordinator (Option B): replace the 8 timer-driven dispatchers with one coordinator + ScrollIntent, resolved after the focused-day data emits and lays out (not a fixed 80 ms). Fixes day-switch-lands-mid-conversation, unifies the 4 day-change entries, removes the D3+D4 save races. Plan: [[docs/plans/2026-06-21-scroll-coordinator]]. Acceptance: day-switch via any entry lands at day-top, today at bottom, a logged meal on the meal.
 
 
 ## Review & Test

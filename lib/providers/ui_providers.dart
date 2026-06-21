@@ -106,3 +106,55 @@ final focusedDayProvider = StateProvider<DateTime>((ref) {
 // is the right default for ambient updates but the wrong call for
 // explicit user actions.
 final scrollToBottomRequestProvider = StateProvider<int>((ref) => 0);
+
+// --- Scroll coordinator (single source of truth for diary scrolling) ---
+//
+// One intent drives every coordinated scroll on the diary. The coordinator
+// in home_screen resolves it on the build where the focused day's data is
+// actually present, not on a fixed timer - that is what makes a day switch
+// reliably land at the day's top instead of mid-conversation.
+enum ScrollTarget { dayTop, meal, bottom }
+
+class ScrollIntent {
+  final ScrollTarget target;
+  // dayTop / bottom: the target day (normalized to local midnight). The
+  // coordinator only acts once the focused day's data for this day is present.
+  final DateTime? day;
+  // meal: the entry to anchor at the top (coach reply renders below it).
+  final String? mealId;
+  // bottom: follow to the bottom only if the user is already near it (ambient
+  // coach reply) vs unconditionally (explicit user action).
+  final bool onlyIfNearBottom;
+  // Monotonic; the coordinator fires once per new token.
+  final int token;
+  const ScrollIntent({
+    required this.target,
+    this.day,
+    this.mealId,
+    this.onlyIfNearBottom = false,
+    required this.token,
+  });
+}
+
+final scrollIntentProvider = StateProvider<ScrollIntent?>((ref) => null);
+
+// Request a coordinated scroll. The token auto-increments off the previous
+// intent (the intent is never reset to null) so a repeat request always
+// re-fires, while the coordinator's _handledIntentToken guard stops the same
+// one from running twice across rebuilds.
+void requestScroll(
+  WidgetRef ref, {
+  required ScrollTarget target,
+  DateTime? day,
+  String? mealId,
+  bool onlyIfNearBottom = false,
+}) {
+  final prev = ref.read(scrollIntentProvider);
+  ref.read(scrollIntentProvider.notifier).state = ScrollIntent(
+    target: target,
+    day: day,
+    mealId: mealId,
+    onlyIfNearBottom: onlyIfNearBottom,
+    token: (prev?.token ?? 0) + 1,
+  );
+}

@@ -1,6 +1,6 @@
 # Plan: Single scroll coordinator for the diary (home_screen)
 
-**Fortschritt:** `0%`
+**Fortschritt:** `25%` (Phase 1 code-complete, device-verify pending)
 
 Board card: `[[board#^s7c7jg]]` · Explore matrix: `[[docs/explore/scroll-behavior-audit.md]]`
 
@@ -47,20 +47,24 @@ Explore matrix before starting the next. No data migration, so no data rollback.
 
 ## Schritte
 
-- [ ] 🟥 **Phase 1: Coordinator skeleton + day-change (the bug)**
-  - [ ] 🟥 Add `ScrollIntent` model + `ScrollTarget` enum.
-  - [ ] 🟥 Add `scrollIntentProvider` (`StateProvider<ScrollIntent?>`).
-  - [ ] 🟥 In home_screen, add the coordinator: one `ref.listen` on
-    (`focusedDayThreadProvider`, `scrollIntentProvider`); resolve a `dayTop` intent by
-    waiting for the new day's emission, then one post-frame `jumpTo(minScrollExtent)`
-    with a bounded "first item attached" check (reuse the data signal, drop the 80 ms).
-  - [ ] 🟥 Route all four day-change entries to set `dayTop`: AppBar picker (was
-    scrollToDay), Verlauf tap, "Heute" button (was no-pin), swipe left/right (was
-    no-pin).
-  - [ ] 🟥 Remove D3 (the 80 ms + 6× jumpTo loop) and the now-unused `scrollToDayProvider`
-    once nothing reads it.
+- [ ] 🟨 **Phase 1: Coordinator skeleton + day-change (the bug)**
+  - [x] 🟩 Add `ScrollTarget` enum + `ScrollIntent` model + `scrollIntentProvider` + a
+    `requestScroll(ref, ...)` helper (token auto-increments, never reset to null; a
+    `_handledIntentToken` guard prevents re-fire — mirrors the existing
+    scrollToBottomRequest pattern).
+  - [x] 🟩 Coordinator in home_screen build: resolve a pending intent only on the build
+    where the focused-day data is present (`hasValue && !isLoading`) and
+    `intent.day == focusedDay`, then one post-frame pin. Resolves `dayTop` (jumpTo 0)
+    and `bottom` (today lands at the input); `meal` is wired in Phase 2.
+  - [x] 🟩 Route the four day-change entries via `requestScroll`: AppBar picker, Verlauf
+    tap, "Heute" button, swipe — each picks `bottom` for today, `dayTop` for a past
+    day. They no longer use `scrollToDayProvider`.
+  - [x] 🟩 Keep D3 (`scrollToDayProvider`) in place for now — the cross-day SAVE path
+    still uses it; it is removed in Phase 2 when saves migrate. The day-change entries
+    simply bypass it.
   - [ ] 🟥 Device-verify: day-switch via all four entries to a past day (heavy + light)
-    lands at day-top; empty day stable; "Heute" lands at bottom-input.
+    lands at day-top; empty day stable; "Heute" / swipe-to-today land at the input
+    (bottom).
 
 - [ ] 🟥 **Phase 2: Save flows (kills the D3+D4 races)**
   - [ ] 🟥 Route retro/backdated save and single-photo to `meal(mealId)`; today-newest

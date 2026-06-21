@@ -35,7 +35,13 @@ class HistoryScreen extends ConsumerWidget {
       // new day's items have rendered.
       final normalized = DateTime(day.year, day.month, day.day);
       ref.read(focusedDayProvider.notifier).state = normalized;
-      ref.read(scrollToDayProvider.notifier).state = normalized;
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      requestScroll(
+        ref,
+        target: normalized == today ? ScrollTarget.bottom : ScrollTarget.dayTop,
+        day: normalized,
+      );
       ref.read(selectedTabProvider.notifier).state = 0;
     }
 

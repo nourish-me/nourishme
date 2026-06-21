@@ -63,6 +63,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // the existing bump on first build (initial state == 0) so we don't
   // jump to bottom every time the diary opens.
   int? _handledScrollToBottomBump;
+  // Last scroll-intent token the coordinator already acted on. Mirrors the
+  // bump guards above so the same intent doesn't re-fire across rebuilds.
+  int _handledIntentToken = -1;
   // Direction-aware jump FAB. Tracks the last meaningful scroll direction
   // so the FAB matches the user's intent: scrolling down → offer "jump to
   // bottom", scrolling up → offer "jump to top". Hidden when at the edge
@@ -351,7 +354,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // Drives the Single-Day-View: NutritionHeader, thread body and AppBar
     // title all rebind to this day.
     ref.read(focusedDayProvider.notifier).state = normalized;
-    ref.read(scrollToDayProvider.notifier).state = normalized;
+    final today = DateTime(now.year, now.month, now.day);
+    requestScroll(
+      ref,
+      target: normalized == today ? ScrollTarget.bottom : ScrollTarget.dayTop,
+      day: normalized,
+    );
   }
 
   @override
@@ -359,8 +367,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // Single-day-view: body binds to the focused day's thread directly.
     // Multi-day plumbing (loadedDaysProvider / loadedThreadProvider) was
     // retired in phase 7 of the diary refactor.
-    final focusedDayItems =
-        ref.watch(focusedDayThreadProvider).valueOrNull ?? const [];
+    final focusedDayThread = ref.watch(focusedDayThreadProvider);
+    final focusedDayItems = focusedDayThread.valueOrNull ?? const [];
+    final focusedDay = ref.watch(focusedDayProvider);
+
+    // --- Scroll coordinator (Phase 1: day-change) -----------------------
+    // One intent drives day-change scrolling. Resolve it only on the build
+    // where the focused day's data is actually present (data-driven, not a
+    // fixed timer) so a past-day switch reliably lands at the day's top
+    // instead of mid-conversation. dayTop pins to 0; bottom keeps today
+    // anchored on the input. (meal anchoring is wired in Phase 2.)
+    final scrollIntent = ref.watch(scrollIntentProvider);
+    if (scrollIntent != null &&
+        scrollIntent.token != _handledIntentToken &&
+        focusedDayThread.hasValue &&
+        !focusedDayThread.isLoading) {
+      final focusedKey =
+          DateTime(focusedDay.year, focusedDay.month, focusedDay.day);
+      if (scrollIntent.day == null || scrollIntent.day == focusedKey) {
+        _handledIntentToken = scrollIntent.token;
+        final target = scrollIntent.target;
+        final onlyIfNearBottom = scrollIntent.onlyIfNearBottom;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          switch (target) {
+            case ScrollTarget.dayTop:
+              _programmaticScroll = true;
+              if (_scroll.hasClients) _scroll.jumpTo(0);
+              _programmaticScroll = false;
+              break;
+            case ScrollTarget.bottom:
+              if (onlyIfNearBottom) {
+                if (_scroll.hasClients) {
+                  final pos = _scroll.position;
+                  if (pos.maxScrollExtent - pos.pixels < 200) {
+                    _scrollToBottom();
+                  }
+                }
+              } else {
+                _scrollToBottom(force: true);
+              }
+              break;
+            case ScrollTarget.meal:
+              // Wired in Phase 2 (save flows).
+              break;
+          }
+        });
+      }
+    }
+
     final coachLoading = ref.watch(insightLoadingProvider);
     final mealsAll = ref.watch(mealsProvider).valueOrNull ?? const [];
     // kcal / macro / micronutrient totals are now consumed by
@@ -693,8 +748,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             TextButton(
               onPressed: () {
                 final now = DateTime.now();
-                ref.read(focusedDayProvider.notifier).state =
-                    DateTime(now.year, now.month, now.day);
+                final today = DateTime(now.year, now.month, now.day);
+                ref.read(focusedDayProvider.notifier).state = today;
+                requestScroll(ref, target: ScrollTarget.bottom, day: today);
               },
               style: TextButton.styleFrom(
                 visualDensity: VisualDensity.compact,
@@ -804,14 +860,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         HapticFeedback.lightImpact();
                         _lastSwipeDir = _ScrollDir.up;
                         ref.read(focusedDayProvider.notifier).state = next;
+                        requestScroll(
+                          ref,
+                          target: next == today
+                              ? ScrollTarget.bottom
+                              : ScrollTarget.dayTop,
+                          day: next,
+                        );
                         _runDayFlipAnimation();
                       }
                     } else {
                       // Swipe right → back in time (older day).
                       HapticFeedback.lightImpact();
                       _lastSwipeDir = _ScrollDir.down;
-                      ref.read(focusedDayProvider.notifier).state =
-                          focused.subtract(const Duration(days: 1));
+                      final prev = focused.subtract(const Duration(days: 1));
+                      ref.read(focusedDayProvider.notifier).state = prev;
+                      requestScroll(ref, target: ScrollTarget.dayTop, day: prev);
                       _runDayFlipAnimation();
                     }
                   },
