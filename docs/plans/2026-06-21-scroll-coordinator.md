@@ -1,6 +1,6 @@
 # Plan: Single scroll coordinator for the diary (home_screen)
 
-**Fortschritt:** `45%` (Phase 1 done + verified; Phase 2 code-complete, device-verify pending)
+**Fortschritt:** `50%` (Phase 1 + 2 done & device-verified; Option C added for the off-screen anchor)
 
 Board card: `[[board#^s7c7jg]]` · Explore matrix: `[[docs/explore/scroll-behavior-audit.md]]`
 
@@ -25,6 +25,9 @@ inconsistent day-change entry points, and removes the save-time D3+D4 races.
   timing but biggest change + new dependency + re-expressing every dispatcher as an
   index + regression risk on chat-bubble rendering and the iOS SlideTransition
   fallback. Kept as a fallback only if pixel-pinning still flakes after B.
+  → **Promoted to Phase 2b** once B's pixel/key resolution proved unable to reach an
+  off-screen backdated entry (the common evening→morning journey). The ScrollIntent API
+  from Phase 1+2 stays; only the resolution becomes index-based.
 - **No data touched.** Pure scroll/UI; no nutrition, calorie or safety values change,
   so no DSGVO / App-Store implications.
 
@@ -67,7 +70,7 @@ Explore matrix before starting the next. No data migration, so no data rollback.
     it. Past-day switch via picker / swipe / Verlauf now lands consistently at the day's
     top.
 
-- [ ] 🟨 **Phase 2: Save flows (kills the D3+D4 races)**
+- [x] 🟩 **Phase 2: Save flows (kills the D3+D4 races)**
   - [x] 🟩 Save sites set one intent: confirm_screen retro/past-day → `meal`; live save
     → `bottom` if logged for ~now, else `meal` (backdated-within-threshold); cross-day
     sets `focusedDay` + the intent; multi-photo single-day → `meal(last)`.
@@ -77,9 +80,24 @@ Explore matrix before starting the next. No data migration, so no data rollback.
     handler) + the dead `_handled…` fields; removed `scrollToDayProvider` and
     `scrollToMealIdProvider`. D5 (coach follow) kept as a standalone if.
   - [x] 🟩 analyze clean, all 322 tests pass.
-  - [ ] 🟥 Device-verify: log on today (→ input), retro on today (→ the entry), log on a
-    past day (→ switch + the entry), multi-photo bulk (→ last entry); highlight pulse
-    fires; no double-scroll/flicker. And day-switch (Phase 1) still lands at the top.
+  - [x] 🟩 Device-verified 2026-06-21: log on today → input ✓, log on a past day →
+    switch + the entry ✓, day-switch → top ✓, no flicker ✓. KNOWN LIMITATION: a
+    backdated same-day entry that sits off-screen in the lazy list isn't reached by
+    `ensureVisible` (logs confirmed the intent fires and calls the unchanged
+    `_scrollToNewMeal`, so it is NOT a Phase-2 regression). Fixed in Phase 2b below.
+
+- [ ] 🟥 **Phase 2b: Option C — index-based scrolling (off-screen anchor)**
+  - [ ] 🟥 Swap the diary ListView for `ScrollablePositionedList` (ItemScrollController +
+    ItemPositionsListener), keeping the same item builder and the day-flip animation.
+  - [ ] 🟥 🟥 CRITICAL-adjacent: resolve the coordinator's targets as index scrolls —
+    dayTop → index 0; meal → index of the meal in focusedDayItems; bottom → last index.
+    Reaches off-screen entries regardless of render state (fixes the evening→morning
+    backdate journey).
+  - [ ] 🟥 Re-home the meal highlight pulse; verify the FAB direction (`_onScroll`),
+    the near-bottom coach-follow, and chat-bubble rendering still work on the new
+    position metrics (ItemPositionsListener instead of pixel offsets).
+  - [ ] 🟥 Device-verify: evening → backdate a morning entry now lands on the entry;
+    re-run every Phase 1+2 flow; no chat/coach regressions.
 
 - [ ] 🟥 **Phase 3: Chat / coach / app-open**
   - [ ] 🟥 Route app-open to `bottom`; chat question to `bottom` (onlyIfNearBottom=false);

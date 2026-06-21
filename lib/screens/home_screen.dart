@@ -414,11 +414,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               break;
             case ScrollTarget.meal:
               if (mealId != null) {
-                // Anchor the saved meal at the top (coach reply renders
-                // below it). _scrollToNewMeal retries until the meal's key
-                // is attached, so this is safe even right after a save or a
-                // cross-day switch.
-                await _scrollToNewMeal(mealId);
+                // On a same-day save the day doesn't reload, so the
+                // coordinator can fire before the new meal's card (and its
+                // GlobalKey) is in the tree, and _scrollToNewMeal would
+                // no-op on a missing key. Wait for the key to register
+                // (up to ~1.2s), then anchor the meal at the top (coach
+                // reply renders below it).
+                for (var i = 0; i < 12; i++) {
+                  if (!mounted) break;
+                  if (_mealKeys.containsKey(mealId)) {
+                    await _scrollToNewMeal(mealId);
+                    break;
+                  }
+                  await Future<void>.delayed(
+                      const Duration(milliseconds: 100));
+                }
                 if (!mounted) break;
                 // 1.5s highlight pulse as a belt-and-braces visual anchor.
                 ref.read(highlightedMealIdProvider.notifier).state = mealId;
