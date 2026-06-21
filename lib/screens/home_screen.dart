@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
@@ -178,11 +179,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     });
   }
 
-  // Scrolls a keyed widget to the top of the viewport. Retries with growing
-  // delays because the IndexedStack tab swap + ListView layout can take more
-  // than one frame to settle, and the GlobalKey's currentContext / RenderBox
-  // is null until then.
-  // ignore_for_file: use_build_context_synchronously
+  // Scrolls a keyed widget to the top of the viewport. Retries with a short
+  // delay because the GlobalKey's currentContext / RenderBox can be null for
+  // a frame or two after a save or a day switch.
+  //
+  // We compute the target scroll offset directly with getOffsetToReveal
+  // rather than Scrollable.ensureVisible: ensureVisible NO-OPs when the item
+  // sits inside the day-flip SlideTransition (tester report: "lands on
+  // yesterday but not at the entry"), and a backdated entry that is rendered
+  // off-screen above the fold was never reached. getOffsetToReveal reads the
+  // viewport/item geometry, so it works for any built item, on- or off-screen.
   Future<void> _scrollKeyToTop(GlobalKey key) async {
     _programmaticScroll = true;
     for (var attempt = 0; attempt < 12; attempt++) {
@@ -190,53 +196,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         _programmaticScroll = false;
         return;
       }
-      final ctx = key.currentContext;
-      final renderObject = ctx?.findRenderObject();
-      if (ctx != null &&
-          renderObject is RenderBox &&
+      final renderObject = key.currentContext?.findRenderObject();
+      if (renderObject is RenderBox &&
           renderObject.attached &&
           _scroll.hasClients) {
-        try {
-          await Scrollable.ensureVisible(
-            ctx,
-            duration: const Duration(milliseconds: 300),
-            alignment: 0.0,
-            alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
-            curve: Curves.easeOut,
-          );
-          // Build +35 follow-up: ensureVisible occasionally NO-OPs on
-          // iOS when the item is inside a SlideTransition + nested
-          // ListView (tester report: "lands on yesterday but not at
-          // the entry"). Verify the scroll actually positioned the
-          // item near the top; if not, fall back to a manual
-          // animateTo that computes the offset from the item's
-          // RenderBox vs the viewport.
-          if (renderObject.attached && _scroll.hasClients) {
-            final viewportTop = _scroll.position.pixels;
-            final viewportHeight = _scroll.position.viewportDimension;
-            final itemTopInViewport =
-                renderObject.localToGlobal(Offset.zero).dy;
-            final itemAbsoluteOffset = viewportTop + itemTopInViewport;
-            // If the item's top isn't within 60 px of the viewport
-            // top after ensureVisible, force-animate.
-            if (itemTopInViewport < -10 ||
-                itemTopInViewport > viewportHeight * 0.4) {
-              final target = itemAbsoluteOffset.clamp(
-                0.0,
-                _scroll.position.maxScrollExtent,
-              );
-              await _scroll.animateTo(
-                target,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-              );
-            }
-          }
-          _programmaticScroll = false;
-          return;
-        } catch (_) {
-          // Fall through to retry.
-        }
+        final viewport = RenderAbstractViewport.of(renderObject);
+        final target = viewport
+            .getOffsetToReveal(renderObject, 0.0)
+            .offset
+            .clamp(0.0, _scroll.position.maxScrollExtent);
+        await _scroll.animateTo(
+          target,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+        _programmaticScroll = false;
+        return;
       }
       await Future.delayed(const Duration(milliseconds: 80));
     }

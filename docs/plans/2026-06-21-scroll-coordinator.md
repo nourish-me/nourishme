@@ -86,16 +86,17 @@ Explore matrix before starting the next. No data migration, so no data rollback.
     `ensureVisible` (logs confirmed the intent fires and calls the unchanged
     `_scrollToNewMeal`, so it is NOT a Phase-2 regression). Fixed in Phase 2b below.
 
-- [ ] 🟥 **Phase 2b: Option C — index-based scrolling (off-screen anchor)**
-  - [ ] 🟥 Swap the diary ListView for `ScrollablePositionedList` (ItemScrollController +
-    ItemPositionsListener), keeping the same item builder and the day-flip animation.
-  - [ ] 🟥 🟥 CRITICAL-adjacent: resolve the coordinator's targets as index scrolls —
-    dayTop → index 0; meal → index of the meal in focusedDayItems; bottom → last index.
-    Reaches off-screen entries regardless of render state (fixes the evening→morning
-    backdate journey).
-  - [ ] 🟥 Re-home the meal highlight pulse; verify the FAB direction (`_onScroll`),
-    the near-bottom coach-follow, and chat-bubble rendering still work on the new
-    position metrics (ItemPositionsListener instead of pixel offsets).
+- [ ] 🟨 **Phase 2b: Robust meal anchor (off-screen / SlideTransition)**
+  - [x] 🟩 Diagnosis correction: the diary ListView is EAGER (`ListView(children: …)`,
+    all entries built), so it was never lazy off-screen rendering. Real cause:
+    `Scrollable.ensureVisible` no-ops inside the day-flip SlideTransition, and the old
+    fallback used a screen-relative coordinate (`localToGlobal`) as if it were a scroll
+    offset → wrong target (often the bottom). So Option C (ScrollablePositionedList swap)
+    is NOT needed — a much smaller fix applies.
+  - [x] 🟩 Rewrote `_scrollKeyToTop` to compute the target with
+    `RenderAbstractViewport.getOffsetToReveal(item, 0.0)` + animateTo: correct geometry,
+    works regardless of the SlideTransition, reaches any built (on- or off-screen) entry.
+    analyze clean.
   - [ ] 🟥 Device-verify: evening → backdate a morning entry now lands on the entry;
     re-run every Phase 1+2 flow; no chat/coach regressions.
 
