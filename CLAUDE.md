@@ -35,7 +35,7 @@ NourishMe coacht Essen, Trinken und Supplements (kcal, Makros, Mikros und Safety
 
 **Communication-Layer** (eigene In-Scope-Kategorie): Coach-Tone und Guardrails (z.B. „Tagesziel = Wochenrichtwert", Pattern-Avoidance-Sprache) sind in scope, weil sie die Empfehlung VERMITTELN. Bewusst getrennt vom Test, damit der scharf bleibt.
 
-**Out of scope (Idea-Backlog):** allgemeine Gesundheit, Fitness, Gewichts-/Abnehm-Tracking, Cycle/Period, Schlaf, Mental-Health-Support - jedes Feature, das den In-Scope-Test nicht besteht, gehört in den Idea-Backlog (`docs/idea-backlog.md`). Cycle ist bewusst raus, obwohl PMS-Cravings den Test technisch bestehen würden: eigene Lifecycle-Phase mit eigenem Datentyp, während Schwangerschaft/Stillzeit ohnehin meist abwesend/unterdrückt, erst post-wean relevant. Revisit beim Ausbau der Maintenance-Phase.
+**Out of scope (Idea-Backlog):** allgemeine Gesundheit, Fitness, Gewichts-/Abnehm-Tracking, Cycle/Period, Schlaf, Mental-Health-Support - jedes Feature, das den In-Scope-Test nicht besteht, gehört als schlanke Park-Karte in die Spalte „Idea Backlog" in `docs/board.md` (`docs/idea-backlog.md` ist nur noch ein Stub-Pointer auf die Spalte). Cycle ist bewusst raus, obwohl PMS-Cravings den Test technisch bestehen würden: eigene Lifecycle-Phase mit eigenem Datentyp, während Schwangerschaft/Stillzeit ohnehin meist abwesend/unterdrückt, erst post-wean relevant. Revisit beim Ausbau der Maintenance-Phase.
 
 ## Architektur-Out-of-Scope
 

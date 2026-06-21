@@ -38,21 +38,40 @@ Vanessa als Arbeits-Plan nutzen kann.
    - **Bereits gefixed** — auf neuestem Build erledigt, Tester hatte alte
      Version
 
-4. **Trade-Offs identifizieren.** Pro Punkt: ist die Lösung offensichtlich,
+4. **Scope-Gate (nur für Feature-Requests).** Jeder Feature-Request läuft durch
+   den In-Scope-Test aus `CLAUDE.md` → „Produkt-Scope (Phase-Test)": Verändert
+   das Feature eine Empfehlung zu Essen, Trinken, Supplements oder Safety für die
+   aktuelle Phase?
+   - **In scope:** normaler Pfad. Karte für die Spalte „Backlog" in
+     `docs/board.md` vorschlagen, mit Prio (#P1–#P3) und ggf. investigativer
+     Rückfrage.
+   - **Out of scope:** als **Park-Karte** für die Spalte „Idea Backlog" in
+     `docs/board.md` vorschlagen (NICHT in `docs/idea-backlog.md` — die ist nur
+     noch ein Stub-Pointer auf die Spalte). Park-Karten sind bewusst schlank und
+     laufen NICHT durch die Pipeline:
+     - kurzer Titel
+     - 2–3 Sätze: worum es geht und WARUM es out of scope ist (Park-Grund)
+     - falls eine Testerin es angestoßen hat: ihr Name + `[[…|→ Log]]`-Link
+     - KEIN Prio-Tag, KEINE investigativen Rückfragen, kein Effort-Schätzer.
+       Out-of-scope-Items werden nicht priorisiert und durchlaufen den Workflow
+       nicht. Eine Park-Karte wird erst zu Arbeit, wenn Vanessa sie bewusst nach
+       „Backlog" zieht.
+
+5. **Trade-Offs identifizieren.** Pro Punkt: ist die Lösung offensichtlich,
    oder braucht es eine Entscheidung von Vanessa? Wenn ja, präsentiere die
    Trade-Offs explizit:
    - „A: machen wie vorgeschlagen — Pro X, Contra Y"
    - „B: alternative Implementierung — Pro Y, Contra X"
    - „C: garnicht machen, weil ..."
 
-5. **Reihenfolge vorschlagen.** Faustregel nach Risiko:
+6. **Reihenfolge vorschlagen.** Faustregel nach Risiko:
    - **Block 1 (heute):** Bugs die jeden Tester treffen + i18n-Fixes (klein,
      niedriges Risiko, schnelle Wins)
    - **Block 2 (nach Klärung):** UX-Reibung + Brief-Lücken die Entscheidung
      brauchen
    - **Block 3 (später):** Feature-Requests + Polish + Edge-Case-Bugs
 
-6. **In `docs/beta-feedback-log.md` festhalten.** PFLICHT-Schritt nach
+7. **In `docs/beta-feedback-log.md` festhalten.** PFLICHT-Schritt nach
    jeder Triage-Session: hänge unten an die Datei einen neuen Block an
    mit Datum, anonymisiertem Tester-Kürzel (T1, T2, ... — keine echten
    Namen, kein PII), Build-Version, Source (Sprachnachricht, WhatsApp-
@@ -61,7 +80,7 @@ Vanessa als Arbeits-Plan nutzen kann.
    Hintergrund: Patterns werden nur sichtbar wenn die Stimmen kumulieren.
    Single-Stimmen versanden im WhatsApp-Chaos sonst.
 
-7. **Task-Vorschläge.** Pro Punkt EIN Vorschlag im Format:
+8. **Task-Vorschläge.** Pro Punkt EIN Vorschlag im Format:
    ```
    [Kategorie] Kurze Beschreibung
    Status: <bug/ux/brief/feature>
@@ -69,6 +88,13 @@ Vanessa als Arbeits-Plan nutzen kann.
    Decision needed: <ja/nein, wenn ja: welche>
    ```
    Vanessa entscheidet welche TaskCreate-Aufrufe gemacht werden.
+
+   Für **out-of-scope**-Items (siehe Scope-Gate) stattdessen eine Park-Karte
+   vorschlagen, kein Effort, kein Prio:
+   ```
+   [Idea Backlog] Kurzer Titel · Testerin Tx · [[…|→ Log]]
+   2–3 Sätze Park-Grund (worum + warum out of scope).
+   ```
 
 ## Format der Antwort
 
@@ -88,6 +114,9 @@ Antwort kurz und scannbar. Drei Sektionen:
 Block A (Bugs, kann sofort): #1, #3, #7
 Block B (nach Klärung): #2, #5, #6
 Block C (später): #4, #8
+
+## Idea Backlog (geparkt)
+- [Idea Backlog] Item Q · Tx · → Park-Grund in einem Satz
 ```
 
 ## Grenzen
@@ -109,3 +138,6 @@ Block C (später): #4, #8
 - Erfundene Trade-Offs zwischen identischen Lösungen.
 - Klassifizieren ohne den Codebase zu konsultieren (führt zu „diesen Bug gibt's
   schon nicht mehr"-Fehlern).
+- Out-of-scope-Items mit Prio versehen oder durch die Pipeline schicken. Sie
+  gehören als schlanke Park-Karte in die Spalte „Idea Backlog", NICHT ins
+  Backlog und NICHT in `docs/idea-backlog.md` (nur noch Stub).
