@@ -78,13 +78,29 @@ Future<ActiveSupplement?> runSupplementSetup(
   );
   SupplementParseResult? parsed;
   String? errorMessage;
+  // Capture the locale before the async gap so error strings can be
+  // localized without reading context after the await.
+  final isDe = Localizations.localeOf(context)
+      .languageCode
+      .toLowerCase()
+      .startsWith('de');
   try {
     parsed = await ref.read(claudeClientProvider).parseSupplementLabel(
           bytes,
           locale: Localizations.localeOf(context).languageCode,
         );
   } on CoachApiException catch (e) {
-    errorMessage = e.userMessage;
+    // The consent-gate exception carries a hardcoded German userMessage
+    // from the service layer (no l10n access there), which used to leak
+    // into the EN form as a German banner. Localize it here; fall back to
+    // userMessage for all other API errors.
+    errorMessage = e.technical == 'health-data consent missing'
+        ? (isDe
+            ? 'Coaching ist noch nicht aktiviert: bitte willige im Onboarding ein, '
+                'dass deine Angaben an den Coaching-Anbieter übermittelt werden dürfen.'
+            : 'Coaching is not enabled yet: please opt in during onboarding so your '
+                'entries can be sent to the coaching provider.')
+        : e.userMessage;
   } catch (e) {
     errorMessage = '$e';
   }
@@ -109,9 +125,6 @@ Future<ActiveSupplement?> runSupplementSetup(
   // returned "Premium Nutrition Selene" with empty values, user saw
   // blank fields and no clue what went wrong).
   final isEmptyParse = parsed != null && parsed.values.isEmpty;
-  final isDe = Localizations.localeOf(context).languageCode
-      .toLowerCase()
-      .startsWith('de');
   if (isEmptyParse) {
     errorMessage = isDe
         ? 'Aus dem Foto konnten wir nichts auslesen. Ein neues Foto mit besserer Beleuchtung hilft, oder trag die Werte unten von Hand ein.'
