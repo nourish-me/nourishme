@@ -6,28 +6,38 @@ kanban-plugin: board
 
 ## Backlog
 
-- [ ] **Component granularity per meal** · Sarah + Corina (2) · #P1 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Sarah (T7) · Build +33 → +35 · WhatsApp|→ Log]]
-	Sarah wants to see, per meal, which component contributed which micronutrient: "the iodine in my porridge: oats, flaxseed, or walnuts?". She uses NourishMe primarily to LEARN food patterns, not just track totals, so a coach-on-demand answer is not enough; she wants the breakdown inline on every meal card. Corina is the second voice per the View 2 table; she has no dedicated chronological item on this.
-- [ ] **Broader micronutrient view (beyond the 3-micro header)** · Sarah + Isabella + Celine (3) · #P1 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Sarah (T7) · Build +33 → +35 · WhatsApp|→ Log]] · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^wdvlqx
-	Problem: the diary header shows only three micronutrients and several testers want the fuller picture. Sarah and Isabella want a dedicated tab listing all selected micros for the deeper view, with the header keeping three for the daily glance; Celine wants a weekly aggregate (% of daily target, colour-coded) to see "what's still missing this week" instead of day-by-day nags. Whether the surface becomes a dedicated micros tab, a weekly overview, or both is a plan-time decision, not now; Celine's open JTBD question (reassurance vs active gap-closing, plus the floated Sonntag-Recap push) gets resolved when we plan it. Formerly two cards (dedicated tab + weekly overview).
-- [ ] **Daily-weight + auto kcal-adjust** · Corina (1) · #P2 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Corina (T3) Round 2 · Build +33 → +35 · WhatsApp|→ Log]]
-	Corina wants to type her morning weight (regular scale, no smart-scale integration) and have the daily kcal target react accordingly: "eat less today" or "ok to eat more". Per scope: the input mechanism is in scope as kcal calibration; trend/streak UI stays out of scope.
-- [ ] **Water tap counter** · Corina (1) · #P2 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Corina (T3) Round 2 · Build +33 → +35 · WhatsApp|→ Log]]
-	Corina wants two tap-icons under the diary header (her glass, her bottle), each with a custom ml setting. No reminders, no streak UI: just hydration as a daily status counter that fits her chaotic-day reality.
 - [ ] **German banner in EN supplement form** · Rebecca (1) · #P2
 	The supplement form's coaching-not-yet-enabled banner appears in German while the rest of the form (Name, Folate, Iron, etc.) is in English. There's also a secondary suspicion: the warning shows even though onboarding consent was given, which needs separate investigation. (Source: View 2 table; no chronological block for Rebecca yet.)
+- [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 ^l47km2
+	The coach prose mentions DHA in eggs, but the structured DHA value in the meal entry stays at 0. Eggs typically deliver 30-90 mg DHA each, so 0 is wrong. The fix direction (populate a realistic structured value vs stop the coach mentioning nutrients not reflected in the data) gets decided in Explore. (Source: View 2 table; no chronological block.)
 - [ ] **Iodine-gap nag trigger tuning** · Celine (1) · #P2 · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^jbqo1t
 	Celine deliberately takes a Femibion variant without iodine, so the chronic "iodine low" nudge is correct on the data but exhausting on tone. Direction: a cooldown (e.g. once a week) plus an opt-out toggle for deliberately-skipped nutrients, so the same nag doesn't repeat daily. Open sub-questions (is 1×/week still too often, toggle as default? iodine-only or all deliberate gaps?) get resolved in Explore, no need to block on Celine's reply.
 - [ ] **Item language at scan time** · Lotte (1) · #P2 · [[beta-feedback-log#2026-06-19 · Lotte (T11) · TestFlight (current beta) · WhatsApp text|→ Log]] ^0s7kpw
 	Lotte scanned a nut mix and the app saved the product name in French (the product's source language) rather than her UI language (EN). The direction question (normalise to UI language vs a reliable findable re-track list regardless of language) gets resolved in Explore; pairs with the downstream "Item list mixed languages when re-tracking" card. No need to block on Lotte.
-- [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 ^l47km2
-	The coach prose mentions DHA in eggs, but the structured DHA value in the meal entry stays at 0. Eggs typically deliver 30-90 mg DHA each, so 0 is wrong. The fix direction (populate a realistic structured value vs stop the coach mentioning nutrients not reflected in the data) gets decided in Explore. (Source: View 2 table; no chronological block.)
-- [ ] **Pattern-avoidance weekly coach** · Corina (1) · #P3 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Corina (T3) Round 2 · Build +33 → +35 · WhatsApp|→ Log]]
-	Corina wants a behaviour-pattern coach that names trends across the week, not just per-day micronutrient-deficit nudges. Her example: "hey, you've had a lot of sugar this week". Weekly-review style, not real-time meal advice.
 - [ ] **Item list mixed languages when re-tracking** · Lotte (1) · #P3 · [[beta-feedback-log#2026-06-19 · Lotte (T11) · TestFlight (current beta) · WhatsApp text|→ Log]]
 	When Lotte tries to re-log her daily Müsli, the suggestion list shows items in mixed languages because each entry was saved in whatever language it came in with (typed in DE one day, EN another, French via barcode). This is the downstream effect of the scan-time item ("Item language at scan time", now in Backlog); it might resolve once names are normalised at scan time, or it might need a display-side fallback for already-saved items.
+- [ ] **Freier Coach-Chat ohne Safety-Layer** · #safety #gross
+	The safety rules currently only run on food parsing (scan + meal logging). Free-form coach chat, where the model could say anything in plain prose, is not gated by the safety layer at all. Larger structural gap, likely needs its own design pass before any code.
+- [ ] **Final-Sign-off Safety-Grenzfälle** · #safety
+	A handful of safety-rule edge cases are intentionally inclusive (e.g. salami included in the listeria warning) or intentionally soft (sage and peppermint as gentle hints rather than hard warnings). These borderline calls need a final review from the nutritionist before launch.
+- [ ] **Sentry PII scrubbing audit** · #dsgvo
+	Sentry captures stack traces and breadcrumbs, and we have not verified that PII (especially health-context strings in error messages) is scrubbed before transmission, nor that consent for Sentry is captured. Verify and document, then close or escalate.
+- [ ] **Data-subject-rights UI reachability** · #dsgvo
+	The repositories have a `clearAll()` method that wipes local data (Article 17 GDPR) and the data is exportable in principle (Article 20), but neither is exposed in the UI. Verify reachability and add a Settings entry if missing.
+- [ ] **Broader micronutrient view (beyond the 3-micro header)** · Sarah + Isabella + Celine (3) · #P1 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Sarah (T7) · Build +33 → +35 · WhatsApp|→ Log]] · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^wdvlqx
+	Problem: the diary header shows only three micronutrients and several testers want the fuller picture. Sarah and Isabella want a dedicated tab listing all selected micros for the deeper view, with the header keeping three for the daily glance; Celine wants a weekly aggregate (% of daily target, colour-coded) to see "what's still missing this week" instead of day-by-day nags. Whether the surface becomes a dedicated micros tab, a weekly overview, or both is a plan-time decision, not now; Celine's open JTBD question (reassurance vs active gap-closing, plus the floated Sonntag-Recap push) gets resolved when we plan it. Formerly two cards (dedicated tab + weekly overview).
+- [ ] **Component granularity per meal** · Sarah + Corina (2) · #P1 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Sarah (T7) · Build +33 → +35 · WhatsApp|→ Log]]
+	Sarah wants to see, per meal, which component contributed which micronutrient: "the iodine in my porridge: oats, flaxseed, or walnuts?". She uses NourishMe primarily to LEARN food patterns, not just track totals, so a coach-on-demand answer is not enough; she wants the breakdown inline on every meal card. Corina is the second voice per the View 2 table; she has no dedicated chronological item on this.
+- [ ] **Daily-weight + auto kcal-adjust** · Corina (1) · #P2 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Corina (T3) Round 2 · Build +33 → +35 · WhatsApp|→ Log]]
+	Corina wants to type her morning weight (regular scale, no smart-scale integration) and have the daily kcal target react accordingly: "eat less today" or "ok to eat more". Per scope: the input mechanism is in scope as kcal calibration; trend/streak UI stays out of scope.
+- [ ] **Water tap counter** · Corina (1) · #P2 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Corina (T3) Round 2 · Build +33 → +35 · WhatsApp|→ Log]]
+	Corina wants two tap-icons under the diary header (her glass, her bottle), each with a custom ml setting. No reminders, no streak UI: just hydration as a daily status counter that fits her chaotic-day reality.
 - [ ] **Trimester auto-advance from due date** · Rebecca (1) · #P3 ^apse36
 	Rebecca entered her trimester manually during onboarding and wants a due-date input so the app auto-advances the trimester over time instead of her updating it by hand. Treated as a real no-brainer friction, not a hypothetical, so no need to wait on Rebecca to confirm. In scope: the trimester drives the pregnancy-phase recommendations. (Source: View 2 table; no chronological block.)
+- [ ] **Pattern-avoidance weekly coach** · Corina (1) · #P3 · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Corina (T3) Round 2 · Build +33 → +35 · WhatsApp|→ Log]]
+	Corina wants a behaviour-pattern coach that names trends across the week, not just per-day micronutrient-deficit nudges. Her example: "hey, you've had a lot of sugar this week". Weekly-review style, not real-time meal advice.
+- [ ] **Energydrink-Keyword "effect" wirkungslos** · #safety #kosmetisch
+	The energy-drink safety rule's secondary keyword "effect" only matches if a caffeine keyword has already matched first, which makes it functionally redundant: the rule was already firing on caffeine alone. Cosmetic, low priority.
 - [ ] **Beta-Bug "bundled scan + text" ordering** · #code #mittel
 	A tester reported that when several entries are saved as a bundle and a text entry follows, the text entry ends up at the top of the day instead of at its actual time. We have never reproduced the exact symptom; one provable ordering bug (the Mitternachts-Bug, now Shipped) was fixed but it is unclear whether that was the same one. Needs a real repro before any further fix.
 - [ ] **ThreadRepository.add() race** · #code #mittel
@@ -36,22 +46,12 @@ kanban-plugin: board
 	The provider layer that computes the daily totals shown to the user has no test coverage. These are the numbers the user trusts most ("how many kcal did I log today"), so a regression here would be high-impact even if low-likelihood. *Source too thin for more detail.*
 - [ ] **Coach-Kombinier-Logik tests (submitMeals)** · #test
 	The submitMeals path combines multi-meal logs into a single coach call, including sums and the daily-total anchor. No unit tests today; bugs here would silently affect the coach prompt the model receives. *Source too thin for more detail.*
+- [ ] **_post Fehler-Mapping tests (HTTP-Mock)** · #test
+	The _post helper that wraps the Worker API call has branching for timeouts and HTTP 401/429/500 responses, but no tests with a mocked HTTP layer. Failure modes here affect every coach interaction. *Source too thin for more detail.*
 - [ ] **Repository-CRUD tests (Hive-Harness)** · #test
 	Meal, favorite and weight repositories have no integration tests against a Hive harness. Their CRUD paths are the primary persistence layer and would benefit from a focused test suite. *Source too thin for more detail.*
 - [ ] **Onboarding-Logik tests (reine Validierung)** · #test
 	The pure validation and data-flow logic in the onboarding screens has no unit-test coverage today, even though the path is tested manually each TestFlight cycle. Tests would catch regressions in the data layer (not UI bugs). *Source too thin for more detail.*
-- [ ] **_post Fehler-Mapping tests (HTTP-Mock)** · #test
-	The _post helper that wraps the Worker API call has branching for timeouts and HTTP 401/429/500 responses, but no tests with a mocked HTTP layer. Failure modes here affect every coach interaction. *Source too thin for more detail.*
-- [ ] **Final-Sign-off Safety-Grenzfälle** · #safety
-	A handful of safety-rule edge cases are intentionally inclusive (e.g. salami included in the listeria warning) or intentionally soft (sage and peppermint as gentle hints rather than hard warnings). These borderline calls need a final review from the nutritionist before launch.
-- [ ] **Freier Coach-Chat ohne Safety-Layer** · #safety #gross
-	The safety rules currently only run on food parsing (scan + meal logging). Free-form coach chat, where the model could say anything in plain prose, is not gated by the safety layer at all. Larger structural gap, likely needs its own design pass before any code.
-- [ ] **Energydrink-Keyword "effect" wirkungslos** · #safety #kosmetisch
-	The energy-drink safety rule's secondary keyword "effect" only matches if a caffeine keyword has already matched first, which makes it functionally redundant: the rule was already firing on caffeine alone. Cosmetic, low priority.
-- [ ] **Sentry PII scrubbing audit** · #dsgvo
-	Sentry captures stack traces and breadcrumbs, and we have not verified that PII (especially health-context strings in error messages) is scrubbed before transmission, nor that consent for Sentry is captured. Verify and document, then close or escalate.
-- [ ] **Data-subject-rights UI reachability** · #dsgvo
-	The repositories have a `clearAll()` method that wipes local data (Article 17 GDPR) and the data is exportable in principle (Article 20), but neither is exposed in the UI. Verify reachability and add a Settings entry if missing.
 
 
 ## Warten auf Testerin
