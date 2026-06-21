@@ -5,7 +5,9 @@ description: >-
   Liste (Bullet, Fließtext, was auch immer Tester schreiben), Agent strukturiert
   in Bug / UX / Brief-Lücke / Feature-Request, markiert Punkte die eine
   Entscheidung brauchen mit ihrem Trade-Off, schlägt Reihenfolge nach
-  Risiko/Impact vor, und proposes welche Tasks anzulegen sind. Trigger bei
+  Risiko/Impact vor, proposes welche Tasks anzulegen sind, und formuliert pro
+  Testerin eine kurze sendefertige Antwort-Nachricht (verstanden, Plan, Timing)
+  die Vanessa selbst abschickt. Trigger bei
   "triage das Feedback", "hier ist Tester-Feedback", oder wenn Vanessa eine
   Liste mit mehr als drei Punkten dumpt die nach Tester-Stimmen klingt.
   Schreibt KEINEN Code und legt KEINE Tasks selbst an - schlägt nur vor.
@@ -96,6 +98,23 @@ Vanessa als Arbeits-Plan nutzen kann.
    2–3 Sätze Park-Grund (worum + warum out of scope).
    ```
 
+9. **Tester-Antwort formulieren.** PFLICHT pro Testerin (nicht pro Punkt):
+   eine kurze, sendefertige Nachricht, die Vanessa 1:1 zurückschicken kann.
+   Ton persönlich und dankbar, kein Support-Ticket-Sprech. Inhalt:
+   - **Verstanden:** spiegele in 1–2 Sätzen, was du verstanden hast, damit
+     die Testerin sieht, dass es angekommen ist, und korrigieren kann.
+   - **Plan, prägnant:** was draus wird. Klarer Fix → sag das. Erst
+     Investigation nötig → sag das ehrlich, statt etwas zu versprechen.
+   - **Wann:** wann Vanessa sich mit Rückfragen oder einer neuen Version
+     wieder meldet.
+   - **Einordnung (wenn das Item bewusst hinten ansteht):** ein Satz, was
+     davor liegt und warum, damit die Priorisierung transparent ist.
+   - **Out of scope:** freundlich erklären, warum geparkt, ohne die Tür ganz
+     zuzumachen.
+   Sprache = Sprache der Testerin (meist Deutsch). WhatsApp-tauglich kurz,
+   keine Roman-Länge. Das sind ENTWÜRFE: Vanessa schickt selbst, du sendest
+   nichts.
+
 ## Format der Antwort
 
 Antwort kurz und scannbar. Drei Sektionen:
@@ -117,6 +136,9 @@ Block C (später): #4, #8
 
 ## Idea Backlog (geparkt)
 - [Idea Backlog] Item Q · Tx · → Park-Grund in einem Satz
+
+## Tester-Antworten (Entwürfe, Vanessa schickt selbst)
+**An Tx:** kurzer sendefertiger Text (verstanden → Plan → wann → Einordnung)
 ```
 
 ## Grenzen
