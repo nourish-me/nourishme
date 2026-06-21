@@ -753,3 +753,33 @@ New tester, first feedback round.
 
    - Patricia correctly notes that DHA algae oil requires co-ingestion with fat for absorption (fat-soluble omega-3). This is a nutrition coaching point, not a safety rule. Would live in the per-meal coach response or a supplement-specific coaching tip when Algenöl is logged.
    - In scope: this is a supplement recommendation that changes the efficacy of a key nutrient. Coach Communication-Layer.
+
+
+## 2026-06-21 · Patricia (T13) · Follow-up · WhatsApp
+
+1. **Protein 148g confirmed as her own custom macro split** (status: ✅ ❓ resolved)
+
+   - „Du hast komplett recht es lag an mir mit den Proteinen." The 148 g came from her own protein% setting, not a miscalculation. Answers the open question on the "Protein target: UI macro split vs coach diverge" card; card re-framed to a design gap and downgraded #P2 → #P3.
+
+2. **Found the manual time picker** (status: ✅ self-resolved, discovery)
+
+   - „Habe das mit der Uhrzeit jetzt auch gefunden. Leuchtet einem ja entgegen, wenn man drauf achtet." She discovered the existing time picker. De-escalates the "Stated time in free text not applied" card to a discovery point; the text-parsing gap stays open for the next tester.
+
+
+## 2026-06-21 · Vanessa (intern) · current build · Screenshots
+
+1. **Coach error messages hardcoded English** (status: open, 🐛 i18n)
+
+   - The coach timeout message showed in English on a German app: "The coach is taking too long. Try again in a moment. For urgent questions please reach out to your midwife or doctor." Code check: the whole CoachApiException family is hardcoded EN in claude_client.dart (timeout :410, no-internet :415, connection :420, overloaded :432, unavailable :438/444/465). Same class as the supplement-banner i18n bug. New backlog card. Decision: option B (localize the family + workaround hint, no dedicated retry button yet).
+
+2. **No coach retry button** (status: open)
+
+   - The error bubble is a terminal state; the only way to retry is re-saving the meal. The "T42 retry-loop" (+36 follow-up) was the ListView scroll retry, not a coach retry. Folded into the i18n card as the deferred retry decision (option B).
+
+3. **Meal counted despite coach timeout** (status: ✅ intended)
+
+   - Finn Crisp (170 kcal, 32% fibre) still counted into the day's totals although the coach timed out. Confirmed correct: confirm_screen.dart:410 saves the meal before the async/unawaited coach call; the daily aggregation reads from mealRepo, not the coach response.
+
+4. **Coach blind to logged meals → wrong "next meal" slot** (status: open, 🐛)
+
+   - At 13:19, with a salad + Knäckebrot already logged and a "3 main meals + 1 snack" pattern, the coach still announced "lunch is coming up". generatePerMealResponse() receives only the pattern preference, aggregate totals and the current hour, not the list of meals logged today, so it can't tell whether the salad was the snack or the lunch. The logged list (mealsForTotal) is collected (coach_session_manager.dart:264) but never passed to the coach call. → candidate for a holistic coach-context audit (what the coach sees vs needs), pending Vanessa's go.
