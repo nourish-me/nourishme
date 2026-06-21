@@ -66,8 +66,6 @@ kanban-plugin: board
 
 ## Explore
 
-- [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] ^s7c7jg
-	Two patch attempts on the day-switch scroll bug have not converged. The home screen has at least seven concurrent scroll dispatchers (newly-rendered meals, totals-delta, focused-day-change, scroll-to-meal, scroll-to-bottom-bump, initState bottom, retry loops) and the right next step is a single audit pass that maps every dispatcher against every user flow before any further code change. Output: a state-machine doc plus a single coordinating handler that owns scroll-on-day-or-meal-change. Acceptance: switching to a past day via the AppBar date picker must land the diary at the top of that day, not mid-conversation (Isabella's original repro, formerly the separate "Day-switch scroll race" Backlog card, now folded in here).
 - [ ] **Coach context audit (what the coach sees vs needs)** · Vanessa + Julia (2) · #P1 · [[beta-feedback-log#2026-06-21 · Vanessa (intern) · current build · Screenshots|→ Log]]
 	Holistic audit of the coach's INPUT context: map what the per-meal / chat coach reasons about × what data generatePerMealResponse() and the chat call actually receive × what is missing, before patching individual gaps. Confirmed symptoms so far:
 	- Logged meals: the coach gets only aggregate totals + the current hour + the meal-pattern preference, not the list of meals logged today, so at 13:19 it announced "lunch is next" after a salad + Knäckebrot were already logged. The list (mealsForTotal) is collected (coach_session_manager.dart:264) but never passed in. (Vanessa)
@@ -87,6 +85,8 @@ kanban-plugin: board
 
 ## Geplant
 
+- [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] · [[docs/plans/2026-06-21-scroll-coordinator|→ Plan]] ^s7c7jg
+	Single scroll coordinator (Option B): replace the 8 timer-driven dispatchers with one coordinator + ScrollIntent, resolved after the focused-day data emits and lays out (not a fixed 80 ms). Fixes day-switch-lands-mid-conversation, unifies the 4 day-change entries, removes the D3+D4 save races. Plan: [[docs/plans/2026-06-21-scroll-coordinator]]. Acceptance: day-switch via any entry lands at day-top, today at bottom, a logged meal on the meal.
 
 
 ## Bau
