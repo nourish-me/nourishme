@@ -10,6 +10,7 @@ import '../providers/meal_providers.dart';
 import '../utils/weight_trend.dart';
 import 'calorie_target.dart';
 import 'claude_client.dart';
+import 'coach_day_context.dart';
 import 'coach_meal_bundle.dart';
 import 'micronutrient_targets.dart';
 
@@ -309,6 +310,25 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     final goalGuardrails =
         profile != null ? _goalGuardrailsFor(profile, isDe: isDe) : null;
 
+    // Shared day-state context (Coach context contract, Phase 2). The
+    // per-meal coach previously saw only aggregate totals + the clock, so
+    // it announced "lunch is next" after lunch was logged. Feed it the
+    // same day-state the chat coach gets: the day's meal sequence + full
+    // micro standing (meals + supplements, same dailyIntakeFor source as
+    // the nutrition header) + configured supplements incl. name-only.
+    final dayContext = profile != null
+        ? CoachDayContext.build(
+            mealsToday: mealsForTotal,
+            micros: {
+              for (final key in MicronutrientKey.all)
+                key: dailyIntakeFor(key, mealsForTotal, profile),
+            },
+            microTargets: MicronutrientTargets.allFor(profile),
+            supplements: profile.activeSupplements,
+            isDe: isDe,
+          )
+        : null;
+
     try {
       final response = await client.generatePerMealResponse(
         mealRawText: bundle.rawText,
@@ -344,6 +364,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         askForIngredients: askForIngredients,
         goalGuardrails: goalGuardrails,
         mealPattern: profile?.mealPattern ?? MealPattern.classic,
+        dayContext: dayContext,
       );
       final coachAt = coachAnchorFor(last.createdAt);
       // Safety net for the em-dash habit: even with the explicit prompt

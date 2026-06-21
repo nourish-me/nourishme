@@ -14,6 +14,7 @@ import '../../providers/meal_providers.dart';
 import '../../providers/ui_providers.dart';
 import '../../services/claude_client.dart';
 import '../../services/coach_session_manager.dart';
+import '../../services/coach_day_context.dart';
 import '../../services/micronutrient_targets.dart';
 import '../../utils/important_snack.dart';
 import '../../utils/photo_exif.dart';
@@ -443,58 +444,23 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       buffer.writeln(formatWeightTrendForCoach(trend, isDe: isDe));
     }
 
-    // Build +35 fix for the DHA-tester report: the chat coach used to
-    // see only kcal/macros and would tell the user "0 mg DHA in deinen
-    // Einträgen" even when the header showed a 325 % checkmark - the
-    // two sources disagreed because the coach had no view on micros
-    // or supplements. We now feed both into the context so the coach
-    // can answer "your day shows X mg DHA, mostly from Femibion 2"
-    // honestly. Capped to nutrients that actually have a non-zero
-    // reading so we don't spam the prompt with zeroes.
+    // Shared day-state context (Coach context contract, Phase 3): the
+    // day's chronological meal sequence + full micro standing + configured
+    // supplements (incl. name-only). Same CoachDayContext builder the
+    // per-meal coach uses, so both paths see identical day-state. Replaces
+    // the Build +35 ad-hoc micro + supplement blocks (the DHA-tester fix
+    // where the coach said "0 mg DHA" while the header showed a checkmark);
+    // the micro/supplement rendering is byte-identical, the meal sequence
+    // is the new addition that both paths gain.
     if (profile != null) {
-      final micros = ref.read(todayMicronutrientsProvider);
-      final targets = MicronutrientTargets.allFor(profile);
-      final lines = <String>[];
-      for (final key in MicronutrientKey.all) {
-        final value = micros[key] ?? 0;
-        if (value <= 0) continue;
-        final target = targets[key];
-        final display = MicronutrientSources.forKey(key, locale);
-        final label = MicronutrientDisplay.forKey(key);
-        final shortName = label == null
-            ? key
-            : (isDe ? label.shortNameDe : label.shortNameEn);
-        final unit = label?.unitLabel ?? '';
-        final targetPart = target == null
-            ? ''
-            : ' / ${target.value.toStringAsFixed(target.value >= 10 ? 0 : 1)} $unit';
-        lines.add('- $shortName: ${value.toStringAsFixed(value >= 10 ? 0 : 1)} $unit$targetPart');
-        // No usage of `display` here, but the call validates the source
-        // list parses; future work can quote sources directly.
-        display.length;
-      }
-      if (lines.isNotEmpty) {
-        buffer.writeln(isDe
-            ? '=== Mikronährstoffe heute (aus Mahlzeiten + aktiven Supplements) ==='
-            : '=== Micronutrients today (from meals + active supplements) ===');
-        buffer.writeln(lines.join('\n'));
-      }
-      if (profile.activeSupplements.isNotEmpty) {
-        buffer.writeln(isDe
-            ? '=== Aktive Supplements ==='
-            : '=== Active supplements ===');
-        for (final s in profile.activeSupplements) {
-          final contribs = <String>[];
-          for (final entry in s.values.entries) {
-            final label = MicronutrientDisplay.forKey(entry.key);
-            if (label == null) continue;
-            final unit = label.unitLabel;
-            final name = isDe ? label.shortNameDe : label.shortNameEn;
-            contribs.add('$name ${entry.value.toStringAsFixed(entry.value >= 10 ? 0 : 1)} $unit');
-          }
-          buffer.writeln('- ${s.name}: ${contribs.join(", ")}');
-        }
-      }
+      final dayContext = CoachDayContext.build(
+        mealsToday: meals,
+        micros: ref.read(todayMicronutrientsProvider),
+        microTargets: MicronutrientTargets.allFor(profile),
+        supplements: profile.activeSupplements,
+        isDe: isDe,
+      );
+      if (dayContext.isNotEmpty) buffer.writeln(dayContext);
     }
 
     return buffer.toString();

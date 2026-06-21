@@ -1,6 +1,6 @@
 # Plan: Unified coach context contract
 
-**Fortschritt:** `25%` (Phase 1 fertig: Builder + Unit-Tests grün)
+**Fortschritt:** `80%` (Phase 1–4 Code fertig; nur Device/TestFlight-Verify offen)
 
 > **Scope-Korrektur beim Bauen (2026-06-21):** Hydration fällt raus — Wasser/Hydration
 > wird in der App nirgends getrackt (kein Modell, kein Provider), es gibt also keine
@@ -58,32 +58,41 @@ before ship.
     ordering, empty-day line, rawText fallback, non-zero micros only, label-scanned vs
     name-only supplement, no-data sections absent. analyze clean.
 
-- [ ] 🟥 **Phase 2: Wire the per-meal call (CRITICAL)**
-  - [ ] 🟥 🟥 CRITICAL: pass the day's meals + full micros + supplements (incl. name-only)
-    + hydration into `generatePerMealResponse`; insert the builder's block in the user
-    message, AFTER the cache breakpoint. Retire the per-meal "micro nudge only when in
-    alarm" path in favour of the full standing.
-  - [ ] 🟥 Confirm the cache boundary (system/profile prefix stays the cached prefix; the
-    volatile day-state sits in the user message). Note the per-call uncached delta.
-  - [ ] 🟥 Verify (device/TestFlight): the per-meal coach no longer announces an
-    already-eaten meal; references configured supplements; safety/nutrition lines unchanged
-    where they should be.
+- [x] 🟩 **Phase 2: Wire the per-meal call (CRITICAL)**
+  - [x] 🟩 CRITICAL: `generatePerMealResponse` gained an optional `dayContext` param;
+    `coach_session_manager._runCallFor` builds it (meals + micros via the same
+    `dailyIntakeFor` source as the nutrition header + supplements) and passes it. Block is
+    appended to the USER message, after the cache breakpoint. analyze clean, 330 tests
+    green (no regression). **Decision change vs plan:** the alarm-only micro nudge is
+    KEPT, not retired — it carries the proactive "name a food for the next meal" behaviour
+    + 7-day cooldown that the passive full-standing does not. Retiring it is a separate
+    behaviour change; flagged, not silently bundled.
+  - [x] 🟩 Cache boundary confirmed by code read: per-meal system prompt is cached
+    (`cacheSystem: true`), the user message is never cached → the day-state adds only an
+    uncached user-message delta, the cached prefix is untouched.
+  - [ ] 🟥 OPEN — Verify (device/TestFlight): the per-meal coach no longer announces an
+    already-eaten meal; references configured supplements; safety/nutrition lines unchanged.
+    Blocked on a device build (local debug console unreachable, see ios-local-device-testing).
 
-- [ ] 🟥 **Phase 3: Wire the chat call onto the same builder (CRITICAL)**
-  - [ ] 🟥 🟥 CRITICAL: replace `home_input._buildContext()`'s ad-hoc block with the shared
-    builder so both paths emit identical day-state. Keep the existing chat micros/supplements
-    block behaviour as the baseline to diff against.
-  - [ ] 🟥 Verify (device/TestFlight): chat answers unchanged or improved; no regression in
-    the existing full-micros / active-supplements output.
+- [x] 🟩 **Phase 3: Wire the chat call onto the same builder (CRITICAL)**
+  - [x] 🟩 CRITICAL: replaced `home_input._buildContext()`'s Build +35 ad-hoc micro +
+    supplement blocks with the shared `CoachDayContext.build`. The micro/supplement
+    rendering is byte-identical to the old code (same format + rounding), so existing chat
+    output is preserved; the chat coach additionally gains the meal sequence. analyze
+    clean, 330 tests green.
+  - [ ] 🟥 OPEN — Verify (device/TestFlight): chat answers unchanged or improved; no
+    regression in the full-micros / active-supplements output. (Same device-build block.)
 
-- [ ] 🟥 **Phase 4: Name-only supplements + hydration sources**
-  - [ ] 🟥 Ensure onboarding/name-only supplements (no parsed values) reach the builder
-    (closes Julia's gap); ensure water/hydration logs feed it.
-  - [ ] 🟥 Unit tests for these sources; device/TestFlight spot-check.
+- [x] 🟩 **Phase 4: Name-only supplements + hydration sources**
+  - [x] 🟩 Name-only supplements: handled in the builder (Phase 1) — they already live in
+    `profile.activeSupplements` with an empty values map, now rendered explicitly in BOTH
+    paths. Julia's gap closed.
+  - [x] 🟩 Hydration: dropped — no water tracking exists in the app (no model/provider), so
+    there is no source to feed. Logged as a missing feature, not a context gap.
 
-- [ ] 🟥 **Phase 5: Cleanup + full verify**
-  - [ ] 🟥 Remove now-dead context-building code; `flutter analyze` clean, `flutter test`
-    green.
-  - [ ] 🟥 🟥 CRITICAL final pass: a few representative days verified on device/TestFlight
-    that coach recommendations are coherent across both paths (next-meal, micros,
-    supplements) with no safety/nutrition regression.
+- [ ] 🟨 **Phase 5: Cleanup + full verify**
+  - [x] 🟩 Removed the dead ad-hoc chat context-building code (the Build +35 blocks);
+    `flutter analyze` clean, `flutter test` green (330).
+  - [ ] 🟥 🟥 OPEN — CRITICAL final pass on device/TestFlight: representative days, coach
+    recommendations coherent across both paths (next-meal, micros, supplements), no
+    safety/nutrition regression. This is the one remaining gate before ship.

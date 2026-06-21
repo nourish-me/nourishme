@@ -745,6 +745,14 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     // entirely. Defaults to classic = 3+2 so callers that don't pass it
     // get the DGE default behaviour.
     String mealPattern = 'classic',
+    // Shared day-state context (CoachDayContext.build): the day's
+    // chronological meal sequence + full micro standing + configured
+    // supplements. Before this the per-meal coach saw only aggregate
+    // totals + the clock, so it guessed "next meal" from the time alone
+    // and never saw the meals already logged today. Goes in the USER
+    // message (volatile, uncached) so the cached system prefix is
+    // untouched. Empty/null → omitted (callers without a profile).
+    String? dayContext,
   }) async {
     final isDe = _isGerman(locale);
     // Distinguish the meal-time (when the user says they ate) from now
@@ -834,6 +842,12 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
         '\nAppend a section **Follow-ups:** AT THE END with 2-3 short bullets (max 8 words each), phrased as REPLY templates from the user. Examples: "I rarely eat fish", "I need on-the-go ideas", "I feel low energy today". Format: `- <bullet>`. No question marks.';
 
     var finalUserMessage = userMessage;
+    // Shared day-state block right after the profile/daily context so the
+    // coach reasons about the day's meal sequence + micros + supplements
+    // before the per-meal review and the "next meal" suggestion.
+    if (dayContext != null && dayContext.isNotEmpty) {
+      finalUserMessage += '\n\n$dayContext';
+    }
     // Only passed (by the caller) when the trend is notably fast, so the coach
     // doesn't bring up weight on every ordinary meal.
     if (weightTrend != null && weightTrend.isNotEmpty) {
