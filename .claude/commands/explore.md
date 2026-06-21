@@ -20,6 +20,14 @@ NICHT, eine Loesung zu finden, sondern das Problem vollstaendig zu verstehen.
    Optional eine kurze Websuche NUR zur Frage "ist das ein bekanntes, verbreitetes
    Problem", nicht "wie loest man es". Loesungsrecherche gehoert in /create-plan.
 
+   Bei verhaltensweiten Items (Scroll, Ordering, Navigation, Timing, Fokus) reicht
+   es NICHT, die Ausloeser im Code zu finden. Liste JEDEN User-Flow auf, in dem das
+   Verhalten auftritt, und notiere pro Flow das IST (was passiert heute, welcher
+   Ausloeser) UND das ERWARTETE Verhalten (was sollte passieren). Diese
+   Flow-mal-Erwartung-Matrix ist die holistische Problem-Definition, nicht die
+   Loesung (das WIE gehoert in /create-plan). Sie deckt fast immer mehr betroffene
+   Flows auf als die eine gemeldete Stelle.
+
 3. Im Code verifizieren, ob das Problem heute noch existiert.
    - Schon gefixt? Sagen, Karte auf Shipped vorschlagen, stoppen.
    - Existiert noch? Beschreiben, wo es sitzt, ohne zu reparieren.
@@ -29,8 +37,11 @@ NICHT, eine Loesung zu finden, sondern das Problem vollstaendig zu verstehen.
    Korrektheit, klarer Bug fuer alle). Audit-Items (#code/#dsgvo/#safety/#test) haben
    keine Testerin und keine Pattern-Regel, die ueberspringen diesen Punkt.
 
-5. Investigative Rueckfragen an die Testerin formulieren und mir zur FREIGABE vorlegen,
-   nicht selbst verschicken. Strenge Regeln:
+5. Investigative Rueckfragen an die Testerin NUR WENN ABSOLUT NOETIG. Default: keine
+   Frage. Wenn der Code oder bestehende Stimmen das Problem schon klar erklaeren,
+   stell keine, Testerinnen werden NICHT mit Nachrichten ueberflutet. Ist eine Frage
+   wirklich noetig, formuliere sie und leg sie mir zur FREIGABE vor, nicht selbst
+   verschicken. Strenge Regeln:
    - REIN INVESTIGATIV: nach Erleben, Moment, Was-tust-du-dann fragen.
      Gut: "In welchem Moment merkst du, dass dir X fehlt, und was machst du dann?"
      Verboten: "Waere dir ein Wochenueberblick lieber?" (legt Loesung in den Mund).
