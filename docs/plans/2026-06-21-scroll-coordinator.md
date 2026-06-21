@@ -97,8 +97,15 @@ Explore matrix before starting the next. No data migration, so no data rollback.
     `RenderAbstractViewport.getOffsetToReveal(item, 0.0)` + animateTo: correct geometry,
     works regardless of the SlideTransition, reaches any built (on- or off-screen) entry.
     analyze clean.
-  - [ ] 🟥 Device-verify: evening → backdate a morning entry now lands on the entry;
-    re-run every Phase 1+2 flow; no chat/coach regressions.
+  - [ ] 🟥 OPEN: on device the backdated-morning entry STILL lands at the bottom even
+    with getOffsetToReveal. Root cause not yet captured — the **debug console is
+    unreachable** (debug attach hangs on iOS 26.5 + Flutter 3.41.6 after "Installing and
+    launching…"; release builds install + launch fine). NEXT, fast path: surface the
+    scroll diagnostic **on-screen** (a SnackBar via `rootScaffoldMessengerKey` inside
+    `_scrollKeyToTop`: before / rawTarget / maxScrollExtent / target / end-after-700ms),
+    build **release**, install over cable with `devicectl`, do one backdate save, read
+    the numbers → then fix. (Logs via `flutter run` / `--console` don't work on this
+    device right now.)
 
 - [ ] 🟥 **Phase 3: Chat / coach / app-open**
   - [ ] 🟥 Route app-open to `bottom`; chat question to `bottom` (onlyIfNearBottom=false);
