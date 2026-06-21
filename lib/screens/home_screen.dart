@@ -54,11 +54,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // genuinely-new meals (just saved) versus older meals appearing because the
   // user loaded an older day.
   Set<String> _lastThreadMealIds = <String>{};
-  // Last scroll-to-day target we already scheduled a scroll for; prevents
-  // double-firing when the provider value bounces through rebuilds.
-  DateTime? _handledScrollToDay;
-  // Last scroll-to-meal target we already scheduled a scroll for.
-  String? _handledScrollToMealId;
   // Last scrollToBottomRequest bump value we already acted on. Used to skip
   // the existing bump on first build (initial state == 0) so we don't
   // jump to bottom every time the diary opens.
@@ -388,6 +383,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         _handledIntentToken = scrollIntent.token;
         final target = scrollIntent.target;
         final onlyIfNearBottom = scrollIntent.onlyIfNearBottom;
+        final mealId = scrollIntent.mealId;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
           switch (target) {
@@ -417,7 +413,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               }
               break;
             case ScrollTarget.meal:
-              // Wired in Phase 2 (save flows).
+              if (mealId != null) {
+                // Anchor the saved meal at the top (coach reply renders
+                // below it). _scrollToNewMeal retries until the meal's key
+                // is attached, so this is safe even right after a save or a
+                // cross-day switch.
+                await _scrollToNewMeal(mealId);
+                if (!mounted) break;
+                // 1.5s highlight pulse as a belt-and-braces visual anchor.
+                ref.read(highlightedMealIdProvider.notifier).state = mealId;
+                Future.delayed(const Duration(milliseconds: 1800), () {
+                  if (!mounted) return;
+                  if (ref.read(highlightedMealIdProvider) == mealId) {
+                    ref.read(highlightedMealIdProvider.notifier).state = null;
+                  }
+                });
+              }
               break;
           }
         });
@@ -443,78 +454,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
     final newlyRenderedMealIds =
         currentThreadMealIds.difference(_lastThreadMealIds);
-    final mealsById = {for (final m in mealsAll) m.id: m};
-    String? scrollTargetMealId;
-    DateTime? newestNewTime;
-    for (final id in newlyRenderedMealIds) {
-      final m = mealsById[id];
-      if (m == null) continue;
-      // Only treat as "just saved" if it was created in the last 60 seconds.
-      // Older meals appearing because the user loaded a past day shouldn't
-      // hijack the scroll position.
-      if (DateTime.now().difference(m.createdAt).inSeconds < 60) {
-        if (newestNewTime == null || m.createdAt.isAfter(newestNewTime)) {
-          newestNewTime = m.createdAt;
-          scrollTargetMealId = id;
-        }
-      }
-    }
     final totalItems = focusedDayItems.length;
-    // Peek scroll-to-day target before the autoscroll heuristics fire so a
-    // pending day-jump from Verlauf doesn't get overridden by the
-    // "follow new bottom" autoscroll when loadedDays grows.
-    final pendingScrollTarget = ref.read(scrollToDayProvider);
-    if (scrollTargetMealId != null) {
-      final id = scrollTargetMealId;
-      // Skip autoscroll while a bundle scan-session is open. Intermediate
-      // saves (barcode → "+ noch einen scannen") would otherwise scroll
-      // the diary under the modal - wasted work, leaves the position in a
-      // weird intermediate state until the final save runs autoscroll
-      // again. The final save naturally fires this dispatcher with the
-      // bundle drained.
-      final mid = ref.read(pendingScanBundleProvider).isNotEmpty;
-      if (!mid) {
-        final m = mealsById[id];
-        final now = DateTime.now();
-        final isToday = m != null &&
-            m.createdAt.year == now.year &&
-            m.createdAt.month == now.month &&
-            m.createdAt.day == now.day;
-        // Today + newest: scroll-to-bottom keeps the user anchored on the
-        // input bar (chat-style mental model). Today + NOT newest (e.g.
-        // backdated 7:30 entry while there's already lunch and dinner):
-        // scroll-to-bottom would land on dinner instead of the new entry -
-        // wrong. Fall back to scroll-to-meal so the user actually sees
-        // what they just added. Past-day saves route through
-        // scrollToDayProvider (preferred-meal path) below.
-        bool isNewestToday = false;
-        if (isToday) {
-          isNewestToday = !mealsAll.any((other) =>
-              other.id != m.id &&
-              other.createdAt.year == m.createdAt.year &&
-              other.createdAt.month == m.createdAt.month &&
-              other.createdAt.day == m.createdAt.day &&
-              other.createdAt.isAfter(m.createdAt));
-        }
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          if (isToday && isNewestToday) {
-            _scrollToBottom();
-          } else {
-            _scrollToNewMeal(id);
-          }
-        });
-      }
-    } else if (totalItems > _lastTotalItemCount &&
+    // Follow a coach response down to the bottom, but only if the user is
+    // already near it (ambient update, not an explicit action). Save and
+    // day-change scrolling is owned by the ScrollIntent coordinator above.
+    if (totalItems > _lastTotalItemCount &&
         _lastTotalItemCount > 0 &&
-        newlyRenderedMealIds.isEmpty &&
-        pendingScrollTarget == null) {
-      // A non-meal thread item was added (typically the coach response).
-      // Only follow if user is still near the bottom.
+        newlyRenderedMealIds.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted &&
-            _scroll.hasClients &&
-            !_programmaticScroll) {
+        if (mounted && _scroll.hasClients && !_programmaticScroll) {
           final pos = _scroll.position;
           if (pos.maxScrollExtent - pos.pixels < 200) {
             _scrollToBottom();
@@ -524,137 +472,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
     _lastTotalItemCount = totalItems;
     _lastThreadMealIds = currentThreadMealIds;
-
-    // scrollToDayProvider in Single-Day-View: a request to "jump to this
-    // day" just means flipping focusedDay over. The view re-renders with
-    // that day's items; no scroll-key juggling needed. If a freshly-saved
-    // meal lives on that day, scroll to it after the focused-day switch
-    // has settled.
-    final scrollTarget = ref.watch(scrollToDayProvider);
-    if (scrollTarget != null && scrollTarget != _handledScrollToDay) {
-      _handledScrollToDay = scrollTarget;
-      final normalized = DateTime(
-          scrollTarget.year, scrollTarget.month, scrollTarget.day);
-      String? preferredMealId;
-      if (scrollTargetMealId != null) {
-        final m = mealsById[scrollTargetMealId];
-        if (m != null) {
-          final mealDay = DateTime(
-              m.createdAt.year, m.createdAt.month, m.createdAt.day);
-          if (mealDay == normalized) preferredMealId = scrollTargetMealId;
-        }
-      }
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        ref.read(focusedDayProvider.notifier).state = normalized;
-        // Let the stream emit and the new day's items render before we
-        // try to scroll to the new meal.
-        await Future<void>.delayed(const Duration(milliseconds: 80));
-        if (!mounted) return;
-        if (preferredMealId != null && _mealKeys.containsKey(preferredMealId)) {
-          await _scrollToNewMeal(preferredMealId);
-        } else {
-          // Build +36-9 (Isabella): when switching days via the AppBar
-          // date-picker (no specific meal target), jump to the top of
-          // the new day's content. Re-test showed a single jumpTo(0) at
-          // 80ms post-focusedDay-flip lands on the second entry because
-          // the ListView's layout hasn't fully settled - hasClients is
-          // true but maxScrollExtent is still 0 / mid-layout. Re-issue
-          // jumpTo(0) across a few frames so we outlast layout settling
-          // and any race with auto-scroll observers.
-          _programmaticScroll = true;
-          for (var attempt = 0; attempt < 6; attempt++) {
-            if (!mounted) {
-              _programmaticScroll = false;
-              return;
-            }
-            if (_scroll.hasClients) {
-              _scroll.jumpTo(0);
-            }
-            await Future<void>.delayed(const Duration(milliseconds: 50));
-          }
-          _programmaticScroll = false;
-        }
-        if (mounted) {
-          ref.read(scrollToDayProvider.notifier).state = null;
-          _handledScrollToDay = null;
-        }
-      });
-    }
-
-    // scrollToMealIdProvider: an explicit "scroll to THIS meal" request,
-    // independent of the "60s recent" autoscroll heuristic. Set by retro
-    // saves where the meal's stored time is far in the past (e.g. log a
-    // breakfast at 16:00 for 08:00). Without this the autoscroll skips
-    // the entry and the user sees the day's old top entry instead.
-    final pendingMealScrollId = ref.watch(scrollToMealIdProvider);
-    if (pendingMealScrollId != null &&
-        pendingMealScrollId != _handledScrollToMealId) {
-      _handledScrollToMealId = pendingMealScrollId;
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        // Build +35 follow-up #2: a single 80ms wait was too tight when
-        // the scroll-to-meal request rides alongside a day-switch
-        // (past-day save). New approach: self-contained. The handler
-        //  1) locates the meal in the latest mealsProvider snapshot,
-        //  2) makes sure focusedDay matches the meal's day (does the
-        //     switch itself if needed, instead of relying on a parallel
-        //     scrollToDayProvider handler),
-        //  3) waits in a retry loop until _mealKeys has the entry.
-        // Up to ~2s total. The scrollToDayProvider handler may also
-        // fire in parallel; that's fine - setting focusedDay twice to
-        // the same value is a no-op.
-        final mealsAll =
-            ref.read(mealsProvider).valueOrNull ?? const <MealEntry>[];
-        final meal = mealsAll.cast<MealEntry?>().firstWhere(
-              (m) => m?.id == pendingMealScrollId,
-              orElse: () => null,
-            );
-        if (meal != null) {
-          final mealDay = DateTime(
-              meal.createdAt.year, meal.createdAt.month, meal.createdAt.day);
-          final focusedNow = ref.read(focusedDayProvider);
-          final focusedKey =
-              DateTime(focusedNow.year, focusedNow.month, focusedNow.day);
-          if (mealDay != focusedKey) {
-            ref.read(focusedDayProvider.notifier).state = mealDay;
-          }
-        }
-        bool scrolled = false;
-        for (var i = 0; i < 10; i++) {
-          await Future<void>.delayed(const Duration(milliseconds: 200));
-          if (!mounted) return;
-          if (_mealKeys.containsKey(pendingMealScrollId)) {
-            await _scrollToNewMeal(pendingMealScrollId);
-            scrolled = true;
-            break;
-          }
-        }
-        if (!scrolled) {
-          debugPrint(
-              'scrollToMealId: meal key never mounted for $pendingMealScrollId after 2s');
-        }
-        // Build +35 follow-up: trigger a 1.5 s highlight pulse on the
-        // target meal card as a belt-and-braces visual anchor. Even if
-        // the scroll didn't move the viewport as expected, the user
-        // can see WHERE her new entry is.
-        if (mounted) {
-          ref.read(highlightedMealIdProvider.notifier).state =
-              pendingMealScrollId;
-          Future.delayed(const Duration(milliseconds: 1800), () {
-            if (!mounted) return;
-            final current = ref.read(highlightedMealIdProvider);
-            if (current == pendingMealScrollId) {
-              ref.read(highlightedMealIdProvider.notifier).state = null;
-            }
-          });
-        }
-        if (mounted) {
-          ref.read(scrollToMealIdProvider.notifier).state = null;
-          _handledScrollToMealId = null;
-        }
-      });
-    }
 
     // Explicit "scroll to bottom" request - currently bumped when the user
     // submits a chat question. Bypasses the ambient "near-bottom-only"

@@ -23,18 +23,6 @@ final selectedTabProvider = StateProvider<int>((ref) => 0);
 // app start; updated via the settings screen.
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
-// One-shot scroll request: set to a day to make the Tagebuch scroll to
-// that day's header. Consumers must reset to null after handling.
-final scrollToDayProvider = StateProvider<DateTime?>((ref) => null);
-
-// One-shot "scroll to a specific meal" request. confirm_screen sets this
-// after a retroactive save so the diary scrolls to the new entry even
-// when the stored mealTime is far in the past (the autoscroll's "60s old"
-// heuristic would skip a meal logged for 08:00 at 16:00 otherwise).
-// Same-day and past-day both supported. Consumers reset to null after
-// scrolling so a repeat save with the same id still fires.
-final scrollToMealIdProvider = StateProvider<String?>((ref) => null);
-
 // Build +35 follow-up: after a past-day save the scroll-to-meal request
 // pairs with a 1.5 s highlight pulse on the target meal card. The pulse
 // gives the user a clear visual anchor ("here's the thing you just

@@ -1,6 +1,6 @@
 # Plan: Single scroll coordinator for the diary (home_screen)
 
-**Fortschritt:** `25%` (Phase 1 code-complete, device-verify pending)
+**Fortschritt:** `45%` (Phase 1 done + verified; Phase 2 code-complete, device-verify pending)
 
 Board card: `[[board#^s7c7jg]]` · Explore matrix: `[[docs/explore/scroll-behavior-audit.md]]`
 
@@ -47,7 +47,7 @@ Explore matrix before starting the next. No data migration, so no data rollback.
 
 ## Schritte
 
-- [ ] 🟨 **Phase 1: Coordinator skeleton + day-change (the bug)**
+- [x] 🟩 **Phase 1: Coordinator skeleton + day-change (the bug)**
   - [x] 🟩 Add `ScrollTarget` enum + `ScrollIntent` model + `scrollIntentProvider` + a
     `requestScroll(ref, ...)` helper (token auto-increments, never reset to null; a
     `_handledIntentToken` guard prevents re-fire — mirrors the existing
@@ -62,19 +62,24 @@ Explore matrix before starting the next. No data migration, so no data rollback.
   - [x] 🟩 Keep D3 (`scrollToDayProvider`) in place for now — the cross-day SAVE path
     still uses it; it is removed in Phase 2 when saves migrate. The day-change entries
     simply bypass it.
-  - [ ] 🟥 Device-verify: day-switch via all four entries to a past day (heavy + light)
-    lands at day-top; empty day stable; "Heute" / swipe-to-today land at the input
-    (bottom).
+  - [x] 🟩 Device-verified 2026-06-21 on the physical iPhone (real multi-day data): the
+    single jumpTo(0) was flaky (mid-day on heavier days); the 6× data-gated re-pin fixed
+    it. Past-day switch via picker / swipe / Verlauf now lands consistently at the day's
+    top.
 
-- [ ] 🟥 **Phase 2: Save flows (kills the D3+D4 races)**
-  - [ ] 🟥 Route retro/backdated save and single-photo to `meal(mealId)`; today-newest
-    to `bottom`; cross-day save and multi-photo to `meal(lastMealId)` (single intent,
-    no parallel D3+D4).
-  - [ ] 🟥 Coordinator resolves `meal` via the existing `_scrollKeyToTop` primitive
-    (keep its iOS SlideTransition fallback) once the meal's key is attached.
-  - [ ] 🟥 Remove D2's autoscroll heuristic and D4; remove `scrollToMealIdProvider`.
-  - [ ] 🟥 Device-verify: log on today, retro on today, log on a past day, multi-photo
-    bulk, single-photo — each lands per the taxonomy; highlight pulse still fires.
+- [ ] 🟨 **Phase 2: Save flows (kills the D3+D4 races)**
+  - [x] 🟩 Save sites set one intent: confirm_screen retro/past-day → `meal`; live save
+    → `bottom` if logged for ~now, else `meal` (backdated-within-threshold); cross-day
+    sets `focusedDay` + the intent; multi-photo single-day → `meal(last)`.
+  - [x] 🟩 Coordinator resolves `meal` via `_scrollToNewMeal`/`_scrollKeyToTop` (keeps
+    the iOS SlideTransition fallback) + the 1.5s highlight pulse, once the key attaches.
+  - [x] 🟩 Removed D2 (autoscroll heuristic), D3 (scrollToDay handler), D4 (scrollToMeal
+    handler) + the dead `_handled…` fields; removed `scrollToDayProvider` and
+    `scrollToMealIdProvider`. D5 (coach follow) kept as a standalone if.
+  - [x] 🟩 analyze clean, all 322 tests pass.
+  - [ ] 🟥 Device-verify: log on today (→ input), retro on today (→ the entry), log on a
+    past day (→ switch + the entry), multi-photo bulk (→ last entry); highlight pulse
+    fires; no double-scroll/flicker. And day-switch (Phase 1) still lands at the top.
 
 - [ ] 🟥 **Phase 3: Chat / coach / app-open**
   - [ ] 🟥 Route app-open to `bottom`; chat question to `bottom` (onlyIfNearBottom=false);

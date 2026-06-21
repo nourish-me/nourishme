@@ -552,6 +552,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       final isPastDaySave = mealDay.isBefore(todayKey);
       final isRetro =
           CoachSessionManager.isRetroactiveMeal(meal.createdAt);
+      // One scroll intent for this save, resolved by the coordinator on
+      // home_screen once the (possibly switched) day's items are laid out.
+      ScrollTarget? saveScrollTarget;
       if (isPastDaySave || isRetro) {
         // Drain any pending bundle without firing - retro-saves
         // shouldn't carry today's queued meals into a coach call later.
@@ -569,14 +572,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
           ),
         );
         scheduleImportantSnackForceDismiss();
-        // Same-day retro saves stay on the current focusedDay, so the
-        // scrollToDayProvider (which switches days) isn't enough. Push
-        // the meal-id directly so the diary scrolls to the new entry
-        // even though its stored mealTime is in the past. Past-day saves
-        // already pick the right meal via scrollToDayProvider's
-        // preferred-meal logic below; setting this provider too is
-        // belt-and-suspenders in case the day switch is slow.
-        ref.read(scrollToMealIdProvider.notifier).state = meal.id;
+        // Retro / past-day save: anchor the new entry, whose stored time
+        // may be far in the past, so the user sees what they just added.
+        saveScrollTarget = ScrollTarget.meal;
       } else if (fireCoach) {
         // Drain any in-progress scan bundle and fire one coach call for
         // everything together (or just this meal when no bundle exists).
@@ -584,31 +582,36 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
         bundleNotifier.state = const [];
         final all = [...pending, meal];
         ref.read(coachSessionProvider.notifier).submitMeals(all, locale);
-        // Push the meal id so the diary scrolls to the new entry even when
-        // the user backdated the meal-time (e.g. "logged 20 min ago"). The
-        // autoscroll's 60s-recent heuristic uses createdAt, so a back-
-        // dated meal would otherwise be skipped and the user sees nothing
-        // change. Vanessa Build+28 bug: "Hühnchen 20min zurückgestellt
-        // → Mahlzeit wird nicht gezeigt".
-        ref.read(scrollToMealIdProvider.notifier).state = meal.id;
+        // A meal logged for "now" is the newest, so anchor at the input
+        // (bottom, chat-style). A meal backdated within the retro threshold
+        // may not be newest, so anchor on the entry itself (Vanessa Build+28:
+        // a 20-min-backdated meal must still be shown, not skipped).
+        final liveNow =
+            DateTime.now().difference(meal.createdAt).inSeconds < 90;
+        saveScrollTarget = liveNow ? ScrollTarget.bottom : ScrollTarget.meal;
       } else {
         // Append to the bundle without firing - used by the barcode
         // "+ Noch einen scannen" path.
         bundleNotifier.state = [...bundleNotifier.state, meal];
       }
-      // Day-switch logic: jump the diary to the meal's day whenever the
-      // user is currently looking at a different day. Covers:
-      //   - User on today saves a past-day meal → switch to past day
-      //   - User on past day saves a today meal → switch to today
-      //   - User on past day saves the same past day → no switch
-      // Without this the meal lands silently in another day-bucket and
-      // the user thinks the save was lost. Vanessa Build+28 bug:
-      // "auf vergangenen Tag → Eintrag für heute → kein Sprung zu heute".
+      // Switch the diary to the meal's day if the user is looking at a
+      // different one (e.g. on today, saving a past-day meal, or vice
+      // versa), then fire the single scroll intent. The coordinator on
+      // home_screen resolves it once that day's items are laid out, so the
+      // day-switch and the meal anchor no longer race two providers.
       final focusedNow = ref.read(focusedDayProvider);
       final focusedKey =
           DateTime(focusedNow.year, focusedNow.month, focusedNow.day);
       if (mealDay != focusedKey) {
-        ref.read(scrollToDayProvider.notifier).state = mealDay;
+        ref.read(focusedDayProvider.notifier).state = mealDay;
+      }
+      if (saveScrollTarget != null) {
+        requestScroll(
+          ref,
+          target: saveScrollTarget,
+          mealId: meal.id,
+          day: mealDay,
+        );
       }
       return;
     }

@@ -825,8 +825,14 @@ class _HomeInputState extends ConsumerState<HomeInput> {
           .toSet();
       final crossDay = savedDays.length > 1;
       if (!crossDay) {
-        ref.read(scrollToDayProvider.notifier).state = savedDays.first;
-        ref.read(scrollToMealIdProvider.notifier).state = savedMeals.last.id;
+        final day = savedDays.first;
+        ref.read(focusedDayProvider.notifier).state = day;
+        requestScroll(
+          ref,
+          target: ScrollTarget.meal,
+          mealId: savedMeals.last.id,
+          day: day,
+        );
       }
       final snackText = crossDay
           ? l10n.multiPhotoCrossDaySnack(savedMeals.length, savedDays.length)
