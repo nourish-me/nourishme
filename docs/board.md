@@ -66,12 +66,6 @@ kanban-plugin: board
 
 ## Explore
 
-- [ ] **Coach context audit (what the coach sees vs needs)** · Vanessa + Julia (2) · #P1 · [[beta-feedback-log#2026-06-21 · Vanessa (intern) · current build · Screenshots|→ Log]]
-	Holistic audit of the coach's INPUT context: map what the per-meal / chat coach reasons about × what data generatePerMealResponse() and the chat call actually receive × what is missing, before patching individual gaps. Confirmed symptoms so far:
-	- Logged meals: the coach gets only aggregate totals + the current hour + the meal-pattern preference, not the list of meals logged today, so at 13:19 it announced "lunch is next" after a salad + Knäckebrot were already logged. The list (mealsForTotal) is collected (coach_session_manager.dart:264) but never passed in. (Vanessa)
-	- Supplements: name-only / onboarding supplements never reach the coach context (only label-scanned ones with parsed values), so the coach can't tell a user she already supplements. Folded in from its own card. (Julia) ❓ Offene Frage an Julia (T10): Etikett gescannt, oder Supplement-Name nur getippt? (gesendet 2026-06-21)
-	Output: a needs / has / missing matrix (like the scroll audit) plus a single coach-context contract. Scope is the INPUT context only. Related but separate: protein UI/coach divergence (#P3, output coherence, not missing input) and DHA-shown-0 (parse layer).
-
 
 ## Warten auf Testerin
 
@@ -88,6 +82,9 @@ kanban-plugin: board
 
 
 ## Bau
+
+- [ ] **Coach context audit (what the coach sees vs needs)** · Vanessa + Julia (2) · #P1 · [[docs/plans/2026-06-21-coach-context-contract]] · [[docs/explore/coach-context-audit]] · [[beta-feedback-log#2026-06-21 · Vanessa (intern) · current build · Screenshots|→ Log]]
+	Option 2 (unified CoachContext builder) im Bau: ein gemeinsamer Kontext-Builder füttert Per-Meal- + Chat-Coach mit derselben Tages-Sequenz (Mahlzeiten + Zeiten), vollem Mikro-Stand und konfigurierten Supplements (inkl. name-only), hinter dem Cache-Breakpoint. Hydration raus (in der App nicht getrackt, kein Daten-Quelle). Plan-Phasen 1–5; CRITICAL-Schritte (Coach-Output) per Device/TestFlight verifiziert. Schließt Vanessas next-meal-Symptom + Julias name-only-Supplement-Lücke. Phase 1 (Builder + Tests) fertig.
 
 - [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] · [[docs/plans/2026-06-21-scroll-coordinator|→ Plan]] ^s7c7jg
 	Single scroll coordinator (Option B): replace the 8 timer-driven dispatchers with one coordinator + ScrollIntent, resolved after the focused-day data emits and lays out (not a fixed 80 ms). Fixes day-switch-lands-mid-conversation, unifies the 4 day-change entries, removes the D3+D4 save races. Plan: [[docs/plans/2026-06-21-scroll-coordinator]]. Acceptance: day-switch via any entry lands at day-top, today at bottom, a logged meal on the meal.
