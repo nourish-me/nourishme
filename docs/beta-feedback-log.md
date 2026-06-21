@@ -25,74 +25,7 @@ Collection point for tester voices from the beta phase. One block per session, s
 
 ## View 1 - Master Long List (sorted by priority)
 
-Order: **priority descending** (P1 → P3), within priority: bugs + polish (small) before features (large). All shipped fixes are consolidated in the "Done" table at the bottom; closed/clarified items follow.
-
-### P1 - open
-
-| # | Item | Tester | Type | Status | Build | Prio | Reason |
-|---|---|---|---|---|---|---|---|
-| 2 | Day-switch scroll race / past-day-scroll | Isabella | 🐛 | 🟡 | → +37 | P1 | scroll race condition. e1ea786 added a jumpTo(0) at 80ms, +36 follow-up patch (2e76d04) extended to a 6-frame retry-loop with _programmaticScroll guard. Vanessa re-tested on +36 followup-patch 2026-06-20 and the scroll STILL lands on the second entry's coach response, not position 0. Symptom unchanged. Bumped into broader audit item #40 because piecemeal patching is not converging - the home_screen scroll dispatcher has too many concurrent paths (autoscroll on newlyRenderedMealIds, scrollToBottom on totalItems delta, scrollToDayProvider handler, scrollToMealIdProvider handler, scrollToBottomRequestProvider bump) to debug one branch at a time. |
-| 4 | Component granularity per meal | Sarah + Corina | 🚀 | 🟡 | → +39 | P1 | Sarah+Corina, data model extension. Sarah's Lern-Motiv (will Muster lernen) macht klar: inline-Aufschlüsselung pro Mahlzeit, nicht Coach-on-demand. |
-| 5 | More than 3 micros + dedicated tab | Sarah + Isabella | 🚀 | 🟡 | → +39 | P1 | Sarah+Isabella, header overflow. Sarah's bevorzugte Struktur: 3 in Tagebuch-Header-Übersicht + eigener Reiter mit allen ausgewählten Mikros. |
-| 6 | Weekly micronutrient overview (dedicated tab) | Celine | 🚀 | 🟡 | → +39 | P1 | Task #107, partial addressing in +36 history pills. Pre-committed direction in WhatsApp: Trends-Tab block with 11 important micros as weekly average (% of daily target), color-coded, tap → top-sources list per nutrient. Build paused pending JTBD clarification: is the goal reassurance ("all green") or active gap-closing, when/how often would she use it, when does top-sources actually help vs. add noise. Sonntag-Push removed pending Celine's input on whether she wants it. |
-| 40 | Holistic scroll-behavior audit (all meal-logging + day-switch flows) | Vanessa (+ Isabella for #2) | 🐛 | 🟡 | → +37 | **P1** | Per +36-followup re-test 2026-06-20: piecemeal patches to #2 are not converging (jumpTo(0) at 80ms, then 6-frame retry-loop, both still land on second entry). Need a single audit pass that maps ALL scroll dispatchers in home_screen.dart (autoscroll on newlyRenderedMealIds, scrollToBottom on totalItems delta, scrollToDayProvider, scrollToMealIdProvider, scrollToBottomRequestProvider bump, _scrollToBottom in initState, retry loops in _scrollKeyToTop) against each user flow (log on today, log retroactively on today, log on past day, day-switch via header to a day with meals, day-switch to empty day, day-switch via "Heute" button, chat question dispatched, push-notification deep link, multi-photo bulk save, single-photo save). Output: a state-machine doc + a single coordinating handler that owns scroll-on-day-or-meal-change, replacing the current parallel observers. |
-
-### P2 - open
-
-| # | Item | Tester | Type | Status | Build | Prio | Reason |
-|---|---|---|---|---|---|---|---|
-| 17 | Iodine-gap nag trigger tuning (supplement w/o iodine) | Celine | 💎 | 🟡 | → +37 | P2 | Celine confirmed she takes Femibion w/o iodine deliberately, so values are real. Pre-committed direction in WhatsApp: cooldown logic (chronic micros mentioned max 1×/week) + Settings-Toggle as escape hatch. Build paused pending JTBD clarification: is 1×/week still too often (vs. Toggle as default), and does this apply only to iodine or to other deliberate non-supplements too. |
-| 18 | Daily-weight + auto kcal-adjust | Corina | 🚀 | 🟡 | → +37 | P2 | Corina: manual morning input, active recommendation ("eat less today" / "ok to eat more"). Per scope: input mechanism, no trend/streak UI. |
-| 35 | Item language not normalized at scan time (saves in product's native language) | Lotte | 🐛 | 🟡 | → +37 | P2 | Lotte's nut mix barcode-scan saved the item name in French (product's native language) instead of her UI language (EN). Fix: normalize/translate item name to user UI language at scan time so re-tracking is consistent. Single voice but clear bug. |
-| 37 | DHA shown 0 from eggs despite coach mentioning DHA | Rebecca | 🐛 | 🟡 | → +37 | P2 | Rebecca logged eggs, coach said „there is DHA in eggs" but the logged DHA value was 0. LLM prose mentions DHA, structured value not populated. Inverse of #8 (Sarah's DHA hallucination from ALA). Eggs actually contain ~30-90 mg DHA per egg, so 0 is wrong. |
-| 38 | German banner in English-UI supplement form (i18n inconsistency) | Rebecca | 🐛 | 🟡 | → +37 | P2 | Rebecca's supplement form shows „Coaching ist noch nicht aktiviert: bitte willige im Onboarding ein..." in German while the rest of the form (Name, Folate, Iron, etc.) is in English. Plus possibly a separate issue: warning shown despite onboarding completion - needs investigation. |
-| 21 | Water tap counter | Corina | 🚀 | 🟡 | → +38 | P2 | Corina: two icons on home screen ("my glass" + "my bottle"), both with custom sizes in Settings. Tap to log, no reminders. Per scope: hydration daily status, no streak UI. |
-
-### P3 - open
-
-| # | Item | Tester | Type | Status | Build | Prio | Reason |
-|---|---|---|---|---|---|---|---|
-| 27 | Pattern-avoidance weekly coach | Corina | 🚀 | 🟡 | → +38 | P3 | Corina, weekly coach review. Concrete example: "hey, you've had a lot of sugar this week"-style behaviour-pattern feedback. |
-| 36 | Item list mixed languages when re-tracking | Lotte | 💎 | 🔬 | → ? | P3 | Lotte's daily Müsli appears as "Wirrwarr an Sprachen" in the re-track list because items saved at different times kept their original language. Likely solved as a downstream effect of #35 (normalize at scan), but might also need a one-time backfill / display-time fallback. Single voice, collecting. |
-| 39 | Trimester auto-advance from due date | Rebecca | 🚀 | 🔬 | → ? | P3 | Rebecca entered 2T manually and wondered if a due-date input could auto-advance the trimester over time. Single voice, polish-feature. Passes in-scope test (does change recommendations based on trimester transitions). |
-
-### Done (history, all priorities)
-
-Sorted by Prio descending, then by Build descending.
-
-| # | Item | Tester | Type | Status | Build | Prio | Reason |
-|---|---|---|---|---|---|---|---|
-| 1 | Lactation profile gets pregnancy warnings | Isabella + Julia | 🐛 | ✅ | +36 | P0 | 2 voices, clinical safety, wrong phase-gate in LLM |
-| 7 | Retro-logging discovery (header pill) | Eva + Svenja + Isabella | 💎 | ✅ | +36 | P1 | 3 voices, discovery cluster |
-| 11 | kcal single-food too high (egg 155 vs 100) | Henrike | 🐛 | ✅ | +36 | P1 | single-food anchors in prompt |
-| 3 | kcal estimate calibration (over/under) | Simone + Henrike | 🐛 | ✅ | +35-36 | P1 | Henrike's single-food anchors in +36; Simone confirmed 560 kcal on Hühnersuppe (close to real 555) on Build 35. Additional Suppen-Anker hardening shipping in +36 as defence in depth. |
-| 8 | DHA hallucination 325% from porridge | Sarah | 🐛 | ✅ | +35 | P1 | clinical safety, ALA-to-DHA error |
-| 9 | Shell-pasta confusion (Conchigliette) | Simone | 🐛 | ✅ | +34/+35 | P1 | phantom listeria warning |
-| 10 | Push reminder fires despite logging | Simone + Corina | 🐛 | ✅ | +35 | P1 | 2 voices |
-| 14 | Salad midwife disclaimer | Corina | 💎 | ✅ | +35 | P1 | per-meal tone hardening |
-| 12 | Photo recognition inaccurate | Eva | 💎 | ✅ | up to +33 | P1 | prompt sharpening across multiple builds |
-| 13 | Backcamembert false-positive raw-milk warning | Celine | 🐛 | ✅ | old | P1 | heat marker in SafetyRules |
-| 23 | Onboarding daily-volume slider as "estimated card" | Isabella | 💎 | ✅ | +36 | P2 | single voice, no-brainer polish |
-| 24 | History tiles show micros with status icons | Isabella + Sarah + Corina | 💎 | ✅ | +36 | P2 | 3 voices, partial addressing |
-| 20 | Multi-photo bulk flow for afternoon catch-up | Celine | 🚀 | ✅ | +27 | P2 | shipped earlier, was discovery problem for Celine |
-| 15 | Coach guardrail for daily-target frustration | Eva | 💎 | ✅ | +36 | P2 | Coach prompt-rule: when daily kcal is below target by evening, gentle reminder that daily target is a weekly average. No nag, no forced snack suggestions. |
-| 16 | Repeat-meal discovery (favourites via coach hint) | Eva + Svenja + Corina | 💎 | ✅ | +36 | P2 | 3 voices, discovery cluster. Shipped as one-time SnackBar tip after first meal save pointing at the existing favourites feature (star icon when saving). |
-| 22 | Snack recommendations too frequent | Corina | 💎 | ✅ | +25 | P2 | settings toggle for meal structure |
-| 26 | Time picker AM/PM cumbersome | Julia | 💎 | ✅ | +37 | P3 | Picker komplett auf CupertinoDatePicker.dateAndTime umgestellt: 24h-Format (kein AM/PM), kombiniertes Date+Time-Wheel in einem Sheet, maximumDate=now blockt zukünftige Werte im Picker selbst. Schliesst gleichzeitig Vanessa's Future-Time-Block-Bug aus dem +36-Re-Test. |
-
-### Closed / clarified / out-of-scope / waiting (no action item)
-
-| # | Item | Tester | Status | Comment |
-|---|---|---|---|---|
-| 28 | Cycle / period awareness | Corina | ⛔ | out-of-scope per CLAUDE.md Produkt-Scope; moved to `docs/idea-backlog.md`. Reconfirmed 2026-06-19 after Corina pushed for an Apple-Health-context-layer angle: even the narrower "context only, no own tracker" framing pulls complexity (own data model, lifecycle phase, PMS prediction) that drifts the app from its core nutrition-coach scope. Specialised apps (Clue, Apple Health) handle this better. Revisit when maintenance phase grows. |
-| 19 | Dynamic activity adjustment (HealthKit + manual fallback) | Julia + Corina | ⛔ | parked in `docs/idea-backlog.md` 2026-06-19 after Julia's email clarified the actual pain (static onboarding activity level doesn't match reality, „good and bad days/weeks"). Solution shape (HealthKit Active Energy + manual fallback) is clear but crosses into OS-level permissions + non-trivial fallback UI; too big for the current beta wave. Current static activity setting at onboarding still passes CLAUDE.md scope test. Revisit when HealthKit is added for other reasons OR the calibration miss is reported persistently. |
-| 29 | Delete bug | Corina | ⛔ | closed-by-tester |
-| 30 | Daily calorie estimate too high (2600 kcal) | Corina | ⛔ | clarified, correctly computed from Mifflin + activity + lactation supplement |
-| 31 | "Coffee remember" feature | Corina | ❓ | likely favourites discovery problem (covered by #16) |
-| 32 | Forgets to log because phone isn't at table | Eva | ❓ | push reminder discovery (covered by reminder work) |
-| 33 | Praise even for chocolate lands well | Celine | ✅ | confirmation of non-judgemental tone |
-| 25 | Supplement setup timeout on Google screenshot | Henrike | ⛔ | closed: Henrike confirmed the supplement-setup worked on retest. Timeout was likely a train-connectivity issue, not an app bug. |
-| 34 | App-Value-Confirmation | Sarah + Lotte + Rebecca | ✅ | „App richtig gut um einen bewussteren Blick für Nährstoffe zu bekommen" (Sarah, 2026-06-19 WhatsApp). „Super Aufschluss darüber was in der Ernährung fehlt (z.B. bei mir Protein), Bilderkennung klappt erstaunlich gut und das lesen der Barcodes" (Lotte, 2026-06-19 WhatsApp). „Logging is suuuuper straightforward (impressed with the computer vision accuracy) and the last couple days has actually helped me quite a bit in terms of just being more mindful" (Rebecca, 2026-06-19 WhatsApp). 3 voices confirming the core value-prop. |
+→ Aktueller Status aller offenen Items: siehe [`board.md`](board.md).
 
 ---
 
@@ -272,7 +205,24 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | Day switch lands at end of today's chat | 🐛 | 🟡 | → +37 |
 | More than 3 micros + dedicated tab | 🚀 | 🟡 | → +39 |
 
-**Update-Message [DE]:**
+**Update-Message [DE] — SENT 2026-06-20 (follow-up with apology + scroll-fix-correction):**
+
+> Hey Isa, ich wollte mich nochmal richtig entschuldigen dass ich so spät auf deine Screenshots reagiert habe. Die landeten in der Internal-Feedback-Sektion in App Store Connect, die mir ehrlich gesagt erst kürzlich aufgefallen ist - hatte sie schlicht übersehen. Sorry dafür, deine Reports waren super strukturiert und hätten viel früher in den Backlog gemusst.
+>
+> Die neue App-Version ist gerade auf dem Weg ins TestFlight und enthält folgende Sachen aus deinen Reports:
+> - ⚠️ Stillzeit-Profil kriegt keine Schwangerschafts-Warnungen mehr (das war P0, dein Mozzarella-Carpaccio + Räucherlachs-Beispiel)
+> - Onboarding-Tagesvolumen sitzt jetzt in einer „Berechnet für dich"-Karte mit klarem Marker
+> - Verlauf zeigt drei Mikronährstoff-Chips pro Tag mit Status-Icons
+> - Tagebuch-Header: das Datum ist jetzt der Titel mit Pfeil + „VERGANGENER TAG"-Hinweis bei vergangenen Tagen
+> - Bonus: Tandem-Phase (Schwanger + milchproduzierend) ist jetzt in den Settings als 4. Option
+>
+> Was noch nicht drin ist, aber für den nächsten Build geplant:
+> - Mehr als 3 Mikros + eigener Reiter mit allen ausgewählten
+> - Der Datum-Switch-Scroll-Fix - hatte ich dir letzte Woche zugesagt, beim Re-Test heute hat er aber leider noch nicht gegriffen. Schiebe ich in eine saubere Audit-Runde, kommt im nächsten Build richtig
+>
+> Nochmal danke für die strukturierten Reports - hat echt geholfen!
+
+**Vorheriger Draft (an Isabella gestern gesendet, danach durch den o.g. follow-up superseded):**
 
 > Hey Isabella, nochmal eine neue App Version ist unterwegs - hoffentlich bis (über)morgen bei dir! 
 >
@@ -321,6 +271,7 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | Lactation profile gets pregnancy warnings | 🐛 | ✅ | +36 |
 | Time picker AM/PM cumbersome | 💎 | ✅ | +37 |
 | Dynamic activity adjustment (HealthKit + manual fallback) | 🚀 | ⛔ | parked in idea-backlog |
+| Coach ignores onboarding supplements in chat | 🐛 | 🟡 | → ? |
 
 **Update-Message [DE]:**
 
@@ -350,7 +301,19 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | German banner in English-UI supplement form (i18n)             | 🐛   | 🟡     | → +37                            |
 | App-Value-Confirmation (logging straightforward, CV accuracy, mindfulness) | - | ✅      | -                                |
 
-**Update-Message [EN] — short ack for tonight, full version after the next build (2026-06-19):**
+**Update-Message [EN] — SENT 2026-06-20 (after +36 TestFlight upload, with investigative JTBD follow-ups):**
+
+> Hi Rebecca, the new version landed on TestFlight as promised. Here's how your three points map onto it:
+>
+> **Pregnant + breastfeeding:** there's now a dedicated 4th option in Settings → Profile ("Pregnant + producing milk"). Curious how it feels to you, and whether anything about how you discover/find it could be smoother.
+>
+> **DHA showing 0 from eggs, and the German banner in the otherwise-English supplement form:** both confirmed as real bugs on our side, we're working on them. Before I touch the DHA one in particular: when the coach mentioned DHA-in-eggs but the value stayed at 0, what would you have wanted to happen instead - the value populated to a realistic number, or the coach not mentioning a nutrient that isn't reflected in the data? Both are valid; the right fix depends on which jars more.
+>
+> **Auto-trimester from a due date:** noted, sitting in the idea backlog. Curious about the underlying need: is the "I'll have to update this myself in a couple of months" a friction you actually expect to hit (and want avoided), or more a hypothetical observation while doing the setup?
+>
+> Looking forward to your "few more days into it" notes whenever you've got them. 🙏
+
+**Previous short-ack draft (sent 2026-06-19 evening, superseded by the SENT message above):**
 
 > Hi Rebecca, thanks so much for the thoughtful feedback - really happy you're enjoying it! 💛
 >
@@ -370,10 +333,23 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | Item list mixed languages when re-tracking (Müsli)             | 💎   | 🔬     | → ?                                  |
 | Tracking feels more cumbersome than expected                   | -    | ❓      | likely favourites discovery (#16)    |
 | Doesn't know app is bilingual                                  | -    | ❓      | discovery, mention in update message |
+| Re-track findability: language doesn't matter, just findability | -   | ✅      | JTBD clarified, closes open direction question |
+| Favourites star not yet tried                                  | 💎   | 🔬     | likely discovery, aligns with SnackBar tip |
+| Coach quick-reply "I rarely eat fish" shown for vegetarian     | 🐛   | 🟡     | → ? |
 
-**Update-Message [DE] — DEFERRED until +36 TestFlight upload (2026-06-19):**
+**Update-Message [DE] — SENT 2026-06-20 (after +36 TestFlight upload, with investigative JTBD follow-ups):**
 
-Don't send yet - the message references the favourites SnackBar tip (T41) which only lands when +36 ships. Sending earlier would invalidate the discovery argument. Send right after Lotte has the +36 build.
+> Hey Lotte, die neue App-Version ist über TestFlight bei dir gelandet. Hier was wir aus deinen drei Punkten machen:
+>
+> **Bildkennung + Barcode + Mikro-Lücken-Aufdeckung:** freut mich riesig zu hören - das ist der Kern was die App leisten soll. ✅
+>
+> **Nussmischung auf Französisch + Sprach-Wirrwarr im Re-Tracking:** das nehmen wir uns als nächstes vor. Eine Rückfrage davor, damit ich's richtig baue: wenn du dir das ideale Verhalten vorstellst, sollte die App den Produktnamen einfach immer in deiner App-Sprache zeigen (egal woher der Scan kam), oder ist eine sinnvolle Re-Track-Vorschlagsliste das eigentlich Wichtige (und dir egal in welcher Sprache der einzelne Eintrag heißt, solange du ihn wiederfindest)?
+>
+> **„Mühsam"-Punkt:** das ist genau der wichtige. Wenn du nochmal an einem konkreten Tag denkst wo du gedacht hast „uff, schon wieder", was war's: das Tippen selbst, das Fotografieren, das Wiederfinden was du schonmal geloggt hast, oder noch was anderes? In der aktuellen Version gibt's beim ersten Meal-Save einen einmaligen Hinweis auf den Stern oben rechts beim Save-Sheet (für „diese Mahlzeit als Favorit speichern → beim nächsten Mal in einem Tap wiederholen") - sag mir gerne ob du den siehst und ob das deinen „mühsam"-Punkt überhaupt trifft, oder ob es woanders klemmt.
+>
+> Und falls dich beim Onboarding oder bei den ersten Mahlzeiten was speziell verwundert oder gestoppt hat, immer gerne her damit. Danke!
+
+**Previous draft (deferred until +36 TestFlight upload; superseded by the SENT message above because it described pre-ship features and asked leading questions):**
 
 > Hey Lotte, mega Dankeschön für die ausführliche erste Rückmeldung! Vier Sachen zu deinen Punkten:
 >
@@ -392,6 +368,17 @@ Don't send yet - the message references the favourites SnackBar tip (T41) which 
 > Danke nochmal!
 
 ---
+
+### Patricia (T13) — WhatsApp, current beta DE
+
+| Feedback | Type | Status | Build |
+|---|---|---|---|
+| Retro-time not picked up: text "9:00 Uhr" ignored, entry gets submit time | 🐛 | 🟡 | → ? |
+| Alarms working (positive) | - | ✅ | - |
+| Protein 18/148g (12%) — suspect wrong target | 🐛 | 🔬 | → ? (needs profile check) |
+| Algenöl triggers seaweed/algae warning (Algae-rule substring match) | 🐛 | 🟡 | → ? |
+| Algenöl: missing "take with fat" combination note | 💎 | 🟡 | → ? |
+
 
 ## Pattern Clusters (reference)
 
@@ -694,3 +681,75 @@ New tester. Three-point feedback after first sessions, EN UI on her phone.
    > „in summe muss ich sagen, dass es mühsamer ist als ich dachte alles aufzuschreiben, was aber vllt auch an meinem random Essverhalten liegt 🙈"
 
    - 4th voice in the favourites-discovery cluster (Eva + Svenja + Corina + Lotte). The +36 SnackBar tip (T41) should help, but for Lotte specifically: validate post-+36 whether the SnackBar surface is enough or whether the daily Müsli case needs an even stronger discovery push.
+
+---
+
+## 2026-06-18 · Julia Mayer (T10) · App 1.0.0 (35) · TestFlight, iPhone 14 Pro, iOS 26.5
+
+New point from Build 35 testing round.
+
+1. **Coach ignores onboarding supplements in chat** (status: open, 🐛)
+
+   > "Ich habe beim Setup des Accounts mein tägliches Supplement angegeben. Bei Nachfrage, ob es ausreicht, erkennt der Coach nicht, dass ich bereits etwas supplementiere, greift also nicht auf meine Account-Einstellungen zurück."
+
+   - Code check (2026-06-21): `home_input.dart` _buildContext() DOES include active supplements in the todayContext block (lines ~482-497): `=== Active supplements ===` lists each ActiveSupplement's name + per-nutrient values, and the aggregated micronutrients block (`=== Micronutrients today (from meals + active supplements) ===`) already folds in supplement values. This is the fix that shipped in +35 for Sarah (T7). The per_meal_en.dart system prompt also says the context includes micros + supplements.
+   - Likely root cause: Julia has build 35 (Build ID 35), but the supplement context fix was for the CHAT path (coach_session_manager / chat call). On inspection, the chat path reads `profile.activeSupplements` from Hive live via `userProfileProvider`. If Julia's supplement is stored as a profile field (onboarding "daily supplement" entry) but NOT as a structured `ActiveSupplement` object with parsed nutrient values (e.g. saved as free text only, never photo-parsed), it would NOT appear in the supplement block. The context block only emits supplements that have non-empty `values` maps. A supplement name-only entry (no nutrient values parsed) would be invisible to the coach.
+   - Needs clarification: did Julia go through the supplement label scan flow, or did she type the supplement name only? If name-only, the coach has no structured data to reference.
+
+---
+
+## 2026-06-21 · Lotte (T11) · current beta · WhatsApp
+
+Follow-up round after first messages.
+
+1. **Re-track findability JTBD clarified** (status: ✅ JTBD closed for this tester)
+
+   > "Wenn ich z.B. meine Zimtschnecke immer wieder finde, egal ob ich 'Zimtschn...' oder 'Cinnamon...' eingebe, finde ich es egal, in welcher Sprache es gespeichert wird."
+
+   - Lotte's JTBD: findability matters, not language consistency. The open "item-language" Backlog card's direction question (normalise to UI language vs. reliable re-track list) is answered from her side: a reliable re-track list regardless of language is sufficient. Does not close the card (other testers may care about visual consistency), but narrows the minimum viable fix.
+
+2. **Favourites star not yet tried** (status: 🔬 single voice, aligns with SnackBar tip)
+
+   > "Da gucke ich mir das mit dem Stern als Favorit mal an. Habe ich bisher nicht genutzt."
+
+   - Confirms the SnackBar tip (+36) is still needed. Discovery problem, not feature gap. 4th voice in favourites-discovery cluster (Eva + Svenja + Corina + Lotte).
+
+3. **Coach quick-reply "I rarely eat fish or seafood" shown for vegetarian profile** (status: open, 🐛)
+
+   - Screenshot: Coach Quick-Reply chip shows "I rarely eat fish or seafood". Lotte's Diet & allergies: "Vegetarian" selected. App language: English.
+   - Code check (2026-06-21): The follow-up chips are generated by the LLM in the per-meal coach reply (per_meal_en.dart, followUpInstructionEn: "Examples: 'I rarely eat fish', 'I need on-the-go ideas'..."). The diet line IS threaded into the per-meal user message via buildDietLine() and the system prompt says "If a dietary profile is in the context, RESPECT it absolutely" (per_meal_en.dart line 37). However the `followUpInstructionEn` example text is verbatim "I rarely eat fish" — the model appears to echo example bullets rather than generate diet-aware ones. The dietary profile does reach the context (buildDietLine returns "Diet: vegetarian" when dietStyle != 'omnivore'), so this is a prompt compliance failure: the model ignores the diet constraint specifically in the follow-up section.
+
+---
+
+## 2026-06-21 · Patricia (T13) · current beta · WhatsApp
+
+New tester, first feedback round.
+
+1. **Retro-time not picked up from text** (status: open, 🐛)
+
+   > "Was mich stört ist, dass ich nicht nachtragen kann. Ich habe der App z.B. gesagt, dass ich um 9:00 Uhr morgens ein Brötchen mit Nutella gegessen habe. Es wurde aber erst für 22:47 Uhr notiert."
+
+   - Code check (2026-06-21): ConfirmScreen._mealTime defaults to `DateTime.now()` for fresh entries when today is focused (`_sameDay(focused, today)` → `_mealTime = nowInit`). The text "um 9:00 Uhr morgens" is parsed as a meal NAME by parseMeal, not interpreted as a timestamp — the parseMeal response has no `logged_at` or `timestamp` field. The confirm screen has no mechanism to extract a time from the raw text and pre-fill the time picker. The user must manually adjust the time chip in ConfirmScreen before saving. This is a known UX gap: the time picker exists and was improved (+37, CupertinoDatePicker), but the text-to-time mapping is not implemented.
+   - The "Coach paused for retroactive" threshold (60 min) means that even if she DOES adjust the time picker to 9:00, the coach call would be suppressed (>60 min gap) — which is correct. The entry time itself being wrong (22:47 instead of 9:00) is what she reports.
+
+2. **Alarms working** (status: ✅ positive confirmation)
+
+   - Confirms push reminder fix from +35 is working for Patricia.
+
+3. **Protein 18/148g (12%)** (status: 🔬 single voice, needs profile check)
+
+   - Screenshot shows protein 18/148g (12% of target), "noch 130g". Patricia says "irgendwie stimmt das mit den Proteinen bei mir immer noch nicht."
+   - Code check (2026-06-21, cross-verified): there are TWO protein numbers in `calorie_target.dart`. The COACH uses `proteinTargetGrams()` (BMI-25-capped reference weight × DGE g/kg for phase/goal; lactation 1.2, pregnancy T2 0.9 / T3 1.0, baseline 0.8, body-goal 1.5/1.6). The UI ring shows `calculateMacroTargets().proteinG = targetKcal × proteinPct / 4`, where `proteinPct = customProteinPct` if set, else `autoMacroSplit()` (which round-trips the capped grams). 148g is implausible from the capped path for any realistic body (it implies actual weight without the BMI cap), so it almost certainly comes from a CUSTOM macro split (Settings protein slider), while the coach reasons with ~80g. So the two surfaces can diverge: the `// single source of truth` comment is aspirational, the capped grams are not actually wired into the macro split when a custom % is set. Action: Explore pass on the two paths + ask Patricia for phase and whether she changed the macro slider.
+   - Pattern note: no prior tester raised protein target as specifically wrong (the nutritionist-flagged "protein at high BMI" bug was fixed). Single voice, collecting.
+
+4. **Algenöl triggers algae/seaweed safety warning** (status: open, 🐛)
+
+   - Screenshot: entry "Algenöl 10 ml / 120 kcal" triggers the banner: "Algen/Algenprodukte: in der Schwangerschaft besser meiden. Jodgehalt schwankt stark und liegt oft über der Tagesobergrenze, dazu Arsen..." Patricia's phase: likely pregnant (message is DE, warning text references Schwangerschaft).
+   - Code check (2026-06-21): `SafetyRules.algae()` in `safety_rules.dart` line 634 checks `if (!phase.isPregnant) return null` — so it only fires in pregnancy. Then `algaeTokens` from safety-rules.json includes "algen" as a token. `_tokenContains("Algenöl", "algen")` → token "algenöl" CONTAINS substring "algen" → TRUE. So "Algenöl" trips the rule via the "algen" substring. This IS the kombu/kombucha pattern repeated for algae oil: Algenöl is NOT a raw seaweed product. There is currently no "algenöl" exclusion in the algaeExclusions list (only ["kombucha"]). Confirmed bug: same structural pattern as the Kombucha bug (fixed) but for algae oil.
+   - Patricia's factual correction is also accurate: algae OIL (specifically DHA algae oil like Norsan, MorEPA, etc.) is a controlled, purified supplement where algae is cultivated, not wild-harvested seaweed. The iodine/arsenic concern of the DGE rule applies to raw seaweed products, not to refined algae oil DHA supplements. The warning is both triggered incorrectly (Algenöl ≠ Algenprodukt in the DGE sense) AND factually misleading for this product category.
+   - The warning text also says "Schwangerschaft" which suggests Patricia is pregnant (Laktation-only users get null from algae() per line 636).
+
+5. **Algenöl: missing "take with fat meal" note** (status: open, 💎)
+
+   - Patricia correctly notes that DHA algae oil requires co-ingestion with fat for absorption (fat-soluble omega-3). This is a nutrition coaching point, not a safety rule. Would live in the per-meal coach response or a supplement-specific coaching tip when Algenöl is logged.
+   - In scope: this is a supplement recommendation that changes the efficacy of a key nutrient. Coach Communication-Layer.
