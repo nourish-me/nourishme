@@ -21,9 +21,11 @@ kanban-plugin: board
 - [ ] **Stated time in free text not applied to entry timestamp** · Patricia (1) · #P2 · [[beta-feedback-log#2026-06-21 · Patricia (T13) · current beta · WhatsApp|→ Log]]
 	Patricia told the app she ate at 9:00 but the entry was timestamped at submit time (22:47). The text time is never parsed; the manual time picker in the confirm screen exists but she missed it. Decision on depth: proposed approach is an optional "suggested_time_hhmm" field in the parse JSON that feeds the existing suggestedCreatedAt path (reused from EXIF). 1 voice so far.
 - [ ] **Coach can't see name-only / onboarding supplements** · Julia (1) · #P2 · [[beta-feedback-log#2026-06-18 · Julia Mayer (T10) · App 1.0.0 (35) · TestFlight, iPhone 14 Pro, iOS 26.5|→ Log]]
-	Julia set a daily supplement at setup; when she asked the coach whether it's enough, it didn't reference it. The supplement context block only emits supplements with parsed nutrient values, so a name-only entry (no label scan) is invisible. The two code reads disagree on whether onboarding supplements ever reach the coach (chat vs per-meal path), so this needs an Explore pass plus a tester question (did Julia scan a label or type the name only?).
+	Julia set a daily supplement at setup; when she asked the coach whether it's enough, it didn't reference it. The supplement context block only emits supplements with parsed nutrient values, so a name-only entry (no label scan) is invisible. The two code reads disagree on whether onboarding supplements ever reach the coach (chat vs per-meal path), so this needs an Explore pass plus a tester question.
+	❓ Offene Frage an Julia (T10): Etikett gescannt, oder Supplement-Name nur getippt? (gesendet 2026-06-21)
 - [ ] **Protein target: UI macro split vs coach proteinTargetGrams diverge** · Patricia (1) · #P2 · [[beta-feedback-log#2026-06-21 · Patricia (T13) · current beta · WhatsApp|→ Log]]
-	Patricia sees a 148 g protein target that feels wrong. Two code paths compute protein: the coach uses proteinTargetGrams() (BMI-25-capped, phase-aware, ~80 g for her), the UI ring shows calculateMacroTargets().proteinG = targetKcal × proteinPct / 4, which honors a custom protein% and can far exceed the capped grams. 148 g is implausible from the capped path for any realistic body, so it almost certainly comes from a custom macro split. The "single source of truth" comment is aspirational. Needs an Explore pass on the two paths plus Patricia's phase and whether she changed the macro slider.
+	Patricia sees a 148 g protein target that feels wrong. Two code paths compute protein: the coach uses proteinTargetGrams() (BMI-25-capped, phase-aware, ~80 g for her), the UI ring shows calculateMacroTargets().proteinG = targetKcal × proteinPct / 4, which honors a custom protein% and can far exceed the capped grams. 148 g is implausible from the capped path for any realistic body, so it almost certainly comes from a custom macro split. The "single source of truth" comment is aspirational. Needs an Explore pass on the two paths.
+	❓ Offene Frage an Patricia (T13): In welcher Phase/Trimester bist du, und hast du den Makro-Split (Protein-%) selbst angepasst? (gesendet 2026-06-21)
 - [ ] **Freier Coach-Chat ohne Safety-Layer** · #safety #gross
 	The safety rules currently only run on food parsing (scan + meal logging). Free-form coach chat, where the model could say anything in plain prose, is not gated by the safety layer at all. Larger structural gap, likely needs its own design pass before any code.
 - [ ] **Final-Sign-off Safety-Grenzfälle** · #safety
@@ -72,7 +74,6 @@ kanban-plugin: board
 
 ## Warten auf Testerin
 
-_(leer — Tester-Rückfragen entstehen jetzt im Explore-Schritt; Karten wandern aus Explore hierher, wenn wir auf eine Testerin-Antwort warten)_
 
 
 ## Blocked
@@ -169,8 +170,6 @@ _(leer — Tester-Rückfragen entstehen jetzt im Explore-Schritt; Karten wandern
 	Cost audit showed a healthy margin: large prompts are already cached, total LLM cost lands around 0.30-0.60 EUR per intensive monthly user, well under 10% COGS. No action item; closed. *Source was a short note; this single sentence carries most of the substance.*
 
 
-
-
 ## Idea Backlog
 
 - [ ] **Cycle / period awareness** · Corina · [[beta-feedback-log#2026-06-17 → 2026-06-18 · Corina (T3) Round 2 · Build +33 → +35 · WhatsApp|→ Log]]
@@ -179,8 +178,10 @@ _(leer — Tester-Rückfragen entstehen jetzt im Explore-Schritt; Karten wandern
 	Apple HealthKit lesen (Active Energy + Workouts), um das tägliche kcal-Ziel zu flexen, mit 1-Tap-Fallback für Nicht-Watch-Userinnen, weil ein statisches Onboarding-Aktivitätslevel „gute und schlechte Tage/Wochen" nicht abbildet. Geparkt für diese Beta-Welle, weil HealthKit OS-Permission-Flows plus eine nicht-triviale Fallback-UI mitbringt und Richtung Fitness-Tracker driftet, während das statische Level den Scope-Test weiter besteht. Revisit, falls HealthKit aus anderem Grund dazukommt (Gewicht/Hydration-Auto-Import); Julia und Corina benachrichtigen.
 
 
+
+
 %% kanban:settings
 ```
-{"kanban-plugin":"board","list-collapse":[false,false,false,false,false,false,false,true,false]}
+{"kanban-plugin":"board","list-collapse":[false,false,false,false,false,false,false]}
 ```
 %%

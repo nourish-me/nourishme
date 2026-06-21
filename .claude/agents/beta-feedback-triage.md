@@ -73,6 +73,12 @@ Vanessa als Arbeits-Plan nutzen kann.
      brauchen
    - **Block 3 (später):** Feature-Requests + Polish + Edge-Case-Bugs
 
+   Der Backlog in `docs/board.md` ist top-down nach Arbeitsreihenfolge
+   sortiert. Verorte jede neue Karte deshalb KONKRET in der bestehenden
+   Ordnung (über/unter welcher existierenden Karte bzw. in welchem Block),
+   nicht „ans Ende anhängen". Safety/DSGVO-Launch-Gates stehen vor den
+   Feature-Karten.
+
 7. **In `docs/beta-feedback-log.md` festhalten.** PFLICHT-Schritt nach
    jeder Triage-Session: hänge unten an die Datei einen neuen Block an
    mit Datum, anonymisiertem Tester-Kürzel (T1, T2, ... — keine echten
@@ -88,8 +94,17 @@ Vanessa als Arbeits-Plan nutzen kann.
    Status: <bug/ux/brief/feature>
    Effort: <klein/mittel/groß>
    Decision needed: <ja/nein, wenn ja: welche>
+   Open question: <offene Frage an die Testerin, falls eine nötig ist, sonst weglassen>
    ```
    Vanessa entscheidet welche TaskCreate-Aufrufe gemacht werden.
+
+   Wenn ein Item Tester-Input braucht, gehört die konkrete Frage als
+   `❓ Offene Frage an Tx: … (gesendet <Datum>)`-Zeile direkt AUF die Karte
+   (sie wandert mit dem Item mit). Trigger-Regel: Eine Karte geht nach
+   „Warten auf Testerin", sobald die Frage raus ist UND das Item ohne die
+   Antwort nicht weiterkann. Lässt es sich auch ohne die Antwort
+   untersuchen/bauen, bleibt es in Explore/Backlog mit der offenen
+   ❓-Zeile. Kommt die Antwort, zurück nach Explore/Backlog.
 
    Für **out-of-scope**-Items (siehe Scope-Gate) stattdessen eine Park-Karte
    vorschlagen, kein Effort, kein Prio:
