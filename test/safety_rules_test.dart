@@ -597,6 +597,14 @@ void main() {
       expect(SafetyRules.algae('Kombucha Ingwer', pregnant), isNull);
       expect(SafetyRules.algae('Kombu Brühe', pregnant), isNotNull);
     });
+
+    test('"Algenöl" (refined DHA algae oil) must NOT trip the algae rule — it '
+        'is a controlled, purified supplement, not raw seaweed (Patricia T13); '
+        'raw seaweed still fires', () {
+      expect(SafetyRules.algae('Algenöl', pregnant), isNull);
+      expect(SafetyRules.algae('DHA Algenöl Kapseln', pregnant), isNull);
+      expect(SafetyRules.algae('Nori', pregnant), isNotNull);
+    });
   });
 
   group('allWarnings — runs every rule', () {

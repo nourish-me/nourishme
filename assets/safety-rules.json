@@ -173,7 +173,7 @@
         "nori", "wakame", "kombu", "kelp", "dulse", "arame", "hijiki",
         "spirulina", "chlorella"
       ],
-      "exclusions": ["kombucha"],
+      "exclusions": ["kombucha", "algenöl"],
       "messages": {
         "de": {
           "pregnant": "Algen/Algenprodukte: in der Schwangerschaft besser meiden. Jodgehalt schwankt stark und liegt oft über der Tagesobergrenze, dazu Arsen und andere Kontaminanten (DGE)."
