@@ -388,12 +388,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         _handledIntentToken = scrollIntent.token;
         final target = scrollIntent.target;
         final onlyIfNearBottom = scrollIntent.onlyIfNearBottom;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
           switch (target) {
             case ScrollTarget.dayTop:
+              // Data-gated re-assert: this build already has the focused
+              // day's items, but coach bubbles / images can still measure
+              // over the next frames. Re-pin to 0 a few times so layout
+              // settling can't leave us mid-day.
               _programmaticScroll = true;
-              if (_scroll.hasClients) _scroll.jumpTo(0);
+              for (var i = 0; i < 6; i++) {
+                if (!mounted) break;
+                if (_scroll.hasClients) _scroll.jumpTo(0);
+                await Future<void>.delayed(const Duration(milliseconds: 50));
+              }
               _programmaticScroll = false;
               break;
             case ScrollTarget.bottom:
