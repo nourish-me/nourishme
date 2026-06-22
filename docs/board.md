@@ -6,10 +6,6 @@ kanban-plugin: board
 
 ## Backlog
 
-- [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 ^l47km2
-	The coach prose mentions DHA in eggs, but the structured DHA value in the meal entry stays at 0. Eggs typically deliver 30-90 mg DHA each, so 0 is wrong. The fix direction (populate a realistic structured value vs stop the coach mentioning nutrients not reflected in the data) gets decided in Explore. (Source: View 2 table; no chronological block.)
-- [ ] **Iodine-gap nag trigger tuning** · Celine (1) · #P2 · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^jbqo1t
-	Celine deliberately takes a Femibion variant without iodine, so the chronic "iodine low" nudge is correct on the data but exhausting on tone. Direction: a cooldown (e.g. once a week) plus an opt-out toggle for deliberately-skipped nutrients, so the same nag doesn't repeat daily. Open sub-questions (is 1×/week still too often, toggle as default? iodine-only or all deliberate gaps?) get resolved in Explore, no need to block on Celine's reply.
 - [ ] **Item language at scan time** · Lotte (1) · #P2 · [[beta-feedback-log#2026-06-19 · Lotte (T11) · TestFlight (current beta) · WhatsApp text|→ Log]] ^0s7kpw
 	Lotte scanned a nut mix and the app saved the product name in French (the product's source language) rather than her UI language (EN). The direction question (normalise to UI language vs a reliable findable re-track list regardless of language) gets resolved in Explore; pairs with the downstream "Item list mixed languages when re-tracking" card. No need to block on Lotte.
 - [ ] **Item list mixed languages when re-tracking** · Lotte (1) · #P3 · [[beta-feedback-log#2026-06-19 · Lotte (T11) · TestFlight (current beta) · WhatsApp text|→ Log]]
@@ -62,6 +58,12 @@ kanban-plugin: board
 
 ## Explore
 
+- [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 · 🔎 Explore fertig: Root-Cause gefunden · ^l47km2
+	The coach prose mentions DHA in eggs, but the structured DHA value stays 0. EXPLORE (2026-06-22): not a missing-value question, it's a self-contradiction in BOTH parse prompts (parse_de.dart:142, parse_en.dart:136). The same line states "Eigelb/egg yolk 30-40 mg DHA per egg", but the "STRICT DHA ZERO RULE" right after lists ONLY fatty sea fish / fish oil / algae oil as permitted sources and forces dha_mg=0 (key omitted) for everything else, so eggs get zeroed. One egg ≈ 30-40 mg ≈ 15-20% of the 200 mg DGE target, well above the prompt's own ~5% inclusion threshold, so it SHOULD count. Clear data-correctness bug for everyone logging eggs, clinically relevant (DHA is a tracked pregnancy/lactation micro) → no-brainer per the pattern rule, no extra voices needed. Fix is small + bounded: add egg yolk to the zero-rule's allowed-source list in both locales. Verify: log "1 Ei" on device, structured DHA > 0.
+- [ ] **Iodine-gap nag trigger tuning** · Celine (1) · #P2 · 🔎 Explore fertig: Cooldown existiert schon · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^jbqo1t
+	Celine deliberately takes a Femibion variant without iodine, so the chronic "iodine low" nudge is correct on the data but exhausting on tone. EXPLORE (2026-06-22): the per-meal micro-nudge (_microNudgeFor, coach_session_manager.dart) ALREADY has a 7-day per-nutrient cooldown (#106), added AFTER Celine's Build +24 report. So the acute "daily nag" is most likely already capped to weekly on the current build. What's still missing: a fine "deliberate-skip" opt-out that keeps iodine VISIBLE in the header but mutes its nag. A blunt opt-out exists (deselect iodine in Settings, selectedMicronutrients) but that also hides it from tracking, which isn't what she wants. Pattern: single voice + tone, NOT a no-brainer → collect, don't build the opt-out yet; the cooldown may already have resolved the pain. Optional investigative question to Celine (frequency on current build) before deciding.
+
+
 
 ## Warten auf Testerin
 
@@ -79,18 +81,17 @@ kanban-plugin: board
 
 ## Bau
 
-- [ ] **Coach context audit (what the coach sees vs needs)** · Vanessa + Julia (2) · #P1 · [[docs/plans/2026-06-21-coach-context-contract]] · [[docs/explore/coach-context-audit]] · [[beta-feedback-log#2026-06-21 · Vanessa (intern) · current build · Screenshots|→ Log]]
+- [ ] **Coach context audit (what the coach sees vs needs)** · Vanessa + Julia (2) · #P1 · [[docs/plans/2026-06-21-coach-context-contract]] · [[docs/explore/coach-context-audit]] · [[beta-feedback-log#2026-06-21 · Vanessa (intern) · current build · Screenshots|→ Log]] ^7iyecl
 	Option 2 (unified CoachContext builder) im Bau: ein gemeinsamer Kontext-Builder füttert Per-Meal- + Chat-Coach mit derselben Tages-Sequenz (Mahlzeiten + Zeiten), vollem Mikro-Stand und konfigurierten Supplements (inkl. name-only), hinter dem Cache-Breakpoint. Hydration raus (in der App nicht getrackt, kein Daten-Quelle). Plan-Phasen 1–5; CRITICAL-Schritte (Coach-Output) per Device/TestFlight verifiziert. Schließt Vanessas next-meal-Symptom + Julias name-only-Supplement-Lücke. Phase 1 (Builder + Tests) fertig.
-
 - [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] · [[docs/plans/2026-06-21-scroll-coordinator|→ Plan]] ^s7c7jg
 	Single scroll coordinator (Option B): replace the 8 timer-driven dispatchers with one coordinator + ScrollIntent, resolved after the focused-day data emits and lays out (not a fixed 80 ms). Fixes day-switch-lands-mid-conversation, unifies the 4 day-change entries, removes the D3+D4 save races. Plan: [[docs/plans/2026-06-21-scroll-coordinator]]. Acceptance: day-switch via any entry lands at day-top, today at bottom, a logged meal on the meal.
 
 
 ## Review & Test
 
-## Bereit für Tester (TestFlight)
 
-Lokal/am Gerät verifiziert, aber noch in KEINEM TestFlight-Build bei den Testerinnen. Das ist die "was müssen wir noch schicken"-Liste: beim nächsten TestFlight-Bundle mitnehmen, dann nach Shipped.
+
+## Bereit für Tester (TestFlight)
 
 - [ ] **Algae safety false-positive on "Algenöl"** · Patricia (1) · #P1 #safety · 🔧 fix + test fertig, → Sign-off + verify mit Patrizia (T13, Ernährungsberaterin) auf nächstem Build · [[beta-feedback-log#2026-06-21 · Patricia (T13) · current beta · WhatsApp|→ Log]]
 	The pregnancy-only algae rule matched "Algenöl" via the substring "algen". Fixed: added "algenöl" to algaeExclusions (safety-rules.json) + a regression test (Algenöl / DHA-Algenöl don't fire, raw seaweed still does), all 323 tests green, analyze clean. Narrow blast radius: only refined algae OIL stops warning, raw seaweed (Nori etc.) still fires, and over-warn stays the default. Riding the next TestFlight: Patrizia is herself a nutritionist AND the reporter, so she provides both the fachliche sign-off and the on-build verification. The fat-co-ingestion coaching tip (#P3) and the structural "scalable matching" work are tracked separately.
@@ -101,9 +102,8 @@ Lokal/am Gerät verifiziert, aber noch in KEINEM TestFlight-Build bei den Tester
 - [ ] **Coach error messages hardcoded English (whole family)** · Vanessa (1) · #P2 #i18n · ✅ Gerät 2026-06-22 (DE bestätigt), wartet auf TestFlight
 	Every CoachApiException message surfaced verbatim in English in the DE app. Fixed by localizing the whole family at the throw in `_post` (which already receives `isDe`), cleaner than the planned callsite approach: timeout, no-internet, connection, auth, 429-overloaded, 500-unavailable, non-200 and unexpected-200 bodies now branch EN/DE; the midwife/doctor hint is preserved in the network errors. Also localized the per-meal non-API fallback in coach_session_manager. The chat callsite already used `commonGenericError` + `e.userMessage`, so it inherits the fix. Vanessa confirmed the German error bubble on device (airplane mode).
 
-## Shipped
 
-Bei den Testerinnen ausgeliefert (in einem TestFlight-Build, siehe Build-Tag).
+## Shipped
 
 - [x] **Phase safety filter (lactation-only)** · Isabella + Julia (2) · #P1 · ✅ +36 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]]
 	The app no longer applies pregnancy-specific safety rules (raw-milk cheese, smoked salmon, etc.) to lactation-only profiles. Isabella reported it on red beets and mozzarella, Julia on pancakes with smoked salmon. Was P0 clinical; fixed with a phase-discipline block in the parse prompt plus a deterministic filter that drops pregnancy markers when the profile is lactation-only.
