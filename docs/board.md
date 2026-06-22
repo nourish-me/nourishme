@@ -82,13 +82,13 @@ kanban-plugin: board
 
 ## Geplant
 
-- [ ] **Parser unterschätzt Mikros bei whole/plant foods (Prompt-Bias + Golden-Corpus)** · Rebecca + Henrike (2) · #P1 #parse · 📋 Plan fertig (Option 1) · [[docs/plans/2026-06-22-parser-micro-reliability|→ Plan]] · [[docs/explore/parser-micro-underreporting|→ Explore]]
-	Gewählt: Option 1 (Prompt-Bias umdrehen + Golden-Corpus). Plan: erst Corpus + Baseline messen (welche Foods unterschlagen heute Mikros), dann das defensive „im Zweifel weglassen" auf „im Zweifel schätzen, nur bei wirklich <5% weglassen" umstellen (parse_de+parse_en, Anker/Jod-Korrektur/DHA-Fix bleiben), dann gegen den Corpus grün tunen (fängt Unter- UND Über-Schätzung), dann als Release-Gate fixieren + Device-Spotcheck. Alle Phasen CRITICAL (Nährwerte). Verworfen: deterministische Food-DB (eigenes großes Matching-Whack-a-Mole), nur-Prompt-ohne-Corpus (blind bei Gesundheitsdaten). Bauen erst mit /execute nach Freigabe.
 
 
 
 ## Bau
 
+- [ ] **Parser unterschätzt Mikros bei whole/plant foods (Prompt-Bias + Golden-Corpus)** · Rebecca + Henrike (2) · #P1 #parse · 🔨 Bau, Phase 1 · [[docs/plans/2026-06-22-parser-micro-reliability|→ Plan]] · [[docs/explore/parser-micro-underreporting|→ Explore]]
+	Option 1 im Bau: Prompt-Bias umdrehen + Golden-Corpus. Phase 1 = Corpus + Baseline messen. Alle Phasen CRITICAL (Nährwerte), Verifikation über den Corpus + Device-Spotcheck.
 - [ ] **Coach context audit (what the coach sees vs needs)** · Vanessa + Julia (2) · #P1 · [[docs/plans/2026-06-21-coach-context-contract]] · [[docs/explore/coach-context-audit]] · [[beta-feedback-log#2026-06-21 · Vanessa (intern) · current build · Screenshots|→ Log]] ^7iyecl
 	Option 2 (unified CoachContext builder) im Bau: ein gemeinsamer Kontext-Builder füttert Per-Meal- + Chat-Coach mit derselben Tages-Sequenz (Mahlzeiten + Zeiten), vollem Mikro-Stand und konfigurierten Supplements (inkl. name-only), hinter dem Cache-Breakpoint. Hydration raus (in der App nicht getrackt, kein Daten-Quelle). Plan-Phasen 1–5; CRITICAL-Schritte (Coach-Output) per Device/TestFlight verifiziert. Schließt Vanessas next-meal-Symptom + Julias name-only-Supplement-Lücke. Phase 1 (Builder + Tests) fertig.
 - [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] · [[docs/plans/2026-06-21-scroll-coordinator|→ Plan]] ^s7c7jg
