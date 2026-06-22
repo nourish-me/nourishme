@@ -58,8 +58,6 @@ kanban-plugin: board
 
 ## Explore
 
-- [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 · 🔎 Explore fertig: Root-Cause gefunden · ^l47km2
-	The coach prose mentions DHA in eggs, but the structured DHA value stays 0. EXPLORE (2026-06-22): not a missing-value question, it's a self-contradiction in BOTH parse prompts (parse_de.dart:142, parse_en.dart:136). The same line states "Eigelb/egg yolk 30-40 mg DHA per egg", but the "STRICT DHA ZERO RULE" right after lists ONLY fatty sea fish / fish oil / algae oil as permitted sources and forces dha_mg=0 (key omitted) for everything else, so eggs get zeroed. One egg ≈ 30-40 mg ≈ 15-20% of the 200 mg DGE target, well above the prompt's own ~5% inclusion threshold, so it SHOULD count. Clear data-correctness bug for everyone logging eggs, clinically relevant (DHA is a tracked pregnancy/lactation micro) → no-brainer per the pattern rule, no extra voices needed. Fix is small + bounded: add egg yolk to the zero-rule's allowed-source list in both locales. Verify: log "1 Ei" on device, structured DHA > 0.
 - [ ] **Iodine-gap nag trigger tuning** · Celine (1) · #P2 · 🔎 Explore fertig: Cooldown existiert schon · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^jbqo1t
 	Celine deliberately takes a Femibion variant without iodine, so the chronic "iodine low" nudge is correct on the data but exhausting on tone. EXPLORE (2026-06-22): the per-meal micro-nudge (_microNudgeFor, coach_session_manager.dart) ALREADY has a 7-day per-nutrient cooldown (#106), added AFTER Celine's Build +24 report. So the acute "daily nag" is most likely already capped to weekly on the current build. What's still missing: a fine "deliberate-skip" opt-out that keeps iodine VISIBLE in the header but mutes its nag. A blunt opt-out exists (deselect iodine in Settings, selectedMicronutrients) but that also hides it from tracking, which isn't what she wants. Pattern: single voice + tone, NOT a no-brainer → collect, don't build the opt-out yet; the cooldown may already have resolved the pain. Optional investigative question to Celine (frequency on current build) before deciding.
 
@@ -88,6 +86,9 @@ kanban-plugin: board
 
 
 ## Review & Test
+
+- [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 · 🔧 fixed, needs device verify · ^l47km2
+	Root cause was a self-contradiction in both parse prompts: egg yolk listed as a 30-40 mg DHA source, but the STRICT DHA ZERO RULE only allowed fatty sea fish / fish oil / algae oil and forced dha_mg=0 for everything else, zeroing eggs. Fixed in parse_de.dart + parse_en.dart: added egg/egg yolk to the zero-rule's allowed sources and made it explicit (30-40 mg per whole egg, egg white near zero). analyze clean, 330 tests green. Verify on device: log "1 Ei", the structured DHA value should now be > 0. No-brainer data-correctness fix (clinical), no plan needed.
 
 
 
