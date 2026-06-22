@@ -60,8 +60,6 @@ kanban-plugin: board
 
 ## Explore
 
-- [ ] **Parser unterschätzt Mikros bei whole/plant foods (Prompt-Bias + Golden-Corpus)** · Rebecca + Henrike (2) · #P1 #parse · 🔎 Explore fertig · [[docs/explore/parser-micro-underreporting|→ Explore-Doc]]
-	EXPLORE (2026-06-22, gegen den Worker verifiziert): NICHT „Anker fehlen". Es sind zwei Ursachen einer Familie. (1) Harte Nullregel (DHA): Eier waren nicht in der Allowlist → immer falsch, schon gepatcht. (2) Weiche inkonsistente Auslassung (Eisen + Allgemeinfall): Haferflocken sind als „Getreide-Vollkorn 2-3 mg" verankert und liegen bei ~8% des Ziels (über der 5%-Schwelle), werden aber trotzdem weggelassen, während Quinoa (gar nicht verankert) Eisen durchbekommt. Also kein Anker-Problem, sondern das defensive „im Zweifel weglassen" inkonsistent pro Call. „Mehr Anker" löst das beweisbar nicht. Jod hat bereits eine handgemachte „unterschätzt systematisch"-Korrektur im Prompt, gleiche Klasse, einmal von Hand gelöst. Scope: nur die strukturierten micronutrients-Werte (parse_de+parse_en), die Header + Coach speisen. ENTSCHIEDEN: kein Stopgap, strukturell. Optionen für /create-plan: (1) Default-Bias umdrehen, (2) Golden food→micros Corpus (fängt Unter- UND Über-Schätzung). Nächster Schritt: /create-plan.
 
 
 ## Warten auf Testerin
@@ -83,6 +81,9 @@ kanban-plugin: board
 
 
 ## Geplant
+
+- [ ] **Parser unterschätzt Mikros bei whole/plant foods (Prompt-Bias + Golden-Corpus)** · Rebecca + Henrike (2) · #P1 #parse · 📋 Plan fertig (Option 1) · [[docs/plans/2026-06-22-parser-micro-reliability|→ Plan]] · [[docs/explore/parser-micro-underreporting|→ Explore]]
+	Gewählt: Option 1 (Prompt-Bias umdrehen + Golden-Corpus). Plan: erst Corpus + Baseline messen (welche Foods unterschlagen heute Mikros), dann das defensive „im Zweifel weglassen" auf „im Zweifel schätzen, nur bei wirklich <5% weglassen" umstellen (parse_de+parse_en, Anker/Jod-Korrektur/DHA-Fix bleiben), dann gegen den Corpus grün tunen (fängt Unter- UND Über-Schätzung), dann als Release-Gate fixieren + Device-Spotcheck. Alle Phasen CRITICAL (Nährwerte). Verworfen: deterministische Food-DB (eigenes großes Matching-Whack-a-Mole), nur-Prompt-ohne-Corpus (blind bei Gesundheitsdaten). Bauen erst mit /execute nach Freigabe.
 
 
 
