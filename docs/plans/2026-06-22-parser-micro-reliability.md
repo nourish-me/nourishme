@@ -1,6 +1,15 @@
 # Plan: Parser micro-reliability (bias recalibration + golden corpus)
 
-**Fortschritt:** `30%` (Phase 1 fertig: Corpus + Harness + Baseline)
+**Fortschritt:** `55%` (Phase 1 fertig, Phase 2 Bias-Flip drin, Phase 3 Tuning läuft)
+
+> **Phase-3-Zwischenstand (2026-06-22):** Bias-Flip hat geholfen, Lachs/Hering-DHA
+> kamen nach dem Flip durch (Baseline: rot). ABER noch nicht sauber grün: Ei-DHA fällt
+> einzelne Runs noch weg, und es gibt hohes Run-zu-Run-Rauschen (Süßkartoffel-A 560 statt
+> ~1400, Hähnchen-Cholin mal da/mal weg). Erkenntnis: ein EINZEL-Run ist als LLM-Gate zu
+> brittle. Phase 3/4 brauchen ein Mehrfach-Run-Akzeptanzkriterium (z.B. Corpus 3x, ein Food
+> gilt als grün, wenn es in der Mehrheit besteht) statt einer einzelnen Pass-Zahl. Plus:
+> die DHA-Eier-Karte in „Bereit für Tester" ist real nur INTERMITTIEREND gefixt, die
+> strukturelle Lösung hier ist der echte Fix.
 
 > **Baseline (2026-06-22, `dart run tool/micro_eval.dart`, 29 Foods):** ~22-26/29 je
 > Run, die Zahl WACKELT LLM-bedingt zwischen Runs, und genau das ist der Befund. Echte,
@@ -69,21 +78,26 @@ because it changes nutrition output, hence the corpus gate before anything ships
   - [ ] 🟥 (Optional, deferred) Patrizia sanity-check of the corpus ranges. Not a
     blocker; ranges are from standard references.
 
-- [ ] 🟥 **Phase 2: Prompt-bias recalibration (both locales) — CRITICAL**
-  - [ ] 🟥 🟥 CRITICAL: rewrite the defensive framing in `parse_de.dart` +
-    `parse_en.dart`: from "im Zweifel den Key weglassen" to "schätze für JEDES
-    erkennbare Lebensmittel aus üblichen Nährwerten; lass einen Key NUR weg, wenn der
-    Beitrag wirklich <5% der Tagesreferenz ist." Keep the existing anchors, the
-    iodine systematic-underestimate correction, and the DHA egg fix. Make the
-    inclusion rule explicit and consistent so borderline foods (oats) stop dropping.
-  - [ ] 🟥 Keep the over-reporting guardrail explicit (don't invent micros a food
-    doesn't contain) so the bias flip can't silently start hallucinating.
+- [x] 🟩 **Phase 2: Prompt-bias recalibration (both locales) — CRITICAL**
+  - [x] 🟩 CRITICAL: rewrote both `parse_de.dart` + `parse_en.dart`. The general
+    framing flipped from "im Zweifel weglassen / liste primär ≥5%" to "schätze für
+    JEDES erkennbare Lebensmittel, lass nur bei echtem <5% weg" (+ named oats/quinoa/
+    millet as whole-grain iron). The DHA rule reframed from the suppressive "STRIKTE
+    NULLREGEL ... = 0, WEGGELASSEN" to "ALWAYS estimate when a real source is present,
+    do NOT shrink the anchors (150 g salmon > 1000 mg), omit ONLY for lean meat/lean
+    fish/pure-plant." Anchors, iodine correction and the egg source kept.
+  - [x] 🟩 Over-reporting guardrail kept explicit (no DHA for plants, no B12 for
+    pure-plant, don't invent). analyze clean.
 
-- [ ] 🟥 **Phase 3: Re-run corpus, tune to green — CRITICAL**
-  - [ ] 🟥 🟥 CRITICAL: run the eval against the new prompt, diff vs baseline. Iterate
-    the prompt wording until the under-reporting cases pass AND no new over-reporting
-    appears (both directions asserted). The corpus IS the acceptance gate.
-  - [ ] 🟥 Record the final report in the plan (before/after per food).
+- [ ] 🟨 **Phase 3: Re-run corpus, tune to green — CRITICAL**
+  - [x] 🟩 First post-flip run: salmon/herring DHA now pass (were red in baseline) →
+    the flip works directionally. No new over-reporting (plant ALA sources stayed
+    DHA-free, water stayed empty).
+  - [ ] 🟥 🟥 CRITICAL OPEN: still flaky single-run (egg DHA dropped this run; A/choline
+    noise). Need a multi-run acceptance criterion (run the corpus N×, a food is green if
+    it passes the majority) instead of one brittle pass-count, then iterate the DHA-egg
+    wording until it is stably green. Harness hardened against empty worker responses.
+  - [ ] 🟥 Record the final before/after once the multi-run criterion is green.
 
 - [ ] 🟥 **Phase 4: Lock in as a release gate + device spot-check**
   - [ ] 🟥 Document `dart run tool/micro_eval.dart` as a pre-TestFlight step

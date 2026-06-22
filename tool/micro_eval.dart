@@ -109,8 +109,15 @@ Future<Map<String, dynamic>> _parse(
       ],
     }),
   );
+  if (resp.statusCode != 200) {
+    throw 'HTTP ${resp.statusCode}: ${resp.body.substring(0, resp.body.length.clamp(0, 160))}';
+  }
   final body = jsonDecode(resp.body) as Map<String, dynamic>;
-  final text = (body['content'] as List).first['text'] as String;
+  final content = body['content'];
+  if (content is! List || content.isEmpty) {
+    throw 'unerwartete Antwort (kein content): ${resp.body.substring(0, resp.body.length.clamp(0, 160))}';
+  }
+  final text = (content.first as Map)['text'] as String;
   final js = jsonDecode(
           text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1))
       as Map<String, dynamic>;
