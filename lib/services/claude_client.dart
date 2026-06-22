@@ -407,41 +407,55 @@ class ClaudeClient {
           .timeout(const Duration(seconds: 30));
     } on TimeoutException {
       throw CoachApiException(
-        'The coach is taking too long. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
+        isDe
+            ? 'Der Coach braucht gerade zu lange. Versuch es gleich nochmal. Bei dringenden Fragen wende dich bitte an deine Hebamme oder Ärztin.'
+            : 'The coach is taking too long. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
         'timeout after 30s',
       );
     } on SocketException catch (e) {
       throw CoachApiException(
-        'No internet connection. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
+        isDe
+            ? 'Keine Internetverbindung. Versuch es gleich nochmal. Bei dringenden Fragen wende dich bitte an deine Hebamme oder Ärztin.'
+            : 'No internet connection. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
         e.message,
       );
     } on http.ClientException catch (e) {
       throw CoachApiException(
-        'Connection problem. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
+        isDe
+            ? 'Verbindungsproblem. Versuch es gleich nochmal. Bei dringenden Fragen wende dich bitte an deine Hebamme oder Ärztin.'
+            : 'Connection problem. Try again in a moment. For urgent questions please reach out to your midwife or doctor.',
         e.message,
       );
     }
     if (response.statusCode == 401 || response.statusCode == 403) {
       throw CoachApiException(
-        'Auth problem. Please tell the developer.',
+        isDe
+            ? 'Authentifizierungsproblem. Bitte sag der Entwicklerin Bescheid.'
+            : 'Auth problem. Please tell the developer.',
         'HTTP ${response.statusCode}: ${utf8.decode(response.bodyBytes)}',
       );
     }
     if (response.statusCode == 429) {
       throw CoachApiException(
-        'Coach is overloaded right now. Try again in a minute.',
+        isDe
+            ? 'Der Coach ist gerade überlastet. Versuch es in einer Minute nochmal.'
+            : 'Coach is overloaded right now. Try again in a minute.',
         'HTTP 429',
       );
     }
     if (response.statusCode >= 500) {
       throw CoachApiException(
-        'Coach is unavailable right now. Try again soon.',
+        isDe
+            ? 'Der Coach ist gerade nicht erreichbar. Versuch es bald nochmal.'
+            : 'Coach is unavailable right now. Try again soon.',
         'HTTP ${response.statusCode}',
       );
     }
     if (response.statusCode != 200) {
       throw CoachApiException(
-        'Something went wrong. Try again.',
+        isDe
+            ? 'Etwas ist schiefgelaufen. Versuch es nochmal.'
+            : 'Something went wrong. Try again.',
         'HTTP ${response.statusCode}: ${utf8.decode(response.bodyBytes)}',
       );
     }
@@ -462,7 +476,9 @@ class ClaudeClient {
       // real CoachApiException (visible message + raw body for logs) instead
       // of letting a CastError bubble up as a generic "Couldn't send".
       throw CoachApiException(
-        'Something went wrong. Try again.',
+        isDe
+            ? 'Etwas ist schiefgelaufen. Versuch es nochmal.'
+            : 'Something went wrong. Try again.',
         'unexpected 200 body: ${raw.substring(0, raw.length.clamp(0, 300))}',
       );
     }
@@ -837,9 +853,9 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     // this through the user-message (not the system prompt) keeps the
     // baseline format identical for the common case.
     final followUpInstructionDe =
-        '\nFüge AM ENDE der Antwort eine Sektion **Fragen:** an mit 2-3 kurzen Bullets (je max 8 Wörter), die als ANTWORT-Vorlagen für die Nutzerin formuliert sind. Beispiele: "Ich esse selten Fisch", "Ich brauche Vorschläge für unterwegs", "Mir fehlt heute Energie". Format: `- <Bullet>`. Keine Fragezeichen.';
+        '\nFüge AM ENDE der Antwort eine Sektion **Fragen:** an mit 2-3 kurzen Bullets (je max 8 Wörter), die als ANTWORT-Vorlagen für die Nutzerin formuliert sind. Beispiele: "Ich habe wenig Zeit zum Kochen", "Ich brauche Vorschläge für unterwegs", "Mir fehlt heute Energie". Beispiele sind diät-neutral, schlage NIE ein Lebensmittel vor, das die Ernährungsweise oder Vermeidungsliste der Nutzerin ausschließt. Format: `- <Bullet>`. Keine Fragezeichen.';
     final followUpInstructionEn =
-        '\nAppend a section **Follow-ups:** AT THE END with 2-3 short bullets (max 8 words each), phrased as REPLY templates from the user. Examples: "I rarely eat fish", "I need on-the-go ideas", "I feel low energy today". Format: `- <bullet>`. No question marks.';
+        '\nAppend a section **Follow-ups:** AT THE END with 2-3 short bullets (max 8 words each), phrased as REPLY templates from the user. Examples: "I am short on time to cook", "I need on-the-go ideas", "I feel low energy today". Examples are diet-neutral; NEVER suggest a food the user\'s diet style or avoid-list excludes. Format: `- <bullet>`. No question marks.';
 
     var finalUserMessage = userMessage;
     // Shared day-state block right after the profile/daily context so the

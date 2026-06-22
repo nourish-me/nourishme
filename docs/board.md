@@ -6,10 +6,6 @@ kanban-plugin: board
 
 ## Backlog
 
-- [ ] **Quick-reply chips suggest fish to vegetarians** · Lotte (1) · #P2 · [[beta-feedback-log#2026-06-21 · Lotte (T11) · current beta · WhatsApp|→ Log]]
-	Lotte set Diet = Vegetarian but a coach quick-reply offered "I rarely eat fish or seafood". Root cause: followUpInstruction (EN/DE) carries "I rarely eat fish" as a literal example that the model echoes regardless of the diet line that is correctly in context. Small, safe fix: replace the literal example with diet-neutral ones.
-- [ ] **Coach error messages hardcoded English (whole family)** · Vanessa (1) · #P2 #i18n
-	Every CoachApiException message in claude_client.dart is hardcoded English (timeout :410, no-internet :415, connection :420, overloaded :432, unavailable :438/444/465) and surfaces verbatim in the DE app (coach_session_manager.dart:376, home_input.dart:541/1135). Same class as the supplement-banner i18n bug. Fix (option B): localize the whole error family at the callsites (isDe branch; claude_client has no BuildContext) and point the error bubble at the existing workaround (re-save the meal, or ask in chat). No dedicated retry button for now: the "T42 retry-loop" was the scroll retry, not a coach retry, so none exists today; add one only if timeouts recur.
 - [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 ^l47km2
 	The coach prose mentions DHA in eggs, but the structured DHA value in the meal entry stays at 0. Eggs typically deliver 30-90 mg DHA each, so 0 is wrong. The fix direction (populate a realistic structured value vs stop the coach mentioning nutrients not reflected in the data) gets decided in Explore. (Source: View 2 table; no chronological block.)
 - [ ] **Iodine-gap nag trigger tuning** · Celine (1) · #P2 · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^jbqo1t
@@ -92,6 +88,10 @@ kanban-plugin: board
 
 ## Review & Test
 
+- [ ] **Quick-reply chips suggest fish to vegetarians** · Lotte (1) · #P2 · 🔧 fixed, needs verify · [[beta-feedback-log#2026-06-21 · Lotte (T11) · current beta · WhatsApp|→ Log]]
+	Lotte set Diet = Vegetarian but a coach quick-reply offered "I rarely eat fish or seafood". Root cause: followUpInstruction (EN/DE) carried "I rarely eat fish" as a literal example the model echoed regardless of the diet line in context. Fixed in claude_client.dart: replaced the fish example with a diet-neutral one in BOTH locales AND added an explicit rule never to suggest a food the user's diet style or avoid-list excludes (covers the root cause beyond this one example). analyze clean, 330 tests green. Verify: a vegetarian profile no longer gets a fish/seafood quick-reply.
+- [ ] **Coach error messages hardcoded English (whole family)** · Vanessa (1) · #P2 #i18n · 🔧 fixed, needs verify
+	Every CoachApiException message surfaced verbatim in English in the DE app. Fixed by localizing the whole family at the throw in `_post` (which already receives `isDe`), cleaner than the planned callsite approach: timeout, no-internet, connection, auth, 429-overloaded, 500-unavailable, non-200 and unexpected-200 bodies now branch EN/DE; the midwife/doctor hint is preserved in the network errors. Also localized the per-meal non-API fallback in coach_session_manager. The chat callsite already used `commonGenericError` + `e.userMessage`, so it inherits the fix. analyze clean, 330 tests green. Verify: trigger an error in the DE app (e.g. airplane mode) and confirm the bubble is German.
 - [ ] **Algae safety false-positive on "Algenöl"** · Patricia (1) · #P1 #safety · 🔧 fix + test done, pending nutritionist · [[beta-feedback-log#2026-06-21 · Patricia (T13) · current beta · WhatsApp|→ Log]]
 	The pregnancy-only algae rule matched "Algenöl" via the substring "algen". Fixed: added "algenöl" to algaeExclusions (safety-rules.json) + a regression test (Algenöl / DHA-Algenöl don't fire, raw seaweed still does), all 323 tests green, analyze clean. Verifiable purely by unit test, no device needed. Pending: nutritionist sign-off that refined DHA algae oil sits outside the raw-seaweed iodine/arsenic risk before it ships. The fat-co-ingestion coaching tip (#P3) and the structural "scalable matching" work are tracked separately.
 - [ ] **German banner in EN supplement form** · Rebecca (1) · #P2 · 🔧 i18n fixed, needs device verify

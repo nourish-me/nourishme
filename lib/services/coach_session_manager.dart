@@ -395,7 +395,10 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
       debugPrint('Coach call failed for ${meals.length} meal(s): $e\n$stack');
       final message = e is CoachApiException
           ? e.userMessage
-          : (fallbackMessage ?? 'Coach reply unavailable. Try again later.');
+          : (fallbackMessage ??
+              (isDe
+                  ? 'Coach-Antwort gerade nicht verfügbar. Versuch es später nochmal.'
+                  : 'Coach reply unavailable. Try again later.'));
       final coachAt = coachAnchorFor(last.createdAt);
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,
