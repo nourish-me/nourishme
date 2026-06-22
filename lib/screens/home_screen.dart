@@ -846,6 +846,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               onDelete: () => _confirmDelete(context, ref, meal),
             ),
           ));
+          // TEMP diagnostic (Lotte ordering bug, 2026-06-22): show the
+          // SORT time (ThreadItem.timestamp, drives position) vs the CHIP
+          // time (MealEntry.createdAt, what the card shows) per entry, in
+          // render order. If they diverge for an out-of-place entry, that
+          // pinpoints the bug. Remove after diagnosing.
+          () {
+            String t(DateTime d) =>
+                '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}:${d.second.toString().padLeft(2, '0')}';
+            final diverges = item.timestamp != meal.createdAt;
+            widgets.add(Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+              child: Text(
+                'DBG  sort=${t(item.timestamp)}  chip=${t(meal.createdAt)}  ${diverges ? "⟂ DIVERGIERT" : "ok"}  id=${meal.id.length > 6 ? meal.id.substring(meal.id.length - 6) : meal.id}',
+                style: TextStyle(
+                    fontSize: 11,
+                    color: diverges
+                        ? const Color(0xFFB00020)
+                        : const Color(0xFF888888)),
+              ),
+            ));
+          }();
           // In-thread thinking bubble: appears directly after any meal
           // whose coach call is currently in flight. Suppressed in
           // meals-only mode (same as actual coach bubbles) so the
