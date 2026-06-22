@@ -58,12 +58,11 @@ kanban-plugin: board
 
 ## Explore
 
-- [ ] **Iodine-gap nag trigger tuning** · Celine (1) · #P2 · 🔎 Explore fertig: Cooldown existiert schon · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^jbqo1t
-	Celine deliberately takes a Femibion variant without iodine, so the chronic "iodine low" nudge is correct on the data but exhausting on tone. EXPLORE (2026-06-22): the per-meal micro-nudge (_microNudgeFor, coach_session_manager.dart) ALREADY has a 7-day per-nutrient cooldown (#106), added AFTER Celine's Build +24 report. So the acute "daily nag" is most likely already capped to weekly on the current build. What's still missing: a fine "deliberate-skip" opt-out that keeps iodine VISIBLE in the header but mutes its nag. A blunt opt-out exists (deselect iodine in Settings, selectedMicronutrients) but that also hides it from tracking, which isn't what she wants. Pattern: single voice + tone, NOT a no-brainer → collect, don't build the opt-out yet; the cooldown may already have resolved the pain. Optional investigative question to Celine (frequency on current build) before deciding.
-
-
 
 ## Warten auf Testerin
+
+- [ ] **Iodine-gap nag trigger tuning** · Celine (1) · #P2 · ⏳ Rückfrage an Celine gesendet 2026-06-22 (Häufigkeit auf aktuellem Build) · [[beta-feedback-log#2026-06-15 · Celine (T2) · Build +24 · WhatsApp text|→ Log]] ^jbqo1t
+	Celine deliberately takes a Femibion variant without iodine, so the chronic "iodine low" nudge is correct on the data but exhausting on tone. EXPLORE (2026-06-22): the per-meal micro-nudge (_microNudgeFor, coach_session_manager.dart) ALREADY has a 7-day per-nutrient cooldown (#106), shipped in Build +26 — AFTER Celine's Build +24 report — so she now has it (current build +36). The acute "daily nag" is therefore most likely already capped to weekly. Sent her an investigative question about how often she still sees the hint. Pending her answer: if rare now → close (cooldown was enough); if still nagging → build the fine "deliberate-skip" opt-out (keeps iodine visible in the header, mutes only its nag; the blunt deselect in Settings hides it entirely, which she doesn't want). Single voice + tone, so no build until her answer.
 
 
 
