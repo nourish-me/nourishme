@@ -853,9 +853,9 @@ Reply ONLY with a JSON array of short English warning strings, e.g. ["Caffeine: 
     // this through the user-message (not the system prompt) keeps the
     // baseline format identical for the common case.
     final followUpInstructionDe =
-        '\nFüge AM ENDE der Antwort eine Sektion **Fragen:** an mit 2-3 kurzen Bullets (je max 8 Wörter), die als ANTWORT-Vorlagen für die Nutzerin formuliert sind. Beispiele: "Ich habe wenig Zeit zum Kochen", "Ich brauche Vorschläge für unterwegs", "Mir fehlt heute Energie". Beispiele sind diät-neutral, schlage NIE ein Lebensmittel vor, das die Ernährungsweise oder Vermeidungsliste der Nutzerin ausschließt. Format: `- <Bullet>`. Keine Fragezeichen.';
+        '\nFüge AM ENDE der Antwort eine Sektion **Fragen:** an mit 2-3 kurzen Bullets (je max 8 Wörter), die als ANTWORT-Vorlagen für die Nutzerin formuliert sind. Die Vorlagen MÜSSEN zur Ernährungsweise der Nutzerin passen: erwähne darin NIE ein Lebensmittel, das sie laut Ernährungsweise oder Vermeidungsliste gar nicht isst (z.B. bei vegetarisch/vegan kein Fisch oder Fleisch, bei veganer Ernährung auch keine Eier/Milch). Halte die Vorlagen am besten diät-neutral. Beispiele: "Ich habe wenig Zeit zum Kochen", "Ich brauche Vorschläge für unterwegs", "Mir fehlt heute Energie". Format: `- <Bullet>`. Keine Fragezeichen.';
     final followUpInstructionEn =
-        '\nAppend a section **Follow-ups:** AT THE END with 2-3 short bullets (max 8 words each), phrased as REPLY templates from the user. Examples: "I am short on time to cook", "I need on-the-go ideas", "I feel low energy today". Examples are diet-neutral; NEVER suggest a food the user\'s diet style or avoid-list excludes. Format: `- <bullet>`. No question marks.';
+        '\nAppend a section **Follow-ups:** AT THE END with 2-3 short bullets (max 8 words each), phrased as REPLY templates from the user. The templates MUST fit the user\'s diet: NEVER mention a food she does not eat at all per her diet style or avoid-list (e.g. no fish or meat for vegetarian/vegan, no eggs/dairy for vegan). Keep them diet-neutral where possible. Examples: "I am short on time to cook", "I need on-the-go ideas", "I feel low energy today". Format: `- <bullet>`. No question marks.';
 
     var finalUserMessage = userMessage;
     // Shared day-state block right after the profile/daily context so the
