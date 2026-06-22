@@ -86,13 +86,13 @@ kanban-plugin: board
 
 ## Review & Test
 
-- [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 · 🔧 fixed, needs device verify · ^l47km2
-	Root cause was a self-contradiction in both parse prompts: egg yolk listed as a 30-40 mg DHA source, but the STRICT DHA ZERO RULE only allowed fatty sea fish / fish oil / algae oil and forced dha_mg=0 for everything else, zeroing eggs. Fixed in parse_de.dart + parse_en.dart: added egg/egg yolk to the zero-rule's allowed sources and made it explicit (30-40 mg per whole egg, egg white near zero). analyze clean, 330 tests green. Verify on device: log "1 Ei", the structured DHA value should now be > 0. No-brainer data-correctness fix (clinical), no plan needed.
 
 
 
 ## Bereit für Tester (TestFlight)
 
+- [ ] **DHA shown 0 from eggs** · Rebecca (1) · #P2 · ✅ Gerät 2026-06-22 (Ei → DHA > 0 bestätigt), wartet auf TestFlight · ^l47km2
+	Root cause was a self-contradiction in both parse prompts: egg yolk listed as a 30-40 mg DHA source, but the STRICT DHA ZERO RULE only allowed fatty sea fish / fish oil / algae oil and forced dha_mg=0 for everything else, zeroing eggs. Fixed in parse_de.dart + parse_en.dart: added egg/egg yolk to the zero-rule's allowed sources and made it explicit. Verified live against the worker (1 egg → 35 mg DHA) and on device after a clean reinstall. No-brainer data-correctness fix (clinical).
 - [ ] **Algae safety false-positive on "Algenöl"** · Patricia (1) · #P1 #safety · 🔧 fix + test fertig, → Sign-off + verify mit Patrizia (T13, Ernährungsberaterin) auf nächstem Build · [[beta-feedback-log#2026-06-21 · Patricia (T13) · current beta · WhatsApp|→ Log]]
 	The pregnancy-only algae rule matched "Algenöl" via the substring "algen". Fixed: added "algenöl" to algaeExclusions (safety-rules.json) + a regression test (Algenöl / DHA-Algenöl don't fire, raw seaweed still does), all 323 tests green, analyze clean. Narrow blast radius: only refined algae OIL stops warning, raw seaweed (Nori etc.) still fires, and over-warn stays the default. Riding the next TestFlight: Patrizia is herself a nutritionist AND the reporter, so she provides both the fachliche sign-off and the on-build verification. The fat-co-ingestion coaching tip (#P3) and the structural "scalable matching" work are tracked separately.
 - [ ] **Quick-reply chips suggest fish to vegetarians** · Lotte (1) · #P2 · ✅ Gerät 2026-06-22 (Veggie-Profil, kein Fisch/Fleisch-Chip), wartet auf TestFlight
