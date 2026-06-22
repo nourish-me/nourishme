@@ -1,6 +1,14 @@
 # Plan: Unified coach context contract
 
-**Fortschritt:** `80%` (Phase 1–4 Code fertig; nur Device/TestFlight-Verify offen)
+**Fortschritt:** `90%` (Phase 1–4 fertig; Daten-Pfad am Gerät verifiziert; nur die
+nachmittägliche Verhaltens-Prüfung offen)
+
+> **Device-Verify 2026-06-22:** Per-Meal-Daten-Pfad am physischen iPhone bestätigt. Via
+> temporärem Diagnose-Build (dayContext unter die Coach-Antwort gespiegelt) gesehen, dass
+> der Coach die chronologische Mahlzeiten-Liste mit Uhrzeiten korrekt erhält. Diagnose-Code
+> wieder entfernt, sauberer Build neu installiert. Offen bleibt nur die Verhaltens-Prüfung
+> NACH 14 Uhr (sagt der Coach dann nicht mehr „Mittag steht an", wenn Mittag geloggt ist),
+> da sich der 13:19-Originalzustand morgens nicht nachstellen lässt.
 
 > **Scope-Korrektur beim Bauen (2026-06-21):** Hydration fällt raus — Wasser/Hydration
 > wird in der App nirgends getrackt (kein Modell, kein Provider), es gibt also keine
@@ -70,9 +78,11 @@ before ship.
   - [x] 🟩 Cache boundary confirmed by code read: per-meal system prompt is cached
     (`cacheSystem: true`), the user message is never cached → the day-state adds only an
     uncached user-message delta, the cached prefix is untouched.
-  - [ ] 🟥 OPEN — Verify (device/TestFlight): the per-meal coach no longer announces an
-    already-eaten meal; references configured supplements; safety/nutrition lines unchanged.
-    Blocked on a device build (local debug console unreachable, see ios-local-device-testing).
+  - [x] 🟩 Verify part 1 (device 2026-06-22): the day-state block REACHES the per-meal
+    coach correctly (chronological meal list + times confirmed via diagnostic mirror).
+  - [ ] 🟨 Verify part 2 (afternoon): after 14:00, log a meal and confirm the coach no
+    longer announces an already-eaten lunch and references configured supplements. The
+    morning 13:19 state can't be reproduced before noon.
 
 - [x] 🟩 **Phase 3: Wire the chat call onto the same builder (CRITICAL)**
   - [x] 🟩 CRITICAL: replaced `home_input._buildContext()`'s Build +35 ad-hoc micro +
