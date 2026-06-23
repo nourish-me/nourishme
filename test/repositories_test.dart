@@ -274,11 +274,22 @@ void main() {
   });
 
   // ─────────────────────── ThreadRepository race ───────────────────────
-  // Probes the known open read-modify-write race in ThreadRepository.add()
-  // (board: "ThreadRepository.add() race"). add() does getForDate -> append
-  // -> put without a guard, so two concurrent adds could read the same
-  // starting state and one overwrites the other. This fires several add()s
-  // on the SAME day without awaiting in between and asserts none is lost.
+  // Regression guard for the unguarded read-modify-write in
+  // ThreadRepository.add() (getForDate -> append -> await _box.put).
+  //
+  // WHY this guard works, and why it must NOT be "simplified": Future.wait
+  // runs each add() synchronously only up to its FIRST await. Today that
+  // await is at _box.put, and the in-memory put applies synchronously before
+  // add() suspends, so concurrent adds serialise and nothing is lost (green).
+  //
+  // The guard's whole point: if a later refactor introduces an `await`
+  // BETWEEN getForDate (the read) and _box.put (the in-memory write), both
+  // adds would capture the SAME stale state, the last put would overwrite the
+  // first, and an entry would be lost -> this test goes RED and catches it.
+  //
+  // Therefore keep the "fire all add()s via Future.wait without awaiting
+  // between them" shape. Collapsing it (e.g. awaiting each add sequentially)
+  // would silently destroy the protection while staying green.
   group('ThreadRepository.add() concurrency', () {
     test('several quasi-concurrent add() on the same day keep every entry',
         () async {
