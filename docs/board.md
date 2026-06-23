@@ -52,8 +52,6 @@ kanban-plugin: board
 	The repository's add method does an unguarded read-modify-write on the per-day key. Under fast bundle-save flows, two concurrent adds can read the same starting state and one will overwrite the other. Hard to test deterministically; the right fix is probably a guarded write, but the current user impact is theoretical, not a confirmed user-visible bug.
 - [ ] **Tages-Aggregation provider tests** · #test
 	The provider layer that computes the daily totals shown to the user has no test coverage. These are the numbers the user trusts most ("how many kcal did I log today"), so a regression here would be high-impact even if low-likelihood. *Source too thin for more detail.*
-- [ ] **Coach-Kombinier-Logik tests (submitMeals)** · #test
-	The submitMeals path combines multi-meal logs into a single coach call, including sums and the daily-total anchor. No unit tests today; bugs here would silently affect the coach prompt the model receives. *Source too thin for more detail.*
 - [ ] **Repository-CRUD tests (Hive-Harness)** · #test
 	Meal, favorite and weight repositories have no integration tests against a Hive harness. Their CRUD paths are the primary persistence layer and would benefit from a focused test suite. *Source too thin for more detail.*
 - [ ] **Onboarding-Logik tests (reine Validierung)** · #test
@@ -116,6 +114,8 @@ kanban-plugin: board
 
 ## Shipped
 
+- [x] **Coach-Kombinier-Logik tests (submitMeals)** · #test · ✅ abgedeckt (Test-Coverage)
+	Die reine Kombinier-Mathematik (Summen, Safety-Dedupe, Stream-Race-Merge, Tag-Anker) war in `coach_meal_bundle_test.dart` bereits gründlich getestet; `coachAnchorFor` in `thread_ordering_test.dart`. Ergänzt: `test/coach_session_manager_test.dart` für `isRetroactiveMeal` (60-min-Gate, das den Live-vs-pausiert-Coach-Skip entscheidet), 6 Tests inkl. Boundary. Die StateNotifier-Orchestrierung (In-Flight-Set, every-3rd-followUps) ist Integrationsebene, bewusst nicht als Unit-Test. Reine Logik damit zu.
 - [x] **_post Fehler-Mapping tests (HTTP-Mock)** · #test · ✅ merged (Test-Coverage, kein TestFlight nötig)
 	`ClaudeClient` nimmt jetzt einen optionalen `http.Client` (Default unverändert), damit `_post` mit einem package:http MockClient testbar ist. `test/claude_client_error_mapping_test.dart` (9 Tests) deckt die ganze CoachApiException-Familie über `generatePerMealResponse` ab: 401/403, 429, 5xx, sonstige non-200, unerwarteter 200-Body, SocketException, ClientException, Hebamme/Ärztin-Hinweis bei Netzfehlern, erfolgreicher 200, je mit EN/DE-Assertion (sichert den i18n-Fix). Suite 339 grün.
 - [x] **Phase safety filter (lactation-only)** · Isabella + Julia (2) · #P1 · ✅ +36 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]]
