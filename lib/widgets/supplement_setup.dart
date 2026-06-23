@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../l10n/app_localizations.dart';
+import '../main.dart' show rootScaffoldMessengerKey;
 import '../models/user_profile_settings.dart';
 import '../providers/meal_providers.dart';
 import '../models/meal_entry.dart' show MicronutrientKey;
@@ -259,6 +260,23 @@ class _ReviewSheetState extends State<_ReviewSheet> {
     for (final entry in _valueControllers.entries) {
       final parsed = double.tryParse(entry.value.text.replaceAll(',', '.'));
       if (parsed != null && parsed > 0) values[entry.key] = parsed;
+    }
+    // Warn when a supplement is saved WITHOUT any nutrient values (the scan
+    // missed the table, or it's a name-only entry). A silent name-only save
+    // let a tester think the values were captured when they weren't (Julia,
+    // 2026-06), and the coach can only reference amounts it actually has.
+    // Shown via the global messenger because this sheet pops immediately.
+    if (values.isEmpty) {
+      final isDe = Localizations.localeOf(context)
+          .languageCode
+          .toLowerCase()
+          .startsWith('de');
+      rootScaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
+        content: Text(isDe
+            ? 'Nur der Name gespeichert, keine Nährwerte erkannt. Tippe das Supplement an, um die Werte zu ergänzen, sonst kann der Coach sie nicht einrechnen.'
+            : "Saved the name only, no nutrient values. Tap the supplement to add them, otherwise the coach can't factor them in."),
+        duration: const Duration(seconds: 6),
+      ));
     }
     Navigator.of(context).pop(ActiveSupplement(
       name: _name.text.trim().isEmpty ? '?' : _name.text.trim(),
