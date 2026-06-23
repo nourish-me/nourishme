@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/user_profile_settings.dart';
+import 'onboarding_validation.dart';
 import '../models/weight_entry.dart';
 import '../providers/meal_providers.dart';
 import '../providers/ui_providers.dart';
@@ -49,12 +50,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     'consent',
   ];
 
-  // Step indices we branch on. Keeping these in one place keeps the
-  // skip branching readable when the step list grows.
-  static const _phaseDetailsStepIndex = 4;
-  static const _supplementStepIndex = 5;
-  static const _summaryStepIndex = 6;
-  static const _consentStepIndex = 7;
+  // Step indices we branch on. Single source of truth lives in
+  // OnboardingValidation (shared with the pure step-gate).
+  static const _phaseDetailsStepIndex =
+      OnboardingValidation.phaseDetailsStepIndex;
+  static const _supplementStepIndex = OnboardingValidation.supplementStepIndex;
 
   final _controller = PageController();
   int _step = 0;
@@ -152,45 +152,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   int get _totalSteps => 8;
 
-  bool get _canAdvance {
-    switch (_step) {
-      case 1:
-        // Phase: at least one of pregnant/lactating/neither must be picked.
-        return _isPregnant || _isLactating || _phaseExplicitlyNeither;
-      case 2:
-        // Goal: any of nutrients/body/both is valid; default 'nutrients'
-        // so the user can keep tapping through without forced choice.
-        return true;
-      case 3:
-        // Body: birthdate is pre-filled, height/weight defaults exist.
-        return double.tryParse(_height.text.replaceAll(',', '.')) != null &&
-            double.tryParse(_weight.text.replaceAll(',', '.')) != null;
-      case _phaseDetailsStepIndex:
-        // Lactation phase: progressive disclosure requires both the
-        // children-count AND the child's age to be explicitly picked
-        // before the user can move on. Otherwise the milk-share + volume
-        // sections are still hidden and the kcal estimate would silently
-        // run off bucket-defaults.
-        if (_isLactating &&
-            (!_numChildrenAcknowledged || !_childAgeAcknowledged)) {
-          return false;
-        }
-        return true;
-      case _summaryStepIndex:
-        // Summary step: disclaimer is shown as plain text (no longer gated
-        // by a checkbox - that confused more users than it protected).
-        // Tapping "Los geht's" still records the acceptance timestamp in
-        // _finish so we have an audit trail.
-        return true;
-      case _consentStepIndex:
-        // Consent step: Pflicht-Einwilligung MUSS gesetzt sein (sonst
-        // kann das Coaching keine Daten senden und die App ist nutzlos).
-        // Analytics-Einwilligung ist frei, also keine Gate-Bedingung.
-        return _healthDataConsent;
-      default:
-        return true;
-    }
-  }
+  bool get _canAdvance => OnboardingValidation.canAdvance(
+        step: _step,
+        isPregnant: _isPregnant,
+        isLactating: _isLactating,
+        phaseExplicitlyNeither: _phaseExplicitlyNeither,
+        heightText: _height.text,
+        weightText: _weight.text,
+        numChildrenAcknowledged: _numChildrenAcknowledged,
+        childAgeAcknowledged: _childAgeAcknowledged,
+        healthDataConsent: _healthDataConsent,
+      );
 
   static int _ageFromBirthdate(DateTime b) {
     final now = DateTime.now();
