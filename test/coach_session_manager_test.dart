@@ -63,60 +63,66 @@ void main() {
   });
 
   group('coachReplyTextFor', () {
-    test('success: trims whitespace and replaces the em-dash with a hyphen', () {
-      expect(
-        CoachSessionManager.coachReplyTextFor(
-            response: '  Stark gemacht — iss zum Abend etwas Eisenreiches.  ',
-            isDe: true),
-        'Stark gemacht - iss zum Abend etwas Eisenreiches.',
-      );
+    test('success: trims, replaces the em-dash, NOT a system notice', () {
+      final r = CoachSessionManager.coachReplyTextFor(
+          response: '  Stark gemacht — iss zum Abend etwas Eisenreiches.  ',
+          isDe: true);
+      expect(r.text, 'Stark gemacht - iss zum Abend etwas Eisenreiches.');
+      expect(r.isSystemNotice, isFalse);
     });
 
-    test('CoachApiException maps to its userMessage, ignoring fallback + locale',
+    test('CoachApiException → userMessage (system notice), ignores fallback',
         () {
       final e = CoachApiException(
           'Der Coach ist gerade überlastet. Versuch es in einer Minute nochmal.',
           'HTTP 429');
-      final text = CoachSessionManager.coachReplyTextFor(
+      final r = CoachSessionManager.coachReplyTextFor(
           error: e, isDe: false, fallbackMessage: 'WIRD IGNORIERT');
-      expect(text,
+      expect(r.text,
           'Der Coach ist gerade überlastet. Versuch es in einer Minute nochmal.');
-      expect(text, isNot('WIRD IGNORIERT'));
+      expect(r.text, isNot('WIRD IGNORIERT'));
+      expect(r.isSystemNotice, isTrue);
     });
 
-    // CURRENT BEHAVIOUR, intentionally pinned (no fallback built yet): an empty
-    // or whitespace-only model reply persists an EMPTY coach bubble. The
-    // fallback decision is Vanessa's, this test only documents the status quo.
-    test('empty / whitespace response → empty string (documents empty bubble)',
+    // Was "documents the empty bubble"; now repurposed to pin the HANDLED
+    // behaviour: an empty / whitespace 200 reply becomes the localized
+    // fallback text AND is flagged as a system notice (so it isn't fed back
+    // to the coach). "Empty" stays a documented, handled case.
+    test('empty / whitespace response → localized fallback + system notice',
         () {
-      expect(
-          CoachSessionManager.coachReplyTextFor(response: '', isDe: true), '');
-      expect(
-          CoachSessionManager.coachReplyTextFor(response: '   \n  ', isDe: true),
-          '');
+      final de =
+          CoachSessionManager.coachReplyTextFor(response: '', isDe: true);
+      expect(de.text,
+          'Ich konnte gerade keine Antwort erzeugen. Versuch es bitte gleich noch mal.');
+      expect(de.isSystemNotice, isTrue);
+
+      final en = CoachSessionManager.coachReplyTextFor(
+          response: '   \n  ', isDe: false);
+      expect(en.text,
+          "I couldn't generate a reply just now. Please try again in a moment.");
+      expect(en.isSystemNotice, isTrue);
     });
 
-    test('non-API error without fallback → localized default (DE/EN)', () {
-      expect(
-        CoachSessionManager.coachReplyTextFor(
-            error: Exception('boom'), isDe: true),
-        'Coach-Antwort gerade nicht verfügbar. Versuch es später nochmal.',
-      );
-      expect(
-        CoachSessionManager.coachReplyTextFor(
-            error: Exception('boom'), isDe: false),
-        'Coach reply unavailable. Try again later.',
-      );
+    test('non-API error without fallback → localized default, system notice',
+        () {
+      final de = CoachSessionManager.coachReplyTextFor(
+          error: Exception('boom'), isDe: true);
+      expect(de.text,
+          'Coach-Antwort gerade nicht verfügbar. Versuch es später nochmal.');
+      expect(de.isSystemNotice, isTrue);
+
+      final en = CoachSessionManager.coachReplyTextFor(
+          error: Exception('boom'), isDe: false);
+      expect(en.text, 'Coach reply unavailable. Try again later.');
     });
 
     test('non-API error uses the caller fallback when provided', () {
-      expect(
-        CoachSessionManager.coachReplyTextFor(
-            error: Exception('boom'),
-            isDe: true,
-            fallbackMessage: 'Mein lokalisierter Fallback'),
-        'Mein lokalisierter Fallback',
-      );
+      final r = CoachSessionManager.coachReplyTextFor(
+          error: Exception('boom'),
+          isDe: true,
+          fallbackMessage: 'Mein lokalisierter Fallback');
+      expect(r.text, 'Mein lokalisierter Fallback');
+      expect(r.isSystemNotice, isTrue);
     });
   });
 }

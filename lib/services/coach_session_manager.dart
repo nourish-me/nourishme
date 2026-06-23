@@ -223,28 +223,44 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     return plusOne.isAfter(endOfDay) ? endOfDay : plusOne;
   }
 
-  // Pure mapping from a coach call's outcome to the text we persist as the
-  // coach response. Extracted from _runCallFor so the success/error/empty
-  // branches are unit-testable without the provider + network stack.
-  // Success: trim + replace the em-dash the model still sneaks in despite the
-  // prompt instruction. Failure: the CoachApiException's user-facing message,
-  // else the caller's localized fallback, else a locale default.
+  // Pure mapping from a coach call's outcome to the text we persist + whether
+  // that text is a system notice (not a real coach utterance). Extracted from
+  // _runCallFor so the success/error/empty branches are unit-testable without
+  // the provider + network stack.
+  //   - success, non-empty: trim + replace the em-dash the model still sneaks
+  //     in despite the prompt; this is a real coach answer (isSystemNotice false).
+  //   - success, empty/whitespace text (a 200 with no completion): a localized
+  //     "couldn't generate a reply" fallback, marked as a system notice.
+  //   - failure: the CoachApiException's user-facing message, else the caller's
+  //     localized fallback, else a locale default; marked as a system notice.
+  // System notices render as a bubble but are excluded from the chat history
+  // fed back to the coach (home_input._buildHistory).
   @visibleForTesting
-  static String coachReplyTextFor({
+  static ({String text, bool isSystemNotice}) coachReplyTextFor({
     String? response,
     Object? error,
     required bool isDe,
     String? fallbackMessage,
   }) {
     if (error != null) {
-      return error is CoachApiException
+      final msg = error is CoachApiException
           ? error.userMessage
           : (fallbackMessage ??
               (isDe
                   ? 'Coach-Antwort gerade nicht verfügbar. Versuch es später nochmal.'
                   : 'Coach reply unavailable. Try again later.'));
+      return (text: msg, isSystemNotice: true);
     }
-    return (response ?? '').trim().replaceAll('—', '-');
+    final cleaned = (response ?? '').trim().replaceAll('—', '-');
+    if (cleaned.isEmpty) {
+      return (
+        text: isDe
+            ? 'Ich konnte gerade keine Antwort erzeugen. Versuch es bitte gleich noch mal.'
+            : "I couldn't generate a reply just now. Please try again in a moment.",
+        isSystemNotice: true,
+      );
+    }
+    return (text: cleaned, isSystemNotice: false);
   }
 
   Future<void> _runCallFor(
@@ -391,11 +407,12 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         dayContext: dayContext,
       );
       final coachAt = coachAnchorFor(last.createdAt);
-      final cleaned = coachReplyTextFor(response: response, isDe: isDe);
+      final reply = coachReplyTextFor(response: response, isDe: isDe);
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,
-        text: cleaned,
+        text: reply.text,
         at: coachAt,
+        isSystemNotice: reply.isSystemNotice,
       ));
       analytics.capture('coach_reply',
           properties: {'kind': 'per_meal', 'ok': true});
@@ -414,13 +431,14 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
       }
     } catch (e, stack) {
       debugPrint('Coach call failed for ${meals.length} meal(s): $e\n$stack');
-      final message =
-          coachReplyTextFor(error: e, isDe: isDe, fallbackMessage: fallbackMessage);
+      final reply = coachReplyTextFor(
+          error: e, isDe: isDe, fallbackMessage: fallbackMessage);
       final coachAt = coachAnchorFor(last.createdAt);
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,
-        text: message,
+        text: reply.text,
         at: coachAt,
+        isSystemNotice: reply.isSystemNotice,
       ));
       analytics.capture('coach_reply',
           properties: {'kind': 'per_meal', 'ok': false});

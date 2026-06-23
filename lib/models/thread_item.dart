@@ -19,6 +19,13 @@ class ThreadItem {
   // message. Null/normal renders as a regular coach bubble. Legacy
   // entries (pre-#93) carry null and read as normal.
   final CoachResponseType? responseType;
+  // System/UI message rather than a real coach utterance: the empty-reply
+  // fallback and the error/connection messages. Rendered as a bubble so the
+  // user sees it, but excluded from the chat history fed back to the coach
+  // (_buildHistory) so the model never reads its own "couldn't reply" /
+  // "overloaded" notices as prior turns. Default false; legacy entries
+  // (without the key) load as false and behave exactly as before.
+  final bool isSystemNotice;
 
   const ThreadItem({
     required this.id,
@@ -27,6 +34,7 @@ class ThreadItem {
     this.mealId,
     this.text,
     this.responseType,
+    this.isSystemNotice = false,
   });
 
   factory ThreadItem.meal({required String mealId, required DateTime at}) =>
@@ -42,6 +50,7 @@ class ThreadItem {
     required String text,
     required DateTime at,
     CoachResponseType responseType = CoachResponseType.normal,
+    bool isSystemNotice = false,
   }) =>
       ThreadItem(
         id: 'cr-${at.microsecondsSinceEpoch}',
@@ -50,6 +59,7 @@ class ThreadItem {
         mealId: mealId,
         text: text,
         responseType: responseType,
+        isSystemNotice: isSystemNotice,
       );
 
   factory ThreadItem.userQuestion({required String text, required DateTime at}) =>
@@ -64,6 +74,7 @@ class ThreadItem {
     required String text,
     required DateTime at,
     CoachResponseType responseType = CoachResponseType.normal,
+    bool isSystemNotice = false,
   }) =>
       ThreadItem(
         id: 'ca-${at.microsecondsSinceEpoch}',
@@ -71,6 +82,7 @@ class ThreadItem {
         type: ThreadItemType.coachAnswer,
         text: text,
         responseType: responseType,
+        isSystemNotice: isSystemNotice,
       );
 
   Map<String, dynamic> toJson() => {
@@ -81,6 +93,7 @@ class ThreadItem {
         if (text != null) 'text': text,
         if (responseType != null && responseType != CoachResponseType.normal)
           'responseType': responseType!.wire,
+        if (isSystemNotice) 'isSystemNotice': true,
       };
 
   factory ThreadItem.fromJson(Map<String, dynamic> j) => ThreadItem(
@@ -92,5 +105,6 @@ class ThreadItem {
         responseType: j['responseType'] is String
             ? CoachResponseType.fromWire(j['responseType'] as String)
             : null,
+        isSystemNotice: j['isSystemNotice'] == true,
       );
 }

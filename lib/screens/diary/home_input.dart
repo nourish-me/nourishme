@@ -321,6 +321,10 @@ class _HomeInputState extends ConsumerState<HomeInput> {
           ));
         case ThreadItemType.coachResponse:
         case ThreadItemType.coachAnswer:
+          // System notices (empty-reply fallback, error/connection messages)
+          // render as bubbles but are NOT real coach utterances, so they must
+          // not be fed back to the model as prior turns.
+          if (item.isSystemNotice) continue;
           if ((item.text ?? '').isEmpty) continue;
           turns.add(ChatTurn(isUser: false, text: item.text!));
         case ThreadItemType.userQuestion:
@@ -506,6 +510,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
       await threadRepo.add(ThreadItem.coachAnswer(
         text: e.userMessage,
         at: DateTime.now(),
+        isSystemNotice: true,
       ));
     } catch (e) {
       replyOk = false;
@@ -514,6 +519,7 @@ class _HomeInputState extends ConsumerState<HomeInput> {
             ? AppLocalizations.of(context).commonGenericError
             : 'Something went wrong. Try again.',
         at: DateTime.now(),
+        isSystemNotice: true,
       ));
     } finally {
       // Track chat coach success/failure rate alongside the per-meal one.
