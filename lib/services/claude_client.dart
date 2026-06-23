@@ -155,16 +155,23 @@ class MealParseResult {
   // and silently skip any value we can't read as a number, so one malformed
   // entry never blocks logging the meal. Returns null only when the block is
   // absent or not a map (preserving the "absent == 0" aggregation contract).
+  // Coerce an AI-returned nutrient value to a number: numbers pass through,
+  // numeric strings ("120", "120 ") parse to 120, anything else is null.
+  // Shared by the meal parser AND parseSupplementLabel so a vision/OCR label
+  // that hands back stringified numbers isn't silently dropped.
+  @visibleForTesting
+  static double? coerceNutrientValue(Object? value) => value is num
+      ? value.toDouble()
+      : value is String
+          ? double.tryParse(value.trim())
+          : null;
+
   static Map<String, double>? _parseMicronutrients(Object? raw) {
     if (raw is! Map) return null;
     final out = <String, double>{};
     raw.forEach((key, value) {
       if (key is! String) return;
-      final n = value is num
-          ? value.toDouble()
-          : value is String
-              ? double.tryParse(value.trim())
-              : null;
+      final n = coerceNutrientValue(value);
       if (n == null) return;
       final canonical = canonicalNutrientKey(key);
       // Drop macros if the model accidentally packed them into the
@@ -1275,12 +1282,14 @@ Return the structured coach reply as defined in the system prompt. Use the profi
     final perDose = <String, double>{};
     if (rawValues != null) {
       rawValues.forEach((k, v) {
-        if (k is! String || v is! num) return;
+        if (k is! String) return;
+        final n = MealParseResult.coerceNutrientValue(v);
+        if (n == null) return;
         final canonical = MealParseResult.canonicalNutrientKey(k);
         perDose.update(
           canonical,
-          (prev) => prev + v.toDouble(),
-          ifAbsent: () => v.toDouble(),
+          (prev) => prev + n,
+          ifAbsent: () => n,
         );
       });
     }
