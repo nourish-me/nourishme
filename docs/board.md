@@ -50,8 +50,8 @@ kanban-plugin: board
 	The energy-drink safety rule's secondary keyword "effect" only matches if a caffeine keyword has already matched first, which makes it functionally redundant: the rule was already firing on caffeine alone. Cosmetic, low priority.
 - [ ] **Beta-Bug "bundled scan + text" ordering** · #code #mittel
 	A tester reported that when several entries are saved as a bundle and a text entry follows, the text entry ends up at the top of the day instead of at its actual time. We have never reproduced the exact symptom; one provable ordering bug (the Mitternachts-Bug, now Shipped) was fixed but it is unclear whether that was the same one. Needs a real repro before any further fix.
-- [ ] **ThreadRepository.add() race** · #code #mittel
-	The repository's add method does an unguarded read-modify-write on the per-day key. Under fast bundle-save flows, two concurrent adds can read the same starting state and one will overwrite the other. Hard to test deterministically; the right fix is probably a guarded write, but the current user impact is theoretical, not a confirmed user-visible bug.
+- [ ] **ThreadRepository.add() race** · #code #klein · ⬇️ nicht reproduzierbar unter Single-Isolate-Hive
+	add() macht ein unguarded read-modify-write auf den Tages-Key. Eine Repro-Probe (`repositories_test.dart`, 8 quasi-gleichzeitige add() auf denselben Tag) ist GRÜN: in einem Isolate laufen `getForDate` (lesen) + der In-Memory-`_box.put` synchron, bevor `add()` awaitet, also serialisieren parallele Adds und verlieren nichts. Der Race ist damit unter der aktuellen Single-Isolate-Hive-Nutzung NICHT reproduzierbar (theoretisch). KEIN Guard gebaut (wäre Vorsorge gegen ein Szenario, das wir nicht haben). Der Test bleibt als Regressions-Wächter: er würde rot, falls ein späterer Refactor einen `await` zwischen Lesen und Schreiben in add() einführt (dann läsen parallele Adds denselben Altstand). Bekanntes Nebenleck (separat): nicht-leere Fehler-/System-Texte landen heute über `_buildHistory` als falsche Coach-Turns im Chat-Kontext.
 
 
 ## Explore
