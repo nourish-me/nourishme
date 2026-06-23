@@ -250,7 +250,13 @@ class ClaudeClient {
   ClaudeClient({
     this.healthDataConsentAtResolver,
     this.installIdResolver,
-  });
+    http.Client? httpClient,
+  }) : _http = httpClient ?? http.Client();
+
+  // HTTP transport. Defaults to a real client; tests inject a
+  // package:http MockClient to exercise the _post error-mapping
+  // (timeout / 401 / 429 / 5xx / non-200 / bad-200) without the network.
+  final http.Client _http;
 
   final DateTime? Function()? healthDataConsentAtResolver;
 
@@ -381,7 +387,7 @@ class ClaudeClient {
     }
     http.Response response;
     try {
-      response = await http
+      response = await _http
           .post(
             url,
             headers: headers,
