@@ -52,8 +52,6 @@ kanban-plugin: board
 	A tester reported that when several entries are saved as a bundle and a text entry follows, the text entry ends up at the top of the day instead of at its actual time. We have never reproduced the exact symptom; one provable ordering bug (the Mitternachts-Bug, now Shipped) was fixed but it is unclear whether that was the same one. Needs a real repro before any further fix.
 - [ ] **ThreadRepository.add() race** · #code #mittel
 	The repository's add method does an unguarded read-modify-write on the per-day key. Under fast bundle-save flows, two concurrent adds can read the same starting state and one will overwrite the other. Hard to test deterministically; the right fix is probably a guarded write, but the current user impact is theoretical, not a confirmed user-visible bug.
-- [ ] **Onboarding-Logik tests** · #test · ⚠️ kein reiner Unit-Fit (Widget-Tests nötig)
-	Re-scoped (2026-06-23): die Onboarding-Validierung/Datenfluss ist NICHT als reine Funktion extrahierbar, sie steckt im Widget (Toggles, `ref.invalidate`, Schritt-Navigation in onboarding_screen.dart). Sauber testen hieße Widget-/Integrationstests, nicht reine Unit-Tests. Niedrigere Priorität als die anderen #test-Karten und ein anderer Ansatz. Vorschlag: erst eine kleine pure Validierungs-Funktion aus dem Screen herausziehen (z.B. „darf zum nächsten Schritt"), die dann unit-testbar ist, sonst Widget-Test. Optional, wird weiter manuell pro TestFlight geprüft.
 
 
 ## Explore
@@ -113,6 +111,8 @@ kanban-plugin: board
 
 ## Shipped
 
+- [x] **Onboarding-Logik tests (pure Step-Gate)** · #test · ✅ erledigt
+	Statt Widget-Tests die testbare Kern-Logik herausgezogen: `OnboardingValidation.canAdvance` (pure, alle Inputs als Parameter) kapselt die per-Schritt-Weiter-Regel, der Screen-Getter `_canAdvance` delegiert nur noch, Step-Index-Konstanten haben eine Quelle. `test/onboarding_validation_test.dart` (12 Tests) deckt alle Schritte ab: Phasen-Pick, Body-Parse inkl. Komma-Dezimal, Stillzeit-Acks, Pflicht-Consent, Always-Advance-Schritte. Der reine Widget-Teil (Toggles/Navigation) bleibt manueller TestFlight-Check.
 - [x] **Tages-Aggregation provider tests** · #test · ✅ abgedeckt
 	Die Aggregations-Mathematik (dayTotal, groupMealsByDay, mealsForDay, sumMicronutrientsFor, dailyIntakeFor inkl. Supplement-Beitrag) war über `meal_aggregation_test.dart` + `micronutrient_targets_test.dart` schon abgedeckt. Ergänzt: `test/daily_micros_provider_test.dart` (4 Tests) für den Provider-Glue `todayMicronutrientsProvider` (Mahlzeiten-Mikros + aktive Supplements kombiniert) per ProviderContainer. Damit ist die „Zahlen, denen die Nutzerin am meisten vertraut"-Schicht zu.
 - [x] **Repository-CRUD tests (Hive-Harness)** · #test · ✅ bereits abgedeckt
