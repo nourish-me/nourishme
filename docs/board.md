@@ -52,12 +52,8 @@ kanban-plugin: board
 	A tester reported that when several entries are saved as a bundle and a text entry follows, the text entry ends up at the top of the day instead of at its actual time. We have never reproduced the exact symptom; one provable ordering bug (the Mitternachts-Bug, now Shipped) was fixed but it is unclear whether that was the same one. Needs a real repro before any further fix.
 - [ ] **ThreadRepository.add() race** · #code #mittel
 	The repository's add method does an unguarded read-modify-write on the per-day key. Under fast bundle-save flows, two concurrent adds can read the same starting state and one will overwrite the other. Hard to test deterministically; the right fix is probably a guarded write, but the current user impact is theoretical, not a confirmed user-visible bug.
-- [ ] **Tages-Aggregation provider tests** · #test
-	The provider layer that computes the daily totals shown to the user has no test coverage. These are the numbers the user trusts most ("how many kcal did I log today"), so a regression here would be high-impact even if low-likelihood. *Source too thin for more detail.*
-- [ ] **Repository-CRUD tests (Hive-Harness)** · #test
-	Meal, favorite and weight repositories have no integration tests against a Hive harness. Their CRUD paths are the primary persistence layer and would benefit from a focused test suite. *Source too thin for more detail.*
-- [ ] **Onboarding-Logik tests (reine Validierung)** · #test
-	The pure validation and data-flow logic in the onboarding screens has no unit-test coverage today, even though the path is tested manually each TestFlight cycle. Tests would catch regressions in the data layer (not UI bugs). *Source too thin for more detail.*
+- [ ] **Onboarding-Logik tests** · #test · ⚠️ kein reiner Unit-Fit (Widget-Tests nötig)
+	Re-scoped (2026-06-23): die Onboarding-Validierung/Datenfluss ist NICHT als reine Funktion extrahierbar, sie steckt im Widget (Toggles, `ref.invalidate`, Schritt-Navigation in onboarding_screen.dart). Sauber testen hieße Widget-/Integrationstests, nicht reine Unit-Tests. Niedrigere Priorität als die anderen #test-Karten und ein anderer Ansatz. Vorschlag: erst eine kleine pure Validierungs-Funktion aus dem Screen herausziehen (z.B. „darf zum nächsten Schritt"), die dann unit-testbar ist, sonst Widget-Test. Optional, wird weiter manuell pro TestFlight geprüft.
 
 
 ## Explore
@@ -117,6 +113,10 @@ kanban-plugin: board
 
 ## Shipped
 
+- [x] **Tages-Aggregation provider tests** · #test · ✅ abgedeckt
+	Die Aggregations-Mathematik (dayTotal, groupMealsByDay, mealsForDay, sumMicronutrientsFor, dailyIntakeFor inkl. Supplement-Beitrag) war über `meal_aggregation_test.dart` + `micronutrient_targets_test.dart` schon abgedeckt. Ergänzt: `test/daily_micros_provider_test.dart` (4 Tests) für den Provider-Glue `todayMicronutrientsProvider` (Mahlzeiten-Mikros + aktive Supplements kombiniert) per ProviderContainer. Damit ist die „Zahlen, denen die Nutzerin am meisten vertraut"-Schicht zu.
+- [x] **Repository-CRUD tests (Hive-Harness)** · #test · ✅ bereits abgedeckt
+	Schon vollständig in `test/repositories_test.dart`: Meal-, Favorite- und Weight-Repository gegen eine echte Hive-Test-Box (temp dir), CRUD, Ordering, Round-Trip, Update-in-place, `watch()`, `clearAll()`. Karte war nur nie geschlossen worden.
 - [x] **Supplement-Label-Scan: kein Bug (Werte gespeichert)** · Julia (1) · #P2 · ✅ geklärt 2026-06-23 · [[beta-feedback-log#2026-06-21 · Julia (T10) · current beta · E-Mail|→ Log]]
 	Aufgelöst gegen beide Vorab-Hypothesen: der Scan war NICHT kaputt. Julias Antwort + Screenshot zeigen Fetesept im Profil mit vollen Werten (Folat 600 µg, Eisen 15 mg, Jod 150 µg, Vit D 20 µg, DHA 250 mg, B12 3.5 µg, Kalzium 120 mg). Sie hatte beim Set-Up nur nicht geprüft, ob die Werte übernommen wurden, sie waren es. Das eigentliche Problem (Coach nutzt das gespeicherte Supplement erst nach 2× Nachhaken) ist die Coach-Kontext-Lücke und über die Coach-Kontext-Karte (#7iyecl) gefixt. Julias Fetesept ist der konkrete Verify-Fall dort.
 - [x] **Coach-Kombinier-Logik tests (submitMeals)** · #test · ✅ abgedeckt (Test-Coverage)
