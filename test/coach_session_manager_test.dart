@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nurturetrack/services/claude_client.dart';
 import 'package:nurturetrack/services/coach_session_manager.dart';
 
 // Pure-logic coverage for CoachSessionManager. The combine/day-total maths
@@ -57,6 +58,64 @@ void main() {
             now.add(const Duration(minutes: 30)),
             now: now),
         isFalse,
+      );
+    });
+  });
+
+  group('coachReplyTextFor', () {
+    test('success: trims whitespace and replaces the em-dash with a hyphen', () {
+      expect(
+        CoachSessionManager.coachReplyTextFor(
+            response: '  Stark gemacht — iss zum Abend etwas Eisenreiches.  ',
+            isDe: true),
+        'Stark gemacht - iss zum Abend etwas Eisenreiches.',
+      );
+    });
+
+    test('CoachApiException maps to its userMessage, ignoring fallback + locale',
+        () {
+      final e = CoachApiException(
+          'Der Coach ist gerade überlastet. Versuch es in einer Minute nochmal.',
+          'HTTP 429');
+      final text = CoachSessionManager.coachReplyTextFor(
+          error: e, isDe: false, fallbackMessage: 'WIRD IGNORIERT');
+      expect(text,
+          'Der Coach ist gerade überlastet. Versuch es in einer Minute nochmal.');
+      expect(text, isNot('WIRD IGNORIERT'));
+    });
+
+    // CURRENT BEHAVIOUR, intentionally pinned (no fallback built yet): an empty
+    // or whitespace-only model reply persists an EMPTY coach bubble. The
+    // fallback decision is Vanessa's, this test only documents the status quo.
+    test('empty / whitespace response → empty string (documents empty bubble)',
+        () {
+      expect(
+          CoachSessionManager.coachReplyTextFor(response: '', isDe: true), '');
+      expect(
+          CoachSessionManager.coachReplyTextFor(response: '   \n  ', isDe: true),
+          '');
+    });
+
+    test('non-API error without fallback → localized default (DE/EN)', () {
+      expect(
+        CoachSessionManager.coachReplyTextFor(
+            error: Exception('boom'), isDe: true),
+        'Coach-Antwort gerade nicht verfügbar. Versuch es später nochmal.',
+      );
+      expect(
+        CoachSessionManager.coachReplyTextFor(
+            error: Exception('boom'), isDe: false),
+        'Coach reply unavailable. Try again later.',
+      );
+    });
+
+    test('non-API error uses the caller fallback when provided', () {
+      expect(
+        CoachSessionManager.coachReplyTextFor(
+            error: Exception('boom'),
+            isDe: true,
+            fallbackMessage: 'Mein lokalisierter Fallback'),
+        'Mein lokalisierter Fallback',
       );
     });
   });

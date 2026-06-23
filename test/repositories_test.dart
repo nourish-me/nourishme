@@ -8,6 +8,8 @@ import 'package:nurturetrack/models/weight_entry.dart';
 import 'package:nurturetrack/services/favorite_repository.dart';
 import 'package:nurturetrack/services/meal_repository.dart';
 import 'package:nurturetrack/services/weight_repository.dart';
+import 'package:nurturetrack/models/thread_item.dart';
+import 'package:nurturetrack/services/thread_repository.dart';
 
 // Locks the Hive-backed CRUD repos (Meal, Favorite, Weight) at the boundary
 // every UI surface reads through. They share the same shape:
@@ -268,6 +270,28 @@ void main() {
       expect(repo.all().map((w) => w.id).toList(), ['b']);
       await repo.clearAll();
       expect(repo.all(), isEmpty);
+    });
+  });
+
+  // ─────────────────────── ThreadRepository race ───────────────────────
+  // Probes the known open read-modify-write race in ThreadRepository.add()
+  // (board: "ThreadRepository.add() race"). add() does getForDate -> append
+  // -> put without a guard, so two concurrent adds could read the same
+  // starting state and one overwrites the other. This fires several add()s
+  // on the SAME day without awaiting in between and asserts none is lost.
+  group('ThreadRepository.add() concurrency', () {
+    test('several quasi-concurrent add() on the same day keep every entry',
+        () async {
+      final repo = ThreadRepository(await openScopedBox('threads'));
+      final day = DateTime(2026, 6, 23, 9);
+      final futures = [
+        for (var i = 0; i < 8; i++)
+          repo.add(ThreadItem.meal(
+              mealId: 'm$i', at: day.add(Duration(minutes: i))))
+      ];
+      await Future.wait(futures);
+      expect(repo.getForDate(day).length, 8,
+          reason: 'no add() should be lost to the read-modify-write race');
     });
   });
 }

@@ -223,6 +223,30 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     return plusOne.isAfter(endOfDay) ? endOfDay : plusOne;
   }
 
+  // Pure mapping from a coach call's outcome to the text we persist as the
+  // coach response. Extracted from _runCallFor so the success/error/empty
+  // branches are unit-testable without the provider + network stack.
+  // Success: trim + replace the em-dash the model still sneaks in despite the
+  // prompt instruction. Failure: the CoachApiException's user-facing message,
+  // else the caller's localized fallback, else a locale default.
+  @visibleForTesting
+  static String coachReplyTextFor({
+    String? response,
+    Object? error,
+    required bool isDe,
+    String? fallbackMessage,
+  }) {
+    if (error != null) {
+      return error is CoachApiException
+          ? error.userMessage
+          : (fallbackMessage ??
+              (isDe
+                  ? 'Coach-Antwort gerade nicht verfügbar. Versuch es später nochmal.'
+                  : 'Coach reply unavailable. Try again later.'));
+    }
+    return (response ?? '').trim().replaceAll('—', '-');
+  }
+
   Future<void> _runCallFor(
     List<MealEntry> meals,
     String locale, {
@@ -367,10 +391,7 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
         dayContext: dayContext,
       );
       final coachAt = coachAnchorFor(last.createdAt);
-      // Safety net for the em-dash habit: even with the explicit prompt
-      // instruction, the model still sneaks them in sometimes. Replace
-      // before persisting so they never make it to the diary.
-      final cleaned = response.trim().replaceAll('—', '-');
+      final cleaned = coachReplyTextFor(response: response, isDe: isDe);
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,
         text: cleaned,
@@ -393,12 +414,8 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
       }
     } catch (e, stack) {
       debugPrint('Coach call failed for ${meals.length} meal(s): $e\n$stack');
-      final message = e is CoachApiException
-          ? e.userMessage
-          : (fallbackMessage ??
-              (isDe
-                  ? 'Coach-Antwort gerade nicht verfügbar. Versuch es später nochmal.'
-                  : 'Coach reply unavailable. Try again later.'));
+      final message =
+          coachReplyTextFor(error: e, isDe: isDe, fallbackMessage: fallbackMessage);
       final coachAt = coachAnchorFor(last.createdAt);
       await threadRepo.add(ThreadItem.coachResponse(
         mealId: last.id,
