@@ -42,6 +42,21 @@ class CoachSessionManager extends StateNotifier<Set<String>> {
     return mealTime.isBefore(ref.subtract(retroactiveThreshold));
   }
 
+  /// Whether editing an existing meal should regenerate the coach reply.
+  /// Pure helper, deliberately decoupled from the ordering resync: a meal's
+  /// ThreadItem timestamp is resynced whenever the time changes (so the
+  /// entry sorts correctly), but the coach only reacts to a CONTENT change.
+  /// A pure time-edit ([valuesChanged] == false) therefore never triggers a
+  /// regenerate / Claude call, no matter which time was set. For a real
+  /// value change the prior behaviour stands: regenerate live, but skip it
+  /// for retro / past-day edits (the stale reply is dropped, none added).
+  static bool shouldRegenCoachOnEdit({
+    required bool valuesChanged,
+    required bool isPastDayEdit,
+    required bool isRetroEdit,
+  }) =>
+      valuesChanged && !isPastDayEdit && !isRetroEdit;
+
   // Single-meal convenience wrapper. Used by text + photo + standalone
   // barcode saves where there's nothing to bundle.
   void submitMeal(MealEntry meal, String locale) {

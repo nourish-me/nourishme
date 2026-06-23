@@ -19,6 +19,7 @@ import '../services/safety_rules.dart';
 import '../utils/important_snack.dart';
 import '../services/coach_session_manager.dart';
 import '../services/notification_scheduler.dart';
+import '../services/thread_repository.dart';
 import '../widgets/edit_hint_icon.dart';
 
 // Payload the sheet pops with in editOnly mode (#112). Carries the user-
@@ -514,9 +515,14 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   Future<void> _appendToThread(MealEntry meal,
       {bool fireCoach = true}) async {
     final isEdit = widget.existingMealId != null;
-    if (isEdit && !_mealValuesChanged(meal)) {
-      // No actual changes, keep the existing coach response, don't spend a
-      // Claude call on a no-op.
+    if (isEdit &&
+        !mealEditNeedsThreadResync(
+          oldCreatedAt: widget.existingCreatedAt,
+          newCreatedAt: meal.createdAt,
+          valuesChanged: _mealValuesChanged(meal),
+        )) {
+      // Neither the values nor the time changed: nothing to resync, and no
+      // Claude call on a no-op edit.
       return;
     }
     final threadRepo = ref.read(threadRepositoryProvider);
@@ -633,15 +639,25 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
       await threadRepo.updateMealItemTime(
           meal.id, originalAt, meal.createdAt);
     }
-    // The meal item is already in the thread. Remove the old coach response
-    // so the manager's regenerate step can add the replacement cleanly.
+
+    // Decouple ordering from the coach. A pure time-edit (no nutritional
+    // change) only needed the resync above; the existing coach reply moves
+    // with the meal via updateMealItemTime, so it stays correctly anchored.
+    // A shifted clock is not a content change, so leave the reply in place -
+    // never remove it, never fire a Claude call.
+    final valuesChanged = _mealValuesChanged(meal);
+    if (!valuesChanged) return;
+
+    // Values changed -> the old coach reply is stale. Remove it so the
+    // manager's regenerate step can add a clean replacement.
     // (If updateMealItemTime just migrated it cross-day, this picks up the
     // migrated copy and removes it.)
     await threadRepo.removeCoachResponseForMeal(meal.id, meal.createdAt);
 
-    // Retro edits skip the coach regen too - same reasoning as the
-    // fresh-save path. Surface the save via a snack so the user gets a
-    // confirmation even without the in-thread thinking bubble.
+    // Retro / past-day value edits skip the coach regen - same reasoning as
+    // the fresh-save path: the stale reply is dropped and none is added.
+    // Surface the save via a snack so the user gets a confirmation even
+    // without the in-thread thinking bubble.
     final now = DateTime.now();
     final todayKey = DateTime(now.year, now.month, now.day);
     final mealDay = DateTime(
@@ -649,7 +665,11 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     final isPastDayEdit = mealDay.isBefore(todayKey);
     final isRetroEdit =
         CoachSessionManager.isRetroactiveMeal(meal.createdAt);
-    if (isPastDayEdit || isRetroEdit) {
+    if (!CoachSessionManager.shouldRegenCoachOnEdit(
+      valuesChanged: valuesChanged,
+      isPastDayEdit: isPastDayEdit,
+      isRetroEdit: isRetroEdit,
+    )) {
       snackbarDismissOnNavObserver.markPersistent();
       rootScaffoldMessengerKey.currentState?.showSnackBar(
         importantSnack(

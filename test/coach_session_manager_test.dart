@@ -125,4 +125,42 @@ void main() {
       expect(r.isSystemNotice, isTrue);
     });
   });
+
+  // Decouples the coach regen from the ordering resync (13:36-ordering fix).
+  // A pure time-edit resyncs the meal's position but must NEVER fire a coach
+  // call; only a real content change does, and even then not for retro /
+  // past-day edits (prior behaviour preserved).
+  group('shouldRegenCoachOnEdit', () {
+    test('pure time-edit (values unchanged) → no regen, even live', () {
+      expect(
+        CoachSessionManager.shouldRegenCoachOnEdit(
+            valuesChanged: false, isPastDayEdit: false, isRetroEdit: false),
+        isFalse,
+      );
+    });
+
+    test('value-edit, live (today, not retro) → regen', () {
+      expect(
+        CoachSessionManager.shouldRegenCoachOnEdit(
+            valuesChanged: true, isPastDayEdit: false, isRetroEdit: false),
+        isTrue,
+      );
+    });
+
+    test('value-edit on a past day → no regen (as before)', () {
+      expect(
+        CoachSessionManager.shouldRegenCoachOnEdit(
+            valuesChanged: true, isPastDayEdit: true, isRetroEdit: false),
+        isFalse,
+      );
+    });
+
+    test('value-edit, retroactive time → no regen (as before)', () {
+      expect(
+        CoachSessionManager.shouldRegenCoachOnEdit(
+            valuesChanged: true, isPastDayEdit: false, isRetroEdit: true),
+        isFalse,
+      );
+    });
+  });
 }

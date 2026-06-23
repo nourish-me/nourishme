@@ -305,4 +305,49 @@ void main() {
           reason: 'no add() should be lost to the read-modify-write race');
     });
   });
+
+  // ──────────────────── updateMealItemTime resync ────────────────────
+  // Pins the mechanism behind the 13:36-ordering fix: when a meal's time is
+  // edited, the meal's ThreadItem (the sort key) must move to the new time,
+  // not stay at the old slot. Covers both branches of updateMealItemTime:
+  // the same-day in-place swap and the cross-day migrate. Without this, a
+  // pure time-edit left MealEntry.createdAt (the chip) and ThreadItem
+  // timestamp (the position) diverged - chip right, position wrong.
+  group('ThreadRepository.updateMealItemTime', () {
+    DateTime? mealTsFor(ThreadRepository repo, DateTime day, String mealId) {
+      final hits = repo
+          .getForDate(day)
+          .where((i) => i.type == ThreadItemType.meal && i.mealId == mealId)
+          .toList();
+      return hits.isEmpty ? null : hits.first.timestamp;
+    }
+
+    test('same-day edit moves the meal ThreadItem timestamp to newAt',
+        () async {
+      final repo = ThreadRepository(await openScopedBox('threads'));
+      final oldAt = DateTime(2026, 6, 23, 20, 5); // logged live in the evening
+      final newAt = DateTime(2026, 6, 23, 13, 36); // corrected to 13:36
+      await repo.add(ThreadItem.meal(mealId: 'm1', at: oldAt));
+
+      await repo.updateMealItemTime('m1', oldAt, newAt);
+
+      expect(mealTsFor(repo, newAt, 'm1'), newAt,
+          reason: 'sort key must follow the edited time, not stay at 20:05');
+    });
+
+    test('cross-day edit migrates the meal ThreadItem to the new day at newAt',
+        () async {
+      final repo = ThreadRepository(await openScopedBox('threads'));
+      final oldAt = DateTime(2026, 6, 23, 20, 5);
+      final newAt = DateTime(2026, 6, 22, 13, 36); // moved to the previous day
+      await repo.add(ThreadItem.meal(mealId: 'm1', at: oldAt));
+
+      await repo.updateMealItemTime('m1', oldAt, newAt);
+
+      expect(mealTsFor(repo, oldAt, 'm1'), isNull,
+          reason: 'meal item must be gone from the old day');
+      expect(mealTsFor(repo, newAt, 'm1'), newAt,
+          reason: 'meal item must land in the new day at the edited time');
+    });
+  });
 }

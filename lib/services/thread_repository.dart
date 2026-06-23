@@ -5,6 +5,21 @@ import 'package:hive/hive.dart';
 
 import '../models/thread_item.dart';
 
+/// Whether an edited meal needs its ThreadItem moved in the thread (the
+/// ordering resync via [ThreadRepository.updateMealItemTime]). Pure gate:
+/// a resync is needed when the meal's nutritional values changed OR its
+/// time moved. The time check is the fix for the ordering bug where a
+/// pure time-edit updated MealEntry.createdAt (the chip) but left the
+/// ThreadItem timestamp (the sort key) stale, so the entry sorted at its
+/// old slot. [oldCreatedAt] is null for a fresh meal (no resync needed
+/// here; the new ThreadItem is added separately).
+bool mealEditNeedsThreadResync({
+  DateTime? oldCreatedAt,
+  required DateTime newCreatedAt,
+  required bool valuesChanged,
+}) =>
+    valuesChanged || (oldCreatedAt != null && oldCreatedAt != newCreatedAt);
+
 class ThreadRepository {
   static const _boxName = 'threads';
   final Box<String> _box;
