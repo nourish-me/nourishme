@@ -250,19 +250,29 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 |---|---|---|---|
 | kcal single-food too high (egg 155 vs 100) | 🐛 | ✅ | +36 |
 | Supplement setup timeout on Google screenshot | 🐛 | ⛔ | closed (train) |
+| Component breakdown before saving (in Confirm Screen)          | 🚀   | 🔬     | → ?                                  |
+| Empty state illustration not tappable                          | 💎   | 🔬     | → ?                                  |
+| Iron not populated for oats (Haferflocken)                     | 🐛   | 🟡     | → ?                                  |
+**Update-Message [DE] — aktualisiert 2026-06-22 (WhatsApp-Nachtrag integriert):**
 
-**Update-Message [DE]:**
-
-> Hey Henrike, eine neue App Version unterwegs - hoffentlich bis (über)morgen bei dir!
+> Hey Henrike, danke für deine WhatsApp und die Screenshots heute Morgen!
 >
-> Eine Entschuldigung vorab: ich habe **heute erst** in App Store Connect die Internal-Feedback-Sektion entdeckt, wo dein TestFlight-Feedback (Screenshots) landet. Mir war das vorher nicht klar - daher kam dein Feedback erst heute richtig in meinen Backlog. Sorry für die Verzögerung! **Vielen Dank trotzdem für die Reports + Screenshots**, mit denen ich sofort die Diagnose erleichtern konnte.
+> Kurzes Update zu allem auf einmal:
 >
-> Aus deinem Feedback gefixt mit der Version die (über)morgen kommt:
-> - kcal-Schätzung für Einzellebensmittel ist jetzt mit harten Ankern (1 gekochtes Ei NIE über 100 kcal, Banane ~105 kcal, Apfel ~95 kcal etc.). Dein Beispiel mit dem Ei bei 155 kcal sollte nicht mehr passieren.
+> **Schon gefixt (kommt mit der nächsten Version):**
+> - kcal-Schätzung für Einzellebensmittel: harte Anker drin (1 gekochtes Ei NIE über 100 kcal, Banane ~105 kcal etc.). Dein Ei-Beispiel mit 155 kcal passiert nicht mehr.
 >
-> Zum Supplement-Setup-Timeout: danke für die Rückmeldung, dass es beim zweiten Versuch geklappt hat - dann war das vermutlich die Zug-Verbindung und nicht die App. Damit haken wir das ab.
+> **Eisen bei Haferflocken:** du hast vollkommen recht, Haferflocken enthalten Eisen (~4 mg/100 g, das sind ~8 % deines Tagesziels bei einer normalen Portion). Der Tracker sollte das zeigen. Ich habe nachgesehen: der Bug ist real, die App hat Hafer als Eisenquelle nicht klar genug im Radar. Fix kommt in einer der nächsten Versionen. Gut, dass du's geprüft hast.
 >
-> Danke nochmal!
+> **Deine zwei Screenshot-Ideen:**
+> - Komponenten-Liste im Confirm-Screen (bevor man speichert): gute Idee, notiert. Ist eine größere Änderung, kommt nicht sofort, aber ich habe sie im Backlog.
+> - Leeres Tagebuch antippen um den Coach zu starten: kleines Detail, finde ich auch intuitiver. Schaue ich mir an.
+>
+> **Supplement-Setup-Timeout damals:** kein Problem, dass es beim zweiten Mal geklappt hat zeigt, dass es die Zugverbindung war. Damit ist das erledigt.
+>
+> Wann kommt was: der Eisen-Fix landet in der nächsten oder übernächsten Version, die Screenshot-Ideen dahinter. Ich melde mich wenn was davon draußen ist.
+>
+> Danke nochmal fürs genaue Hinschauen und Googeln!
 
 ### Julia Mayer (T10) — TestFlight, iPhone 14 Pro DE
 
@@ -271,7 +281,7 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | Lactation profile gets pregnancy warnings | 🐛 | ✅ | +36 |
 | Time picker AM/PM cumbersome | 💎 | ✅ | +37 |
 | Dynamic activity adjustment (HealthKit + manual fallback) | 🚀 | ⛔ | parked in idea-backlog |
-| Coach ignores onboarding supplements in chat | 🐛 | 🟡 | → ? |
+| Coach ignores onboarding supplements in chat (Fetesept, label-scanned) | 🐛 | 🟡 | → coach-context fix (in Bau) |
 
 **Update-Message [DE]:**
 
@@ -336,7 +346,8 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | Re-track findability: language doesn't matter, just findability | -   | ✅      | JTBD clarified, closes open direction question |
 | Favourites star not yet tried                                  | 💎   | 🔬     | likely discovery, aligns with SnackBar tip |
 | Coach quick-reply "I rarely eat fish" shown for vegetarian     | 🐛   | 🟡     | → ? |
-
+| Date chip appears to require confirmation even for today        | 💎   | 🟡     | → ?                                  |
+| Entries out of order when backlogging without time adjustment   | 🐛   | 🟡     | → ?                                  |
 **Update-Message [DE] — SENT 2026-06-20 (after +36 TestFlight upload, with investigative JTBD follow-ups):**
 
 > Hey Lotte, die neue App-Version ist über TestFlight bei dir gelandet. Hier was wir aus deinen drei Punkten machen:
@@ -783,3 +794,102 @@ New tester, first feedback round.
 4. **Coach blind to logged meals → wrong "next meal" slot** (status: open, 🐛)
 
    - At 13:19, with a salad + Knäckebrot already logged and a "3 main meals + 1 snack" pattern, the coach still announced "lunch is coming up". generatePerMealResponse() receives only the pattern preference, aggregate totals and the current hour, not the list of meals logged today, so it can't tell whether the salad was the snack or the lunch. The logged list (mealsForTotal) is collected (coach_session_manager.dart:264) but never passed to the coach call. → candidate for a holistic coach-context audit (what the coach sees vs needs), pending Vanessa's go.
+
+---
+
+## 2026-06-21/22 · Lotte (T11) · current beta · WhatsApp (follow-up round 2)
+
+Two new points after Vanessa's update message (2026-06-20 sent message above).
+
+1. **Date confirmation required even when logging for today** (status: open, 💎 UX-Reibung)
+
+   > "Noch eine Sache die ‚nervt': dass man jedes mal das Datum des aktuellen Tages bestätigen muss obwohl man sich ja schon entschieden hat für genau diesen Tag etwas zu tracken."
+
+   - Code check (2026-06-22): In confirm_screen.dart, the combined date+time chip is always shown and always tappable. The CupertinoDatePicker rework (+37) kept the chip visible regardless of whether the time is today or a retro-date. For a fresh same-day entry, _mealTime defaults to DateTime.now() and _isDeviationFromToday is false (no amber tint), but the chip is still visible and appears as "Heute / HH:MM". The date half of the pill ("Heute") is a confirm trigger because the entire pill calls _pickMealDateTime() on tap. Lotte may be reading "Heute" as a required confirmation tap rather than a label. Or: she sees the date chip and feels she has to interact with it. In either case, the chip is not causing a blocking confirmation step — saving without tapping it works. This is a perceived-friction / discoverability issue: the chip's date part looks clickable-and-required even when it would just confirm "today".
+   - Pairs with the "holistic scroll audit" and the time-ordering follow-up below.
+
+2. **Entries out of order: neither entry-input order nor meal times** (status: open, 🐛)
+
+   > "Und heute sind die Zeiten ziemlich Wild. Ich habe zwar auch jetzt heute Abend alles nachgetragen aber es ist trotzdem ein ziemliches durcheinander. Weder in der Reihenfolge in der ich es eingetragen habe nor in der der Zeiten."
+
+   - Code check (2026-06-22): thread_repository.dart sorts by `i.timestamp`, which for meal items is set to `meal.createdAt` (confirm_screen.dart:537: `ThreadItem.meal(mealId: meal.id, at: meal.createdAt)`). When Lotte backlogs everything in the evening, if she did NOT manually adjust the time chip for each entry, all entries would default to either DateTime.now() (for today) or noon (past days). Multiple entries saved minutes apart would then cluster with nearly-identical timestamps, producing an arbitrary-looking order that is neither the real meal sequence nor the entry-input sequence. If she DID adjust times: the sort would put them in chronological meal order, which should be "correct" — but might look like "not the order I entered them" if she entered dinner before lunch. The "neither input order nor time order" description most likely means she did partial adjustments: some times adjusted, some not, producing a mix. Root cause: the confirm screen offers time editing but the chip does not draw attention to itself as a required step when backlogging. The stable mergeSort already handles ties correctly (ThreadRepository.add() race aside). This is the UX consequence of Lotte's friction with the date chip (point 1 above): she doesn't adjust the time because the chip feels like a barrier she wants to skip, so multiple entries land at the same time and the order becomes unpredictable.
+   - The "holistic scroll-behavior audit" in Bau (#s7c7jg) does NOT cover this: that card is about scroll position after day switch, not entry timestamp ordering.
+   - Pattern note: no prior tester raised timestamp-ordering as a problem when backlogging. Single voice. Patricia had a related issue (stated time in text not applied, #P2) but from a different angle (she didn't adjust the picker, not that the picker felt like a blocker).
+
+---
+
+## 2026-06-21 · Julia Mayer (T10) · current beta · E-Mail + Screenshot (follow-up)
+
+Follow-up mail thread. Note: also contains personal / non-feedback content (Bogenhausen, coffee invite) — strip PII from this log, handle in Vanessa's reply.
+
+1. **Coach ignores onboarding supplements — root cause clarified** (status: ✅ partially resolved by screenshot, 🟡 build fix pending)
+
+   > "ich habe beim Set-up ein Foto von der Packung gemacht, wo die Nährstoff Angaben drauf sind."
+   >
+   > "Mit expliziten Hinweis und zweimaligen Nachfragen hatte es dann geschafft."
+
+   - Screenshot shows coach correctly acknowledging Fetesept supplement coverage after explicit prompting.
+   - Root cause update (2026-06-22): Julia confirms she went through label scan (photo of the Fetesept packaging with nutrition table), so her supplement IS stored as an ActiveSupplement with parsed nutrient values. The problem is NOT the name-only gap identified in the 2026-06-18 log block. The bug is that the coach did NOT use the supplement data on the first attempt; it took two explicit re-prompts. This pattern is consistent with: (a) the coach context not including the supplement block in the initial call, or (b) the model ignoring it despite it being present. The Coach Context Audit (#7iyecl, in Bau) addresses exactly this — it unifies the context builder so active supplements with parsed values are reliably in both the per-meal and chat context. The fix is built (Phase 1 done per board.md) but NOT yet deployed to TestFlight. Julia's screenshot is a pre-fix state. Once the coach-context fix ships, Julia's scenario (Fetesept label-scanned, supplement block populated) should work on first ask.
+   - Action: no separate card needed. Update Julia that the fix is on the way in the next build. Add "Fetesept correctly acknowledged after 2 prompts (pre-fix state)" to the context audit verification list so the device test explicitly covers this exact supplement.
+
+---
+
+## 2026-06-22 · Henrike Böckmann (T9) · current beta · In-App Screenshot feedback
+
+Two new points from in-app screenshot submissions, 2026-06-22 morning.
+
+1. **Component breakdown visible before saving (in Confirm Screen)** (status: open, 🚀 Feature, 09:03)
+
+   > "Anregung: im vorherigen step hab ich Foto & Text eingegeben und er sagt mir ja die gesamt nutrition Werte. Ich kontrolliere dann immer auf dem Screen den ich dir geteilt habe, ob er die einzelnen Bestandteile erkannt hat. Für mich n=1 wäre es praktisch wenn diese schon im schritt vorher unter Details aufgelistet wären. Dann hätte ich die Chance zu korrigieren schon im ersten Schritt."
+
+   - Code check (2026-06-22): MealParseResult (claude_client.dart:47) does NOT carry a structured components list. The confirm screen only sees summary (string), kcal, macros, portionAmount, safetyWarnings, micronutrients. Component names are embedded in the summary string (e.g. "Haferflocken mit Hafermilch, halber Apfel, Walnüssen") but are not structured as a separate list. Surfacing a component list in the confirm screen would require: (a) the parser to emit a `components` array in its JSON response and (b) MealParseResult to carry it and (c) the confirm screen to render it. The existing "component granularity per meal" card (#P1, Backlog) solves a different problem: it shows per-component micronutrient breakdowns on the already-saved meal card. Henrike's request is pre-save correction, not post-save analytics.
+   - Pattern note: this is a new dimension of the component theme. Sarah + Corina asked for per-component micros AFTER saving. Henrike asks for component list BEFORE saving (as a verification step). These are related but distinct features. Henrike is 2nd voice on the general "I want to see components" theme, but the first on the pre-save angle specifically.
+   - Pairs with the broader "component granularity" card.
+
+2. **Empty state illustration tappable → opens input** (status: open, 💎 UX, 08:59)
+
+   > "Eine Idee: als ich das erste Mal auf diesem Screen war, wollte ich dort klicken was ich gelb eingekreist habe, um loszulegen. Weiß nicht ob es jedem so geht, aber für mich wäre intuitiv wenn ein Klick dort den Coach öffnet."
+
+   - Code check (2026-06-22): EmptyToday widget (lib/widgets/empty/empty_today.dart) renders a Container with NMIcons.meal(size:48) inside a rounded box. The widget is wrapped in a Padding; there is no GestureDetector or InkWell on the illustration or the outer box. The widget has no tap handler at all. The home_screen.dart adds EmptyToday() into the ListView items list (line 819, 828) but does not wrap it in any tap-aware widget. Making the illustration tappable would require either wrapping EmptyToday in a GestureDetector in home_screen.dart, or adding an optional onTap callback to EmptyToday itself.
+   - Single voice, low-friction fix.
+
+
+---
+
+## 2026-06-22 · Henrike Böckmann (T9) · current beta · WhatsApp (Nachtrag zur gleichen Triage-Runde)
+
+WhatsApp messages 09:08–09:10, same day as the in-app screenshot feedback above.
+
+1. **Iron not populated for oats (Haferflocken)** (status: open, 🐛 Bug)
+
+   > "Ich hab Haferflocken getrackt aber er erkennt nicht dass diese Eisen enthalten. Der Tracker hat nur die Menge aus dem femibion."
+   >
+   > "Haferflocken enthalten aber Eisen laut Google 😂 ich lerne schön was dazu weil ich mein Halbwissen bzw. Gefühl dann immer kurz kontrollieren muss."
+
+   - Henrike is correct: Haferflocken contain ~4 mg iron per 100 g (whole-grain cereal; the DGE lactation daily target is ~20 mg). A standard 40 g dry oat portion yields ~1.6 mg, which is ~8% of the lactation daily target — well above the 5% prompt threshold that governs whether the key is emitted.
+   - Code check (2026-06-22, parse_de.dart line 146, parse_en.dart line 140): iron reference values list "Getreide-Vollkorn 2-3 mg/100 g" / "Whole-grain cereals 2-3 mg/100 g" as the plant-source example. Haferflocken (dry rolled oats, ~4 mg/100 g) fit this category but are NOT named explicitly. There is NO explicit iron zero-rule comparable to the STRICT DHA ZERO RULE. This means the underlying mechanism differs from the DHA-eggs bug (which was a self-contradicting null override): iron in oats should not be zeroed by any rule. The likely failure mode is model-level underconfidence: the prompt's iron anchor emphasises legumes and meat (which the model reliably associates with iron) and uses "Getreide-Vollkorn" as a vague category without naming oats, leaving the model to decide whether to populate the key. For the specific "Haferflocken getrackt" input, the model likely defaults to the nearest familiar anchor (legumes / meat) and decides oats are below threshold or not "important enough" to populate — a soft underfill rather than a hard rule.
+   - This is NOT the same structural class as the DHA-eggs fix. DHA had an explicit STRICT ZERO RULE that overrode the reference table. Iron has no such rule; the fix is adding "Haferflocken trocken ~4 mg/100 g" (or dry oats ~4 mg/100 g in EN) as a named anchor in the iron plausibility line, similar to how the iodine anchor was extended to include industrial baked goods to prevent systematic under-estimation. Whether this becomes a standalone oat anchor or a broader "parser underestimates iron in plant-source cereals" fix (adding also quinoa, amaranth, fortified breakfast cereals) is a plan-time decision.
+   - Clinical relevance: iron is one of the critical nutrients for breastfeeding (DGE target 20 mg/day; plant-only sources are already harder to reach than animal sources). Systematic absence of iron from oat logs makes the tracker useless as a gap detector for this nutrient for any tester with a plant-forward breakfast pattern (Henrike, Lotte, likely others).
+   - Pattern note: first explicit "iron not showing for oats" report. The broader "parser underestimates micros in plant sources" pattern (DHA from eggs as the trigger case, now iron from oats as the second concrete example) has 2 datapoints. Not yet a 2-tester pattern for THIS symptom specifically (Henrike is 1 voice), but the same class of bug as DHA in eggs — both are cases where the reference table has the right data but the model doesn't surface it for a specific food. Suggest addressing together as a single targeted prompt fix rather than a separate full card.
+
+2. **Setup worked fine** (status: ✅ positive confirmation, no action)
+
+   > "(Kontext, früher) Setup hatte einwandfrei geklappt."
+
+   - Positive confirmation of the onboarding flow. No action needed.
+
+3. **Personal / non-feedback** (09:10, strip PII)
+
+   - Personal questions about Vanessa's parental leave and app plans. No triage action; handle in Vanessa's personal reply.
+
+
+## 2026-06-23 · Julia Mayer (T10) · current beta (+36) · In-App Screenshot
+
+1. **Diary entries out of chronological order on retro-logged meals** (status: ✅ fixed, riding +37) · 🐛
+
+   > "Beim nachträglichen hinzufügen von Magneten Mahlzeiten gibt es Problem mit dem Time Stamp. Die Reihenfolge stimmt nicht (15 Uhr als letzte Mahlzeit, nach 20h und 18h) Liebe Grüße Julia"
+
+   - Screenshot (Gestern view, build +36): order is 12:00 → 18:00 → 20:00 → **15:00 last**, the 15:00 entry (Walkers Shortbread) sits at the bottom despite its earlier chip time. This is the EXACT 13:36-ordering symptom Lotte reported (T11). **Second independent voice** for the same bug, so it is now a 2-tester pattern, not a single voice.
+   - Already root-caused and FIXED before this report (Fix A, 2026-06-23): a pure time-edit updated `MealEntry.createdAt` (the chip) but not the `ThreadItem` sort key, because the `_appendToThread` early-return only checked values, not the time. Fix decouples ordering resync from coach regen via two pure functions; +10 tests, suite 389 green. See [[board.md]] (Review & Test) and [[docs/plans/2026-06-23-time-only-edit-thread-resync|→ Plan]].
+   - Action: ships with build +37. **Report back to Julia (and Lotte) once +37 is on TestFlight that the ordering bug is fixed.**
+
