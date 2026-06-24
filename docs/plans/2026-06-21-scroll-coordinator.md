@@ -98,14 +98,24 @@ Explore matrix before starting the next. No data migration, so no data rollback.
     works regardless of the SlideTransition, reaches any built (on- or off-screen) entry.
     analyze clean.
   - [ ] 🟥 OPEN: on device the backdated-morning entry STILL lands at the bottom even
-    with getOffsetToReveal. Root cause not yet captured — the **debug console is
-    unreachable** (debug attach hangs on iOS 26.5 + Flutter 3.41.6 after "Installing and
-    launching…"; release builds install + launch fine). NEXT, fast path: surface the
-    scroll diagnostic **on-screen** (a SnackBar via `rootScaffoldMessengerKey` inside
-    `_scrollKeyToTop`: before / rawTarget / maxScrollExtent / target / end-after-700ms),
-    build **release**, install over cable with `devicectl`, do one backdate save, read
-    the numbers → then fix. (Logs via `flutter run` / `--console` don't work on this
-    device right now.)
+    with getOffsetToReveal. Root cause not yet captured — the **device** debug console is
+    unreachable (debug attach hangs on iOS 26.5 + Flutter 3.41.6). NOT an edge case:
+    this is the SAME high-frequency flow two testers (Lotte, Julia) confirmed they use
+    (retro-logging the whole day). Fix A fixed the SORT half (entry now in the right
+    place); this is the SCROLL half (after a backdated same-day save the view doesn't
+    land ON the entry, it dumps at the bottom). Worth fixing, not parking.
+    NEXT (revised 2026-06-24): the iPhone 16e **simulator is available again** (the
+    "sim broken post-Xcode-reinstall" note was stale), and the debug console works on
+    the sim. This is a layout/geometry bug, not device-specific, so reproduce on the
+    SIM with `flutter run` (debug), instrument `_scrollKeyToTop` with logging
+    (before / rawTarget / maxScrollExtent / clamped target / final-after-settle), seed a
+    day with enough entries to push a morning entry off-screen, do one backdate save,
+    read the numbers → then fix. Leading hypotheses to confirm: (a) the async coach-reply
+    `_scrollToBottom` follow (home_screen.dart:446-457) fires AFTER the anchor once
+    `_programmaticScroll` has reset; (b) `getOffsetToReveal` reads transient layout
+    (images/coach bubbles not yet measured) so the clamp to a too-small maxScrollExtent
+    lands wrong. On-screen-SnackBar-over-cable stays the fallback only if the sim can't
+    reproduce.
 
 - [ ] 🟥 **Phase 3: Chat / coach / app-open**
   - [ ] 🟥 Route app-open to `bottom`; chat question to `bottom` (onlyIfNearBottom=false);

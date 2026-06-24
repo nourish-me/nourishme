@@ -74,6 +74,7 @@ kanban-plugin: board
 
 - [ ] **Holistic scroll-behavior audit (all flows)** · Vanessa (+ Isabella for #2) · #P1 · [[beta-feedback-log#2026-06-11 · Isabella Hoesch (T8) · TestFlight v18 · Screenshots|→ Log]] · [[docs/plans/2026-06-21-scroll-coordinator|→ Plan]] ^s7c7jg
 	Single scroll coordinator (Option B): replace the 8 timer-driven dispatchers with one coordinator + ScrollIntent, resolved after the focused-day data emits and lays out (not a fixed 80 ms). Fixes day-switch-lands-mid-conversation, unifies the 4 day-change entries, removes the D3+D4 save races. Plan: [[docs/plans/2026-06-21-scroll-coordinator]]. Acceptance: day-switch via any entry lands at day-top, today at bottom, a logged meal on the meal.
+	STAND 2026-06-24: Phasen 1+2 sind in +37 bei den Testerinnen (Tageswechsel-Bug + Save-Races gefixt). OFFEN Phase 2b: nach dem Speichern eines rückdatierten Eintrags am SELBEN Tag, der off-screen liegt, landet die Ansicht unten statt am Eintrag. KEIN Edge-Case: gleicher Hauptflow, den Lotte + Julia beim Ordering-Bug gemeldet haben (ganzen Tag nachtragen). Fix A hat die Sortier-Hälfte gelöst, das hier ist die Scroll-Hälfte. Diagnose war am Gerät blockiert (Konsole tot); jetzt über den iPhone-16e-Simulator lösbar (Konsole funktioniert, Layout-Bug nicht gerätespezifisch). Nächster Schritt: Sim-Repro + `_scrollKeyToTop` instrumentieren.
 
 
 ## Review & Test
