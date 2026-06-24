@@ -116,6 +116,22 @@ Explore matrix before starting the next. No data migration, so no data rollback.
     (images/coach bubbles not yet measured) so the clamp to a too-small maxScrollExtent
     lands wrong. On-screen-SnackBar-over-cable stays the fallback only if the sim can't
     reproduce.
+    - BLOCKER (2026-06-24): the sim toolchain is ALSO broken post-Xcode-reinstall, at the
+      BUILD-RESOLUTION level. `simctl` sees the iPhone 16e (iOS 26.2) and
+      `xcodebuild -showdestinations` LISTS all simulators, but any build-context destination
+      resolution fails: `flutter run -d <sim>`, `flutter build ios --simulator`, AND a plain
+      `xcodebuild -destination 'platform=iOS Simulator,id=…' -showBuildSettings` all error
+      "Unable to find a destination matching the provided destination specifier" and list
+      only iphoneos/device destinations. So it is NOT flutter and NOT our code. Tried
+      (no fix): flutter clean + wipe Runner DerivedData + pub get; `xcrun simctl shutdown all`
+      + `killall com.apple.CoreSimulator.CoreSimulatorService` (no sudo needed) + reboot sim.
+      The iphonesimulator26.2 SDK is installed (`xcodebuild -showsdks`). Remaining fixes need
+      Vanessa (interactive/sudo): most likely `sudo xcodebuild -runFirstLaunch`, else a full
+      Mac restart (clears the stale CoreSimulator linkage), else Xcode → Settings → Components
+      re-install the iOS 26.2 platform. The instrumentation for `_scrollKeyToTop` +
+      coach-follow is already in the working tree (uncommitted, `[SCROLLDBG]` debugPrints),
+      ready to run the moment the sim builds. Revert with
+      `git checkout lib/screens/home_screen.dart` for a clean tree.
 
 - [ ] 🟥 **Phase 3: Chat / coach / app-open**
   - [ ] 🟥 Route app-open to `bottom`; chat question to `bottom` (onlyIfNearBottom=false);
