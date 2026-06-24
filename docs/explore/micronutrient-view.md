@@ -71,10 +71,11 @@ small and partly a discovery problem (like multi-photo and favourites turned out
 to be). Before any build, confirm whether Sarah's need is the daily header cap /
 a daily full view, or simply not having found the Trends weekly card.
 
-## One investigative question (needs Vanessa's approval before sending)
+## One investigative question (sent to Sarah 2026-06-24)
 
 Only Sarah is unresolved (Celine = discovery, Isabella = addressed in +36). One
-question, strictly investigative, to tell discovery from a real daily-view gap:
+question, strictly investigative, to tell discovery from a real daily-view gap.
+Sent 2026-06-24, awaiting her answer:
 
 > Hey Sarah, kurze Rückfrage zu deinem Wunsch nach mehr Nährwerten als den drei
 > oben: In welchem Moment schaust du auf die Nährwerte, und was genau willst du
