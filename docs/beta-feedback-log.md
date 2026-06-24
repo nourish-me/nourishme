@@ -913,6 +913,6 @@ WhatsApp messages 09:08–09:10, same day as the in-app screenshot feedback abov
    - Sarah: sie tippt im Tagebuch die einzelnen Mikros an, um zu sehen woher sie kommen, und hätte gerne eine **Übersicht pro Tag**, „weil man ja auch übererfüllen kann".
    - Befund: das ist die im Explore identifizierte Lücke. Es gibt KEINE Tages-Vollansicht aller Mikros; der Trends-Tab ist ein 7-Tage-Schnitt, deckt „pro Tag" also nicht. Der Bedarf ist Über- UND Untererfüllung auf Tagesebene, dort wo sie ohnehin hinschaut (Tagebuch, Mikro-Tap).
    - Cross-Link: ihr „woher kommen die Mikros / welche Zutat" gehört zur separaten Karte „Component granularity per meal" (Sarah + Corina).
-   - Discovery offen: ob sie den Trends-Tab (Wochen-Übersicht aller 11 Mikros, % + Farbe) überhaupt kennt. Kurzer Hinweis-/Klärungs-Nachricht an Sarah entworfen (Vanessa schickt). Ändert die Plan-Entscheidung nicht (Trends deckt „pro Tag" nicht), liefert aber das Discoverability-Signal.
+   - Discovery offen: ob sie den Trends-Tab (Wochen-Übersicht aller 11 Mikros, % + Farbe) überhaupt kennt. Hinweis-/Klärungs-Nachricht an Sarah gesendet 2026-06-24. Ändert die Plan-Entscheidung nicht (Trends deckt „pro Tag" nicht), liefert aber das Discoverability-Signal.
    - Action: genug für /create-plan zur Tages-Vollansicht; nicht auf Sarahs Trends-Antwort blocken.
 
