@@ -63,7 +63,7 @@ For per-tester update messages: what each tester reported, with status and build
 | --------------------------------------------- | ---- | ------ | ---------------------- |
 | Backcamembert false-positive raw-milk warning | 🐛   | ✅      | old                    |
 | Praise even for chocolate (tone confirmation) | -    | ✅      | -                      |
-| Iodine-gap nag trigger tuning                 | 💎   | ❓      | → +37                  |
+| Iodine-gap nag trigger tuning                 | 💎   | ✅      | +37 (cooldown enough)  |
 | Multi-photo bulk flow for afternoon           | 🚀   | ✅      | +27 (discovery)        |
 | Weekly micronutrient overview (dedicated tab) | 🚀   | 🟡     | → +39 (partial in +36) |
 
@@ -892,4 +892,14 @@ WhatsApp messages 09:08–09:10, same day as the in-app screenshot feedback abov
    - Screenshot (Gestern view, build +36): order is 12:00 → 18:00 → 20:00 → **15:00 last**, the 15:00 entry (Walkers Shortbread) sits at the bottom despite its earlier chip time. This is the EXACT 13:36-ordering symptom Lotte reported (T11). **Second independent voice** for the same bug, so it is now a 2-tester pattern, not a single voice.
    - Already root-caused and FIXED before this report (Fix A, 2026-06-23): a pure time-edit updated `MealEntry.createdAt` (the chip) but not the `ThreadItem` sort key, because the `_appendToThread` early-return only checked values, not the time. Fix decouples ordering resync from coach regen via two pure functions; +10 tests, suite 389 green. See [[board.md]] (Review & Test) and [[docs/plans/2026-06-23-time-only-edit-thread-resync|→ Plan]].
    - Action: ships with build +37. **Report back to Julia (and Lotte) once +37 is on TestFlight that the ordering bug is fixed.**
+
+---
+
+## 2026-06-24 · Celine (T2) · current beta · WhatsApp (Antwort auf Rückfrage)
+
+1. **Iodine-gap nag trigger tuning** (status: ✅ resolved, cooldown was enough) · 💎
+
+   - Celine meldet zurück, dass mit dem Jod-Hinweis nun alles passt. Antwort auf die investigative Rückfrage vom 2026-06-22 (wie oft sie den Hinweis auf dem aktuellen Build noch sieht).
+   - Bestätigt die Explore-Hypothese: der per-Nutrient 7-Tage-Cooldown (#106, ausgeliefert in +26, also NACH ihrem ursprünglichen +24-Report) hat den akuten täglichen Nag bereits auf wöchentlich gekappt. Kein „deliberate-skip"-Opt-out nötig.
+   - Action: Karte geschlossen, keine weitere Arbeit. Der separate Wunsch nach einer Wochenübersicht läuft eigenständig über die Backlog-Karte „Broader micronutrient view".
 
