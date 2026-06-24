@@ -71,11 +71,29 @@ small and partly a discovery problem (like multi-photo and favourites turned out
 to be). Before any build, confirm whether Sarah's need is the daily header cap /
 a daily full view, or simply not having found the Trends weekly card.
 
-## One investigative question (sent to Sarah 2026-06-24)
+## RESOLVED by Sarah's answer (2026-06-24)
+
+Sarah answered: she taps individual micros in the diary to see where they came
+from, and wants an **overview per DAY** "weil man ja auch übererfüllen kann"
+(over-fulfilment, not just gaps). → The real need is the **per-day full-micro
+view** (over + under), anchored where she already looks (diary micro-tap). The
+Trends tab does NOT serve this (it is a 7-day average), so this is a genuine gap,
+not pure discovery. Her "where does this micro come from / which ingredient" maps
+to the separate "Component granularity per meal" card. Still open: whether she
+knows the Trends tab exists (a short discovery/clarification note to Sarah is
+drafted for Vanessa to send) — but that does not change the plan decision.
+
+→ Plan-ready for /create-plan: a per-day full-micronutrient surface showing
+over- and under-fulfilment. (See note below on whether the daily surface +
+raising the Settings 3-cap, or a new screen, is the route.)
+
+---
+
+## (original) One investigative question — sent to Sarah 2026-06-24
 
 Only Sarah is unresolved (Celine = discovery, Isabella = addressed in +36). One
 question, strictly investigative, to tell discovery from a real daily-view gap.
-Sent 2026-06-24, awaiting her answer:
+Sent 2026-06-24, answered (see RESOLVED above):
 
 > Hey Sarah, kurze Rückfrage zu deinem Wunsch nach mehr Nährwerten als den drei
 > oben: In welchem Moment schaust du auf die Nährwerte, und was genau willst du

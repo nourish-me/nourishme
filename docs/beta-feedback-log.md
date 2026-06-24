@@ -903,3 +903,16 @@ WhatsApp messages 09:08–09:10, same day as the in-app screenshot feedback abov
    - Bestätigt die Explore-Hypothese: der per-Nutrient 7-Tage-Cooldown (#106, ausgeliefert in +26, also NACH ihrem ursprünglichen +24-Report) hat den akuten täglichen Nag bereits auf wöchentlich gekappt. Kein „deliberate-skip"-Opt-out nötig.
    - Action: Karte geschlossen, keine weitere Arbeit. Der separate Wunsch nach einer Wochenübersicht läuft eigenständig über die Backlog-Karte „Broader micronutrient view".
 
+---
+
+## 2026-06-24 · Sarah (T7) · current beta · WhatsApp (Antwort auf Rückfrage)
+
+1. **Broader micronutrient view** (status: clarified → per-DAY full view is the real need) · 🚀
+
+   - Antwort auf die investigative Frage vom 2026-06-24 (in welchem Moment sie auf die Nährwerte schaut, was sie sehen will, wo sie zuerst schaut).
+   - Sarah: sie tippt im Tagebuch die einzelnen Mikros an, um zu sehen woher sie kommen, und hätte gerne eine **Übersicht pro Tag**, „weil man ja auch übererfüllen kann".
+   - Befund: das ist die im Explore identifizierte Lücke. Es gibt KEINE Tages-Vollansicht aller Mikros; der Trends-Tab ist ein 7-Tage-Schnitt, deckt „pro Tag" also nicht. Der Bedarf ist Über- UND Untererfüllung auf Tagesebene, dort wo sie ohnehin hinschaut (Tagebuch, Mikro-Tap).
+   - Cross-Link: ihr „woher kommen die Mikros / welche Zutat" gehört zur separaten Karte „Component granularity per meal" (Sarah + Corina).
+   - Discovery offen: ob sie den Trends-Tab (Wochen-Übersicht aller 11 Mikros, % + Farbe) überhaupt kennt. Kurzer Hinweis-/Klärungs-Nachricht an Sarah entworfen (Vanessa schickt). Ändert die Plan-Entscheidung nicht (Trends deckt „pro Tag" nicht), liefert aber das Discoverability-Signal.
+   - Action: genug für /create-plan zur Tages-Vollansicht; nicht auf Sarahs Trends-Antwort blocken.
+
