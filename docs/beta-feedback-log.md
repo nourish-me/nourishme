@@ -993,3 +993,60 @@ Generalvorbehalt (verbatim): "Also meine ehrliche Meinung: Wenn ich du wäre, w�
 
 8. **Quecksilber Stillzeit "einschränken": bestätigt. Algen/Jod in Stillzeit: NEU warnen** (status: open, teilweise → bereit für /create-plan)
    - Quecksilber "einschränken" in Stillzeit: bestätigt. Algen/Jod in Stillzeit bisher still, Patrizia sagt ebenfalls warnen. Neue Regel nötig. Klarer Sign-off.
+
+---
+
+# Validierungs-Interviews — präskriptiver Mikronährstoff-Wert (Juni 2026)
+
+Zweck: Prüfen, ob "kenne und schließe deine Nährstofflücken" der tragende Wert ist, und ob Testerinnen ihn so suchen. Zwei Tiefen-Interviews (Simone aktiv, Isabella aktiv). Beide Mitschriften aus Sprachnachrichten, teils mit Lücken, hier nur belastbar Zusammengefasstes. Strategische Gesamt-Synthese über die ganze Beta in [[docs/beta-learnings]].
+
+**Die gestellten Fragen**
+1. Was hat dich dazu bewegt, NourishMe testen zu wollen, und was hast du dir erwartet?
+2. Wann hast du zuletzt eine Mahlzeit geloggt, und was hat dich in dem Moment dazu gebracht?
+3. Erinnerst du dich an eine konkrete Coach-Antwort, die dir wirklich etwas gebracht hat?
+4. Was müsste die App können, damit du sie morgen wirklich vermissen würdest? (bzw. was würdest du vermissen, wenn sie weg wäre)
+5. Wie löst du dein Thema gerade ohne die App, und wo ist das besser oder schlechter?
+6. Hast du für vergleichbare Dinge (Apps, Kurse, Beratung) schon mal Geld ausgegeben, wofür und wie viel? Plus: was nervt dich am meisten / Zauberstab-Wunsch?
+
+## 2026-06 · Simone (T6) — Stillzeit, aktiv (32 Sessions), installiert 16.06.2026 · Validierungs-Interview
+
+**Zusammenfassung**
+- Zuletzt geloggt heute Mittag, gezielt um zu sehen, was der Coach zum Eisengehalt sagt, weil sie wieder Mühe hat, auf genug Eisen zu kommen.
+- Konkrete Coach-Antworten sind ihr nicht hängengeblieben. Man könne nach Lebensmitteln fragen, aber das gehe "nicht weit genug". Wunsch: eine konkrete Mahlzeiten-Zusammenstellung.
+- Wäre die App weg, würde sie sie nicht stark vermissen. Sie würde sonst wenig tracken, sich aber hin und wieder Gedanken um ihre Nährstoffe machen.
+- Geld ausgegeben nur einmal: Wochenbett-App "The Weeks" mit täglichem Lese-Content, ca. 20 bis 25 Euro.
+- Größter Wunsch: Rezepte eingeben oder importieren und dann "eine Portion davon" loggen können.
+
+**Kritische Analyse**
+- Wichtigster Befund: eine der aktivsten Testerinnen (32 Sessions) bei niedrigem empfundenen Wert. Hohe Nutzung heißt hier Neugier/Nachschauen, nicht Bindung.
+- Wert (H2): schwach. Der Coach ist informativ, sie braucht ihn präskriptiv ("sag mir, was ich essen soll, um mein Eisen zu decken"). Das ist die unbesetzte Stufe 3 der Tiefe-Leiter.
+- Retention (H3): "würde ich nicht vermissen" ist trotz hoher Aktivität ein Abwanderungs-Signal, deckt sich mit der flachen meal_logged-Retention-Kurve.
+- Zahlungsbereitschaft: zahlt selten und niedrig (ca. 20 bis 25 Euro für Inhalt/Begleitung, nicht fürs Tracken). Gelbes Licht für 8,99/Monat.
+- Reibung vs. Wert: klar Wert, nicht Reibung. Sie loggt mühelos, bekommt nur zu wenig zurück.
+- Produkt-Signal: präskriptive Vorschläge (auch von Sarah genannt, also 2 Stimmen, grenzwertig roadmap-reif). Rezept-Import bisher Einzelstimme, sammeln.
+- Caveat: n=1, Bekannten-Bias, selbstberichtet.
+
+## 2026-06 · Isabella Hoesch (T8) — Stillzeit, aktiv, strukturierte Testerin · Validierungs-Interview
+
+**Zusammenfassung**
+- Auslöser zum Loggen war Neugier, wie sich die App entwickelt hat, kein akuter Bedarf. Loggen klappt an entspannten Tagen mit Handy griffbereit.
+- Kern-Hindernis: Handy nicht immer dabei, kein Fan von Handy am Tisch. Retro-Logging (nachträglich loggen) war für sie eine entscheidende Verbesserung.
+- Wert kommt vom Loggen, nicht vom Chat: sofortiger Effekt (Werte ändern sich direkt, "Balken vollkriegen wollen"), plus Impuls, die nächste Mahlzeit zur Tageslücke passend zu wählen. Die automatischen Rückmeldungen beim Loggen findet sie durchweg nützlich.
+- Wenn die App weg wäre: würde den Überblick vermissen, käme aber zurecht. Alternative wäre ChatGPT. Nie Geld für solche Themen ausgegeben; Quellen sind ChatGPT und Austausch mit anderen Müttern.
+- Größtes Ärgernis: dass sie überhaupt tracken muss (mag weder kochen noch tracken). Konkret: zu viele Notifications, sie ist ein Schnell-Deinstallierer-Typ, maximal zwei pro Tag.
+- Extra-Ideen: Supplements einmalig im Profil hinterlegen, damit sie automatisch in die Tagesübersicht einrechnen (statt dauerhaft 0% DHA trotz genommener Tablette). Glaubwürdigkeit über ein echtes Experten-Gesicht (Patricia, Ernährungswissenschaftlerin) bei Tipps. "Tipp des Tages" / Fun-Facts zum Lernen. Chat und Loggen im Interface trennen. Tabs Trends/Verlauf nutzt sie nicht. Community als möglicher Moat-Gedanke.
+
+**Kritische Analyse**
+- Bestätigt die bescheidene Mikronährstoff-Version direkt: der "Balken füllen plus Impuls zur nächsten Mahlzeit" ist gelebte Stufe 1 bis 3 (Lücke sehen, selbst handeln).
+- Gleiches Warnsignal wie Simone: engagiert, mag es, würde es aber nicht stark vermissen, Alternative ist ChatGPT. Damit 2 von 2 Tiefen-Interviews mit ChatGPT als Substitut. Der gefährlichste Wettbewerber ist ein kostenloses ChatGPT, das die Zielgruppe schon nutzt. Die offene Existenzfrage: ist der Wert deutlich besser als ChatGPT, sodass jemand zahlt und bleibt.
+- Reibung ist der strukturelle Killer: "dass ich tracken muss". Was sie hält, ist Reibung senken (Retro-Logging hat sie gerettet). Mikro-Tiefe ist wertlos, wenn Loggen zu mühsam bleibt.
+- Mehrstimmige, reife Feature-Signale: Supplements im Profil (löst das 0%-DHA-Problem, auch bei Celine/Rebecca/Sarah Thema, erhöht Genauigkeit und damit Glaubwürdigkeit der Mikro-Achse). Experten-Gesicht/klinische Fundierung wird hier unaufgefordert als Vertrauens- und Bindungs-Hebel verlangt ("dann halte ich mich daran"), nicht nur als Compliance.
+- Fokus-Signal: Wert konzentriert in Log + "was fehlt heute". Trends/Verlauf und Chat werden kaum genutzt (Chat auch bei Simone kaum). Nicht mehr Tabs bauen, den täglichen Loop schärfen. Präskriptive Vorschläge gehören in den Log-Flow, nicht in ein Chatfenster.
+- Vorsicht bei Community-Moat: eigener schwerer Produktmuskel, beißt sich mit dem Account-losen Datenschutz-Modell. Wahrscheinlicher Graben ist die expertenfundierte, schwangerschafts/stillzeit-spezifische präskriptive Tiefe.
+- Caveat: n=1, Bekannten-Bias, selbstberichtet.
+
+## Querschnitt aus beiden Interviews
+- Pro Mikro-Wette: Beide bestätigen den Lücken-sehen-und-schließen-Wert auf der Erlebnis-Seite (Isabella explizit über den Balken-Loop, Simone über ihren Eisen-Bedarf).
+- Contra / offenes Risiko: Beide sind engagiert, würden die App aber nicht stark vermissen, und beider Alternative ist ChatGPT. Bindung und Zahlungsbereitschaft sind unbewiesen und wirken nach diesen Gesprächen eher fraglich.
+- Klarste nächste Bauten (mehrstimmig, niedriges Risiko): 1) Supplements im Profil, 2) sichtbare Fachperson hinter den Empfehlungen (zahlt auf Vertrauen, Bindung UND Safety ein), 3) Reibung im Loggen weiter senken.
+- Offene Existenzfrage für die nächste Validierung: Schlägt der präskriptive Mikro-Wert ChatGPT deutlich genug, um Bindung und Zahlung zu rechtfertigen? Genau das soll der Concierge-Test (Eisen, von Hand, wenige Tage) beantworten.
