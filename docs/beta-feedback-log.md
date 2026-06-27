@@ -179,6 +179,7 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | Coach chat sees micros + supplements | 💎 | ✅ | +35 |
 | Component granularity per meal | 🚀 | 🟡 | → +39 |
 | More than 3 micros + dedicated tab | 🚀 | 🟡 | → +39 |
+| Streak-Logik / Gamification (Monatsstreak) | 🚀 | ⛔ | out-of-scope (idea-backlog) |
 
 **Update-Message [DE]:**
 
@@ -310,6 +311,9 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | DHA shown 0 from eggs despite coach mentioning DHA             | 🐛   | 🟡     | → +37                            |
 | German banner in English-UI supplement form (i18n)             | 🐛   | 🟡     | → +37                            |
 | App-Value-Confirmation (logging straightforward, CV accuracy, mindfulness) | - | ✅      | -                                |
+| Retroactive coach silent before next meal (today's entry, 60-min gate) | 💎 | 🟡 | → ? (new card proposed) |
+| Calorie target too low for pregnancy+lactation+sport combo (RMR-Input) | 🚀 | 🔬 | → ? (screenshots pending) |
+| Protein >100% in ring but coach says "under target" | 🐛 | 🔬 | → ? (2nd voice, board card Patricia T13) |
 
 **Update-Message [EN] — SENT 2026-06-20 (after +36 TestFlight upload, with investigative JTBD follow-ups):**
 
@@ -389,6 +393,16 @@ Corina has had a heavy feedback exchange in the last days (multiple deep WhatsAp
 | Protein 18/148g (12%) — suspect wrong target | 🐛 | 🔬 | → ? (needs profile check) |
 | Algenöl triggers seaweed/algae warning (Algae-rule substring match) | 🐛 | 🟡 | → ? |
 | Algenöl: missing "take with fat" combination note | 💎 | 🟡 | → ? |
+| Safety Sign-off: Launch-Gate-Vorbehalt (kein aktives Empfehlen) | #safety | 🟡 | → ? (Launch-Gate-Karte #P0) |
+| Safety Sign-off: Toxoplasmose-Abdeckung (neue Frage) | 🐛 | 🟡 | → ? (Recherche nötig) |
+| Safety Sign-off: Hartkäse nicht warnen, Wortlaut + Quelle | 🐛 | 🟡 | → bereit /create-plan |
+| Safety Sign-off: Rohei-Wording "kritisch prüfen" | 🐛 | 🟡 | → bereit /create-plan |
+| Safety Sign-off: Salbei/Pfefferminze – kein Sign-off, Eigenrecherche | 🐛 | ❓ | → Recherche Vanessa |
+| Safety Sign-off: Flambiert weiterhin warnen | 🐛 | 🟡 | → bereit /create-plan |
+| Safety Sign-off: Leber gesamte Schwangerschaft meiden | 🐛 | 🟡 | → bereit /create-plan |
+| Safety Sign-off: Stillzeit Roh-Tier ok (bestätigt) | - | ✅ | → bestätigt |
+| Safety Sign-off: Quecksilber Stillzeit einschränken (bestätigt) | - | ✅ | → bestätigt |
+| Safety Sign-off: Algen/Jod jetzt auch Stillzeit warnen (neu) | 🐛 | 🟡 | → bereit /create-plan |
 
 
 ## Pattern Clusters (reference)
@@ -916,3 +930,66 @@ WhatsApp messages 09:08–09:10, same day as the in-app screenshot feedback abov
    - Discovery offen: ob sie den Trends-Tab (Wochen-Übersicht aller 11 Mikros, % + Farbe) überhaupt kennt. Hinweis-/Klärungs-Nachricht an Sarah gesendet 2026-06-24. Ändert die Plan-Entscheidung nicht (Trends deckt „pro Tag" nicht), liefert aber das Discoverability-Signal.
    - Action: genug für /create-plan zur Tages-Vollansicht; nicht auf Sarahs Trends-Antwort blocken.
 
+
+---
+
+## 2026-06-27 · Rebecca Brill (T12) · current beta · WhatsApp
+
+Antwort-Runde auf unsere investigativen Rückfragen vom 2026-06-20. Screenshots zu Mahlzeiten angekündigt ("tonight").
+
+1. **Retroaktiver Coach-Trigger: Logging kurz vor der nächsten Mahlzeit** (status: open, 💎 UX-Reibung)
+   - Rebecca loggt typischerweise kurz VOR der nächsten Mahlzeit (nicht direkt nach dem Essen), um zu sehen was sie als nächstes essen sollte. Der Coach ist dann stumm weil die 60-min-Grenze greift. Unser Vorschlag "Trigger wenn heutiger Eintrag + noch keine spätere Mahlzeit geloggt" wurde von ihr mit Daumen-hoch bestätigt. Verwandt mit existierender `isRetroactiveMeal`-Funktion (coach_session_manager.dart). Neue Board-Karte vorgeschlagen (#P2), erst /create-plan nach Rebeccas Screenshot-Runde.
+
+2. **Kalorien-Ziel möglicherweise zu niedrig für Kombination Schwangerschaft+Stillen+Sport** (status: 🔬 collecting, Screenshots ausstehend)
+   - Rebecca überschreitet ihr tägliches kcal-Ziel konstant. Hypothese: 2200 kcal reicht nicht für ihre Kombination (schwanger + stillend + Krafttraining). Sie selbst kavalisiert ("maybe I'm just overeating") und fragt ob Userinnen mit bekanntem Ruheumsatz (RMR) ein personalisierteres Ziel einstellen könnten. Screenshots kommen heute Abend. Einzelstimme, unsicherer Bedarf. Kein Board-Eintrag bis Screenshots vorliegen.
+
+3. **Protein-Total >100% UI aber Coach sagt "unter Ziel"** (status: 🔬 zweite Stimme auf bestehender Karte)
+   - Rebecca beobachtet täglich Protein >100% im UI-Ring, aber der Coach kommentiert sie als unter Ziel. Entspricht exakt der Board-Karte "Protein target: UI macro split vs coach proteinTargetGrams diverge" (Patricia T13, #P3). Screenshot steht aus. Rebecca ist zweite Stimme, Hochstufung auf #P2 nach Screenshot prüfen.
+
+---
+
+## 2026-06-27 · Sarah (T7) · current beta · WhatsApp + Sprachnachricht (Antwort auf Rückfrage)
+
+1. **Broader micronutrient view: Tages- vs. Wochenbasis, Discovery** (status: Bestätigung bestehender Plan)
+   - Sarah kannte den Trends-Tab, hatte ihn vergessen. Tagesbasis ist ihr greifbarer, Woche bleibt wichtig für den Überblick. Bestätigt die Explore-Entscheidung: Trends deckt "pro Tag" nicht. Kein neuer Punkt, Bestätigung des Plans. Gehört zu bestehender Karte "Broader micronutrient view" (Explore, bereit für /create-plan).
+
+2. **Mehr als 3 Mikros + Reiter mit allen ausgewählten** (status: Bestätigung bestehender Karte)
+   - Sarahs Struktur "3 vorne + eigener Reiter" trifft exakt den Plan. Bestehende Karte, keine neue Aktion.
+
+3. **Wochenübersicht ausklappbar mit Tagesbasis** (status: Bestätigung bestehender Plan)
+   - Sprachnachricht: sie will einen ausklappbaren Wochenreiter mit Tagesbasis (inkl. Übererfüllung). Das ist die Tages-Vollansicht aus dem bestehenden Plan. Keine neue Karte.
+
+4. **Streak-Logik / Gamification** (status: ⛔ out of scope, park-karte)
+   - Spontan und selbst "noch nicht zu Ende gedacht": Monatsstreak, jeden Tag Nährstoffe erfüllt. Out of scope laut CLAUDE.md (Streak-UI ist explizit kein In-Scope-Element). Park-Karte Idea Backlog.
+
+---
+
+## 2026-06-27 · Patrizia (T13) · WhatsApp + PDF · Safety Sign-off (Antwort auf unsere Sign-off-Anfrage 2026-06-23)
+
+Ernährungsberaterin/Ärztin, Gutachterin (= Patricia T13, dieselbe Person wie die Algenöl-/Protein-Stimme, Schreibweise variiert Patricia/Patrizia). Fachlicher Sign-off auf geschlossene Liste Safety-Grenzfälle ([[docs/explore/safety-borderline-signoff]]).
+
+Generalvorbehalt (verbatim): "Also meine ehrliche Meinung: Wenn ich du wäre, würde ich so eine App nicht launchen bevor sie nicht von einer Ernährungsfachkraft die auf Schwangere und Stillende spezialisiert ist überprüft wurde [...] würde ich diese App als Ärztin und Ernährungsmedizinerin ehrlicherweise so wie sie jetzt ist nicht aktiv empfehlen." → Launch-Gate-Karte vorgeschlagen (#P0 #safety).
+
+1. **Salami/Schinken/Räucherfisch Listerien-Warnung: bestätigt. NEU: Toxoplasmose** (status: open, 🐛 Safety-Lücke)
+   - Listerien-Warnung: bestätigt. Patrizia fragt aber: "Was ist mit Toxoplasmose?" + PDF beigefügt. Toxoplasmose ist in der aktuellen Safety-Grenzfall-Liste nicht abgedeckt. Recherche-Schritt nötig, dann zweite Sign-off-Runde oder Einschluss in Safety-Build.
+
+2. **Harte/lang gereifte Käse: NICHT warnen, exakter Wortlaut + Quelle** (status: open → bereit für /create-plan)
+   - "Nur lang gereifter Hartkäse aus Rohmilch ist unproblematisch" (Netzwerk gesund ins Leben), Quelle angeben. Gruyère, Parmigiano, Pecorino etc. aus Roh-Käse-Match herausnehmen. Klarer Sign-off.
+
+3. **Rohei-Speisen: warnen auch bei pasteurisiertem Ei, Wording auf "kritisch prüfen, im Zweifel weglassen"** (status: open → bereit für /create-plan)
+   - Bestätigt aktuelle Praxis (warnen), Wording-Anpassung. Klarer Sign-off.
+
+4. **Salbei/Pfefferminze: kein Sign-off, Eigenrecherche nötig** (status: open, Rückdelegation)
+   - "Schau nochmal genau nach ob es da ein offizielles Statement gibt." Kein Veto, kein Bestätigung. Vanessa recherchiert DGE/BfR/Netzwerk-gesund-ins-Leben, dann erneut vorlegen.
+
+5. **Flambiert: weiterhin warnen** (status: open → bereit für /create-plan)
+   - "Es muss im inneren auf 70 Grad kommen. Das wird durch flambieren vermutlich nicht erreicht das ist ja nur oberflächlich." "Flambiert" aus Hitze-Ausnahme-Liste entfernen. Klarer Sign-off.
+
+6. **Leber: gesamte Schwangerschaft meiden** (status: open → bereit für /create-plan)
+   - "Immer an die offiziellen Empfehlungen halten wenn BfR sagt meiden dann meiden." T2/T3-Abschwächung entfernen. Klarer Sign-off.
+
+7. **Stillzeit: keine Warnung Rohmilchkäse/roher Schinken/Räucherfisch, nur Schalentiere** (status: bestätigt)
+   - "Ja denke schon." Bestätigt aktuelle Implementierung (Phase-Scoping C11 im Explore-Doc).
+
+8. **Quecksilber Stillzeit "einschränken": bestätigt. Algen/Jod in Stillzeit: NEU warnen** (status: open, teilweise → bereit für /create-plan)
+   - Quecksilber "einschränken" in Stillzeit: bestätigt. Algen/Jod in Stillzeit bisher still, Patrizia sagt ebenfalls warnen. Neue Regel nötig. Klarer Sign-off.
