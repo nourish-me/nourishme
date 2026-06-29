@@ -1,4 +1,4 @@
-# Beta-Learnings: what the beta has taught us (June 2026, rev. 2)
+# Beta-Learnings: what the beta has taught us (June 2026, rev. 3)
 
 Strategic synthesis across the whole TestFlight beta (T1-T14, builds +20 to +37,
 2026-06-15 to 2026-06-29). Sources: [[beta-feedback-log]] (per-tester chronology,
@@ -7,8 +7,10 @@ TestFlight session-tracking sheet (3 snapshots: ~13.06, 18.06, 27.06; recruitmen
 source per tester). North Star = weekly active loggers on 3+ days/week.
 
 This doc is deliberately blunt about NEGATIVE signal. The beta's job was to learn.
-Rev. 2 folds in the PMF round (disappointment/payment/recommend), Vanessa's own four
-learnings, and the recruitment-source engagement split.
+It folds in the PMF round (disappointment/payment/recommend), the recruitment-source
+engagement split, and (rev. 3) Vanessa's own four learnings verbatim, each backed with
+the evidence from the beta. Her learnings come first, in her own words; the
+hypothesis-scored analysis underneath is the supporting read.
 
 ## TL;DR
 
@@ -24,7 +26,64 @@ the single highest-friction behaviour, real-time logging.** The clearest next st
 cheap value test (the iron Concierge test), three low-risk multi-voice builds, a hard
 safety launch gate, and reframing toward expert-grounded, pregnancy-first depth.
 
-## The hypotheses, scored (rev. 2)
+## Founder's learnings (Vanessa, in her own words) + the evidence
+
+These are Vanessa's four learnings verbatim, with the beta evidence backing each.
+
+### Learning 1 — Tracking is the biggest friction point, and our audience has the least time
+
+> „Der größte Friction Point ist das Tracking. Food Tracking ist generell was ganz schön anstrengend, und jetzt haben wir noch die Zielgruppe, die am wenigsten Zeit hat, nämlich frisch gewordene Mamis."
+
+**Evidence:** the most-named single annoyance across the beta. Isabella: „dass ich
+tracken muss ... noch eine App ... regelmäßig rein tippen". Eva: time was the deciding
+factor, phone not at the table. Nena: never formed the routine despite reminders. Corina:
+busy with work, backfill saved her. Lotte: two small kids, no time/nerve, „jede
+Zusatzaufgabe". Lotte's friend bounced on „zu viel Komplexität obendrauf auf den Alltag".
+Confirmed and overwhelming, and the time-scarcity is structural to fresh moms, not a UX
+detail. See H_friction below.
+
+### Learning 2 — The friction collides with our core promise (live course-correction)
+
+> „Das Problem mit diesem Friction Point ist, dass unser Core-Versprechen ja diese Live-Kurskorrektur ist. Wenn du mir nicht in der Minute sagst, was du gegessen hast, kann ich nicht live kurskorrigieren."
+
+**Evidence:** this is the sharpest point of the whole beta. The value model (per-meal
+coach, „was fehlt heute", next-meal nudge) needs in-the-moment logging, but testers log
+retroactively or not at all (Eva, Nena, Corina's backfill, Isabella for whom retro-logging
+„war eine entscheidende Verbesserung"). So the very moments where live correction would
+fire are the moments friction blocks. It forces a fork: **kill the friction** (voice-first
+capture, supplements-in-profile, photo) **or shift the value** to retrospective / pattern /
+one-time insight, which is what testers actually got value from (Lotte's one protein
+insight, Eva's day-trends, Corina's backfill). Naming this fork is itself a learning.
+
+### Learning 3 — Over-focus on macros; testers want micros, but the micro-% is soft
+
+> „Ich war sehr fokussiert auf die Makros, aber die meisten Testerinnen wollen Mikros. Bei den Makros klappt's hervorragend, dass man sagen kann „du hast x % deines Bedarfs gedeckt". Die Fehlerquote, die ein LLM beim Schätzen hat, ist bei Makros geringer als bei Mikros. Bei Mikros kann man das nicht so ganz sagen, da spielt die Verstärkung eine Rolle, wie hoch mein Mangel ist, ob ich einen Mangel habe. Da kann man vielleicht gar nicht sagen „du hast x % erreicht", aber genau diese Zahlen sind das Gamification-Element, das die Leute reizt."
+
+**Evidence:** the gap-insight testers care about is mostly micro-framed (iron for Simone,
+DHA, protein for Lotte), and the %-bars are the draw (Isabella: „diese Balken voll
+kriegen"). But micro-% is scientifically soft (absorption, deficiency baseline, supplement
+contribution), which is exactly where the parser kept failing (the DHA-from-eggs and
+iron-from-oats fixes) and where Patrizia's accuracy/credibility gate bites. So the micro-%
+is **both the hook and a credibility risk**. Telling detail: the clearest „this helped"
+(Lotte) was a **macro** (protein), directional, not a precise micro %. Supplements-in-
+profile matters here too: a permanent „0% DHA" despite a daily tablet quietly destroys
+the credibility of the whole micro axis.
+
+### Learning 4 — The safety layer was underestimated; a non-deterministic LLM needs a hard guard
+
+> „Kein Showstopper, aber eine große Herausforderung, die ich unterschätzt habe: Wenn Leute essen tracken, gerade Schwangere und Stillende, erwarten sie natürlich, dass ich sie warne, wenn etwas nicht ok ist (rohes Lebensmittel, Alkohol, zu viel Kaffee). Das LLM ist non-deterministisch, also muss ich ein fettes Safety-Layer reinbauen. Das ist sehr aktuell. Ich brauche Hilfe von der Ernährungsberatung, vielleicht sogar von einem Anwalt, um keine Risiken einzugehen."
+
+**Evidence:** this is the P0 launch gate. Patrizia (nutritionist) will not actively
+recommend the app until the safety set is verified against DGE / BfR / Netzwerk Gesund ins
+Leben. The borderline sign-off surfaced real corrections (hard cheese over-warning, flambé,
+liver across the whole pregnancy, algae-in-lactation, raw-egg wording, open Toxoplasmose).
+Live bugs reinforce it: lactation profiles wrongly got pregnancy warnings (Isabella, Julia,
+P0), Algenöl false-positive (Patrizia), substring over-matching (kombu→Kombucha). Testers
+expect and value the warnings (Corina liked „you drank too much coffee"). A
+non-deterministic LLM over health data needs a deterministic rules layer on top
+(already partially built) plus expert and likely legal review before a public launch.
+
+## The hypotheses, scored
 
 | Hypothesis | Status | One-line |
 | --- | --- | --- |
@@ -54,12 +113,9 @@ Round 2 adds two concrete moments where prescriptive-in-context DID land:
 > Corina (T3): die Warnungen + „eat something healthier because you had an emotional day" waren „pretty good".
 
 So the prescriptive layer is the most promising next value rung, but still a hypothesis:
-no tester has stayed or paid *because* of it. **Vanessa's learning #3** sharpens the trap:
-the % numbers are the gamification draw, yet micro-% is scientifically soft (absorption,
-deficiency baseline), unlike macros where "you covered x%" holds. So the micro-% is
-**both the hook and a credibility risk** that collides with the nutritionist's accuracy
-gate. Telling that the clearest "this helped" (Lotte) was a **macro**, directional
-insight, not a precise micro %.
+no tester has stayed or paid *because* of it. And per **Learning 3 (above)**, the %
+numbers are the gamification draw yet micro-% is scientifically soft, so the micro-% is
+both the hook and a credibility risk that collides with the nutritionist's accuracy gate.
 
 ### H_retention — better than the first read, but confounded and conditional
 
@@ -111,10 +167,9 @@ deciding factor; Nena: never formed the routine; Corina: busy, backfill saved he
 Lotte: no time/nerve, an indicator is enough). What *retained* people was friction
 removal (retro-logging „eine entscheidende Verbesserung" for Isabella).
 
-**Vanessa's learning #2 is the sharpest point of the whole beta:** the core promise,
-*live course-correction*, structurally depends on the **highest-friction behaviour**
-(telling the app what you ate in the moment). That is a fundamental tension, not a polish
-item. It forces a fork:
+Per **Learning 2 (above)**, the core promise, *live course-correction*, structurally
+depends on the **highest-friction behaviour** (telling the app what you ate in the
+moment). That fundamental tension forces a fork:
 
 - **Kill the friction** so real-time logging becomes near-effortless: voice-first capture
   (Nena explicitly wants "reinsprechen, Coach übernimmt"; Eva's photo win and Corina's
@@ -198,9 +253,9 @@ The launch should target intent-rich acquisition and all metrics should segment 
 3. **Clear the safety launch gate (P0, non-negotiable).** Patrizia will not recommend the
    app until the safety set is verified against DGE / BfR / Netzwerk Gesund ins Leben.
    Signed-off rules (hard cheese out, flambé still warns, liver whole pregnancy, algae in
-   lactation, raw-egg wording) + open items (Toxoplasmose, sage). **Add the legal angle
-   (Vanessa's learning #4):** the non-deterministic LLM needs a deterministic safety/rules
-   layer over it, and possibly legal review, before a public launch.
+   lactation, raw-egg wording) + open items (Toxoplasmose, sage). Per **Learning 4**, the
+   non-deterministic LLM needs a deterministic safety/rules layer over it, and possibly
+   legal review, before a public launch.
 4. **Probe positioning, pregnancy-first.** Value + payment skew to first-time / pregnant
    users (Eva explicit, Corina "anxiety higher in pregnancy"). The pregnancy expansion in
    CLAUDE.md may be the **primary payable wedge**, not a later add-on. Test the narrative:
