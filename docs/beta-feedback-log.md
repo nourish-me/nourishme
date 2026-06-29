@@ -1050,3 +1050,42 @@ Zweck: Prüfen, ob "kenne und schließe deine Nährstofflücken" der tragende We
 - Contra / offenes Risiko: Beide sind engagiert, würden die App aber nicht stark vermissen, und beider Alternative ist ChatGPT. Bindung und Zahlungsbereitschaft sind unbewiesen und wirken nach diesen Gesprächen eher fraglich.
 - Klarste nächste Bauten (mehrstimmig, niedriges Risiko): 1) Supplements im Profil, 2) sichtbare Fachperson hinter den Empfehlungen (zahlt auf Vertrauen, Bindung UND Safety ein), 3) Reibung im Loggen weiter senken.
 - Offene Existenzfrage für die nächste Validierung: Schlägt der präskriptive Mikro-Wert ChatGPT deutlich genug, um Bindung und Zahlung zu rechtfertigen? Genau das soll der Concierge-Test (Eisen, von Hand, wenige Tage) beantworten.
+
+---
+
+# PMF-Runde 2 — Disappointment / Payment / Recommend (Juni 2026)
+
+Sean-Ellis-artige PMF-Befragung. Vier Antworten (Eva, Nena NEU, Lotte, Corina). Drei davon Sprachnachrichten, **lückenhaft auto-transkribiert**, hier nur belastbar Zusammengefasstes. Vanessas eigene Learnings dazu liegen in der Strategie-Synthese [[docs/beta-learnings]], nicht hier (Trennung Fakten/Deutung).
+
+**Die gestellten Fragen**
+1. Wie enttäuscht wärst du, wenn es NourishMe nicht mehr gäbe (sehr / ein bisschen / gar nicht), und warum?
+2. Was war das eine, das dir wirklich geholfen hat?
+3. Was hat dich am meisten abgehalten, bzw. wann hast du aufgehört, es zu nutzen, und warum?
+4. Würdest du für so etwas zahlen, und wenn ja, was fühlt sich pro Monat fair an?
+5. Wem würdest du die App empfehlen, und wie würdest du sie in einem Satz beschreiben?
+
+## 2026-06 · Eva (T1) — Stillzeit · PMF (Sprachnachricht, lückenhaft)
+- **Hindernis (Q3):** nichts an der App selbst, sondern das Momentum: Handy beim Essen nicht dabei, oder Essen schon durch ("wie mache ich das jetzt?"). **Zeit war der entscheidende Faktor.** Mit dem Foto-Logging klappte es deutlich besser, vor allem wenn bekannte Produkte erkannt werden.
+- **Geholfen (Q2):** Push-Notifications ("hast du Frühstück/Snack/Abendessen eingetragen?") als Erinnerung, plus die Tagesverläufe (sehen wie sich Werte über die Zeit ändern, normale vs. heiße Woche).
+- **Payment (Q4):** grundsätzlich ja. Sieht Wert/Zielgruppe **vor allem bei Erstlingsmamas** (checken mehr); beim zweiten Kind weiß man "ich werde die Zeit eh nicht haben". **Werbefreiheit ist ein großer Zahlungsgrund** ("wenn keine Werbung dabei ist, bist du eher bereit zu zahlen").
+- **Empfehlung (Q5):** gezielt an neue/erste Schwangere.
+
+## 2026-06 · Nena (T14, NEU) — PMF (Sprachnachricht, lückenhaft)
+- **Disappointment (Q1):** Mega-Fan der Idee/App, erzählt allen begeistert davon. ABER konnte es **nicht im Alltag etablieren**, schafft es trotz Reminder selten, abends nachzutragen. Schätzt das Nachtragen über mehrere Tage, kommt aktuell aber nicht dazu / setzt Prioritäten anders.
+- **Hindernis (Q3):** Routine-Bildung nie erreicht; in der Theorie mega, in der Praxis nicht hinbekommen. Generelle Handy-Müdigkeit (nicht app-spezifisch). Idee: mehr **Spracheingabe** (alles reinsprechen, Coach übernimmt) würde für sie wahrscheinlich besser funktionieren, hat sie noch nicht getestet.
+- **Geholfen (Q2):** wenn sie den Coach genutzt hat, hat sie die Tipps sofort umgesetzt. Konkretes Beispiel: schneller Snack gesucht → Vorschlag (z.B. mit Hummus) → hatte es da, "mega gefeiert".
+- **Payment (Q4):** ja, sobald für sich etabliert und Mehrwert gefunden; die Coach-Tipps sind sehr wertvoll. Braucht erst Routine/Testphase, dann legitim zu zahlen.
+
+## 2026-06 · Lotte (T11) — Stillzeit (3-Jähriger + 2,5-Monate-altes Baby) · PMF (Sprachnachricht, lückenhaft)
+- **Disappointment (Q1):** zwischen "ein bisschen" und "gar nicht".
+- **Geholfen (Q2):** hat ihr als **Indikator/Diktat** geholfen, zu erkennen dass sie **viel zu wenig Protein** isst. Diese eine Erkenntnis reicht ihr, sie muss nicht jeden Tag reingucken, sie weiß jetzt einfach "mehr auf proteinreiche Sachen achten" und kann das selbst grob einschätzen.
+- **Hindernis (Q3):** zwei sehr aktive kleine Kinder, keine Zeit/Nerv für eine Zusatzaufgabe, hat gefühlt genug zu tun. Ist nicht der super-akribische Ernährungs-Typ, ein Indikator genügt ihr.
+- **Payment (Q4):** **nein** (sagt aber selbst, sie ist generell jemand, der nicht zahlt).
+- **Empfehlung (Q5):** an 2 Freundinnen weitergeleitet; eine fand es "zu viel Komplexität obendrauf auf den Alltag" (außer man hat echte Schwierigkeiten), Essen-Tracken sei ohnehin anstrengend. Beide haben es wohl letztlich nicht angeschaut, kein Feedback. War sich selbst unsicher, ob Tracken ihr guttut.
+
+## 2026-06 · Corina (T3) — Stillzeit, viel Arbeit · PMF (englische Sprachnachricht, klarer)
+- **Disappointment (Q1):** "quite disappointed". Hält sie für eine "amazing app", die "a huge difference" machen würde. Hat sie vielen Freundinnen + Kolleginnen empfohlen ("wow, super interesting"). Sieht großes Potenzial als **allgemeiner Food-Tracker** über die Zielgruppe hinaus, würde sie nach Schwangerschaft/Stillzeit weiternutzen wenn zur Gewohnheit geworden. (Stärkstes Retention-Signal der Runde.)
+- **Geholfen (Q2):** dass man **Foto ODER Text** nehmen kann, "fit any way I managed to try", nicht nur ein Weg. Plus die **Warnungen** ("you drank too much coffee", "eat something healthier because you had an emotional day").
+- **Hindernis (Q3):** viel Arbeit, vergisst es; **Backtracking/Backfill hat sehr geholfen**. Heißes Wetter, planloses Snacken, kein Schema, Hauptfokus Abendessen. Deshalb die letzten Tage weniger genutzt.
+- **Payment (Q4):** "yes, probably". **7-Tage-Trial ist zu kurz für eine neue App, ein Monat würde "hook you".** Preis-Anker: ca. **5 [€/Monat]** bzw. **~30 pro Jahr**; mehr als das, unsicher ob Leute aktuell zahlen ("we're paying for a lot of things right now"). Ehrliche Einschätzung.
+- **Empfehlung (Q5):** an alle. Ein-Satz: "if you want to keep your worries away from having to track what you eat, you should do it, especially in pregnancy" (ihre Angst war in der Schwangerschaft höher).
