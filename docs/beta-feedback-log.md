@@ -1092,6 +1092,33 @@ Sean-Ellis-artige PMF-Befragung. Vier Antworten (Eva, Nena NEU, Lotte, Corina). 
 
 ---
 
+# Exit-Fragen-Runde (Juni 2026): Sarah, Simone
+
+Antworten nach der Beta-Abschluss-Ankündigung. Sarah als Text, Simone als Text. Verbatim/sinngemäß.
+
+## 2026-06-30 · Sarah (T7) — Stillzeit · Exit-Fragen
+
+- Würde gern wieder testen, hatte Spaß, freut sich auf die nächste Runde.
+- **Disappointment (Q1):** „Schade", als sie es hörte. Es sei „ein bisschen zur Gewohnheit geworden", obwohl sie die App nicht jeden Tag genutzt hat. Wert, wenn genutzt: Orientierung, wie es gerade mit der Ernährung aussieht, ob sie genug isst, was sie am besten essen sollte.
+- **Was geholfen hat (Q2, konkreter präskriptiver WIN):** die Vorschläge, was sie als Nächstes essen könnte, um auf 100% zu kommen. Hat einmal tatsächlich **Kartoffel-Brokkoli-Lachs** gekocht, um in allen Werten auf 100% zu kommen, weil die App es vorschlug, „und das fand ich ganz cool". → Erstes belegtes Verhalten, das ein präskriptiver Vorschlag ausgelöst hat.
+- Generell: Orientierung, was guttut, welche Nährstoffe einzahlen, „richtig gut".
+- **Was abgehalten hat (Q3, Supplement double-edge):** an manchen Tagen nicht genutzt. Grund: sie hatte **Folio als Supplement** hinterlegt; an Wegfahr-Wochenenden (oft 10:00 unterwegs) vergisst sie das Folio, dann rechnet die App es trotzdem als genommen (100%), obwohl sie es nicht genommen/dabei hat. Es ist ihr dann zu mühsam/dauert zu lang, das tagesweise in der App rauszunehmen. Wenn der Wert den ganzen Tag falsch ist, „stimmt der ganze Tag nicht", und dann trägt sie gar nicht mehr ein.
+- **Wunsch:** es gibt keinen leichten Weg, das Supplement tagesweise zu deaktivieren. Idee: zu Tagesstart oder -ende „Hast du heute dein Supplement genommen?" und dann entsprechend draufrechnen, damit es nicht fälschlich reingerechnet wird.
+- **Payment (Q4):** ca. **3-4 €/Monat**.
+- **Empfehlung (Q5):** anderen stillenden Müttern mit ähnlichen Fragen (ob sie sich ausreichend ernähren, um „noch einen kleinen Menschen zu ernähren"); auch einer Freundin mit Ernährungs-/Gesundheitsproblemen. Sieht es **nicht nur für Mütter/Stillzeit**, sondern generell als Ernährungs-Orientierungshilfe (wie schon früher gesagt). „Ziemlich viel Potenzial". Hat sich noch nicht mit dem Markt/Wettbewerb beschäftigt. Bleibt dabei, gespannt auf Nächstes.
+
+## 2026-06-30 · Simone (T6) — Stillzeit (Q1 mit Fokus Schwangerschaft formuliert) · Exit-Fragen
+
+(War am Wochenende krank, daher späte Rückmeldung.)
+1. Was sie wollte: einen besseren Überblick über ihre Nährstoffaufnahme, mit **Fokus auf die Schwangerschaft**.
+2. Was sie indispensable machen würde: **konkrete Rezeptvorschläge mit Mengenangaben und Zubereitungsanweisung**, ggf. auch, wie sie diese Mahlzeiten über die Woche verteilt gut einbaut, um das Thema langfristig abzudecken.
+3. Ihr eigentliches Thema: **Mahlzeiten planen**. Wenn die App z.B. einen **Wochenplan vorschlagen** würde, **den der Coach dann anpasst**, je nachdem was sie wirklich geloggt hat.
+4. Was sie aktuell beim Testen hält: ganz ehrlich, **am ehesten die Neugier am Testen**.
+5. Wie sie es sonst löst: vorrangig **Recherche zu Lebensmitteln und Rezepten über Google oder Claude**. „Funktioniert ähnlich zur App, aber etwas flexibler im Scope."
+6. On-top-Wunsch: **kuratierter Content** zu Ernährung in Schwangerschaft/Stillzeit, vielleicht mit kleinen **Wissens-Nuggets** zu bestimmten Lebensmitteln, zusätzlich zum Mahlzeiten-Tracking.
+
+---
+
 # Anhang: Roh-Transkripte der Validierungs-Interviews (Simone, Isabella)
 
 Wörtliche, unbearbeitete Sprachnachricht-Transkripte (Lücken mit `___` markiert). Dies ist die QUELLE der bereits oben zusammengefassten Validierungs-Interviews (Simone T6, Isabella T8) im Abschnitt „Validierungs-Interviews — präskriptiver Mikronährstoff-Wert". Kein neues Signal, hier nur fürs verbatim-Archiv. (Ein drittes Transkript lag nicht vor.)

@@ -1,7 +1,7 @@
-# Beta-Learnings: what the beta has taught us (June 2026, rev. 3)
+# Beta-Learnings: what the beta has taught us (June 2026, rev. 4)
 
 Strategic synthesis across the whole TestFlight beta (T1-T14, builds +20 to +37,
-2026-06-15 to 2026-06-29). Sources: [[beta-feedback-log]] (per-tester chronology,
+2026-06-15 to 2026-06-30). Sources: [[beta-feedback-log]] (per-tester chronology,
 the two June validation interviews, the PMF round 2, raw transcripts) + the
 TestFlight session-tracking sheet (3 snapshots: ~13.06, 18.06, 27.06; recruitment
 source per tester). North Star = weekly active loggers on 3+ days/week.
@@ -88,7 +88,7 @@ non-deterministic LLM over health data needs a deterministic rules layer on top
 | Hypothesis | Status | One-line |
 | --- | --- | --- |
 | H_value-A: "seeing my gaps" is valued | ✅ confirmed (experience side) | the bar-filling / gap-insight loop lands; for some it is the *whole* value (Lotte: a one-time protein insight was enough) |
-| H_value-B: prescriptive ("tell me what to eat to fix it") is the load-bearing value | 🟡 promising, still the empty rung | Simone wants it explicitly ("geht nicht weit genug"); Nena & Corina cite concrete prescriptive moments that *worked*; nobody yet stayed/paid *because* of it |
+| H_value-B: prescriptive ("tell me what to eat to fix it") is the load-bearing value | 🟢 strengthening, first behaviour-change evidence | Sarah **cooked the suggested Kartoffel-Brokkoli-Lachs to hit 100%**; Simone wants coach-adjusted weekly plans; Nena & Corina cite prescriptive moments that worked. Still nobody pays *because* of it, but they now *act* on it |
 | H_retention | 🟡 better than first read, gated by routine + recruitment source | every "Aktiv" tester at 27.06 is self-recruited; friend-asked testers churn; but high activity ≠ attachment (Simone) |
 | H_payment | 🟡 early-positive, price-sensitive | 7/8 PMF say yes-with-conditions; anchor ~5€/mo, ~30€/yr; 8.99 likely too high; stated ≠ revealed |
 | H_friction | ✅ confirmed, the structural killer | "dass ich tracken muss" is the #1 annoyance; and it collides head-on with the live-correction value model |
@@ -102,20 +102,28 @@ directional insight is the entire value** ("ich weiß jetzt einfach, mehr auf Pr
 achten") and she neither tracks daily nor pays. So gap-insight is real but for a slice
 of users it is a one-shot, not a recurring-use, value.
 
-### H_value-B — prescriptive depth: promising, still unbuilt
+### H_value-B — prescriptive depth: now the strongest lead, with real behaviour change
 
-> Simone (T6): das geht „manchmal noch nicht weit genug", vielleicht eine „konkrete Mahlzeiten-Zusammenstellung".
+This is the most important shift in rev. 4. The exit round gives the first **acted-upon**
+prescriptive evidence, not just stated interest:
 
-Round 2 adds two concrete moments where prescriptive-in-context DID land:
+> Sarah (T7): die Vorschläge, was sie als Nächstes essen könnte, um auf 100% zu kommen, waren das, was geholfen hat. Sie hat einmal **Kartoffel-Brokkoli-Lachs gekocht, um in allen Werten auf 100% zu kommen**, weil die App es vorschlug, „und das fand ich ganz cool".
 
-> Nena (T14): schneller Snack gesucht, Coach schlug etwas mit Hummus vor, „hatte es da, mega gefeiert".
+> Simone (T6): ihr eigentliches Thema ist **Mahlzeiten planen** — ein „Wochenplan, den der Coach anpasst je nachdem was ich wirklich geloggt habe", plus „konkrete Rezeptvorschläge mit Mengenangaben und Zubereitung".
 
-> Corina (T3): die Warnungen + „eat something healthier because you had an emotional day" waren „pretty good".
+Earlier voices already pointed here (Simone „geht manchmal noch nicht weit genug"; Nena's
+hummus snack she „mega gefeiert"; Corina's warnings „pretty good"). So the prescriptive
+rung is no longer empty: **at least one tester changed what she cooked because of a
+gap-closing suggestion**, and the demand is escalating toward coach-adjusted **weekly meal
+planning** (Simone). Caveats stay: nobody pays *because* of it yet, and per **Learning 3
+(above)** the micro-% behind these suggestions is scientifically soft, so the prescriptive
+output is only as trustworthy as the underlying estimate, which is exactly Patrizia's gate.
 
-So the prescriptive layer is the most promising next value rung, but still a hypothesis:
-no tester has stayed or paid *because* of it. And per **Learning 3 (above)**, the %
-numbers are the gamification draw yet micro-% is scientifically soft, so the micro-% is
-both the hook and a credibility risk that collides with the nutritionist's accuracy gate.
+Positioning tension to hold consciously: this demand pulls toward "meal planner", which the
+*Stop/avoid* section warns against as a generic-tracker trap. Reconcile by keeping the
+prescriptive value **inside the daily log loop** (next-meal-to-hit-100% nudges, like
+Sarah's salmon) before considering full weekly-plan generation, which is a much bigger,
+riskier build.
 
 ### H_retention — better than the first read, but confounded and conditional
 
@@ -143,17 +151,20 @@ source**; the friend cohort is bug-finding signal, not retention signal.
 
 ### H_payment — early-positive, price-sensitive, still soft
 
-No longer a blank. Of 8 PMF respondents, **7 would pay with conditions**:
+No longer a blank. Most PMF respondents would pay with conditions, but the price anchors
+keep coming in **low**:
 
 > Corina (T3): "yes, probably"; 7-day trial too short, a month "hooks you"; anchor **~5€/Monat bzw. ~30€/Jahr**, mehr „I don't know if people would pay right now".
+
+> Sarah (T7): „so 3-4 € dafür ... im Monat".
 
 > Eva (T1): ja, vor allem **Erstlingsmamas**; **werbefrei** ist ein großer Zahlungsgrund.
 
 > Nena (T14): ja, sobald für sich etabliert und Mehrwert gefunden.
 
 Lotte is the no ("aber ich bin auch generell jemand, der nicht zahlt"). Implications:
-the **8.99/month assumption is probably too high**; the tester anchor is ~5€/mo or
-~30€/yr (annual). Conditions that recur: a **longer trial (a month, not 7 days)**, **no
+the **8.99/month assumption is clearly too high**; the converging tester anchor is now
+**~3-5€/mo or ~30€/yr** (annual). Conditions that recur: a **longer trial (a month, not 7 days)**, **no
 ads**, and **routine established first**. Caveat: stated willingness in a friendly
 interview is cheap and over-optimistic, and the same people lapsed in actual use
 (Corina enthusiastic yet stopped logging the last days). Treat ~5€/mo as a **hypothesis
@@ -208,17 +219,28 @@ The launch should target intent-rich acquisition and all metrics should segment 
 - Prescriptive value as a *must-have* that retains/pays (promising, not proven).
 - 3+ days/week stickiness as a stated intent.
 - A defensible price (~5€/mo is an anchor to test, not validated; 8.99 likely too high).
-- That we beat free ChatGPT, which 2 interviewees name as their substitute.
-- Behaviour change: little evidence anyone *acted* on a gap (bought a supplement, changed a meal) because of the app, beyond Lotte's directional protein awareness.
+- That we beat free ChatGPT/Claude, which interviewees name as their substitute (Simone: „Google oder Claude ... funktioniert ähnlich ... flexibler im Scope").
+- A defensible *price level*: anchors cluster at ~3-5€/mo, well under the 8.99 assumption.
+
+What the beta now DOES show (rev. 4 upgrade): **behaviour change is real**, at least once —
+Sarah cooked the suggested salmon meal to close her gaps. Small n, but it moves
+"prescriptive value" from theory to a first data point.
 
 ## Multi-voice, low-risk builds (do these regardless of the bet)
 
-1. **Supplements in the profile** (auto-counted daily). Fixes "0% DHA trotz Tablette".
-   Voices: Isabella (detailed), Celine, Rebecca, Sarah, Julia. Accuracy → credibility,
-   and it directly lowers daily logging friction.
-2. **A visible expert face behind the recommendations.** Isabella asked for it unprompted
-   as a trust + adherence lever („dann halte ich mich daran") and a counter to "it's just
-   AI"; doubles as the answer to Patrizia's safety gate. Trust + retention + safety at once.
+1. **Supplements in the profile, with a daily check-in** (auto-counted, but per-day
+   confirmable). Fixes "0% DHA trotz Tablette". Voices: Isabella (detailed), Celine,
+   Rebecca, Sarah, Julia. CAUTION from Sarah's exit answer: a *static* profile entry is
+   double-edged and can backfire, she **stopped logging on days** because the app counted
+   her Folio as taken when she'd forgotten it on a weekend trip, and removing it per-day
+   was too fiddly, so "the whole day was wrong". So the build must include a lightweight
+   "did you take your supplement today?" prompt (day start/end) or a one-tap per-day toggle,
+   not just a set-and-forget profile field. Accuracy → credibility, and it lowers friction.
+2. **A visible expert face + curated content behind the recommendations.** Isabella asked
+   for it unprompted as a trust + adherence lever („dann halte ich mich daran") and a
+   counter to "it's just AI"; Simone wants **curated content / knowledge nuggets** on
+   pregnancy/lactation nutrition on top of tracking. Doubles as the answer to Patrizia's
+   safety gate. Trust + retention + safety + an educational hook, at once.
 3. **Cut logging friction further, voice-first.** The one retention lever with evidence.
    Now multi-voice: Nena (speak it), Eva (photo), Corina (photo-or-text). Sharpen the one
    daily loop (log → "what's missing today" → next-meal nudge).
@@ -239,8 +261,13 @@ The launch should target intent-rich acquisition and all metrics should segment 
 
 ## The open existential question
 
-> Does the prescriptive micronutrient value beat free ChatGPT clearly enough, at low
-> enough logging friction, that an intent-rich user stays and pays?
+> Does the prescriptive micronutrient value beat free ChatGPT/Claude clearly enough, at
+> low enough logging friction, that an intent-rich user stays and pays (at ~3-5€/mo)?
+
+Update from the exit round: we now have one user *acting* on the prescriptive value
+(Sarah's salmon) and escalating demand toward coach-adjusted meal planning (Simone) — so
+the prescriptive layer is the most promising answer to this question, and the Concierge
+test below is the way to prove or kill it.
 
 ## How we proceed (recommendation)
 
